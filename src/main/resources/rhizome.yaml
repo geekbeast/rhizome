@@ -1,0 +1,6 @@
+##
+# Rhizome Bootstrap Configuration
+##
+
+# Set to false to disable persistence 
+enable-persistence:  false
