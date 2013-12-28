@@ -1,0 +1,38 @@
+##
+# Container configuration
+# Used for embedded instances of jetty ( or tomcat ) running standalone or in an IDE
+##
+
+max-threads: 500
+
+context:
+    descriptor: src/main/webapp/WEB-INF/web.xml
+    resource-base: src/main/webapp
+    path: /rhizome
+    parent-loader-priority: true
+
+##
+# Endpoint Definitions
+##
+
+web-endpoint:
+    http-port: 8081
+    https-port: 8443
+    use-ssl: true
+    require-ssl: false
+    require-client-auth: false
+    want-client-auth: false
+
+##
+# Keystore and truststore configuration.
+##
+
+keymanager-password: rhizome
+
+keystore:
+    path: src/main/resources/security/rhizome.jks
+    password: rhizome
+
+truststore:
+    path: src/main/resources/security/rhizome.jks
+    password: rhizome
