@@ -14,7 +14,7 @@ import com.codahale.metrics.health.HealthCheck.Result;
 import com.codahale.metrics.health.HealthCheckRegistry;
 
 @Component
-@Path("health")
+@Path("")
 public class HealthCheckResource {
     private final HealthCheckRegistry healthCheckRegistry;
     

@@ -1,8 +1,6 @@
 package com.geekbeast.rhizome.core;
 
 import java.io.IOException;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -15,6 +13,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -23,11 +22,9 @@ import com.geekbeast.rhizome.configuration.containers.ContextConfiguration;
 import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
 
-public class JettyLoam extends Thread {
+public class JettyLoam implements Loam {
     private static final Logger logger = LoggerFactory.getLogger( JettyLoam.class );
-    private static final Semaphore startupLock = new Semaphore( 1 , true );
-    private static final AtomicInteger refCount = new AtomicInteger();
-    
+//    private static final Semaphore startupLock = new Semaphore( 1 , true );
     private final JettyConfiguration config;
     private final Server server;
     
@@ -123,30 +120,49 @@ public class JettyLoam extends Thread {
         
     }
     
-    @Override
-    public void run() {
-        /*
-         * Whatever thread that successfully acquires the lock increments the ref counter preventing other threads
-         * from attempting to start the jetty instance.  All other threads also block until Jetty is fully started.
-         */
-        try {
-            startupLock.acquireUninterruptibly();
-            if( refCount.getAndIncrement() == 0 ) {
-                server.start();
-            }
-        } catch (Exception e) {
-            logger.error("Failed to start embedded Jetty server." , e );
-        }
-        startupLock.release();
-    }
-    
-    public void stopServer() throws Exception  {
-        server.stop();
-        refCount.decrementAndGet();
-        
-    }
+//    @Override
+//    public void run() {
+//        /*
+//         * Whatever thread that successfully acquires the lock increments the ref counter preventing other threads
+//         * from attempting to start the jetty instance.  All other threads also block until Jetty is fully started.
+//         */
+//        try {
+//            startupLock.acquireUninterruptibly();
+//            if( refCount.getAndIncrement() == 0 ) {
+//                server.start();
+//            }
+//        } catch (Exception e) {
+//            logger.error("Failed to start embedded Jetty server." , e );
+//        } finally {
+//            startupLock.release();
+//        }
+//    }
+//    
+//    public void stopServer() throws Exception  {
+//        server.stop();
+//        refCount.decrementAndGet();
+//    }
     
     public Server getServer() {
         return server;
+    }
+
+    @Override
+    public synchronized void start() throws Exception {
+        if( !server.isRunning() ) { 
+            server.start();
+        }
+    }
+
+    @Override
+    public synchronized void stop() throws Exception {
+        if( server.isRunning() ) {
+            server.stop();
+        }
+    }
+
+    @Override
+    public synchronized void join() throws BeansException, InterruptedException {
+        server.join();
     }
 }

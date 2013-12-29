@@ -24,6 +24,9 @@ import com.hazelcast.core.HazelcastInstance;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
 
+/**
+ * @author Matthew Tamayo-Rios
+ */
 @Configuration
 @EnableMetrics
 public class MetricsPod implements MetricsConfigurer {
