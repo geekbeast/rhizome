@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.HazelcastSessionFilterConfiguration;
@@ -18,6 +19,7 @@ import com.hazelcast.core.ITopic;
 import com.hazelcast.web.WebFilter;
 
 @Configuration
+@ImportResource({"classpath:/rhizome-hazel.xml"}) 
 public class HazelcastPod {
     public static final Logger logger = LoggerFactory.getLogger( HazelcastPod.class );
     public static final String CONFIGURATIONS_MAP_NAME = "settings";
