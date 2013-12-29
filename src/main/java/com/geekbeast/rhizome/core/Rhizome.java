@@ -1,24 +1,53 @@
 package com.geekbeast.rhizome.core;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
-import org.springframework.web.WebApplicationInitializer;
+import org.springframework.beans.BeansException;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
-/**
- * @author Matthew Tamayo-Rios
- */
-public class RhizomeInitializer implements WebApplicationInitializer {
-    protected static final AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
+import com.geekbeast.rhizome.pods.AsyncPod;
+import com.geekbeast.rhizome.pods.ConfigurationPod;
+import com.geekbeast.rhizome.pods.HazelcastPod;
+import com.geekbeast.rhizome.pods.MetricsPod;
+import com.geekbeast.rhizome.pods.ServletContainerPod;
+
+public class Rhizome {
+    private static final AnnotationConfigWebApplicationContext rootContext = RhizomeWebApplicationInitializer.getContext();
     
-    public void register( Class<?> ... annotatedClasses ) { 
-        rootContext.register( annotatedClasses );
+    public Rhizome() {
+        initialize();
+    }
+    
+    public static void main( String[] args ) throws Exception {
+        Rhizome rhizome = new Rhizome();
+        rhizome.sprout();
+    }
+    
+    public <T> T harvest( Class<T> clazz ) {
+        return rootContext.getBean( clazz );
+    }
+    public void intercrop( Class<?> ... pods ) {
+        rootContext.register( pods );
+    }
+    
+    public void sprout() throws Exception {
+        rootContext.refresh();
+        rootContext.getBean( JettyLoam.class ).start();
+    }
+    
+    public void wilt() throws BeansException, Exception {
+        rootContext.getBean( JettyLoam.class ).stop();
+    }
+    
+    /**
+     * This method should be overridden if any of the built-in defaults are not desired. 
+     * To add additional configurations beyond the built in defaults, {@code plant(...)} 
+     * should be called to register @Configuration bootstrap beans. 
+     */
+    protected void initialize() {
+        rootContext.register( ConfigurationPod.class );
+        rootContext.register( MetricsPod.class );
+        rootContext.register( AsyncPod.class );
+        rootContext.register( HazelcastPod.class );
+        rootContext.register( ServletContainerPod.class );
     }
 
-    @Override
-    public void onStartup( ServletContext sc ) throws ServletException {
-        // TODO Auto-generated method stub
-        
-    }
 }

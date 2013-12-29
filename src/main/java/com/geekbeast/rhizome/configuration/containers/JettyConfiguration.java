@@ -24,8 +24,9 @@ public class JettyConfiguration implements Configuration {
     protected static final String TRUSTSTORE_CONFIGURATION_PROPERTY = "truststore";
     protected static final String WEB_ENDPOINT_CONFIGURATION_PROPERTY = "web-endpoint";
     protected static final String SERVICE_ENDPOINT_CONFIGURATION_PROPERTY = "service-endpoint";
-
-    protected static final int MAX_THREADS_DEFAULT = 500; 
+    protected static final String GZIP_CONFIGURATION_PROPERTY = "gzip";
+    protected static final int MAX_THREADS_DEFAULT = 500;
+    
     
     protected final Optional<String> keymanagerPassword;
     protected final int maxThreads;
@@ -34,6 +35,7 @@ public class JettyConfiguration implements Configuration {
     protected final Optional<ContextConfiguration> contextConfiguration;
     protected final Optional<KeystoreConfiguration> keystoreConfiguration;
     protected final Optional<KeystoreConfiguration> truststoreConfiguration;
+    protected final Optional<GzipConfiguration> gzipConfiguration;
 
     @JsonCreator
     public JettyConfiguration(
@@ -43,7 +45,8 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( KEYMANAGER_PASSWORD_PROPERTY ) Optional<String> keymanagerPassword ,
             @JsonProperty( CONTEXT_CONFIGURATION_PROPERTY ) Optional<ContextConfiguration> contextConfiguration ,
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration ,
-            @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration
+            @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration ,
+            @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration
             ) {
         
         this.webConnectorConfiguration =  webConnectorConfiguration;
@@ -55,6 +58,7 @@ public class JettyConfiguration implements Configuration {
         this.contextConfiguration = contextConfiguration;
         this.keystoreConfiguration = keystoreConfiguration;
         this.truststoreConfiguration = truststoreConfiguration;
+        this.gzipConfiguration = gzipConfiguration;
     }
     
     public static ConfigurationKey key() {
@@ -96,6 +100,11 @@ public class JettyConfiguration implements Configuration {
     @JsonProperty( SERVICE_ENDPOINT_CONFIGURATION_PROPERTY ) 
     public Optional<ConnectorConfiguration> getServiceConnectorConfiguration() {
         return serviceConnectorConfiguration;
+    }
+    
+    @JsonProperty( GZIP_CONFIGURATION_PROPERTY )
+    public Optional<GzipConfiguration> getGzipConfiguration() {
+        return gzipConfiguration;
     }
     
     @JsonProperty( MAX_THREADS_PROPERTY )

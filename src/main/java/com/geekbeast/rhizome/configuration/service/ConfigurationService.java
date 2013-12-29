@@ -27,5 +27,8 @@ public interface ConfigurationService {
      * Registers a subscriber that will receive updated configuration events at methods annotated with guava's {@code @Subscribe} annotation.
      * @param subscriber
      */
+//    public abstract <T extends Configuration> s<Configuration> getAllConfigurations();
+    
     public abstract void subscribe( Object subscriber );
+    
 }
