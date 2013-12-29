@@ -85,7 +85,7 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
             servletContext.addServlet( "jerseyServlet" , new ServletContainer( ) );
         jerseyDispatcher.setInitParameter( "javax.ws.rs.Application", RhizomeApplication.class.getName() );
         jerseyDispatcher.setLoadOnStartup(1);
-        jerseyDispatcher.addMapping("/health*");
+        jerseyDispatcher.addMapping("/health/*");
         
         /*
          * Atmosphere Servlet  
