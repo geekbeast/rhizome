@@ -14,7 +14,7 @@ public class ConfigurationServicesHealthCheck extends HealthCheck{
 
     @Override
     protected Result check() throws Exception {
-        if ( service != null && service.loadConfiguration( JettyConfiguration.class ) != null ) {
+        if ( service != null && service.getConfiguration( JettyConfiguration.class ) != null ) {
             return Result.healthy("Persistence service is function normally.");
         } else {
             return Result.unhealthy("Peristence service is failing.");
