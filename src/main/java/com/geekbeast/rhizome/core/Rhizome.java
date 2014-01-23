@@ -24,17 +24,22 @@ public class Rhizome {
     public <T> T harvest( Class<T> clazz ) {
         return rootContext.getBean( clazz );
     }
+    
     public void intercrop( Class<?> ... pods ) {
         rootContext.register( pods );
     }
     
     public void sprout() throws Exception {
         rootContext.refresh();
-        rootContext.getBean( JettyLoam.class ).start();
+        for( Loam loam : rootContext.getBeansOfType( Loam.class ).values() ) {
+            loam.start();
+        }
     }
     
     public void wilt() throws BeansException, Exception {
-        rootContext.getBean( JettyLoam.class ).stop();
+        for( Loam loam : rootContext.getBeansOfType( Loam.class ).values() ) {
+            loam.stop();
+        }
     }
     
     /**

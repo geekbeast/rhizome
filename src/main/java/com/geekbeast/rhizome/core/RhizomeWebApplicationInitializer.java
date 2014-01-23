@@ -46,8 +46,8 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
         RhizomeConfiguration configuration = rhizomeContext.getBean( RhizomeConfiguration.class );
         if( configuration.isSessionClusteringEnabled() ) {
             servletContext
-            .addFilter( HAZELCAST_SESSION_FILTER_NAME , rhizomeContext.getBean( WebFilter.class ) )
-            .addMappingForUrlPatterns(
+                .addFilter( HAZELCAST_SESSION_FILTER_NAME , rhizomeContext.getBean( WebFilter.class ) )
+                .addMappingForUrlPatterns(
                     Sets.newEnumSet( ImmutableSet.of( DispatcherType.FORWARD  , DispatcherType.REQUEST , DispatcherType.REQUEST ) , DispatcherType.class ) , 
                     false , 
                     "/*");
