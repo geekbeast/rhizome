@@ -3,18 +3,14 @@ package com.geekbeast.rhizome.configuration.service;
 import java.io.IOException;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
-import com.geekbeast.rhizome.utils.RhizomeUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.AsyncEventBus;
@@ -23,23 +19,26 @@ import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
-@Service
 public class RhizomeConfigurationService extends AbstractYamlConfigurationService implements MessageListener<Configuration>  {
     private static final Logger logger = LoggerFactory.getLogger( RhizomeConfigurationService.class );
     
-    @Resource(name="configurations")
-    protected IMap<ConfigurationKey, String> configurations;
+    protected final IMap<ConfigurationKey, String> configurations;
     protected final ITopic<Configuration> configurationsTopic;
     
-    @Autowired
-    public RhizomeConfigurationService( ITopic<Configuration> configurationsTopic , AsyncEventBus configurationEvents ) {
-        super( configurationEvents );
+    public RhizomeConfigurationService(
+            IMap<ConfigurationKey, String> configurations,
+            ITopic<Configuration> configurationsTopic , 
+            AsyncEventBus configurationUpdates ) {
+        super( configurationUpdates );
         this.configurationsTopic = configurationsTopic;
+        this.configurations = Preconditions.checkNotNull( configurations, "Configurations map cannot be null." );
+        configurationsTopic.addMessageListener( this );
     }
     
-    public <T extends Configuration> T getConfiguration( Class<T> clazz ) {
-        ConfigurationKey key = getConfigurationKey( clazz );
+    public @Nullable <T extends Configuration> T getConfiguration( Class<T> clazz ) {
+        ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
         
+        //If we end up with a null key log an error 
         if( key == null ) {
             logger.error("Unable to load key for configuration class {}" , clazz.getName() );
             return null;
@@ -71,7 +70,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
          */
         
         if( s == null ) {
-            s = loadConfigurationFromResource( key, clazz );
+            s = ConfigurationService.StaticLoader.loadConfigurationFromResource( key , clazz );
         } else { 
             return s;
         }
@@ -100,25 +99,25 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
    
     @Override
     public void onMessage(Message<Configuration> message) {
+        /*
+         * This is a light weight operation, that hands off to the async event bus thread pool.
+         * It will trigger a post that asynchronously notifies all subscribers that the configuration
+         * has been updated. It will not trigger a re-persist of information.
+         */
         if ( message.getMessageObject() != null ) {
             logger.debug("Updating Configuration {}" , message.getMessageObject().getKey().getId() );
-            super.setConfiguration( message.getMessageObject() );
+            post( message.getMessageObject() );
             logger.debug("Successfully updated Configuration {}" , message.getMessageObject().getKey().getId() );
         }
     } 
     
     @Override
     protected @Nullable String fetchConfiguration(ConfigurationKey key) {
-        if( configurations != null ) {
-            return Strings.emptyToNull( Preconditions.checkNotNull( configurations.get( key ) ) );
-        } else {
-            return RhizomeUtils.loadResourceToString( key.getId() );
-        }
+        return Strings.emptyToNull( configurations.get( key ) );
     }
 
     @Override
     protected void persistConfiguration(ConfigurationKey key , String configurationYaml) {
-        Preconditions.checkNotNull( configurations , "Configuration map is null, cannot persist configurations." )
-            .put( key , configurationYaml );
+        configurations.put( key , configurationYaml );
     }
 }
