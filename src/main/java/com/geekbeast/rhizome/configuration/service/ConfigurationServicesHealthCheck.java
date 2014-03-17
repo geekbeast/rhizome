@@ -10,7 +10,7 @@ import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
 @Component
 public class ConfigurationServicesHealthCheck extends HealthCheck{
     @Inject
-    private RhizomeConfigurationService service;
+    private ConfigurationService service;
 
     //TODO: Use a configuration that isn't always statically available.
     @Override
