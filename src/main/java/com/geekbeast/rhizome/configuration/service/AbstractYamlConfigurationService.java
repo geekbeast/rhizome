@@ -40,19 +40,9 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
 
     @Override
     public <T extends Configuration> Configuration getConfiguration( Class<T> clazz ) throws IOException {
-        ConfigurationKey key = null;
-        
-        try {
-            Method keyGetter = clazz.getMethod( "key" );
-            key = (ConfigurationKey) keyGetter.invoke( null );      
-        } catch( MethodNotFoundException nfe ) { 
-            logger.error( clazz.getName() + " is missing required static method key()." , nfe );
-            return null;
-        } catch ( Exception e ) {
-          logger.error("Unable to determine configuration id for class " + clazz.getName() , e );
-          return null;
-        }
-        
+        Preconditions.checkNotNull( clazz , "Requested configuration class cannot be null." );
+        ConfigurationKey key = getConfigurationKey( clazz );
+                
         if( key==null || StringUtils.isBlank( key.getId() ) ) {
             throw new InvalidParameterException( "Configuration id for class " + clazz.getName() + " cannot be blank or null" );
         }
@@ -123,9 +113,12 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
                 throw new InvalidParameterException( clazz.getName() + " is missing required static method key()." );
             }
             return (ConfigurationKey) keyGetter.invoke( null );
-        } catch ( Exception e ) {
-            LOGGER.error("Unable to extract configuration key for class " + clazz.getName() , e );
+        } catch( MethodNotFoundException nfe ) { 
+            LOGGER.error( clazz.getName() + " is missing required static method key()." , nfe );
             return null;
+        } catch ( Exception e ) {
+          LOGGER.error("Unable to determine configuration id for class " + clazz.getName() , e );
+          return null;
         }
     }
     

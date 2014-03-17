@@ -1,4 +1,4 @@
-package com.geekbeast.rhizome.configuration;
+package com.geekbeast.rhizome.configuration.hazelcast;
 
 import org.apache.commons.lang3.StringUtils;
 
