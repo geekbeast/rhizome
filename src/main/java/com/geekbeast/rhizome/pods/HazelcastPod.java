@@ -13,6 +13,9 @@ import org.springframework.context.annotation.ImportResource;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
+import com.geekbeast.rhizome.configuration.service.ConfigurationService;
+import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.google.common.eventbus.AsyncEventBus;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
@@ -37,6 +40,9 @@ public class HazelcastPod {
     @Inject 
     private RhizomeConfiguration configuration;
     
+    @Inject
+    private AsyncEventBus configurationUpdates;
+    
     @Bean
     public IMap<ConfigurationKey, String> configurations() {
         return hazelcastInstance.getMap( CONFIGURATIONS_MAP_NAME );
@@ -48,8 +54,17 @@ public class HazelcastPod {
     }
 
     @Bean 
-    public ITopic<Configuration> configTopic() {
+    public ITopic<com.geekbeast.rhizome.configuration.Configuration> configTopic() {
         return hazelcastInstance.getTopic( CONFIGURATION_UPDATE_TOPIC );
+    }
+    
+    @Bean
+    public ConfigurationService configurationService() {
+        return new RhizomeConfigurationService(
+                configurations(), 
+                configTopic(), 
+                configurationUpdates
+                );
     }
 
     @Bean 

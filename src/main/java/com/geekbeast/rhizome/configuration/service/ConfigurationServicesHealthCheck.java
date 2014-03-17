@@ -12,6 +12,7 @@ public class ConfigurationServicesHealthCheck extends HealthCheck{
     @Inject
     private RhizomeConfigurationService service;
 
+    //TODO: Use a configuration that isn't always statically available.
     @Override
     protected Result check() throws Exception {
         if ( service != null && service.getConfiguration( JettyConfiguration.class ) != null ) {
