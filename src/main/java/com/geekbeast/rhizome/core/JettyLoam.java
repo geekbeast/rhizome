@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.geekbeast.rhizome.configuration.containers.ConnectorConfiguration;
 import com.geekbeast.rhizome.configuration.containers.ContextConfiguration;
 import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
-import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {
     private static final Logger logger = LoggerFactory.getLogger( JettyLoam.class );
@@ -29,7 +29,7 @@ public class JettyLoam implements Loam {
     private final Server server;
     
     protected JettyLoam() throws InterruptedException, JsonParseException, JsonMappingException, IOException {
-        this( RhizomeConfigurationService.loadConfiguration( JettyConfiguration.class ) );
+        this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
     
     public <T extends JettyConfiguration> JettyLoam( T config ) {
@@ -65,7 +65,7 @@ public class JettyLoam implements Loam {
     }
 
     public JettyLoam( Class<? extends JettyConfiguration> clazz ) {
-         this( RhizomeConfigurationService.loadConfiguration( clazz ) );
+         this( ConfigurationService.StaticLoader.loadConfiguration( clazz ) );
     }
 
     public static void main(String[] args) throws Exception {
@@ -119,29 +119,6 @@ public class JettyLoam implements Loam {
     void initializeSslContextFactory() {
         
     }
-    
-//    @Override
-//    public void run() {
-//        /*
-//         * Whatever thread that successfully acquires the lock increments the ref counter preventing other threads
-//         * from attempting to start the jetty instance.  All other threads also block until Jetty is fully started.
-//         */
-//        try {
-//            startupLock.acquireUninterruptibly();
-//            if( refCount.getAndIncrement() == 0 ) {
-//                server.start();
-//            }
-//        } catch (Exception e) {
-//            logger.error("Failed to start embedded Jetty server." , e );
-//        } finally {
-//            startupLock.release();
-//        }
-//    }
-//    
-//    public void stopServer() throws Exception  {
-//        server.stop();
-//        refCount.decrementAndGet();
-//    }
     
     public Server getServer() {
         return server;

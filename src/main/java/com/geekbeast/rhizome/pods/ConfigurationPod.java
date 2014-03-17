@@ -7,7 +7,7 @@ import org.springframework.context.annotation.FilterType;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
-import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 /**
  * The configuration pod is responsible for bootstrapping the initial environment.
@@ -39,11 +39,11 @@ public class ConfigurationPod {
     
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
-        return RhizomeConfigurationService.loadConfiguration( RhizomeConfiguration.class );
+        return ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class );
     }
     
     @Bean 
     public JettyConfiguration jettyConfiguration() {
-        return RhizomeConfigurationService.loadConfiguration( JettyConfiguration.class );
+        return ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class );
     }
 }
