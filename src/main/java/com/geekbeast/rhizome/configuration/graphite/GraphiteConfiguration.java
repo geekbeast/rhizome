@@ -1,4 +1,4 @@
-package com.geekbeast.rhizome.configuration;
+package com.geekbeast.rhizome.configuration.graphite;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

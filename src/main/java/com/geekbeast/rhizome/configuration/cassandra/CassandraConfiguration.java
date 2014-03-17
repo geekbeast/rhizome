@@ -1,4 +1,4 @@
-package com.geekbeast.rhizome.configuration;
+package com.geekbeast.rhizome.configuration.cassandra;
 
 import java.util.List;
 

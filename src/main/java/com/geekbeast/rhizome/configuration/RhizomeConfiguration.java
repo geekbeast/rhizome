@@ -6,6 +6,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.geekbeast.rhizome.configuration.graphite.GraphiteConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.google.common.base.Optional;
 
 /**
