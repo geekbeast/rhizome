@@ -216,7 +216,7 @@ ext {
     localUrl = "file:/${project.projectDir}/artifacts"
 }
 
-repoUrl = snapshotUrl
+ext.repoUrl = snapshotUrl
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
@@ -269,10 +269,10 @@ publishing {
                 classifier = 'README'
                 extension  = 'md'
             }
-           
-        }
-        mavenCustom(MavenPublication){
-            version '0.1.0-SNAPSHOT'
+
+            artifact javadocJar
+            artifact sourceJar
+
             pom.withXml {
                 asNode().children().last() + {
                     resolveStrategy = Closure.DELEGATE_FIRST
@@ -303,12 +303,3 @@ publishing {
         }
     }
 }
-
-/*
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-        }
-    }
-}*/
