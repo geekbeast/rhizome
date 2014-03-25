@@ -250,6 +250,14 @@ artifacts {
     archives sourceJar
 }
 
+if( !project.hasProperty( 'user' ) ) {
+    project.user = ''
+}
+
+if( !project.hasProperty( 'password') ) {
+    project.password = ''
+}
+
 publishing {
     repositories {
         maven { 
