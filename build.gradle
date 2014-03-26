@@ -92,6 +92,7 @@ dependencies {
      * TODO: Integrate Ryan's Spring integration 
      */
     compile 'com.codahale.metrics:metrics-core:3.0.2'
+    compile 'com.codahale.metrics:metrics-servlets:3.0.2'
     compile 'com.codahale.metrics:metrics-graphite:3.0.2'
     compile 'com.ryantenney.metrics:metrics-spring:3.0.0-RC4'
 

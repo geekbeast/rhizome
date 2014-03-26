@@ -86,6 +86,7 @@ public class MetricsPod implements MetricsConfigurer {
         return new MetricRegistry();
     }
     
+    //TODO: Configure global aggregation for graphite
     @Bean 
     public Graphite globalGraphite() {
         if( config.getGraphiteConfiguration().isPresent() ) {
