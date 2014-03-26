@@ -24,7 +24,6 @@ import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {
     private static final Logger logger = LoggerFactory.getLogger( JettyLoam.class );
-//    private static final Semaphore startupLock = new Semaphore( 1 , true );
     private final JettyConfiguration config;
     private final Server server;
     

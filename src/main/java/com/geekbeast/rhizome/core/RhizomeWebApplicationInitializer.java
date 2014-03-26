@@ -14,6 +14,11 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.servlets.AdminServlet;
+import com.codahale.metrics.servlets.HealthCheckServlet;
+import com.codahale.metrics.servlets.MetricsServlet;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.containers.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
@@ -64,6 +69,20 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
         servletContext.setInitParameter( CONTEXT_CONFIG_LOCATION_PARAMETER_NAME , "" );
         servletContext.addListener( new ContextLoaderListener( rhizomeContext ) );
         servletContext.addListener( new RequestContextListener() );
+        
+        servletContext.setAttribute( HealthCheckServlet.HEALTH_CHECK_REGISTRY , rhizomeContext.getBean( "healthCheckRegistry" , HealthCheckRegistry.class ) );
+        servletContext.setAttribute( MetricsServlet.METRICS_REGISTRY , rhizomeContext.getBean( "serverMetricRegistry" , MetricRegistry.class ) );
+        
+        /*
+         * 
+         */
+        
+        ServletRegistration.Dynamic metricsServlet = servletContext.addServlet( "metrics" , AdminServlet.class );
+        metricsServlet.setLoadOnStartup( 1 );
+        metricsServlet.addMapping("/codahale/*");
+        metricsServlet.setInitParameter("show-jvm-metrics", "true" );
+        
+        
         
         /* 
          * Spring MVC Servlet
