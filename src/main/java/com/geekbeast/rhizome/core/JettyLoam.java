@@ -17,9 +17,9 @@ import org.springframework.beans.BeansException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.geekbeast.rhizome.configuration.containers.ConnectorConfiguration;
-import com.geekbeast.rhizome.configuration.containers.ContextConfiguration;
-import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.ConnectorConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {

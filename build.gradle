@@ -13,7 +13,7 @@ group = "com.geekbeast"
 version = getVersionName()
 
 apply plugin: "maven-publish"
-//apply plugin: "application"
+apply plugin: "application"
 apply plugin: "java"
 apply plugin: "maven"
 apply plugin: "eclipse"
@@ -23,7 +23,7 @@ apply plugin: "war"
 //apply from: "publish.gradle"
 apply plugin: "signing"
 
-//mainClassName = ""
+mainClassName = "com.geekbeast.rhizome.core.Rhizome"
 
 ext.sourceCompatibility=JavaVersion.VERSION_1_7
 ext.targetCompatibility=JavaVersion.VERSION_1_7
@@ -94,7 +94,7 @@ dependencies {
     compile 'com.codahale.metrics:metrics-core:3.0.2'
     compile 'com.codahale.metrics:metrics-servlets:3.0.2'
     compile 'com.codahale.metrics:metrics-graphite:3.0.2'
-    compile 'com.ryantenney.metrics:metrics-spring:3.0.0-RC4'
+    compile 'com.ryantenney.metrics:metrics-spring:3.0.0'
 
     /*
      * GUAVA 
@@ -162,10 +162,10 @@ dependencies {
      * HAZELCAST - DISTRIBUTED DATA GRID
      * Transparent http clustering, distributed java.util collections
      */
-    compile 'com.hazelcast:hazelcast:3.2'
-    compile 'com.hazelcast:hazelcast-client:3.2'
-    compile 'com.hazelcast:hazelcast-wm:3.2'
-    compile 'com.hazelcast:hazelcast-spring:3.2'
+    compile "com.hazelcast:hazelcast:${hazelcast_version}"
+    compile "com.hazelcast:hazelcast-client:${hazelcast_version}"
+    compile "com.hazelcast:hazelcast-wm:${hazelcast_version}"
+    compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
 
     /*
      * EMBEDDED JETTY FOR LOCAL TESTING

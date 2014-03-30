@@ -5,7 +5,7 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 
 @Component
 public class ConfigurationServicesHealthCheck extends HealthCheck{

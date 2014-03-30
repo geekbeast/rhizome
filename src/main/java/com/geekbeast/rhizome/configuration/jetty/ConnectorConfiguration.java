@@ -1,4 +1,4 @@
-package com.geekbeast.rhizome.configuration.containers;
+package com.geekbeast.rhizome.configuration.jetty;
 
 import java.util.Random;
 import com.fasterxml.jackson.annotation.JsonCreator;
