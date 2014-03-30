@@ -2,31 +2,48 @@ package com.geekbeast.rhizome.configuration;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DataSerializable;
 
+import jersey.repackaged.com.google.common.base.Preconditions;
+
 public class SimpleConfigurationKey implements ConfigurationKey, DataSerializable {
-    private static final long serialVersionUID = 8353566116673080764L;
-    private String id; 
+    private String uri; 
+    
+    public SimpleConfigurationKey() {
+        uri = null;
+    }
     
     @JsonCreator
-    public SimpleConfigurationKey( String id ) {
-        this.id = id;
+    public SimpleConfigurationKey( String uri ) {
+        initialize( uri );
     }
     
     @Override
-    public String getId() {
-        return id;
+    public String getUri() {
+        return uri;
     }
+    
     @Override
     public void readData(ObjectDataInput in) throws IOException {
-        this.id = in.readUTF();
+        this.uri = in.readUTF();
     }
     @Override
     public void writeData(ObjectDataOutput out) throws IOException {
-        out.writeUTF( id );
+        out.writeUTF( uri );
     }
-
+    
+    public void initialize( String uri ) {
+        Preconditions.checkArgument( StringUtils.isNotBlank( uri ) , "Configuration key uri cannot be blank." );
+        Preconditions.checkState( this.uri == null , "Configuration key has already been initialized.");
+        this.uri = uri;
+    }
+    
+    public static ConfigurationKey fromUri( String uri ) {
+        return new SimpleConfigurationKey( uri );
+    }
 }

@@ -6,6 +6,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.WebApplicationInitializer;
@@ -20,8 +21,8 @@ import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
-import com.geekbeast.rhizome.configuration.containers.GzipConfiguration;
-import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.pods.SpringDispatcherServletPod;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -79,7 +80,7 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
         
         ServletRegistration.Dynamic metricsServlet = servletContext.addServlet( "metrics" , AdminServlet.class );
         metricsServlet.setLoadOnStartup( 1 );
-        metricsServlet.addMapping("/codahale/*");
+        metricsServlet.addMapping("/metrics/*");
         metricsServlet.setInitParameter("show-jvm-metrics", "true" );
         
         
@@ -101,7 +102,7 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
          */
         
         ServletRegistration.Dynamic jerseyDispatcher = 
-            servletContext.addServlet( "jerseyServlet" , new ServletContainer( ) );
+            servletContext.addServlet( "defaultJerseyServlet" , new ServletContainer( ) );
         jerseyDispatcher.setInitParameter( "javax.ws.rs.Application", RhizomeApplication.class.getName() );
         jerseyDispatcher.setLoadOnStartup(1);
         jerseyDispatcher.addMapping("/health/*");
@@ -110,6 +111,14 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
          * Atmosphere Servlet  
          */
         
+        //TODO: Add support for atmosphere servlet.
+        
+        /*
+         * Default Servlet
+         */
+        ServletRegistration.Dynamic defaultServlet = servletContext.addServlet( "default" , new DefaultServlet() );
+        defaultServlet.addMapping( new String[]{ "/*" } );
+        defaultServlet.setLoadOnStartup(1);
     }
     
     public static AnnotationConfigWebApplicationContext getContext() { 
