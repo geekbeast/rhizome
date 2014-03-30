@@ -58,7 +58,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
                 try {
                     s = mapper.readValue( str , clazz );
                 } catch (IOException e) {
-                    logger.error("Failed to read Configuration " + key.getId() , e );
+                    logger.error("Failed to read Configuration " + key.getUri() , e );
                 }
             }
         }
@@ -83,7 +83,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
             try {
                 configurations.put( key , mapper.writeValueAsString( s ) );
             } catch (JsonProcessingException e) {
-                logger.error("Unable to marshal value from disk " + key.getId() , e );
+                logger.error("Unable to marshal value from disk " + key.getUri() , e );
             }
         }
         
@@ -105,9 +105,9 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
          * has been updated. It will not trigger a re-persist of information.
          */
         if ( message.getMessageObject() != null ) {
-            logger.debug("Updating Configuration {}" , message.getMessageObject().getKey().getId() );
+            logger.debug("Updating Configuration {}" , message.getMessageObject().getKey().getUri() );
             post( message.getMessageObject() );
-            logger.debug("Successfully updated Configuration {}" , message.getMessageObject().getKey().getId() );
+            logger.debug("Successfully updated Configuration {}" , message.getMessageObject().getKey().getUri() );
         }
     } 
     

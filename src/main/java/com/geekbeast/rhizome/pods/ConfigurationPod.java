@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
-import com.geekbeast.rhizome.configuration.containers.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 /**

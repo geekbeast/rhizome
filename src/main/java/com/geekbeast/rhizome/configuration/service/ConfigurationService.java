@@ -90,9 +90,9 @@ public interface ConfigurationService {
             T s = null;
             
             try {   
-                s = mapper.readValue( RhizomeUtils.loadResourceToString( key.getId() ) , clazz );
+                s = mapper.readValue( RhizomeUtils.loadResourceToString( key.getUri() ) , clazz );
             } catch (IOException e) {
-                logger.error("Failed to load default configuration for " + key.getId() , e );
+                logger.error("Failed to load default configuration for " + key.getUri() , e );
             }
 
             return s;
