@@ -1,5 +1,8 @@
 package com.geekbeast.rhizome.core;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
@@ -23,6 +26,7 @@ import com.codahale.metrics.servlets.MetricsServlet;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.geekbeast.rhizome.pods.SpringDispatcherServletPod;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -71,6 +75,7 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
         servletContext.addListener( new ContextLoaderListener( rhizomeContext ) );
         servletContext.addListener( new RequestContextListener() );
         
+        //Register the health check registry.
         servletContext.setAttribute( HealthCheckServlet.HEALTH_CHECK_REGISTRY , rhizomeContext.getBean( "healthCheckRegistry" , HealthCheckRegistry.class ) );
         servletContext.setAttribute( MetricsServlet.METRICS_REGISTRY , rhizomeContext.getBean( "serverMetricRegistry" , MetricRegistry.class ) );
         
@@ -78,15 +83,14 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
          * 
          */
         
-        ServletRegistration.Dynamic metricsServlet = servletContext.addServlet( "metrics" , AdminServlet.class );
-        metricsServlet.setLoadOnStartup( 1 );
-        metricsServlet.addMapping("/metrics/*");
-        metricsServlet.setInitParameter("show-jvm-metrics", "true" );
-        
+        ServletRegistration.Dynamic adminServlet = servletContext.addServlet( "admin" , AdminServlet.class );
+        adminServlet.setLoadOnStartup( 1 );
+        adminServlet.addMapping("/admin/*");
+        adminServlet.setInitParameter("show-jvm-metrics", "true" );
         
         
         /* 
-         * Spring MVC Servlet
+         * Spring MVC Servlets
          */
         
         AnnotationConfigWebApplicationContext metricServletContext = new AnnotationConfigWebApplicationContext();
@@ -125,4 +129,10 @@ public class RhizomeWebApplicationInitializer implements WebApplicationInitializ
         return rhizomeContext;
     }
     
+    private void registerDispatcherServlets( ServletContext servletContext ) {
+        Map<String,DispatcherServletConfiguration> dispatcherServletsConfigs = rhizomeContext.getBeansOfType( DispatcherServletConfiguration.class );
+        for( Entry<String, DispatcherServletConfiguration> configPair : dispatcherServletsConfigs.entrySet() ) {
+            
+        }
+    }
 }
