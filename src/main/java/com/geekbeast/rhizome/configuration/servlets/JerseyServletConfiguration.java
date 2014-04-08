@@ -1,34 +1,30 @@
 package com.geekbeast.rhizome.configuration.servlets;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.geekbeast.rhizome.configuration.Configuration;
-import com.geekbeast.rhizome.configuration.ConfigurationKey;
-import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
+import com.google.common.base.Optional;
 
-public class JerseyServletsConfiguration implements Configuration {
-    private static final long serialVersionUID = 5147810292165300316L;
+public class JerseyServletConfiguration {
     private static final String SERVLET_NAME_PROPERTY = "servlet-name";
     private static final String APPLICATION_CLASS_PROPERTY = "application-class";
-    private static final String MAPPINGS_PROPETY = "mappings";
-    
-    protected static final ConfigurationKey key = SimpleConfigurationKey.fromUri( "jersey-servlets.yaml" );
+    private static final String MAPPINGS_PROPERTY = "mappings";
+    private static final String LOAD_ON_STARTUP_PROPERTY = "load-on-startp";
     
     private final String servletName;
     private final String applicationClass;
     private final String[] mappings;
-
-
-
-    public JerseyServletsConfiguration(
+    private final Optional<Integer> loadOnStartup;
+    
+    public JerseyServletConfiguration(
             @JsonProperty( SERVLET_NAME_PROPERTY ) String servletName,
             @JsonProperty( APPLICATION_CLASS_PROPERTY ) String applicationClass,
-            @JsonProperty( MAPPINGS_PROPETY ) String[] mappings
+            @JsonProperty( MAPPINGS_PROPERTY ) String[] mappings,
+            @JsonProperty( LOAD_ON_STARTUP_PROPERTY ) Optional<Integer> loadOnStartup
             ) {
         
         this.servletName = servletName;
         this.applicationClass = applicationClass;
         this.mappings = mappings;
+        this.loadOnStartup = loadOnStartup;
     }
     
     @JsonProperty( SERVLET_NAME_PROPERTY ) 
@@ -41,18 +37,13 @@ public class JerseyServletsConfiguration implements Configuration {
         return applicationClass;
     }
 
-    @JsonProperty( MAPPINGS_PROPETY )
+    @JsonProperty( MAPPINGS_PROPERTY )
     public String[] getMappings() {
         return mappings;
     }
-        
-    @Override
-    @JsonIgnore
-    public ConfigurationKey getKey() {
-        return key();
+    
+    @JsonProperty( LOAD_ON_STARTUP_PROPERTY ) 
+    public Optional<Integer> getLoadOnStartup() {
+        return loadOnStartup;
     }
-
-    public static final ConfigurationKey key() {
-        return key;
-    }    
 }
