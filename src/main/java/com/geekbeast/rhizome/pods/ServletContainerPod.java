@@ -1,5 +1,7 @@
 package com.geekbeast.rhizome.pods;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 
 import org.springframework.context.annotation.Bean;
@@ -15,7 +17,7 @@ public class ServletContainerPod {
     private JettyConfiguration jettyConfiguration;
     
     @Bean
-    public Loam jettyServer() { 
+    public Loam jettyServer() throws IOException { 
         return new JettyLoam( jettyConfiguration );
     }
     
