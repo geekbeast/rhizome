@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 import javax.el.MethodNotFoundException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public interface ConfigurationService {
      * @return The configuration if it can be found, null otherwise.
      * @throws IOException
      */
-    public abstract @Nullable <T extends Configuration> Configuration getConfiguration( Class<T> clazz ) throws IOException;
+    public abstract @Nullable <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException;
     /**
      * Creates or updates a configuration and fires a configuration update event to all subscribers.
      * @param configuration The configuration to be updated or created
@@ -90,7 +91,11 @@ public interface ConfigurationService {
             T s = null;
             
             try {   
-                s = mapper.readValue( RhizomeUtils.loadResourceToString( key.getUri() ) , clazz );
+                String yamlString = RhizomeUtils.loadResourceToString( key.getUri() );
+                if( StringUtils.isBlank( yamlString ) ) {
+                    throw new IOException( "Unable to read configuration from classpath." );
+                }
+                s = mapper.readValue( yamlString , clazz );
             } catch (IOException e) {
                 logger.error("Failed to load default configuration for " + key.getUri() , e );
             }

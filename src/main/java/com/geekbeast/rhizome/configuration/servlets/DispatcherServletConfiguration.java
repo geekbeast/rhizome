@@ -1,39 +1,57 @@
 package com.geekbeast.rhizome.configuration.servlets;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import jersey.repackaged.com.google.common.base.Preconditions;
+import jersey.repackaged.com.google.common.collect.Lists;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Optional;
 
 public class DispatcherServletConfiguration {
-    private static final String SERVLET_NAME_PROPERTY = "servlet-name";
-    private static final String SERVLET_MAPPINGS_PROPERTY = "mappings";
-    private static final String LOAD_ON_STARTUP_PROPERTY = "load-on-startp";
-    
     private final String servletName;
     private final String[] mappings;
     private final Optional<Integer> loadOnStartup;
+    private final List<Class<?>> pods = Lists.newArrayList();
     
     public DispatcherServletConfiguration(
-           @JsonProperty( SERVLET_NAME_PROPERTY ) String servletName,
-           @JsonProperty( SERVLET_MAPPINGS_PROPERTY ) String[] mappings,
-           @JsonProperty( LOAD_ON_STARTUP_PROPERTY ) Optional<Integer> loadOnStartup
+           String servletName,
+           String[] mappings,
+           @Nullable Integer loadOnStartup,
+           List<Class<?>> pods
             ) {
+        Preconditions.checkArgument( StringUtils.isNotBlank( servletName ) , "Servlet name cannot be blank." );
+        Preconditions.checkNotNull( mappings , "Mappings cannot be null" );
+        Preconditions.checkArgument( mappings.length > 0 , "At least on url patterns must be provided for mapping" );
+        for( String mapping : mappings ) { 
+            Preconditions.checkArgument( StringUtils.isNotBlank( mapping ) , "Mappings cannot be blank." );
+        }
         this.servletName = servletName;
         this.mappings = mappings;
-        this.loadOnStartup = loadOnStartup;
+        this.loadOnStartup = Optional.fromNullable( loadOnStartup );
+        this.pods.addAll( Preconditions.checkNotNull( pods , "Pods cannot be null." ) );
     }
     
-    @JsonProperty( SERVLET_NAME_PROPERTY )
     public String getServletName() {
         return servletName;
     }
     
-    @JsonProperty( SERVLET_MAPPINGS_PROPERTY )
     public String[] getMappings() {
         return mappings;
     }
 
-    @JsonProperty( LOAD_ON_STARTUP_PROPERTY )
     public Optional<Integer> getLoadOnStartup() {
         return loadOnStartup;
+    }
+    
+    public List<Class<?>> getPods() {
+        return pods;
+    }
+    
+    public void intercrop( List<Class<?>> servletPods ) {
+        this.pods.addAll( servletPods );
     }
 }
