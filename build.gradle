@@ -236,13 +236,17 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
 ext."signing.keyId" = 'FDEB5A45'
 ext."signing.secretKeyRingFile" = '/Users/mtamayo/.gnupg/secring.gpg'
 ext."signing.password" = 'id'
-//(type : Sign, dependsOn: [jar, javadocJar, sourceJar]) 
-signing {
-    sign configurations.archives
-}
+ext.isReleaseBuild = false
 
-signing {
-    sign configurations.pom
+if (ext.isReleaseBuild) {
+	//(type : Sign, dependsOn: [jar, javadocJar, sourceJar]) 
+	signing {
+	    sign configurations.archives
+	}
+	
+	signing {
+	    sign configurations.pom
+	}
 }
 
 artifacts {
