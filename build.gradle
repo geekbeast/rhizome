@@ -40,8 +40,8 @@ repositories {
 
 }
 
-ext.spring_security_version='3.2.2.RELEASE'
-ext.spring_framework_version='3.2.8.RELEASE'
+ext.spring_security_version='3.2.4.RELEASE'
+ext.spring_framework_version='3.2.9.RELEASE'
 ext.jackson_version='2.3.0'
 ext.jetty_version='9.1.3.v20140225'
 ext.hazelcast_version='3.2'
@@ -234,7 +234,7 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
 }
 
 ext."signing.keyId" = 'FDEB5A45'
-ext."signing.secretKeyRingFile" = '/Users/mtamayorios/.gnupg/secring.gpg'
+ext."signing.secretKeyRingFile" = '/Users/mtamayo/.gnupg/secring.gpg'
 ext."signing.password" = 'id'
 //(type : Sign, dependsOn: [jar, javadocJar, sourceJar]) 
 signing {
