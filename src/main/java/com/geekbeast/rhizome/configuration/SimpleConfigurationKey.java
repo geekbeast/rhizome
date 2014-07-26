@@ -43,6 +43,11 @@ public class SimpleConfigurationKey implements ConfigurationKey, DataSerializabl
         this.uri = uri;
     }
     
+    @Override
+    public String toString() {
+        return "SimpleConfigurationKey [uri=" + uri + "]";
+    }
+
     public static ConfigurationKey fromUri( String uri ) {
         return new SimpleConfigurationKey( uri );
     }

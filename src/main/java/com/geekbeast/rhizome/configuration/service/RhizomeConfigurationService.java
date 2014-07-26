@@ -70,6 +70,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
          */
         
         if( s == null ) {
+            logger.debug("Configuration key {} value unavailable. Attempting to load from disk." , key);
             s = ConfigurationService.StaticLoader.loadConfigurationFromResource( key , clazz );
         } else { 
             return s;
@@ -91,9 +92,12 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
     }
     
     @Override
-    public <T extends Configuration> void setConfiguration( T Configuration ) {
-        if( configurationsTopic != null ) {
-            configurationsTopic.publish( Configuration );
+    public <T extends Configuration> void setConfiguration( T configuration ) {
+        try {
+            persistConfiguration( configuration.getKey() , mapper.writeValueAsString( configuration ) );
+            configurationsTopic.publish( configuration );
+        } catch (JsonProcessingException e) {
+            logger.error("Unable to set configuration {} = {}" , configuration.getKey() , configuration );
         }
     }
    

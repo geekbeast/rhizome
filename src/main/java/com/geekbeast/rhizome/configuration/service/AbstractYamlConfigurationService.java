@@ -35,7 +35,7 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
     }
 
     @Override
-    public <T extends Configuration> Configuration getConfiguration( Class<T> clazz ) throws IOException {
+    public <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException {
         Preconditions.checkNotNull( clazz , "Requested configuration class cannot be null." );
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
         Preconditions.checkState( 
@@ -56,10 +56,9 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
     public <T extends Configuration> void setConfiguration(T configuration) {
         try {
             persistConfiguration( configuration.getKey() , mapper.writeValueAsString( configuration ) );
+            post( configuration );
         } catch(IOException e ) {
             logger.error( "Failed to persist configuration {}",configuration);
-        } finally {
-            configurationEvents.post( configuration );
         }
     }
 

@@ -14,6 +14,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.core.io.ClassPathResource;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -31,21 +32,32 @@ public class JettyLoam implements Loam {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
     
-    public <T extends JettyConfiguration> JettyLoam( T config ) {
+    public <T extends JettyConfiguration> JettyLoam( T config ) throws IOException {
         this.config = config;
 
         WebAppContext context = new WebAppContext();
         if( config.getContextConfiguration().isPresent() ) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
-            context.setResourceBase( contextConfig.getResourceBase() );
+            try {
+                context.setExtraClasspath( new ClassPathResource( "com/geekbeast/rhizome/core" ).getURI().toString() );
+                context.setExtraClasspath( "com/geekbeast/rhizome/core/RhizomeWebApplicationInitializer" );
+            } catch (IOException e) {
+                logger.error( "Failed to create class path resource for resource base" , e );
+            }
             context.setContextPath( contextConfig.getPath() );
+            context.setResourceBase( "src/main/webapp" );
+            context.addBean( new Rhizome() );
             context.setParentLoaderPriority( contextConfig.isParentLoaderPriority() );
         }
+        
         /* 
-         * Work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176 
+         * Work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176
+         * 
+         * Probably need to report new bug as Jetty picks up the SpringContextInitializer, but cannot find
+         * Spring WebApplicationInitializer types, without the configuration hack.  
          */
         context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { new JettyAnnotationConfigurationHack() } );
-
+              
         //TODO: Make loaded servlet classes configurable
         context.addServlet(JspServlet.class, "*.jsp");
         
@@ -59,11 +71,10 @@ public class JettyLoam implements Loam {
             configureEndpoint( config.getServiceConnectorConfiguration().get() );
         }
         
-        
         server.setHandler(context);
     }
 
-    public JettyLoam( Class<? extends JettyConfiguration> clazz ) {
+    public JettyLoam( Class<? extends JettyConfiguration> clazz ) throws IOException {
          this( ConfigurationService.StaticLoader.loadConfiguration( clazz ) );
     }
 
@@ -73,7 +84,7 @@ public class JettyLoam implements Loam {
         server.join();
     }
     
-    protected void configureEndpoint( ConnectorConfiguration configuration ) {
+    protected void configureEndpoint( ConnectorConfiguration configuration ) throws IOException {
         HttpConfiguration http_config = new HttpConfiguration();
         
         if( !configuration.requireSSL() ) {
@@ -90,10 +101,10 @@ public class JettyLoam implements Loam {
             
             SslContextFactory contextFactory = new SslContextFactory();
             
-            contextFactory.setTrustStorePath( config.getTruststoreConfiguration().get().getStorePath() );
+            contextFactory.setTrustStorePath( getFromClasspath( config.getTruststoreConfiguration().get().getStorePath() ) );
             contextFactory.setTrustStorePassword( config.getTruststoreConfiguration().get().getStorePassword() );
 
-            contextFactory.setKeyStorePath( config.getKeystoreConfiguration().get().getStorePath() );
+            contextFactory.setKeyStorePath( getFromClasspath( config.getKeystoreConfiguration().get().getStorePath() ) );
             contextFactory.setKeyStorePassword( config.getKeystoreConfiguration().get().getStorePassword() );
             contextFactory.setKeyManagerPassword( config.getKeyManagerPassword().get() );
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
@@ -115,6 +126,9 @@ public class JettyLoam implements Loam {
         }
     }
     
+    private String getFromClasspath( String path ) throws IOException {
+        return new ClassPathResource( path ).getURL().toString();
+    }
     void initializeSslContextFactory() {
         
     }
