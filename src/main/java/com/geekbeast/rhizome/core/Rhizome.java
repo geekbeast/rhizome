@@ -156,13 +156,6 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
     
-    public static void main( String[] args ) throws Exception {
-        Rhizome rhizome = new Rhizome();
-        DispatcherServletConfiguration configuration = new DispatcherServletConfiguration( "app" , new String[] { "/api/*" } , 1 , Lists.<Class<?>>newArrayList( DefaultServletPod.class ) );
-        
-        rhizome.sprout();
-    }
-    
     public static AnnotationConfigWebApplicationContext getContext() { 
         return rhizomeContext;
     }
