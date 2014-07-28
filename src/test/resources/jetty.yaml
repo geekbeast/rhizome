@@ -7,7 +7,7 @@ max-threads: 500
 
 context:
     descriptor: src/main/webapp/WEB-INF/web.xml
-    resource-base: src/main/webapp
+    resource-base: com/geekbeast/rhizome/core
     path: /rhizome
     parent-loader-priority: true
 
@@ -30,9 +30,9 @@ web-endpoint:
 keymanager-password: rhizome
 
 keystore:
-    path: src/main/resources/security/rhizome.jks
+    path: security/rhizome.jks
     password: rhizome
 
 truststore:
-    path: src/main/resources/security/rhizome.jks
+    path: security/rhizome.jks
     password: rhizome

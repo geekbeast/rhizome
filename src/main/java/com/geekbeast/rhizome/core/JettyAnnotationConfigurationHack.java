@@ -48,7 +48,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
                     /*
                      * Add custom initializer as a work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176
                      */
-                    initializer.addApplicableTypeName(RhizomeWebApplicationInitializer.class.getCanonicalName());
+                    initializer.addApplicableTypeName(Rhizome.class.getCanonicalName());
                     //If we haven't already done so, we need to register a handler that will
                     //process the whole class hierarchy to satisfy the ServletContainerInitializer
                     if (context.getAttribute(CLASS_INHERITANCE_MAP) == null)
