@@ -11,6 +11,6 @@ import com.google.common.collect.Lists;
 public class DispatcherServletsPod {
     @Bean
     public DispatcherServletConfiguration restServlet() {
-        return new DispatcherServletConfiguration( "app" , new String[] { "/api/*" } , 1 , Lists.<Class<?>>newArrayList( RESTfulServletPod.class ) );
+        return new DispatcherServletConfiguration( "app" , new String[] { "/api/*" } , 1 , Lists.<Class<?>>newArrayList( RestfulServletPod.class ) );
     }
 }

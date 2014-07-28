@@ -23,7 +23,7 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
                 type = FilterType.ANNOTATION 
                 )
         )
-public class RESTfulServletPod extends WebMvcConfigurationSupport {
+public class RestfulServletPod extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters( List<HttpMessageConverter<?>> converters ) {
         super.addDefaultHttpMessageConverters( converters );
