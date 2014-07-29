@@ -5,7 +5,13 @@ def getVersionName = { ->
         commandLine 'git', 'describe', '--tags', '--dirty', '--long'
         standardOutput = stdout
     }
-    return stdout.toString().trim()
+    def tagVer = stdout.toString().trim()
+    def semVer = (tagVer =~ /v?([\d\.]+)/)[0][1]
+
+    if (tagVer.contains('dev')) {
+        semVer += "-SNAPSHOT"
+    }
+    return semVer
 }
 
 description = "Java Framework for building clustered RESTful web applications"
@@ -18,7 +24,7 @@ apply plugin: "java"
 apply plugin: "maven"
 apply plugin: "eclipse"
 apply plugin: "idea"
-apply plugin: "war"
+//apply plugin: "war"
 //apply from: "publish.gradle"
 apply plugin: "signing"
 
@@ -49,8 +55,8 @@ dependencies {
      * Servlet API 3.1 
      * 100% Java Servlet Container and Servlet Configuration
      */
-    providedCompile 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.1'
-    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+    compile 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.1'
+    compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile group: 'javax.servlet', name: 'jstl', version:'1.2'
 
     /*
@@ -173,11 +179,11 @@ dependencies {
      */ 
     
     compile "asm:asm:3.3.1"
-	providedCompile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
-    providedCompile "org.eclipse.jetty:jetty-jsp:${jetty_version}"
-    providedCompile "org.eclipse.jetty:jetty-spring:${jetty_version}"
-    providedCompile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
-    providedCompile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
+	compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
+    compile "org.eclipse.jetty:jetty-jsp:${jetty_version}"
+    compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
+    compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
+    compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
     /*
      * ATMOSPHERE 
      * Websocket / CometD support
@@ -276,12 +282,12 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             version '0.1.0-SNAPSHOT'
-            artifact ('README.md') {
+            /*artifact ('README.md') {
                 classifier = 'README'
                 extension  = 'md'
-            }
+            }*/
 
-            artifact javadocJar
+            //artifact javadocJar
             artifact sourceJar
 
             pom.withXml {
