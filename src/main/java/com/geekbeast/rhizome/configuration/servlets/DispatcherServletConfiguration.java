@@ -17,6 +17,7 @@ public class DispatcherServletConfiguration {
     private final Optional<Integer> loadOnStartup;
     private final List<Class<?>> pods = Lists.newArrayList();
     
+    // Rhizome calls registerDispatcherServlets to all DispatcherServletConfigurations that are @Beans inside a Pod registered to Rhizome 
     public DispatcherServletConfiguration(
            String servletName,
            String[] mappings,
