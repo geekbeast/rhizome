@@ -1,6 +1,5 @@
 package com.geekbeast.rhizome.core;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,9 +8,6 @@ import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
-
-import jersey.repackaged.com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.GzipFilter;
@@ -32,12 +28,13 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
+import com.geekbeast.rhizome.core.Loam;
+import com.geekbeast.rhizome.core.RhizomeApplication;
 import com.geekbeast.rhizome.pods.AsyncPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
 import com.geekbeast.rhizome.pods.HazelcastPod;
 import com.geekbeast.rhizome.pods.MetricsPod;
 import com.geekbeast.rhizome.pods.ServletContainerPod;
-import com.geekbeast.rhizome.tests.pods.DefaultServletPod;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -101,18 +98,6 @@ public class Rhizome implements WebApplicationInitializer {
         adminServlet.setLoadOnStartup( 1 );
         adminServlet.addMapping("/admin/*");
         adminServlet.setInitParameter("show-jvm-metrics", "true" );
-        
-        
-        /* 
-         * Spring MVC Servlets
-         */
-        
-        AnnotationConfigWebApplicationContext metricServletContext = new AnnotationConfigWebApplicationContext();
-        metricServletContext.setParent( rhizomeContext );
-        metricServletContext.register( DefaultServletPod.class );
-        ServletRegistration.Dynamic dispatcher = servletContext.addServlet( "metricServlet" , new DispatcherServlet( metricServletContext ) );
-        dispatcher.setLoadOnStartup(1);
-        dispatcher.addMapping( "/metrics/*" );
         
         /*
          * Jersey Servlet
