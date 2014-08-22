@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kryptnostic/rhizome.svg?branch=develop)](https://travis-ci.org/kryptnostic/rhizome)
+
 rhizome
 =======
 
