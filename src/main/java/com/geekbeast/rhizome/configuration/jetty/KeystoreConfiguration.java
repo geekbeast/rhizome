@@ -1,9 +1,8 @@
 package com.geekbeast.rhizome.configuration.jetty;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 public class KeystoreConfiguration {
@@ -15,14 +14,12 @@ public class KeystoreConfiguration {
     
     @JsonCreator
     public KeystoreConfiguration( 
-            @JsonProperty( PATH_PROPERTY ) String storePath ,
+            @JsonProperty( PATH_PROPERTY ) Optional<String> storePath ,
             @JsonProperty( PASSWORD_PROPERTY ) String storePassword 
             ) {
-        
-        Preconditions.checkArgument( StringUtils.isNotBlank( storePath ) , "Path to keystore cannot be blank.");
         Preconditions.checkNotNull( storePassword , "Keystore password cannot be null.");
         
-        this.storePath = storePath;
+        this.storePath = storePath.or( "" );
         this.storePassword = storePassword;
     }
 
@@ -32,7 +29,7 @@ public class KeystoreConfiguration {
     }
 
     @JsonProperty( PASSWORD_PROPERTY ) 
-    public String getStorePassword() {
+    public String getStorePassword() { 
         return storePassword;
     }
 }
