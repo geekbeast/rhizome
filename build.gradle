@@ -160,12 +160,6 @@ compile "log4j:log4j:1.2.17"
      compile 'org.glassfish.jersey.ext:jersey-spring3:2.11'
 
     /*
-     * Linear algebra including GF(2) matrices
-     * TODO: Move to a separate plugin / remove from core
-     */
-     compile 'colt:colt:1.2.0'
-
-    /*
      * Kryo serialization -- faster generic Java serialization
      */
      compile 'com.esotericsoftware.kryo:kryo:2.22'
