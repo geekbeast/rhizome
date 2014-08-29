@@ -20,6 +20,4 @@ public class ServletContainerPod {
     public Loam jettyServer() throws IOException { 
         return new JettyLoam( jettyConfiguration );
     }
-    
-    
 }
