@@ -24,7 +24,6 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String CASSANDRA_CONFIGURATION_PROPERTY = "cassandra";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast";
-    protected static final String JERSEY_SERVLETS_PROPERTY = "jersey-servlets";
     protected static final boolean PERSISTENCE_ENABLED_DEFAULT = true;
     protected static final boolean SESSION_CLUSTERING_ENABLED_DEFAULT = true;
     
@@ -34,7 +33,6 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration; 
     protected final Optional<GraphiteConfiguration> graphiteConfiguration;
     protected final Optional<CassandraConfiguration> cassandraConfiguration;
-    
 
     @JsonCreator
     public RhizomeConfiguration(
