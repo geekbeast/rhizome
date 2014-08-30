@@ -24,12 +24,14 @@ public class JettyConfiguration implements Configuration {
     protected static final String TRUSTSTORE_CONFIGURATION_PROPERTY = "truststore";
     protected static final String WEB_ENDPOINT_CONFIGURATION_PROPERTY = "web-endpoint";
     protected static final String SERVICE_ENDPOINT_CONFIGURATION_PROPERTY = "service-endpoint";
+    protected static final String SECURITY_ENABLE_PROPERTY = "security-enabled";
     protected static final String GZIP_CONFIGURATION_PROPERTY = "gzip";
     protected static final int MAX_THREADS_DEFAULT = 500;
     
     
     protected final Optional<String> keymanagerPassword;
     protected final int maxThreads;
+    protected final boolean securityEnabled;
     protected final Optional<ConnectorConfiguration> webConnectorConfiguration;
     protected final Optional<ConnectorConfiguration> serviceConnectorConfiguration;
     protected final Optional<ContextConfiguration> contextConfiguration;
@@ -46,7 +48,8 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( CONTEXT_CONFIGURATION_PROPERTY ) Optional<ContextConfiguration> contextConfiguration ,
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration ,
             @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration ,
-            @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration
+            @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration,
+            @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled 
             ) {
         
         this.webConnectorConfiguration =  webConnectorConfiguration;
@@ -59,6 +62,7 @@ public class JettyConfiguration implements Configuration {
         this.keystoreConfiguration = keystoreConfiguration;
         this.truststoreConfiguration = truststoreConfiguration;
         this.gzipConfiguration = gzipConfiguration;
+        this.securityEnabled = securityEnabled.or( false );
     }
     
     public static ConfigurationKey key() {
@@ -105,6 +109,11 @@ public class JettyConfiguration implements Configuration {
     @JsonProperty( GZIP_CONFIGURATION_PROPERTY )
     public Optional<GzipConfiguration> getGzipConfiguration() {
         return gzipConfiguration;
+    }
+    
+    @JsonProperty( SECURITY_ENABLE_PROPERTY ) 
+    public boolean isSecurityEnabled() {
+        return securityEnabled;
     }
     
     @JsonProperty( MAX_THREADS_PROPERTY )

@@ -38,15 +38,8 @@ public class JettyLoam implements Loam {
         WebAppContext context = new WebAppContext();
         if( config.getContextConfiguration().isPresent() ) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
-            try {
-                context.setExtraClasspath( new ClassPathResource( "com/geekbeast/rhizome/core" ).getURI().toString() );
-                context.setExtraClasspath( "com/geekbeast/rhizome/core/RhizomeWebApplicationInitializer" );
-            } catch (IOException e) {
-                logger.error( "Failed to create class path resource for resource base" , e );
-            }
             context.setContextPath( contextConfig.getPath() );
-            context.setResourceBase( "src/main/webapp" );
-            context.addBean( new Rhizome() );
+            context.setResourceBase( contextConfig.getResourceBase() );
             context.setParentLoaderPriority( contextConfig.isParentLoaderPriority() );
         }
         
@@ -56,7 +49,11 @@ public class JettyLoam implements Loam {
          * Probably need to report new bug as Jetty picks up the SpringContextInitializer, but cannot find
          * Spring WebApplicationInitializer types, without the configuration hack.  
          */
-        context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { new JettyAnnotationConfigurationHack() } );
+        JettyAnnotationConfigurationHack configurationHack = new JettyAnnotationConfigurationHack();
+        if( config.isSecurityEnabled() ) {
+            configurationHack.registerInitializer( RhizomeSecurity.class.getName() );
+        }
+        context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
               
         //TODO: Make loaded servlet classes configurable
         context.addServlet(JspServlet.class, "*.jsp");

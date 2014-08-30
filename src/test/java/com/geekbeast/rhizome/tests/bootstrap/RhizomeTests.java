@@ -77,7 +77,7 @@ public class RhizomeTests {
             raw = e.getResponse();
         }
         
-        Assert.assertEquals( raw.getStatus() , HttpStatus.I_AM_A_TEAPOT.value() );
+        Assert.assertEquals( HttpStatus.I_AM_A_TEAPOT.value() , raw.getStatus() );
         Assert.assertEquals( IOUtils.toString( raw.getBody().in() ), "I AM A TEAPOT!" );
         latch.countDown();
     }

@@ -1,7 +1,5 @@
 package com.geekbeast.rhizome.configuration;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
-import com.geekbeast.rhizome.configuration.servlets.JerseyServletConfiguration;
 import com.google.common.base.Optional;
 
 /**
@@ -27,7 +24,6 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String CASSANDRA_CONFIGURATION_PROPERTY = "cassandra";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast";
-    protected static final String JERSEY_SERVLETS_PROPERTY = "jersey-servlets";
     protected static final boolean PERSISTENCE_ENABLED_DEFAULT = true;
     protected static final boolean SESSION_CLUSTERING_ENABLED_DEFAULT = true;
     
@@ -37,8 +33,6 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration; 
     protected final Optional<GraphiteConfiguration> graphiteConfiguration;
     protected final Optional<CassandraConfiguration> cassandraConfiguration;
-    protected final Optional<List<JerseyServletConfiguration>> jerseyServlets;
-    
 
     @JsonCreator
     public RhizomeConfiguration(
@@ -46,7 +40,6 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled ,
             @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration ,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration ,
-            @JsonProperty( JERSEY_SERVLETS_PROPERTY ) Optional<List<JerseyServletConfiguration>> jerseyServlets,
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY ) Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration 
             ) {
 
@@ -54,7 +47,6 @@ public class RhizomeConfiguration implements Configuration {
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.cassandraConfiguration = cassandraConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
-        this.jerseyServlets = jerseyServlets;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
     }
 
