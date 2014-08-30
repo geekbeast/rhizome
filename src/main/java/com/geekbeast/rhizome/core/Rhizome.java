@@ -82,7 +82,7 @@ public class Rhizome implements WebApplicationInitializer {
         }
         
         //Prevent jersey-spring3 from trying to initialize a spring application context.
-        servletContext.setInitParameter( CONTEXT_CONFIG_LOCATION_PARAMETER_NAME , "" );
+//        servletContext.setInitParameter( CONTEXT_CONFIG_LOCATION_PARAMETER_NAME , "" );
         servletContext.addListener( new ContextLoaderListener( rhizomeContext ) );
         servletContext.addListener( new RequestContextListener() );
         
