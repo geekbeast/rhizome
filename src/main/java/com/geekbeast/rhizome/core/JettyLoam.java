@@ -49,7 +49,11 @@ public class JettyLoam implements Loam {
          * Probably need to report new bug as Jetty picks up the SpringContextInitializer, but cannot find
          * Spring WebApplicationInitializer types, without the configuration hack.  
          */
-        context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { new JettyAnnotationConfigurationHack() } );
+        JettyAnnotationConfigurationHack configurationHack = new JettyAnnotationConfigurationHack();
+        if( config.isSecurityEnabled() ) {
+            configurationHack.registerInitializer( RhizomeSecurity.class.getName() );
+        }
+        context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
               
         //TODO: Make loaded servlet classes configurable
         context.addServlet(JspServlet.class, "*.jsp");
