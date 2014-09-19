@@ -32,9 +32,6 @@ import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
 public class MetricsPod implements MetricsConfigurer {
     private static final Logger logger = LoggerFactory.getLogger( MetricsPod.class );
     
-    @Inject 
-    private HazelcastInstance hazelcastInstance;
-    
     @Inject
     private RhizomeConfiguration config;
     
@@ -124,7 +121,7 @@ public class MetricsPod implements MetricsConfigurer {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             logger.warn( "Unable to determine hostname, default to Hazelcast UUID");
-            return Objects.firstNonNull( hazelcastInstance.getCluster().getLocalMember().getSocketAddress().getHostName() , hazelcastInstance.getCluster().getLocalMember().getUuid() );
+            return null;
         }
     }
     
