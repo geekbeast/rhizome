@@ -55,7 +55,7 @@ public class Rhizome implements WebApplicationInitializer {
     private static final String CONTEXT_PARAMETER_NAME = "contextClass";
     private static final String MIME_TYPES_PARAM = "mimeTypes";
     protected final static AnnotationConfigWebApplicationContext rhizomeContext = new AnnotationConfigWebApplicationContext();
-    private static boolean isInitialized = false;
+    protected static boolean isInitialized = false;
 
     public Rhizome() {
         initialize();
