@@ -36,7 +36,6 @@ import com.geekbeast.rhizome.configuration.service.ConfigurationService;
                 )
         )
 public class ConfigurationPod {
-    
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
         return ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class );
