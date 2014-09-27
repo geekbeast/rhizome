@@ -174,6 +174,7 @@ public class Rhizome implements WebApplicationInitializer {
             loam.stop();
         }
     }
+    
 
     /**
      * This method should be overridden if any of the built-in defaults are not desired. To add additional
