@@ -1,5 +1,11 @@
 package com.geekbeast.rhizome.pods;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -16,6 +22,7 @@ import com.google.common.eventbus.AsyncEventBus;
 @EnableScheduling
 @EnableAsync
 public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
+    private static Logger logger = LoggerFactory.getLogger( AsyncPod.class );
     //TODO: Make thread names prefixes configurable.
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
@@ -46,6 +53,16 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     @Bean
     public AsyncEventBus localConfigurationUpdates() {
         return new AsyncEventBus( getAsyncExecutor() );
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new AsyncUncaughtExceptionHandler() {
+            @Override
+            public void handleUncaughtException(Throwable ex, Method method, Object... params) {
+                logger.error("Error executing async method {} with params {}." , method.getName() , Arrays.asList( params ) , ex );
+            }
+        };
     }
     
 }
