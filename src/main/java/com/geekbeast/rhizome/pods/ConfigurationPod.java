@@ -1,9 +1,7 @@
 package com.geekbeast.rhizome.pods;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
@@ -21,28 +19,25 @@ import com.geekbeast.rhizome.configuration.service.ConfigurationService;
  * @author Matthew Tamayo-Rios
  */
 @Configuration
-@ComponentScan(
-        basePackages={
-                "com.geekbeast.rhizome.configuration.service" , 
-                "com.geekbeast.rhizome.configuration.core" ,
-                "com.geekbeast.rhizome.controllers"
-                }, 
-        excludeFilters = @ComponentScan.Filter( 
-                value = {
-                    org.springframework.stereotype.Controller.class , 
-                } ,
-       
-                type = FilterType.ANNOTATION 
-                )
-        )
 public class ConfigurationPod {
+    private static final RhizomeConfiguration rhizomeConfiguration = ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class ); 
+    private static final JettyConfiguration jettyConfiguration = ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class );
+    
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
-        return ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class );
+        return getRhizomeConfiguration();
     }
     
     @Bean 
     public JettyConfiguration jettyConfiguration() {
-        return ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class );
+        return getJettyConfiguration();
+    }
+    
+    public static RhizomeConfiguration getRhizomeConfiguration() {
+        return rhizomeConfiguration;
+    }
+    
+    public static JettyConfiguration getJettyConfiguration() {
+        return jettyConfiguration;
     }
 }
