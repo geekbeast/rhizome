@@ -14,25 +14,25 @@ import org.slf4j.LoggerFactory;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.hazelcast.core.MapStore;
 
-public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
-    private static final Logger logger = LoggerFactory.getLogger( HyperdexJacksonKeyValueMapStore.class );
+public class BaseHyperdexJacksonKeyValueMapStore<K,V> implements MapStore<K,V> {
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     static {
         HyperdexPreconfigurer.configure();
     }
     
-    private final HyperdexMapper<V> mapper;
+    protected final HyperdexMapper<V> mapper;
     protected final Client client;
     protected final String space;
 
-    public HyperdexJacksonKeyValueMapStore( String space , Client client , HyperdexMapper<V> mapper ) {
+    public BaseHyperdexJacksonKeyValueMapStore( String space , Client client , HyperdexMapper<V> mapper ) {
         this.mapper = mapper;
         this.client = client;
         this.space = space;
     }
     
     @Override
-    public V load(String key) {
+    public V load(K key) {
         try {
             return mapper.fromHyperdexMap( (Map<String,Object>) client.get( space, key ) );
         } catch (HyperdexMappingException e) {
@@ -44,11 +44,11 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
     }
 
     @Override
-    public Map<String, V> loadAll(Collection<String> keys) {
-        Map<String,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+    public Map<K, V> loadAll(Collection<K> keys) {
+        Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
         keys.forEach( (key) -> { 
             V value = load( key );
-            if( value != null ) {
+            if( value != null ) { 
                 values.put( key, value );
             }
         });
@@ -56,13 +56,13 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
     }
 
     @Override
-    public Set<String> loadAllKeys() {
+    public Set<K> loadAllKeys() {
         //Overload this if you want to load some keys by default at startup.
         return null;
     }
 
     @Override
-    public void store(String key, V value) {
+    public void store(K key, V value) {
         try {
             client.put( space , key , mapper.toHyperdexMap( value ) );
         } catch (HyperdexMappingException e) {
@@ -73,12 +73,12 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
     }
 
     @Override
-    public void storeAll(Map<String, V> map) {
+    public void storeAll(Map<K, V> map) {
         map.forEach( (k,v) -> store( k , v ) );
     }
 
     @Override
-    public void delete(String key) {
+    public void delete(K key) {
         try {
             client.del( space , key );
         } catch (HyperDexClientException e) {
@@ -87,7 +87,7 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
     }
 
     @Override
-    public void deleteAll(Collection<String> keys) {
+    public void deleteAll(Collection<K> keys) {
         keys.forEach( key -> delete( key ) );
     }
 }

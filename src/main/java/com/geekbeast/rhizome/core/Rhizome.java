@@ -28,8 +28,6 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
-import com.geekbeast.rhizome.core.Loam;
-import com.geekbeast.rhizome.core.RhizomeApplication;
 import com.geekbeast.rhizome.pods.AsyncPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
 import com.geekbeast.rhizome.pods.HazelcastPod;
@@ -58,6 +56,11 @@ public class Rhizome implements WebApplicationInitializer {
     protected static boolean isInitialized = false;
 
     public Rhizome() {
+        this( new Class[ 0 ] );
+    }
+    
+    public Rhizome( Class<?> ... pods ) {
+        intercrop(pods);
         initialize();
     }
 
@@ -159,7 +162,9 @@ public class Rhizome implements WebApplicationInitializer {
     }
 
     public void intercrop(Class<?>... pods) {
-        rhizomeContext.register(pods);
+        if( pods!=null && pods.length > 0 ) {
+            rhizomeContext.register(pods);
+        }
     }
 
     public void sprout() throws Exception {

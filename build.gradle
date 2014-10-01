@@ -31,8 +31,8 @@ apply plugin: "jacoco"
 
 mainClassName = "com.geekbeast.rhizome.core.Rhizome"
 
-ext.sourceCompatibility=JavaVersion.VERSION_1_7
-ext.targetCompatibility=JavaVersion.VERSION_1_7
+ext.sourceCompatibility=JavaVersion.VERSION_1_8
+ext.targetCompatibility=JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()  

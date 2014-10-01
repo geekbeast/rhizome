@@ -2,7 +2,8 @@ package com.geekbeast.rhizome.configuration;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 public interface Configuration extends Serializable {
-    public abstract ConfigurationKey getKey();
-    
+    ConfigurationKey getKey();
 }
