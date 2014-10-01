@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
-import com.google.common.base.Optional;
 
 @Configuration
 public class HyperdexPod {
@@ -19,25 +18,27 @@ public class HyperdexPod {
     @Inject 
     private RhizomeConfiguration configuration;
     
+    @Bean
+    public HyperdexConfiguration hyperdexConfiguration() {
+        return configuration.getHyperdexConfiguration().get();
+    }
+    
     @Bean 
     public Client hyperdexClient() {
-        Optional<HyperdexConfiguration> optHyperdexConfiguration = configuration.getHyperdexConfiguration();
         Client client = null;
-        if( optHyperdexConfiguration.isPresent() ) {
-            HyperdexConfiguration hyperdexConfiguration = optHyperdexConfiguration.get();
-            int port = hyperdexConfiguration.getPort();
-            for( String coordinator : hyperdexConfiguration.getCoordinators() ) {
-                try {
-                    client = new Client( coordinator , port );
-                    if( client != null ) {
-                        break;
-                    }
-                } catch( Exception e ) {
-                    logger.warn( "Unable to connect to coordinator {} on port {}... skipping." , coordinator , port );
+
+        int port = hyperdexConfiguration().getPort();
+        for( String coordinator : hyperdexConfiguration().getCoordinators() ) {
+            try {
+                client = new Client( coordinator , port );
+                if( client != null ) {
+                    break;
                 }
+            } catch( Exception e ) {
+                logger.warn( "Unable to connect to coordinator {} on port {}... skipping." , coordinator , port );
             }
         }
         return client;
-     }
-    
+    }
+
 }

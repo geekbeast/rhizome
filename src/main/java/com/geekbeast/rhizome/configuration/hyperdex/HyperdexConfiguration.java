@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableList;
 
 public class HyperdexConfiguration {
     private static final String HYPERDEX_SPACE_PROPERTY = "space";
-    private static final String HYPERDEX_PORT_PROPERTY = "property";
+    private static final String HYPERDEX_PORT_PROPERTY = "port";
     private static final String HYPERDEX_COORDINATORS_PROPERTY = "coordinators";
     private static final String HYPERDEX_NATIVE_BINARY_FOLDER_PROPERTY = "native-bin-path";
 
