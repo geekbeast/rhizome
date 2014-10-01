@@ -2,7 +2,6 @@ package com.kryptnostic.rhizome.mapstores;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import jersey.repackaged.com.google.common.collect.Maps;
@@ -47,12 +46,12 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
     @Override
     public Map<String, V> loadAll(Collection<String> keys) {
         Map<String,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-        for( String key : keys ) {
+        keys.forEach( (key) -> { 
             V value = load( key );
             if( value != null ) {
                 values.put( key, value );
             }
-        }
+        });
         return values;
     }
 
@@ -75,9 +74,7 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
 
     @Override
     public void storeAll(Map<String, V> map) {
-        for( Entry<String, V> entry : map.entrySet() ) {
-            store( entry.getKey() , entry.getValue() );
-        }
+        map.forEach( (k,v) -> store( k , v ) );
     }
 
     @Override
@@ -91,8 +88,6 @@ public class HyperdexJacksonKeyValueMapStore<V> implements MapStore<String,V> {
 
     @Override
     public void deleteAll(Collection<String> keys) {
-        for( String key : keys ) {
-            delete( key );
-        }
+        keys.forEach( key -> delete( key ) );
     }
 }
