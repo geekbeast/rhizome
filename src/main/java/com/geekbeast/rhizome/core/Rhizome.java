@@ -167,7 +167,10 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
-    public void sprout() throws Exception {
+    public void sprout( String ... activeProfiles ) throws Exception {
+        for( String profile : activeProfiles ) {
+            rhizomeContext.getEnvironment().addActiveProfile( profile );
+        }
         rhizomeContext.refresh();
         for (Loam loam : rhizomeContext.getBeansOfType(Loam.class).values()) {
             loam.start();
@@ -179,6 +182,7 @@ public class Rhizome implements WebApplicationInitializer {
             loam.stop();
         }
     }
+    
     
 
     /**
