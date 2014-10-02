@@ -1,9 +1,9 @@
 package com.geekbeast.rhizome.pods;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
@@ -21,29 +21,36 @@ import com.geekbeast.rhizome.configuration.service.ConfigurationService;
  * @author Matthew Tamayo-Rios
  */
 @Configuration
-@ComponentScan(
-        basePackages={
-                "com.geekbeast.rhizome.configuration.service" , 
-                "com.geekbeast.rhizome.configuration.core" ,
-                "com.geekbeast.rhizome.controllers"
-                }, 
-        excludeFilters = @ComponentScan.Filter( 
-                value = {
-                    org.springframework.stereotype.Controller.class , 
-                } ,
-       
-                type = FilterType.ANNOTATION 
-                )
-        )
 public class ConfigurationPod {
+    private static final Logger logger = LoggerFactory.getLogger( ConfigurationPod.class );
+    private static final RhizomeConfiguration rhizomeConfiguration;
+    private static final JettyConfiguration jettyConfiguration;
+    
+    static{
+        try {
+            rhizomeConfiguration = ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class );
+            jettyConfiguration = ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class );
+        } catch ( Exception e ) {
+            logger.error("Error loading configuration!",e);
+            throw new Error( "Configuration failure." );
+        }
+    }
     
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
-        return ConfigurationService.StaticLoader.loadConfiguration( RhizomeConfiguration.class );
+        return getRhizomeConfiguration();
     }
     
     @Bean 
     public JettyConfiguration jettyConfiguration() {
-        return ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class );
+        return getJettyConfiguration();
+    }
+    
+    public static RhizomeConfiguration getRhizomeConfiguration() {
+        return rhizomeConfiguration;
+    }
+    
+    public static JettyConfiguration getJettyConfiguration() {
+        return jettyConfiguration;
     }
 }

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
+import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.google.common.base.Optional;
 
 /**
@@ -22,6 +23,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String PERSISTENCE_ENABLED_PROPERTY = "enable-persistence";
     protected static final String SESSION_CLUSTERING_ENABLED_PROPERTY = "session-clustering-enabled";
     protected static final String CASSANDRA_CONFIGURATION_PROPERTY = "cassandra";
+    protected static final String HYPERDEX_CONFIGURATION_PROPERTY = "hyperdex";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast";
     protected static final boolean PERSISTENCE_ENABLED_DEFAULT = true;
@@ -33,12 +35,14 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration; 
     protected final Optional<GraphiteConfiguration> graphiteConfiguration;
     protected final Optional<CassandraConfiguration> cassandraConfiguration;
+    protected final Optional<HyperdexConfiguration> hyperdexConfiguration;
 
     @JsonCreator
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData ,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled ,
             @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration ,
+            @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY ) Optional<HyperdexConfiguration> hyperdexConfiguration ,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration ,
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY ) Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration 
             ) {
@@ -46,6 +50,7 @@ public class RhizomeConfiguration implements Configuration {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.cassandraConfiguration = cassandraConfiguration;
+        this.hyperdexConfiguration = hyperdexConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
     }
@@ -70,6 +75,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
     public Optional<CassandraConfiguration> getCassandraConfiguration() {
         return cassandraConfiguration;
+    }
+
+    @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY )
+    public Optional<HyperdexConfiguration> getHyperdexConfiguration() {
+        return hyperdexConfiguration;
     }
     
     @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY )
