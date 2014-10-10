@@ -2,6 +2,7 @@ package com.geekbeast.rhizome.core;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -98,9 +99,14 @@ public class JettyLoam implements Loam {
             
             SslContextFactory contextFactory = new SslContextFactory();
             
+            String certAlias = configuration.getCertificateAlias().or( "" );
+            if( StringUtils.isNotBlank( certAlias ) ) {
+                contextFactory.setCertAlias( certAlias );
+            }
+            
             contextFactory.setTrustStorePath( getFromClasspath( config.getTruststoreConfiguration().get().getStorePath() ) );
             contextFactory.setTrustStorePassword( config.getTruststoreConfiguration().get().getStorePassword() );
-
+            
             contextFactory.setKeyStorePath( getFromClasspath( config.getKeystoreConfiguration().get().getStorePath() ) );
             contextFactory.setKeyStorePassword( config.getKeystoreConfiguration().get().getStorePassword() );
             contextFactory.setKeyManagerPassword( config.getKeyManagerPassword().get() );
