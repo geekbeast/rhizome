@@ -11,7 +11,7 @@ import com.google.common.base.Optional;
  * This class must be instantiated before any hyperdex jar calls are made, otherwise loading the hyperdex libraries will fail.
  */
 public final class HyperdexPreconfigurer {
-    private static final String DEFAULT_HYPERDEX_LIB_DIRECTORY = ":lib/macosx";
+    private static final String DEFAULT_HYPERDEX_LIB_DIRECTORY = "lib/centos";
     
     static {
         Optional<HyperdexConfiguration> hyperdexConfiguration = ConfigurationPod.getRhizomeConfiguration().getHyperdexConfiguration();
