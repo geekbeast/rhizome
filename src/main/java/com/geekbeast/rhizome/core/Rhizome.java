@@ -49,8 +49,6 @@ import com.hazelcast.web.WebFilter;
 public class Rhizome implements WebApplicationInitializer {
     private static final String HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     private static final String GZIP_FILTER_NAME = "GzipFilter";
-    private static final String CONTEXT_CONFIG_LOCATION_PARAMETER_NAME = "contextConfigLocation";
-    private static final String CONTEXT_PARAMETER_NAME = "contextClass";
     private static final String MIME_TYPES_PARAM = "mimeTypes";
     protected final static AnnotationConfigWebApplicationContext rhizomeContext = new AnnotationConfigWebApplicationContext();
     protected static boolean isInitialized = false;
