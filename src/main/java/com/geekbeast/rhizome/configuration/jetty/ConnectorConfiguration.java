@@ -1,6 +1,7 @@
 package com.geekbeast.rhizome.configuration.jetty;
 
 import java.util.Random;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,6 +18,7 @@ public class ConnectorConfiguration {
     protected static final String REQUIRE_SSL_PROPERTY = "require-ssl";
     protected static final String NEED_CLIENT_AUTH_PROPERTY = "require-client-auth";
     protected static final String WANT_CLIENT_AUTH_PROPERTY = "want-client-auth";
+    protected static final String CERTIFICATE_ALIAS_PROPERTY = "certificate-alias";
     
     protected static final int HTTP_PORT_DEFAULT = 8081;
     protected static final int SSL_PORT_DEFAULT = 8443;
@@ -31,6 +33,7 @@ public class ConnectorConfiguration {
     protected final boolean wantClientAuth;
     protected final boolean useSSL ;
     protected final boolean requireSSL;
+    protected final Optional<String> certificateAlias;
     
     /*
      * Pass in 0 for port numbers to automatically generate random ports for unit testing / integration testing.
@@ -43,7 +46,8 @@ public class ConnectorConfiguration {
             @JsonProperty( USE_SSL_PROPERTY ) Optional<Boolean> useSSL ,
             @JsonProperty( REQUIRE_SSL_PROPERTY ) Optional<Boolean> requireSSL,
             @JsonProperty( NEED_CLIENT_AUTH_PROPERTY ) Optional<Boolean> needClientAuth , 
-            @JsonProperty( WANT_CLIENT_AUTH_PROPERTY ) Optional<Boolean> wantClientAuth 
+            @JsonProperty( WANT_CLIENT_AUTH_PROPERTY ) Optional<Boolean> wantClientAuth,
+            @JsonProperty( CERTIFICATE_ALIAS_PROPERTY ) Optional<String> certificateAlias
             ) {
         final Random r = new Random( System.currentTimeMillis() );
         
@@ -63,6 +67,7 @@ public class ConnectorConfiguration {
         this.requireSSL = requireSSL.or( REQUIRE_SSL_DEFAULT );
         this.needClientAuth = needClientAuth.or( NEED_CLIENT_AUTH_DEFAULT );
         this.wantClientAuth = wantClientAuth.or( WANT_CLIENT_AUTH_DEFAULT );
+        this.certificateAlias = certificateAlias;
     }
     
     
@@ -95,6 +100,10 @@ public class ConnectorConfiguration {
     public boolean requireSSL() {
         return requireSSL;
     }
-
+    
+    @JsonProperty( CERTIFICATE_ALIAS_PROPERTY ) 
+    public Optional<String> getCertificateAlias() {
+        return certificateAlias;
+    }
 
 }
