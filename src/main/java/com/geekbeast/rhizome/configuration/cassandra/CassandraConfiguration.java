@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 public class CassandraConfiguration {
@@ -26,15 +26,15 @@ public class CassandraConfiguration {
     
     @JsonCreator
     public CassandraConfiguration(  
-            @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) boolean embedded ,
-            @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) List<String> cassandraSeedNodes ,
-            @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) String keyspace ,
-            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) int replicationFactor ) {
+            @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded ,
+            @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes ,
+            @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace ,
+            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
         
-        this.embedded = Objects.firstNonNull( embedded , EMBEDDED_DEFAULT );
-        this.cassandraSeedNodes = Objects.firstNonNull( cassandraSeedNodes , CASSANDRA_SEED_DEFAULT );
-        this.keyspace = Objects.firstNonNull( keyspace , KEYSPACE_DEFAULT );
-        this.replicationFactor = Objects.firstNonNull( replicationFactor , REPLICATION_FACTOR_DEFAULT );
+        this.embedded = embedded.or( EMBEDDED_DEFAULT );
+        this.cassandraSeedNodes = cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT );
+        this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
+        this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
     }
     
     @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) 
