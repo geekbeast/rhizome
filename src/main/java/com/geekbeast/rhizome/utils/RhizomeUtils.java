@@ -14,6 +14,7 @@ public class RhizomeUtils {
     public static String loadResourceToString(final String path) {
         final InputStream stream = Thread.currentThread()
                 .getContextClassLoader().getResourceAsStream( path );
+        
         String resource = null;
         try {
             resource = IOUtils.toString( stream );
