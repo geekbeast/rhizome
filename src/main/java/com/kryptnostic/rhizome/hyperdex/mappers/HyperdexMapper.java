@@ -1,6 +1,8 @@
-package com.kryptnostic.rhizome.mapstores;
+package com.kryptnostic.rhizome.hyperdex.mappers;
 
 import java.util.Map;
+
+import com.kryptnostic.rhizome.mapstores.HyperdexMappingException;
 
 public interface HyperdexMapper<V> {
     Map<String, Object> toHyperdexMap( V value ) throws HyperdexMappingException;
