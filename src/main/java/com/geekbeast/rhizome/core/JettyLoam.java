@@ -99,7 +99,7 @@ public class JettyLoam implements Loam {
             
             SslContextFactory contextFactory = new SslContextFactory();
             
-            String certAlias = configuration.getCertificateAlias().or( "" );
+            String certAlias = configuration.getCertificateAlias().orNull();
             if( StringUtils.isNotBlank( certAlias ) ) {
                 contextFactory.setCertAlias( certAlias );
             }
