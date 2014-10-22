@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
@@ -60,6 +61,11 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
         }
     }
 
+    @Override
+    public void registerModule(Module module) {
+        mapper.registerModule(module);
+    }
+    
     @Override
     public void subscribe(Object subscriber) {
         configurationEvents.register(subscriber);
