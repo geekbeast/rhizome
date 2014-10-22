@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
@@ -22,6 +23,8 @@ import com.google.common.base.Preconditions;
  * @author Matthew Tamayo-Rios
  */
 public interface ConfigurationService {
+    public void registerModule(Module module);
+    
     /**
      * Retrieves an existing configuration. The configuration class must have a static {@code getKey()} method 
      * that will be used as key to lookup the YAML configuration.   
