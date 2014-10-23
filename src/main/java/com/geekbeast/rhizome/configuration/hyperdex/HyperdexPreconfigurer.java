@@ -43,8 +43,7 @@ public final class HyperdexPreconfigurer {
         }
     }
 
-    private HyperdexPreconfigurer() {
-    }
+    private HyperdexPreconfigurer() {}
 
     public static void configure() {
 

@@ -34,10 +34,10 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
     }
 
     @Override
-    public void createServletContainerInitializerAnnotationHandlers( WebAppContext context,
+    public void createServletContainerInitializerAnnotationHandlers(
+            WebAppContext context,
             List<ServletContainerInitializer> scis ) throws Exception {
-        if ( scis == null || scis.isEmpty() )
-            return; // nothing to do
+        if ( scis == null || scis.isEmpty() ) return; // nothing to do
 
         final List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
         context.setAttribute( CONTAINER_INITIALIZERS, initializers );
@@ -83,8 +83,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
                 }
             } else {
                 initializer = new ContainerInitializer( service, null );
-                if ( LOG.isDebugEnabled() )
-                    LOG.debug( "No annotation on initializer " + service.getClass() );
+                if ( LOG.isDebugEnabled() ) LOG.debug( "No annotation on initializer " + service.getClass() );
             }
 
             initializers.add( initializer );
@@ -93,8 +92,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
         // add a bean to the context which will call the servletcontainerinitializers when appropriate
         ServletContainerInitializersStarter starter = (ServletContainerInitializersStarter) context
                 .getAttribute( CONTAINER_INITIALIZER_STARTER );
-        if ( starter != null )
-            throw new IllegalStateException( "ServletContainerInitializersStarter already exists" );
+        if ( starter != null ) throw new IllegalStateException( "ServletContainerInitializersStarter already exists" );
         starter = new ServletContainerInitializersStarter( context );
         context.setAttribute( CONTAINER_INITIALIZER_STARTER, starter );
         context.addBean( starter, true );
