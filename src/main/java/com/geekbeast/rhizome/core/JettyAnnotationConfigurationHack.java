@@ -31,6 +31,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
 
     public JettyAnnotationConfigurationHack() {
         additionalInitializers.add( Rhizome.class.getCanonicalName() );
+        additionalInitializers.add( RhizomeSecurity.class.getCanonicalName() );
     }
 
     @Override
