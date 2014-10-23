@@ -8,18 +8,18 @@ import com.codahale.metrics.health.HealthCheck;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 
 @Component
-public class ConfigurationServicesHealthCheck extends HealthCheck{
+public class ConfigurationServicesHealthCheck extends HealthCheck {
     @Inject
     private ConfigurationService service;
 
-    //TODO: Use a configuration that isn't always statically available.
+    // TODO: Use a configuration that isn't always statically available.
     @Override
     protected Result check() throws Exception {
         if ( service != null && service.getConfiguration( JettyConfiguration.class ) != null ) {
-            return Result.healthy("Persistence service is function normally.");
+            return Result.healthy( "Persistence service is function normally." );
         } else {
-            return Result.unhealthy("Peristence service is failing.");
+            return Result.unhealthy( "Peristence service is failing." );
         }
     }
-    
+
 }

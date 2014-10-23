@@ -12,10 +12,10 @@ import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 
 @Configuration
 public class HyperdexPod {
-    private static final Logger logger = LoggerFactory.getLogger( HyperdexPod.class );
-    
+    private static final Logger               logger        = LoggerFactory.getLogger( HyperdexPod.class );
+
     private static final RhizomeConfiguration configuration = ConfigurationPod.getRhizomeConfiguration();
-    
+
     static {
         HyperdexPreconfigurer.configure();
     }
@@ -24,20 +24,20 @@ public class HyperdexPod {
     public HyperdexConfiguration hyperdexConfiguration() {
         return configuration.getHyperdexConfiguration().get();
     }
-    
-    @Bean 
+
+    @Bean
     public Client hyperdexClient() {
         Client client = null;
 
         int port = hyperdexConfiguration().getPort();
-        for( String coordinator : hyperdexConfiguration().getCoordinators() ) {
+        for ( String coordinator : hyperdexConfiguration().getCoordinators() ) {
             try {
-                client = new Client( coordinator , port );
-                if( client != null ) {
+                client = new Client( coordinator, port );
+                if ( client != null ) {
                     break;
                 }
-            } catch( Exception e ) {
-                logger.warn( "Unable to connect to coordinator {} on port {}... skipping." , coordinator , port );
+            } catch ( Exception e ) {
+                logger.warn( "Unable to connect to coordinator {} on port {}... skipping.", coordinator, port );
             }
         }
         return client;
