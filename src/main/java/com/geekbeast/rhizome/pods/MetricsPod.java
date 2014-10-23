@@ -28,47 +28,41 @@ import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
 @Configuration
 @EnableMetrics
 public class MetricsPod implements MetricsConfigurer {
-    private static final Logger logger = LoggerFactory.getLogger( MetricsPod.class );
-    
+    private static final Logger  logger = LoggerFactory.getLogger( MetricsPod.class );
+
     @Inject
     private RhizomeConfiguration config;
-    
+
     @Bean
     public MetricRegistry globalMetricRegistry() {
         return new MetricRegistry();
     }
-    
+
     @Bean
     public MetricRegistry serverMetricRegistry() {
         return new MetricRegistry();
     }
-    
+
     @Bean
     public HealthCheckRegistry healthCheckRegistry() {
         return new HealthCheckRegistry();
     }
-    
-    @Bean 
+
+    @Bean
     GraphiteReporter globalGraphiteReporter() {
-        return GraphiteReporter.forRegistry( globalMetricRegistry() )
-                .prefixedWith( getGlobalName() )
-                .convertDurationsTo(TimeUnit.SECONDS)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .build( globalGraphite() );
+        return GraphiteReporter.forRegistry( globalMetricRegistry() ).prefixedWith( getGlobalName() )
+                .convertDurationsTo( TimeUnit.SECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( globalGraphite() );
     }
 
-    @Bean 
+    @Bean
     GraphiteReporter serverGraphiteReporter() {
-        return GraphiteReporter.forRegistry( serverMetricRegistry() )
-                .prefixedWith( getHostName() )
-                .convertDurationsTo(TimeUnit.SECONDS)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .build( serverGraphite() );
+        return GraphiteReporter.forRegistry( serverMetricRegistry() ).prefixedWith( getHostName() )
+                .convertDurationsTo( TimeUnit.SECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( serverGraphite() );
     }
 
     @Override
     public void configureReporters( MetricRegistry registry ) {
-        
+
     }
 
     @Override
@@ -80,51 +74,57 @@ public class MetricsPod implements MetricsConfigurer {
     public MetricRegistry getMetricRegistry() {
         return new MetricRegistry();
     }
-    
-    //TODO: Configure global aggregation for graphite
-    @Bean 
+
+    // TODO: Configure global aggregation for graphite
+    @Bean
     public Graphite globalGraphite() {
-        if( config.getGraphiteConfiguration().isPresent() ) {
+        if ( config.getGraphiteConfiguration().isPresent() ) {
             GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
-            logger.info( "Initializing global graphite instance with at {}:{}" , 
-                    graphiteConfig.getGraphiteHost() ,
+            logger.info(
+                    "Initializing global graphite instance with at {}:{}",
+                    graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() );
-            return new Graphite( new InetSocketAddress( graphiteConfig.getGraphiteHost() , graphiteConfig.getGraphitePort() ) );
+            return new Graphite( new InetSocketAddress(
+                    graphiteConfig.getGraphiteHost(),
+                    graphiteConfig.getGraphitePort() ) );
         } else {
             return null;
         }
     }
-    
-    @Bean 
+
+    @Bean
     public Graphite serverGraphite() {
-        if( config.getGraphiteConfiguration().isPresent() ) {
+        if ( config.getGraphiteConfiguration().isPresent() ) {
             GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
-            logger.info( "Initializing global graphite instance with at {}:{}" , 
-                    graphiteConfig.getGraphiteHost() ,
+            logger.info(
+                    "Initializing global graphite instance with at {}:{}",
+                    graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() );
-            return new Graphite( new InetSocketAddress( graphiteConfig.getGraphiteHost() , graphiteConfig.getGraphitePort() ) );
+            return new Graphite( new InetSocketAddress(
+                    graphiteConfig.getGraphiteHost(),
+                    graphiteConfig.getGraphitePort() ) );
         } else {
             return null;
         }
     }
-    
+
     @PostConstruct
     protected void startGraphite() {
-        globalGraphiteReporter().start( 10 , TimeUnit.SECONDS );
-        serverGraphiteReporter().start( 10 , TimeUnit.SECONDS );
+        globalGraphiteReporter().start( 10, TimeUnit.SECONDS );
+        serverGraphiteReporter().start( 10, TimeUnit.SECONDS );
     }
-    
-    protected String getHostName() { 
+
+    protected String getHostName() {
         try {
             return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            logger.warn( "Unable to determine hostname, default to Hazelcast UUID");
+        } catch ( UnknownHostException e ) {
+            logger.warn( "Unable to determine hostname, default to Hazelcast UUID" );
             return null;
         }
     }
-    
-    protected String getGlobalName() { 
-        if( config.getGraphiteConfiguration().isPresent() ) {
+
+    protected String getGlobalName() {
+        if ( config.getGraphiteConfiguration().isPresent() ) {
             return config.getGraphiteConfiguration().get().getGraphiteGlobalPrefix();
         } else {
             return "global";

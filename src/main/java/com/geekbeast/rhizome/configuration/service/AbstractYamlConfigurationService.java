@@ -28,54 +28,55 @@ import com.google.common.eventbus.AsyncEventBus;
 public abstract class AbstractYamlConfigurationService implements ConfigurationService {
     protected final static ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
 
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
-    protected final AsyncEventBus configurationEvents;
+    protected final Logger              logger = LoggerFactory.getLogger( getClass() );
+    protected final AsyncEventBus       configurationEvents;
 
-    public AbstractYamlConfigurationService(AsyncEventBus configurationEvents) {
+    public AbstractYamlConfigurationService( AsyncEventBus configurationEvents ) {
         this.configurationEvents = configurationEvents;
     }
 
     @Override
-    public <T extends Configuration> T getConfiguration(Class<T> clazz) throws IOException {
-        Preconditions.checkNotNull(clazz, "Requested configuration class cannot be null.");
-        ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey(clazz);
-        Preconditions.checkState(key != null && StringUtils.isBlank(key.getUri()), "Configuration id for class "
-                + clazz.getName() + " cannot be blank or null");
+    public <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException {
+        Preconditions.checkNotNull( clazz, "Requested configuration class cannot be null." );
+        ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
+        Preconditions.checkState( key != null && StringUtils.isBlank( key.getUri() ), "Configuration id for class "
+                + clazz.getName() + " cannot be blank or null" );
 
         try {
             return mapper.readValue(
-                    Preconditions.checkNotNull(fetchConfiguration(key), "Configuration cannot be null"), clazz);
-        } catch (JsonParseException | JsonMappingException e) {
-            logger.error("Invalid YAML configuration file for class " + clazz.getName());
+                    Preconditions.checkNotNull( fetchConfiguration( key ), "Configuration cannot be null" ),
+                    clazz );
+        } catch ( JsonParseException | JsonMappingException e ) {
+            logger.error( "Invalid YAML configuration file for class " + clazz.getName() );
             return null;
         }
     }
 
     @Override
-    public <T extends Configuration> void setConfiguration(T configuration) {
+    public <T extends Configuration> void setConfiguration( T configuration ) {
         try {
-            persistConfiguration(configuration.getKey(), mapper.writeValueAsString(configuration));
-            post(configuration);
-        } catch (IOException e) {
-            logger.error("Failed to persist configuration {}", configuration);
+            persistConfiguration( configuration.getKey(), mapper.writeValueAsString( configuration ) );
+            post( configuration );
+        } catch ( IOException e ) {
+            logger.error( "Failed to persist configuration {}", configuration );
         }
     }
 
     @Override
-    public void registerModule(Module module) {
-        mapper.registerModule(module);
+    public void registerModule( Module module ) {
+        mapper.registerModule( module );
     }
-    
+
     @Override
-    public void subscribe(Object subscriber) {
-        configurationEvents.register(subscriber);
+    public void subscribe( Object subscriber ) {
+        configurationEvents.register( subscriber );
     }
 
-    protected void post(Configuration configuration) {
-        configurationEvents.post(configuration);
+    protected void post( Configuration configuration ) {
+        configurationEvents.post( configuration );
     }
 
-    protected abstract @Nullable String fetchConfiguration(ConfigurationKey key);
+    protected abstract @Nullable String fetchConfiguration( ConfigurationKey key );
 
-    protected abstract void persistConfiguration(ConfigurationKey key, String configurationYaml);
+    protected abstract void persistConfiguration( ConfigurationKey key, String configurationYaml );
 }

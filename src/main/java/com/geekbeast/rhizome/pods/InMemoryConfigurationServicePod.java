@@ -18,20 +18,20 @@ import com.google.common.eventbus.AsyncEventBus;
 public class InMemoryConfigurationServicePod {
     @Inject
     AsyncEventBus eventBus;
-    
+
     @Bean
     public ConfigurationService configurationService() {
-        return new AbstractYamlConfigurationService(eventBus) {
+        return new AbstractYamlConfigurationService( eventBus ) {
             private Map<ConfigurationKey, String> map = Maps.newHashMap();
 
             @Override
-            protected void persistConfiguration(ConfigurationKey key, String configurationYaml) {
-                map.put(key,  configurationYaml);
+            protected void persistConfiguration( ConfigurationKey key, String configurationYaml ) {
+                map.put( key, configurationYaml );
             }
 
             @Override
-            protected String fetchConfiguration(ConfigurationKey key) {
-                return map.get(key);
+            protected String fetchConfiguration( ConfigurationKey key ) {
+                return map.get( key );
             }
         };
     }

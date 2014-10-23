@@ -15,9 +15,9 @@ import com.geekbeast.rhizome.core.Loam;
 public class ServletContainerPod {
     @Inject
     private JettyConfiguration jettyConfiguration;
-    
+
     @Bean
-    public Loam jettyServer() throws IOException { 
+    public Loam jettyServer() throws IOException {
         return new JettyLoam( jettyConfiguration );
     }
 }

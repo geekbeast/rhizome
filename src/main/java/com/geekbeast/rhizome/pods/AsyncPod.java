@@ -23,33 +23,36 @@ import com.google.common.eventbus.AsyncEventBus;
 @EnableAsync
 public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     private static Logger logger = LoggerFactory.getLogger( AsyncPod.class );
-    //TODO: Make thread names prefixes configurable.
+
+    // TODO: Make thread names prefixes configurable.
     @Override
-    public void configureTasks(ScheduledTaskRegistrar registrar) {
+    public void configureTasks( ScheduledTaskRegistrar registrar ) {
         registrar.setScheduler( rhizomeScheduler() );
     }
 
-    @Bean(destroyMethod="shutdown")
+    @Bean(
+        destroyMethod = "shutdown" )
     public ThreadPoolTaskScheduler rhizomeScheduler() {
         ThreadPoolTaskScheduler executor = new ThreadPoolTaskScheduler();
         executor.setPoolSize( 8 );
-        executor.setThreadNamePrefix("rhizome-pulse-");
+        executor.setThreadNamePrefix( "rhizome-pulse-" );
         executor.initialize();
         return executor;
     }
-    
+
     @Override
-    @Bean(destroyMethod="shutdown" )
+    @Bean(
+        destroyMethod = "shutdown" )
     public ThreadPoolTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(32);
-        executor.setQueueCapacity(1024);
-        executor.setThreadNamePrefix("rhizome-offshoot-");
+        executor.setCorePoolSize( 4 );
+        executor.setMaxPoolSize( 32 );
+        executor.setQueueCapacity( 1024 );
+        executor.setThreadNamePrefix( "rhizome-offshoot-" );
         executor.initialize();
         return executor;
     }
-    
+
     @Bean
     public AsyncEventBus localConfigurationUpdates() {
         return new AsyncEventBus( getAsyncExecutor() );
@@ -59,10 +62,14 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return new AsyncUncaughtExceptionHandler() {
             @Override
-            public void handleUncaughtException(Throwable ex, Method method, Object... params) {
-                logger.error("Error executing async method {} with params {}." , method.getName() , Arrays.asList( params ) , ex );
+            public void handleUncaughtException( Throwable ex, Method method, Object... params ) {
+                logger.error(
+                        "Error executing async method {} with params {}.",
+                        method.getName(),
+                        Arrays.asList( params ),
+                        ex );
             }
         };
     }
-    
+
 }
