@@ -23,77 +23,99 @@ import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 
-@Controller(SimpleControllerAPI.CONTROLLER)
+@Controller( SimpleControllerAPI.CONTROLLER )
 public class SimpleController implements SimpleControllerAPI {
-    private static Logger logger = LoggerFactory.getLogger( SimpleController.class );
+    private static Logger        logger = LoggerFactory.getLogger( SimpleController.class );
     @Inject
     private ConfigurationService configurationService;
-    
-    @Inject 
-    private JettyConfiguration jettyConfiguration;
-    
-    /* (non-Javadoc)
+
+    @Inject
+    private JettyConfiguration   jettyConfiguration;
+
+    /*
+     * (non-Javadoc)
      * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#getContextConfiguration()
      */
     @Override
-    @RequestMapping(value=GET.CONTEXT_CONFIGURATION , method=RequestMethod.GET , produces=MediaType.APPLICATION_JSON)
+    @RequestMapping(
+        value = GET.CONTEXT_CONFIGURATION,
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON )
     public @ResponseBody ContextConfiguration getContextConfiguration() {
         return jettyConfiguration.getContextConfiguration().get();
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
      * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#getJettyConfiguration()
      */
     @Override
-    @RequestMapping(value=GET.JETTY_CONFIGURATION , method=RequestMethod.GET , produces=MediaType.APPLICATION_JSON)
+    @RequestMapping(
+        value = GET.JETTY_CONFIGURATION,
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON )
     public @ResponseBody JettyConfiguration getJettyConfiguration() {
         return jettyConfiguration;
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
      * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#getTestConfiguration()
      */
     @Override
-    @RequestMapping(value=GET.TEST_CONFIGURATION , method=RequestMethod.GET , produces=MediaType.APPLICATION_JSON)
+    @RequestMapping(
+        value = GET.TEST_CONFIGURATION,
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration getTestConfiguration() {
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
-        } catch (IOException e) {
-            logger.error("Failed to rest test configuration." , e );
+        } catch ( IOException e ) {
+            logger.error( "Failed to rest test configuration.", e );
             return null;
         }
     }
-    
-    /* (non-Javadoc)
-     * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#setTestConfiguration(com.geekbeast.rhizome.tests.configurations.TestConfiguration)
+
+    /*
+     * (non-Javadoc)
+     * @see
+     * com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#setTestConfiguration(com.geekbeast.rhizome.tests.
+     * configurations.TestConfiguration)
      */
     @Override
-    @RequestMapping(value=PUT.TEST_CONFIGURATION , method=RequestMethod.PUT , produces=MediaType.APPLICATION_JSON,consumes=MediaType.APPLICATION_JSON)
+    @RequestMapping(
+        value = PUT.TEST_CONFIGURATION,
+        method = RequestMethod.PUT,
+        produces = MediaType.APPLICATION_JSON,
+        consumes = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration setTestConfiguration( @RequestBody TestConfiguration configuration ) {
         try {
             configurationService.setConfiguration( configuration );
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             return null;
         }
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
-        } catch (IOException e) {
+        } catch ( IOException e ) {
             return null;
         }
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
      * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#teapot()
      */
     @Override
     public Response teapot() {
-        //Empty impl, not the cleanest, but its pretty rare to have httpstatus only api calls
+        // Empty impl, not the cleanest, but its pretty rare to have httpstatus only api calls
         return null;
     }
-    
-    @RequestMapping(value=GET.TEAPOT , method=RequestMethod.GET)
-    public ResponseEntity<String> teapot(HttpServletResponse response){
-       teapot();
-       return new ResponseEntity<String>( "I AM A TEAPOT!" , HttpStatus.I_AM_A_TEAPOT );
+
+    @RequestMapping(
+        value = GET.TEAPOT,
+        method = RequestMethod.GET )
+    public ResponseEntity<String> teapot( HttpServletResponse response ) {
+        teapot();
+        return new ResponseEntity<String>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
     }
 }

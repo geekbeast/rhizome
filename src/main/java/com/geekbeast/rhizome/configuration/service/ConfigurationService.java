@@ -58,8 +58,7 @@ public interface ConfigurationService {
         private static final Logger       logger = LoggerFactory.getLogger( StaticLoader.class );
         private static final ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
 
-        private StaticLoader() {
-        }
+        private StaticLoader() {}
 
         /**
          * Static method for loading a configuration before the service has been instantiated. This is useful for

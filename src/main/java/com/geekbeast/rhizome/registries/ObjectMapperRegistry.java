@@ -21,8 +21,7 @@ public final class ObjectMapperRegistry {
         mappers.put( PLAIN_MAPPER, createPlainMapper() );
     }
 
-    private ObjectMapperRegistry() {
-    }
+    private ObjectMapperRegistry() {}
 
     public static ObjectMapper register( String name, ObjectMapper mapper ) {
         return mappers.putIfAbsent( name, mapper );
