@@ -52,7 +52,7 @@ public class HyperdexPod {
     }
     
     @Bean
-    public ConfigurationHyperdexMapstore configurationMapstore() {
+    public ConfigurationHyperdexMapstore configurationMapStore() {
         HyperdexConfiguration hyperdexConfiguration = hyperdexConfiguration();
         Optional<String> configurationKeyspace;
         if( hyperdexConfiguration != null ) {
