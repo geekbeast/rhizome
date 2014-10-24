@@ -1,5 +1,6 @@
 package com.geekbeast.rhizome.pods;
 
+
 import org.hyperdex.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
+import com.google.common.base.Optional;
+import com.kryptnostic.rhizome.mapstores.ConfigurationHyperdexMapstore;
 
 @Configuration
 public class HyperdexPod {
@@ -22,7 +25,12 @@ public class HyperdexPod {
 
     @Bean
     public HyperdexConfiguration hyperdexConfiguration() {
-        return configuration.getHyperdexConfiguration().get();
+        if( configuration.getHyperdexConfiguration().isPresent() ) {
+            return configuration.getHyperdexConfiguration().get();
+        } else {
+            logger.error("Hyperdex configuration is missing. Please add a hyperdex configuration to rhizome.yaml" );
+            return null;
+        }
     }
 
     @Bean
@@ -41,6 +49,19 @@ public class HyperdexPod {
             }
         }
         return client;
+    }
+    
+    @Bean
+    public ConfigurationHyperdexMapstore configurationMapstore() {
+        HyperdexConfiguration hyperdexConfiguration = hyperdexConfiguration();
+        Optional<String> configurationKeyspace;
+        if( hyperdexConfiguration != null ) {
+            configurationKeyspace = hyperdexConfiguration().getConfigurationKeyspace();
+            if( configurationKeyspace.isPresent() ) {
+                return new ConfigurationHyperdexMapstore( configurationKeyspace.get() , hyperdexClient() );
+            } 
+        }
+        return null;
     }
 
 }
