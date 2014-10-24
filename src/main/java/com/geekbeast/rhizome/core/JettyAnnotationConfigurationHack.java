@@ -26,12 +26,11 @@ import org.eclipse.jetty.webapp.WebAppContext;
  * @author Matthew Tamayo-Rios
  */
 public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
-    private static final Logger LOG                    = Log.getLogger( JettyAnnotationConfigurationHack.class );
-    private final List<String>  additionalInitializers = Lists.newArrayList();
+    private static final Logger       LOG                    = Log.getLogger( JettyAnnotationConfigurationHack.class );
+    private static final List<String> additionalInitializers = Lists.newArrayList();
 
-    public JettyAnnotationConfigurationHack() {
+    static {
         additionalInitializers.add( Rhizome.class.getCanonicalName() );
-        additionalInitializers.add( RhizomeSecurity.class.getCanonicalName() );
     }
 
     @Override
@@ -99,11 +98,11 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
         context.addBean( starter, true );
     }
 
-    public void registerInitializer( String className ) {
+    public static void registerInitializer( String className ) {
         additionalInitializers.add( className );
     }
 
-    public void removeInitializer( String className ) {
+    public static void removeInitializer( String className ) {
         additionalInitializers.remove( className );
     }
 }
