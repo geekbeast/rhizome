@@ -64,6 +64,9 @@ public class HazelcastPod {
 
     @Bean
     public Properties hazelcastSessionFilterProperties() {
+        if( !configuration.isSessionClusteringEnabled() ) {
+            return null;
+        }
         HazelcastSessionFilterConfiguration filterConfig = configuration.getHazelcastSessionFilterConfiguration()
                 .orNull();
         if ( filterConfig == null ) {
@@ -92,6 +95,9 @@ public class HazelcastPod {
 
     @Bean
     public WebFilter hazelcastSessionFilter() {
+        if( !configuration.isSessionClusteringEnabled() ) {
+            return null;
+        }
         return new WebFilter( hazelcastSessionFilterProperties() );
     }
 
