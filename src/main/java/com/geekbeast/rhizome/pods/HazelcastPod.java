@@ -25,7 +25,7 @@ import com.hazelcast.web.WebFilter;
 @ImportResource( { "classpath:/rhizome-hazel.xml" } )
 public class HazelcastPod {
     public static final Logger   logger                     = LoggerFactory.getLogger( HazelcastPod.class );
-    public static final String   CONFIGURATIONS_MAP_NAME    = "settings";
+    public static final String   CONFIGURATIONS_MAP_NAME    = "configurations";
     public static final String   SESSIONS_MAP_NAME          = "sessions";
     public static final String   CONFIGURATION_UPDATE_TOPIC = "configuration-update-topic";
 
