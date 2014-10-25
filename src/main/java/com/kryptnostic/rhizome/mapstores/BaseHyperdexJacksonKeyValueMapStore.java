@@ -43,7 +43,11 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public V load( K key ) {
         try {
-            return mapper.fromHyperdexMap( (Map<String, Object>) client.get( space, keyMapper.getKey( key ) ) );
+            Map<String, Object> value = client.get( space, keyMapper.getKey( key ) );
+            if (value == null) {
+                return null;
+            }
+            return mapper.fromHyperdexMap( value );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
