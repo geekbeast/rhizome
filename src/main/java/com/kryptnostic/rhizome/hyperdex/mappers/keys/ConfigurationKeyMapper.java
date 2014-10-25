@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.hyperdex.mappers;
+package com.kryptnostic.rhizome.hyperdex.mappers.keys;
 
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
