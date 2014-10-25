@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.hyperdex.mappers.keys;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
-import com.kryptnostic.rhizome.hyperdex.mappers.SimpleHyperdexKeyMapper;
 
 public final class HyperdexKeyMappers {
     private static final ConfigurationKeyMapper configurationKeyMapper = new ConfigurationKeyMapper();

@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.hyperdex.mappers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kryptnostic.rhizome.hyperdex.mappers.values.SimpleHyperdexMapper;
 import com.kryptnostic.rhizome.hyperdex.mappers.values.StringHyperdexMapper;
 
 public final class HyperdexMappers {

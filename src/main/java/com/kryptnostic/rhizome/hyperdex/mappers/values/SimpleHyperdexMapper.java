@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.hyperdex.mappers;
+package com.kryptnostic.rhizome.hyperdex.mappers.values;
 
 import java.io.IOException;
 import java.util.Map;
@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.collect.ImmutableMap;
+import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
 import com.kryptnostic.rhizome.mapstores.HyperdexMappingException;
 
 public class SimpleHyperdexMapper<V> implements HyperdexMapper<V> {

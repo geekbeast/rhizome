@@ -94,7 +94,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     public void delete( K key ) {
         try {
             client.del( space, keyMapper.getKey( key ) );
-        } catch ( HyperDexClientException e ) {
+        } catch ( HyperDexClientException | HyperdexMappingException e ) {
             logger.error( "Error deleting key {} from hyperdex.", key, e );
         }
     }
