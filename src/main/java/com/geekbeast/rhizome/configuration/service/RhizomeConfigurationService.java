@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.google.common.base.Preconditions;
@@ -123,5 +124,9 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
     @Override
     protected void persistConfiguration( ConfigurationKey key, String configurationYaml ) {
         configurations.put( key, configurationYaml );
+    }
+    
+    public ObjectMapper getMapper() {
+        return mapper;
     }
 }
