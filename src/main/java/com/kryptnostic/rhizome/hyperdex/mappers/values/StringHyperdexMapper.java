@@ -18,7 +18,8 @@ public class StringHyperdexMapper implements HyperdexMapper<String> {
 
     @Override
     public String fromHyperdexMap( Map<String, Object> hyperdexMap ) throws HyperdexMappingException {
-        return ((ByteString)hyperdexMap.get( DATA_ATTRIBUTE )).toString();
+        ByteString value = ((ByteString)hyperdexMap.get( DATA_ATTRIBUTE ));
+        return value == null ? null : value.toString();
     }
 
 }
