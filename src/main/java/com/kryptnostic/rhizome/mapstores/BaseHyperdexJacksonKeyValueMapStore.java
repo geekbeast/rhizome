@@ -59,12 +59,18 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-        keys.forEach( ( key ) -> {
+        for( K key : keys ) {
             V value = load( key );
-            if ( value != null ) {
-                values.put( key, value );
+            if( value != null ) {
+                values.put( key,  value );
             }
-        } );
+        }
+//        keys.forEach( ( key ) -> {
+//            V value = load( key );
+//            if ( value != null ) {
+//                values.put( key, value );
+//            }
+//        } );
         return values;
     }
 

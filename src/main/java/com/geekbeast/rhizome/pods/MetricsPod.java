@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -26,53 +27,57 @@ import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
  * @author Matthew Tamayo-Rios
  */
 @Configuration
-@EnableMetrics
+@EnableMetrics(proxyTargetClass=true)
+@Import(value=AsyncPod.class)
 public class MetricsPod implements MetricsConfigurer {
     private static final Logger  logger = LoggerFactory.getLogger( MetricsPod.class );
+    private static final MetricRegistry globalMetricRegistry = new MetricRegistry();
+    private static final MetricRegistry serverMetricRegistry = new MetricRegistry();
+    private static final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
     @Inject
     private RhizomeConfiguration config;
 
     @Bean
     public MetricRegistry globalMetricRegistry() {
-        return new MetricRegistry();
-    }
-
-    @Bean
-    public MetricRegistry serverMetricRegistry() {
-        return new MetricRegistry();
+        return globalMetricRegistry;
     }
 
     @Bean
     public HealthCheckRegistry healthCheckRegistry() {
-        return new HealthCheckRegistry();
+        return healthCheckRegistry;
+    }
+    
+    @Bean
+    public MetricRegistry serverMetricRegistry() {
+        return serverMetricRegistry;
     }
 
     @Bean
     GraphiteReporter globalGraphiteReporter() {
-        return GraphiteReporter.forRegistry( globalMetricRegistry() ).prefixedWith( getGlobalName() )
-                .convertDurationsTo( TimeUnit.SECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( globalGraphite() );
+        return GraphiteReporter.forRegistry( globalMetricRegistry ).prefixedWith( getGlobalName() )
+                .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( globalGraphite() );
     }
 
     @Bean
     GraphiteReporter serverGraphiteReporter() {
-        return GraphiteReporter.forRegistry( serverMetricRegistry() ).prefixedWith( getHostName() )
-                .convertDurationsTo( TimeUnit.SECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( serverGraphite() );
+        return GraphiteReporter.forRegistry( serverMetricRegistry ).prefixedWith( getHostName() )
+                .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS ).build( serverGraphite() );
     }
 
     @Override
     public void configureReporters( MetricRegistry registry ) {
-
+        
     }
 
     @Override
     public HealthCheckRegistry getHealthCheckRegistry() {
-        return healthCheckRegistry();
+        return healthCheckRegistry;
     }
 
     @Override
     public MetricRegistry getMetricRegistry() {
-        return new MetricRegistry();
+        return serverMetricRegistry;
     }
 
     // TODO: Configure global aggregation for graphite
@@ -97,7 +102,7 @@ public class MetricsPod implements MetricsConfigurer {
         if ( config.getGraphiteConfiguration().isPresent() ) {
             GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
             logger.info(
-                    "Initializing global graphite instance with at {}:{}",
+                    "Initializing server graphite instance with at {}:{}",
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() );
             return new Graphite( new InetSocketAddress(

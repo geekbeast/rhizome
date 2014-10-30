@@ -26,7 +26,7 @@ import com.google.common.eventbus.AsyncEventBus;
  */
 // TODO: Add hibernate validation
 public abstract class AbstractYamlConfigurationService implements ConfigurationService {
-    protected final static ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
+    protected  ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
 
     protected final Logger              logger = LoggerFactory.getLogger( getClass() );
     protected final AsyncEventBus       configurationEvents;
@@ -62,6 +62,10 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
         }
     }
 
+    protected synchronized void setObjectMapper( ObjectMapper mapper ) {
+        this.mapper = mapper;
+    }
+    
     @Override
     public void registerModule( Module module ) {
         mapper.registerModule( module );
