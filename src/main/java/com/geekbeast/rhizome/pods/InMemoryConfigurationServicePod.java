@@ -14,7 +14,6 @@ import com.geekbeast.rhizome.configuration.service.AbstractYamlConfigurationServ
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.google.common.eventbus.AsyncEventBus;
 
-@Configuration
 public class InMemoryConfigurationServicePod {
     @Inject
     AsyncEventBus eventBus;
