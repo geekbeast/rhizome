@@ -39,7 +39,7 @@ public class TypeReferenceHyperdexMapper<V> implements HyperdexMapper<V> {
         try {
             return ImmutableMap.<String, Object> of( DATA_ATTRIBUTE, mapper.writeValueAsString( value ) );
         } catch ( JsonProcessingException e ) {
-            logger.error( "Unable to unmarshall data [{}] to hyperdex map.", value, e );
+            logger.error( "Unable to marshall data [{}] to hyperdex map.", value, e );
             throw new HyperdexMappingException( "Error marshalling data to hyperdex map." );
         }
     }
