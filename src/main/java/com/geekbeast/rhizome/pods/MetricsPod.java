@@ -34,19 +34,11 @@ import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
     value = AsyncPod.class )
 public class MetricsPod implements MetricsConfigurer {
     private static final Logger              logger              = LoggerFactory.getLogger( MetricsPod.class );
-    // private static final MetricRegistry globalMetricRegistry = new MetricRegistry();
     private static final MetricRegistry      metricRegistry      = new MetricRegistry();
     private static final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
     @Inject
     private RhizomeConfiguration             config;
-
-    @Bean
-    GraphiteReporter globalGraphiteReporter() {
-        return GraphiteReporter.forRegistry( metricRegistry ).prefixedWith( getGlobalName() )
-                .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS )
-                .build( globalGraphite() );
-    }
 
     @Bean
     @Timed
@@ -71,23 +63,6 @@ public class MetricsPod implements MetricsConfigurer {
         return metricRegistry;
     }
 
-    // TODO: Configure global aggregation for graphite
-    @Bean
-    public Graphite globalGraphite() {
-        if ( config.getGraphiteConfiguration().isPresent() ) {
-            GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
-            logger.info(
-                    "Initializing global graphite instance with at {}:{}",
-                    graphiteConfig.getGraphiteHost(),
-                    graphiteConfig.getGraphitePort() );
-            return new Graphite( new InetSocketAddress(
-                    graphiteConfig.getGraphiteHost(),
-                    graphiteConfig.getGraphitePort() ) );
-        } else {
-            return null;
-        }
-    }
-
     @Bean
     public Graphite serverGraphite() {
         if ( config.getGraphiteConfiguration().isPresent() ) {
@@ -106,7 +81,6 @@ public class MetricsPod implements MetricsConfigurer {
 
     @PostConstruct
     protected void startGraphite() {
-        globalGraphiteReporter().start( 10, TimeUnit.SECONDS );
         serverGraphiteReporter().start( 10, TimeUnit.SECONDS );
     }
 
