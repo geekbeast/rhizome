@@ -100,10 +100,10 @@ public class Rhizome implements WebApplicationInitializer {
         // Register the health check registry.
         servletContext.setAttribute(
                 HealthCheckServlet.HEALTH_CHECK_REGISTRY,
-                rhizomeContext.getBean( "healthCheckRegistry", HealthCheckRegistry.class ) );
+                rhizomeContext.getBean( "getHealthCheckRegistry", HealthCheckRegistry.class ) );
         servletContext.setAttribute(
                 MetricsServlet.METRICS_REGISTRY,
-                rhizomeContext.getBean( "serverMetricRegistry", MetricRegistry.class ) );
+                rhizomeContext.getBean( "getMetricRegistry", MetricRegistry.class ) );
 
         /*
          * 
