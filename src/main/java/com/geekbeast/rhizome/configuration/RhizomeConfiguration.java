@@ -43,15 +43,12 @@ public class RhizomeConfiguration implements Configuration {
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
     }
 
-
-
     @Override
     public String toString() {
         return "RhizomeConfiguration [persistData=" + persistData + ", hazelcastSessionFilterConfiguration="
                 + hazelcastSessionFilterConfiguration + ", graphiteConfiguration=" + graphiteConfiguration
                 + ", cassandraConfiguration=" + cassandraConfiguration + "]";
     }
-    
     
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )
     public boolean isPersistenceEnabled() {
