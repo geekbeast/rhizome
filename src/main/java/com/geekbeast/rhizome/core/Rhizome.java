@@ -1,5 +1,6 @@
 package com.geekbeast.rhizome.core;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -186,8 +187,12 @@ public class Rhizome implements WebApplicationInitializer {
     }
 
     public void wilt() throws BeansException, Exception {
-        for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
+        Collection<Loam> loams = rhizomeContext.getBeansOfType( Loam.class ).values();
+        for ( Loam loam : loams ) {
             loam.stop();
+        }
+        for ( Loam loam : loams ) {
+            loam.join();
         }
     }
 
