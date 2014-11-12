@@ -43,8 +43,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @Override
     public V load( K key ) {
+        Client client = pool.acquire();
         try {
-            Client client = pool.acquire();
             Map<String, Object> value = client.get( space, keyMapper.getKey( key ) );
             if ( value == null ) {
                 return null;
@@ -54,6 +54,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
             logger.error( "Unable to load object from Hyperdex for key {} in space {}", key, space, e );
+        } finally {
+            pool.release( client );
         }
         return null;
     }
@@ -84,13 +86,15 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @Override
     public void store( K key, V value ) {
+        Client client = pool.acquire();
         try {
-            Client client = pool.acquire();
             client.put( space, keyMapper.getKey( key ), mapper.toHyperdexMap( value ) );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to map object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
             logger.error( "Error storing object to Hyperdex for key {} in space {}", key, space, e );
+        } finally {
+            pool.release( client );
         }
     }
 
@@ -101,11 +105,13 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @Override
     public void delete( K key ) {
+        Client client = pool.acquire();
         try {
-            Client client = pool.acquire();
             client.del( space, keyMapper.getKey( key ) );
         } catch ( HyperDexClientException | HyperdexMappingException e ) {
             logger.error( "Error deleting key {} from hyperdex.", key, e );
+        } finally {
+            pool.release( client );
         }
     }
 
