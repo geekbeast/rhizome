@@ -15,7 +15,7 @@ public class HyperdexConfiguration {
 
     private static final List<String> HYPERDEX_SEED_DEFAULT                   = ImmutableList.of( "127.0.0.1" );
     private static final int          PORT_DEFAULT                            = 1982;
-    private static final String       NATIVE_BINARY_FOLDER_DEFAULT            = "lib/macosx";
+    private static final String       NATIVE_BINARY_FOLDER_DEFAULT            = HyperdexPreconfigurer.DEFAULT_HYPERDEX_LIB_DIRECTORY;
 
     private final List<String>        coordinators;
     private final int                 port;

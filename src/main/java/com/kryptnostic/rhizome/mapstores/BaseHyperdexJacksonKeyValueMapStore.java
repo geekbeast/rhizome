@@ -15,6 +15,7 @@ import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
+import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
 
 public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V> {
 
@@ -25,26 +26,27 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     }
 
     protected final HyperdexMapper<V>    mapper;
-    protected final Client               client;
+    protected final HyperdexClientPool   pool;
     protected final String               space;
     protected final HyperdexKeyMapper<K> keyMapper;
 
     public BaseHyperdexJacksonKeyValueMapStore(
             String space,
-            Client client,
+            HyperdexClientPool pool,
             HyperdexKeyMapper<K> keyMapper,
             HyperdexMapper<V> mapper ) {
         this.mapper = mapper;
-        this.client = client;
+        this.pool = pool;
         this.space = space;
         this.keyMapper = keyMapper;
     }
 
     @Override
     public V load( K key ) {
+        Client client = pool.acquire();
         try {
             Map<String, Object> value = client.get( space, keyMapper.getKey( key ) );
-            if (value == null) {
+            if ( value == null ) {
                 return null;
             }
             return mapper.fromHyperdexMap( value );
@@ -52,6 +54,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
             logger.error( "Unable to load object from Hyperdex for key {} in space {}", key, space, e );
+        } finally {
+            pool.release( client );
         }
         return null;
     }
@@ -59,18 +63,18 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-        for( K key : keys ) {
+        for ( K key : keys ) {
             V value = load( key );
-            if( value != null ) {
-                values.put( key,  value );
+            if ( value != null ) {
+                values.put( key, value );
             }
         }
-//        keys.forEach( ( key ) -> {
-//            V value = load( key );
-//            if ( value != null ) {
-//                values.put( key, value );
-//            }
-//        } );
+        // keys.forEach( ( key ) -> {
+        // V value = load( key );
+        // if ( value != null ) {
+        // values.put( key, value );
+        // }
+        // } );
         return values;
     }
 
@@ -82,12 +86,15 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @Override
     public void store( K key, V value ) {
+        Client client = pool.acquire();
         try {
             client.put( space, keyMapper.getKey( key ), mapper.toHyperdexMap( value ) );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to map object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
             logger.error( "Error storing object to Hyperdex for key {} in space {}", key, space, e );
+        } finally {
+            pool.release( client );
         }
     }
 
@@ -98,10 +105,13 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @Override
     public void delete( K key ) {
+        Client client = pool.acquire();
         try {
             client.del( space, keyMapper.getKey( key ) );
         } catch ( HyperDexClientException | HyperdexMappingException e ) {
             logger.error( "Error deleting key {} from hyperdex.", key, e );
+        } finally {
+            pool.release( client );
         }
     }
 

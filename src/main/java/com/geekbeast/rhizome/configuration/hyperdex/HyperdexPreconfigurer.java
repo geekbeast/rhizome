@@ -12,7 +12,7 @@ import com.google.common.base.Optional;
  *         libraries will fail.
  */
 public final class HyperdexPreconfigurer {
-    private static final String DEFAULT_HYPERDEX_LIB_DIRECTORY = "lib/centos:lib/macosx";
+    public static final String DEFAULT_HYPERDEX_LIB_DIRECTORY = "lib/centos:lib/macosx";
 
     static {
         Optional<HyperdexConfiguration> hyperdexConfiguration = ConfigurationPod.getRhizomeConfiguration()

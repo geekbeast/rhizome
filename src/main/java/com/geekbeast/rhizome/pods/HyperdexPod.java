@@ -3,13 +3,17 @@ package com.geekbeast.rhizome.pods;
 import org.hyperdex.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.google.common.base.Optional;
+import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
+import com.kryptnostic.rhizome.hyperdex.pooling.ResizingHyperdexClientPool;
 import com.kryptnostic.rhizome.mapstores.ConfigurationHyperdexMapstore;
 
 @Configuration
@@ -33,21 +37,15 @@ public class HyperdexPod {
     }
 
     @Bean
+    @Scope(
+        value = ConfigurableBeanFactory.SCOPE_PROTOTYPE )
     public Client hyperdexClient() {
-        Client client = null;
+        return hyperdexClientPool().acquire();
+    }
 
-        int port = hyperdexConfiguration().getPort();
-        for ( String coordinator : hyperdexConfiguration().getCoordinators() ) {
-            try {
-                client = new Client( coordinator, port );
-                if ( client != null ) {
-                    break;
-                }
-            } catch ( Exception e ) {
-                logger.warn( "Unable to connect to coordinator {} on port {}... skipping.", coordinator, port );
-            }
-        }
-        return client;
+    @Bean
+    public HyperdexClientPool hyperdexClientPool() {
+        return new ResizingHyperdexClientPool( hyperdexConfiguration() );
     }
 
     @Bean
@@ -57,7 +55,7 @@ public class HyperdexPod {
         if ( hyperdexConfiguration != null ) {
             configurationKeyspace = hyperdexConfiguration().getConfigurationKeyspace();
             if ( configurationKeyspace.isPresent() ) {
-                return new ConfigurationHyperdexMapstore( configurationKeyspace.get(), hyperdexClient() );
+                return new ConfigurationHyperdexMapstore( configurationKeyspace.get(), hyperdexClientPool() );
             }
         }
         return null;
