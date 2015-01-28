@@ -19,7 +19,8 @@ import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
 
 public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V> {
 
-    protected final Logger               logger = LoggerFactory.getLogger( getClass() );
+    private static final int             MAX_TRIES = 200;
+    protected final Logger               logger    = LoggerFactory.getLogger( getClass() );
 
     static {
         HyperdexPreconfigurer.configure();
@@ -41,22 +42,43 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         this.keyMapper = keyMapper;
     }
 
+    private <T> T doSafeOperation( ClientOperation<T> op ) {
+        boolean shouldTry = true;
+        int numTries = 0;
+        T val = null;
+
+        while ( shouldTry && ++numTries < MAX_TRIES ) {
+            try {
+                val = op.exec();
+                shouldTry = false;
+            } catch ( HyperDexClientException e ) {
+                logger.error( e.getMessage() );
+            }
+        }
+        return val;
+    }
+
+    private interface ClientOperation<T> {
+        T exec() throws HyperDexClientException;
+    }
+
     @Override
     public V load( K key ) {
         Client client = pool.acquire();
+        Map<String, Object> value = null;
         try {
-            Map<String, Object> value = client.get( space, keyMapper.getKey( key ) );
+            Object keyObject = keyMapper.getKey( key );
+            value = doSafeOperation( ( ) -> client.get( space, keyObject ) );
             if ( value == null ) {
                 return null;
             }
             return mapper.fromHyperdexMap( value );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
-        } catch ( HyperDexClientException e ) {
-            logger.error( "Unable to load object from Hyperdex for key {} in space {}", key, space, e );
         } finally {
             pool.release( client );
         }
+
         return null;
     }
 
@@ -88,11 +110,11 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     public void store( K key, V value ) {
         Client client = pool.acquire();
         try {
-            client.put( space, keyMapper.getKey( key ), mapper.toHyperdexMap( value ) );
+            Object keyObject = keyMapper.getKey( key );
+            Map<String, Object> val = mapper.toHyperdexMap( value );
+            doSafeOperation( ( ) -> client.put( space, keyObject, val ) );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to map object for key {} in space {}", key, space, e );
-        } catch ( HyperDexClientException e ) {
-            logger.error( "Error storing object to Hyperdex for key {} in space {}", key, space, e );
         } finally {
             pool.release( client );
         }
@@ -107,8 +129,9 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     public void delete( K key ) {
         Client client = pool.acquire();
         try {
-            client.del( space, keyMapper.getKey( key ) );
-        } catch ( HyperDexClientException | HyperdexMappingException e ) {
+            Object keyObject = keyMapper.getKey( key );
+            doSafeOperation( ( ) -> client.del( space, keyObject ) );
+        } catch ( HyperdexMappingException e ) {
             logger.error( "Error deleting key {} from hyperdex.", key, e );
         } finally {
             pool.release( client );
