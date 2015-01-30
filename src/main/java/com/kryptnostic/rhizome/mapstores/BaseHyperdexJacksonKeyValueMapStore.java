@@ -110,9 +110,13 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
                 logger.error( "Unable to read key for object key {} in space", key, space, e );
                 return;
             }
-            deferredValues.put( key, doSafeOperation( ( client ) -> {
-                return client.async_get( space, keyObject );
-            } ) );
+            try {
+                deferredValues.put( key, doSafeOperation( ( client ) -> {
+                    return client.async_get( space, keyObject );
+                } ) );
+            } catch ( HyperDexClientException e ) {
+                logger.error( "Error trying to submit async read to hyperdex for key {} in space {}", key, space, e );
+            }
         } );
 
         Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
