@@ -99,25 +99,35 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
 
     @SuppressWarnings( "unchecked" )
     @Override
-    public Map<K, V> loadAll( Collection<K> keys ) {
+    public Map<K, V> loadAll( final Collection<K> keys ) {
 
-        Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
-        keys.forEach( ( K key ) -> {
-            Object keyObject;
-            try {
-                keyObject = keyMapper.getKey( key );
-            } catch ( Exception e ) {
-                logger.error( "Unable to read key for object key {} in space", key, space, e );
-                return;
-            }
-            try {
-                deferredValues.put( key, doSafeOperation( ( client ) -> {
-                    return client.async_get( space, keyObject );
-                } ) );
-            } catch ( HyperDexClientException e ) {
-                logger.error( "Error trying to submit async read to hyperdex for key {} in space {}", key, space, e );
-            }
-        } );
+        final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
+
+        try {
+            doSafeOperation( ( client ) -> {
+                keys.forEach( ( K key ) -> {
+                    Object keyObject;
+                    try {
+                        keyObject = keyMapper.getKey( key );
+                    } catch ( Exception e ) {
+                        logger.error( "Unable to read key for object key {} in space", key, space, e );
+                        return;
+                    }
+                    try {
+                        deferredValues.put( key, client.async_get( space, keyObject ) );
+                    } catch ( HyperDexClientException e ) {
+                        logger.error(
+                                "Error trying to submit async read to hyperdex for key {} in space {}",
+                                key,
+                                space,
+                                e );
+                    }
+                } );
+                return null;
+            } );
+        } catch ( HyperDexClientException e1 ) {
+            logger.info( "Error scheduling bulk loads in space {}", space, e1 );
+        }
 
         Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
 
