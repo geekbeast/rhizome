@@ -4,15 +4,19 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import jersey.repackaged.com.google.common.collect.Iterables;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.hyperdex.client.Client;
+import org.hyperdex.client.Deferred;
 import org.hyperdex.client.HyperDexClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
 import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
@@ -83,21 +87,35 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         return null;
     }
 
+    @SuppressWarnings( "unchecked" )
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-        for ( K key : keys ) {
-            V value = load( key );
-            if ( value != null ) {
-                values.put( key, value );
+
+        Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
+        keys.forEach( ( K key ) -> {
+            Object keyObject;
+            try {
+                keyObject = keyMapper.getKey( key );
+            } catch ( Exception e ) {
+                logger.error( "Unable to read key for object key {} in space", key, space, e );
+                return;
             }
+            deferredValues.put( key, doSafeOperation( ( client ) -> {
+                return client.async_get( space, keyObject );
+            } ) );
+        } );
+
+        Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+
+        for ( Map.Entry<K, Deferred> entry : deferredValues.entrySet() ) {
+            try {
+                values.put( entry.getKey(), mapper.fromHyperdexMap( (Map<String, Object>) entry.getValue().waitForIt() ) );
+            } catch ( HyperdexMappingException | HyperDexClientException e ) {
+                logger.error( "Unable to unmap returned object for key {} in space {}", entry.getKey(), space, e );
+            }
+
         }
-        // keys.forEach( ( key ) -> {
-        // V value = load( key );
-        // if ( value != null ) {
-        // values.put( key, value );
-        // }
-        // } );
+
         return values;
     }
 
