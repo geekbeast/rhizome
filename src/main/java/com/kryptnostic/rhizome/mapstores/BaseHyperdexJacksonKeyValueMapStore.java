@@ -46,20 +46,28 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         this.keyMapper = keyMapper;
     }
 
-    private <T> T doSafeOperation( ClientOperation<T> clientOperation ) {
+    private <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
         int numTries = 0;
+        HyperDexClientException exception = null;
         T val = null;
 
         while ( ++numTries < MAX_TRIES ) {
+            exception = null;
             try {
                 Client client = pool.acquire();
                 val = clientOperation.exec( client );
                 pool.release( client );
                 break;
             } catch ( HyperDexClientException e ) {
+                exception = e;
                 logger.error( e.getMessage() );
             }
         }
+
+        if ( exception != null ) {
+            throw exception;
+        }
+
         return val;
     }
 
@@ -82,6 +90,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             return mapper.fromHyperdexMap( value );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
+        } catch ( HyperDexClientException e ) {
+            logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
         }
 
         return null;
@@ -133,6 +143,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             doSafeOperation( ( client ) -> client.put( space, keyObject, val ) );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to map object for key {} in space {}", key, space, e );
+        } catch ( HyperDexClientException e ) {
+            logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
         }
     }
 
@@ -148,6 +160,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             doSafeOperation( ( client ) -> client.del( space, keyObject ) );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Error deleting key {} from hyperdex.", key, e );
+        } catch ( HyperDexClientException e ) {
+            logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
         }
     }
 
