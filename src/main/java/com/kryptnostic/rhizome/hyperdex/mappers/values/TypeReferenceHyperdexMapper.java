@@ -37,7 +37,9 @@ public class TypeReferenceHyperdexMapper<V> implements HyperdexMapper<V> {
     @Override
     public Map<String, Object> toHyperdexMap( V value ) throws HyperdexMappingException {
         try {
-            return ImmutableMap.<String, Object> of( DATA_ATTRIBUTE, mapper.writeValueAsString( value ) );
+            return ImmutableMap.<String, Object> of(
+                    DATA_ATTRIBUTE,
+                    ByteString.wrap( mapper.writeValueAsBytes( value ) ) );
         } catch ( JsonProcessingException e ) {
             logger.error( "Unable to marshall data [{}] to hyperdex map.", value, e );
             throw new HyperdexMappingException( "Error marshalling data to hyperdex map." );
@@ -48,7 +50,7 @@ public class TypeReferenceHyperdexMapper<V> implements HyperdexMapper<V> {
     public V fromHyperdexMap( Map<String, Object> hyperdexMap ) throws HyperdexMappingException {
         try {
             return hyperdexMap == null ? null : mapper.readValue(
-                    ( (ByteString) hyperdexMap.get( DATA_ATTRIBUTE ) ).toString(),
+                    ( (ByteString) hyperdexMap.get( DATA_ATTRIBUTE ) ).getBytes(),
                     reference );
         } catch ( IOException e ) {
             logger.error( "Unable to unmarshall data from hyperdex map {}", hyperdexMap, e );

@@ -3,8 +3,8 @@ package com.kryptnostic.rhizome.mapstores;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
-import jersey.repackaged.com.google.common.collect.Iterables;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.hyperdex.client.Client;
@@ -15,25 +15,26 @@ import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
 import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
 
 public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V> {
-
-    private static final int             MAX_TRIES = 200;
-    protected final Logger               logger    = LoggerFactory.getLogger( getClass() );
+    private static final ListeningExecutorService executor  = MoreExecutors.listeningDecorator( Executors
+                                                                    .newCachedThreadPool() );
+    private static final int                      MAX_TRIES = 200;
+    protected final Logger                        logger    = LoggerFactory.getLogger( getClass() );
 
     static {
         HyperdexPreconfigurer.configure();
     }
 
-    protected final HyperdexMapper<V>    mapper;
-    protected final HyperdexClientPool   pool;
-    protected final String               space;
-    protected final HyperdexKeyMapper<K> keyMapper;
+    protected final HyperdexMapper<V>             mapper;
+    protected final HyperdexClientPool            pool;
+    protected final String                        space;
+    protected final HyperdexKeyMapper<K>          keyMapper;
 
     public BaseHyperdexJacksonKeyValueMapStore(
             String space,
@@ -100,34 +101,36 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @SuppressWarnings( "unchecked" )
     @Override
     public Map<K, V> loadAll( final Collection<K> keys ) {
-
+        logger.info( "Loading {} keys", keys.size() );
+//        Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+//        for( K key : keys ) {
+//            V value = load( key );
+//            if( value != null ) { 
+//                values.put( key, value );
+//            }
+//        }
+//        return values;
+//        
         final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
+        Client client = pool.acquire();
 
-        try {
-            doSafeOperation( ( client ) -> {
-                keys.forEach( ( K key ) -> {
-                    Object keyObject;
-                    try {
-                        keyObject = keyMapper.getKey( key );
-                    } catch ( Exception e ) {
-                        logger.error( "Unable to read key for object key {} in space", key, space, e );
-                        return;
-                    }
-                    try {
-                        deferredValues.put( key, client.async_get( space, keyObject ) );
-                    } catch ( HyperDexClientException e ) {
-                        logger.error(
-                                "Error trying to submit async read to hyperdex for key {} in space {}",
-                                key,
-                                space,
-                                e );
-                    }
-                } );
-                return null;
-            } );
-        } catch ( HyperDexClientException e1 ) {
-            logger.info( "Error scheduling bulk loads in space {}", space, e1 );
-        }
+        keys.forEach( ( K key ) -> {
+            Object keyObject;
+            try {
+                keyObject = keyMapper.getKey( key );
+            } catch ( Exception e ) {
+                logger.error( "Unable to read key for object key {} in space", key, space, e );
+                return;
+            }
+            try {
+                Deferred value = client.async_get( space, keyObject );
+                if ( value != null ) {
+                    deferredValues.put( key, value );
+                }
+            } catch ( HyperDexClientException e ) {
+                logger.error( "Error trying to submit async read to hyperdex for key {} in space {}", key, space, e );
+            }
+        } );
 
         Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
 
@@ -139,7 +142,8 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             }
 
         }
-
+        pool.release( client );
+        logger.info( "Loaded {} keys.", values.size() );
         return values;
     }
 
