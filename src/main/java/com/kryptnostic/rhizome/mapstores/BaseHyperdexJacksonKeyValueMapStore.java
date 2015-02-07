@@ -47,7 +47,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         this.keyMapper = keyMapper;
     }
 
-    private <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
+    protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
         int numTries = 0;
         HyperDexClientException exception = null;
         T val = null;
@@ -102,15 +102,15 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public Map<K, V> loadAll( final Collection<K> keys ) {
         logger.info( "Loading {} keys", keys.size() );
-//        Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-//        for( K key : keys ) {
-//            V value = load( key );
-//            if( value != null ) { 
-//                values.put( key, value );
-//            }
-//        }
-//        return values;
-//        
+        // Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+        // for( K key : keys ) {
+        // V value = load( key );
+        // if( value != null ) {
+        // values.put( key, value );
+        // }
+        // }
+        // return values;
+        //
         final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
         Client client = pool.acquire();
 
