@@ -72,7 +72,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         return val;
     }
 
-    private interface ClientOperation<T> {
+    protected interface ClientOperation<T> {
         T exec( Client client ) throws HyperDexClientException;
     }
 
