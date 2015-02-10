@@ -81,6 +81,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         Map<String, Object> value = null;
         try {
             Object keyObject = keyMapper.getKey( key );
+
             value = doSafeOperation( ( client ) -> {
                 return client.get( space, keyObject );
             } );
@@ -91,8 +92,20 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             return mapper.fromHyperdexMap( value );
         } catch ( HyperdexMappingException e ) {
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
+            try {
+                logger.info( "Removing corrupted key {} in space {}", key, space );
+                Object keyObject = keyMapper.getKey( key );
+                doSafeOperation( ( client ) -> {
+                    client.del( space, keyObject );
+                    return null;
+                } );
+            } catch ( HyperDexClientException | HyperdexMappingException e1 ) {
+                logger.error( "Couldn't get client when getting key {} in space {}", key, space, e1 );
+            }
         } catch ( HyperDexClientException e ) {
             logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
+        } catch ( Exception e ) {
+            logger.error( "Unexpected exception when getting key {} in space {}", key, space, e );
         }
 
         return null;
@@ -102,15 +115,15 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public Map<K, V> loadAll( final Collection<K> keys ) {
         logger.info( "Loading {} keys", keys.size() );
-//        Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-//        for( K key : keys ) {
-//            V value = load( key );
-//            if( value != null ) { 
-//                values.put( key, value );
-//            }
-//        }
-//        return values;
-//        
+        // Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+        // for( K key : keys ) {
+        // V value = load( key );
+        // if( value != null ) {
+        // values.put( key, value );
+        // }
+        // }
+        // return values;
+        //
         final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
         Client client = pool.acquire();
 
@@ -138,6 +151,9 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             try {
                 values.put( entry.getKey(), mapper.fromHyperdexMap( (Map<String, Object>) entry.getValue().waitForIt() ) );
             } catch ( HyperdexMappingException | HyperDexClientException e ) {
+                if( e instanceof HyperdexMappingException ) {
+                    delete( entry.getKey() );
+                }
                 logger.error( "Unable to unmap returned object for key {} in space {}", entry.getKey(), space, e );
             }
 
