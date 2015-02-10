@@ -1,19 +1,102 @@
-publishing {
-    publications {
-        myPublication(MavenPublication) {
-            // telling gradle to publish project's jar archive (2)
-            from components.java
-            // telling gradle to publish README file (2)
-            artifact ('README.md') {
-                classifier = 'README'
-                extension  = 'md'
+def stdout = new ByteArrayOutputStream()
+exec {
+    commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+    standardOutput = stdout
+}
+def branch=stdout.toString().trim();
+
+if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("release/") ) ) && 
+    ( System.getenv("bamboo_JAR_SIGNING_KEYRING") != null) && 
+    ( System.getenv("bamboo_JAR_SIGNING_PASSWORD")!=null ) && 
+    ( System.getenv("bamboo_SONATYPE_USERNAME")!=null ) && 
+    ( System.getenv("bamboo_SONATYPE_PASSWORD")!=null ) ) {
+
+
+    apply plugin: "signing"
+    apply plugin: "maven-publish"
+
+    ext {
+        snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+        releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+        localUrl = "file:/${project.projectDir}/artifacts"
+    }
+
+    ext."signing.keyId" = 'FDEB5A45'
+    ext."signing.secretKeyRingFile" = "$System.env.bamboo_JAR_SIGNING_KEYRING"
+    ext."signing.password" = "$System.env.bamboo_JAR_SIGNING_PASSWORD"
+
+    configurations {
+        pom
+    }
+
+    signing {
+        sign configurations.archives
+    }
+
+    signing {
+        sign configurations.pom
+    }
+
+    publishing {
+        repositories {
+            maven { 
+                url branch.equals("develop") ? snapshotUrl : releaseUrl
+                credentials {
+                    username = "$System.env.bamboo_SONATYPE_USERNAME"
+                    password = "$System.env.bamboo_SONATYPE_PASSWORD"
+                }
             }
         }
-    }
-    // telling gradle to publish artifact to local directory (3)
-    repositories {
-        maven {
-            url "file:/${project.projectDir}/artifacts"
+
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact ('README.md') {
+                    classifier = 'README'
+                    extension  = 'md'
+                }
+
+                artifact javadocJar
+                artifact sourcesJar
+
+                pom.withXml {
+                    asNode().children().last() + {
+                        resolveStrategy = Closure.DELEGATE_FIRST
+                        name 'fhe-core'
+                        description 'Kryptnostic implementations of Fully Homomorphic Encryption'
+                        url 'https://www.github.com/kryptnostic/fhe-core'
+                        scm {
+                            url 'https://www.github.com/kryptnostic/fhe-core'
+                            connection 'https://www.github.com/kryptnostic/fhe-core'
+                            developerConnection 'https://www.github.com/kryptnostic/fhe-core'
+                        }
+                        licenses {
+                            license {
+                                name 'The Apache Software License, Version 2.0'
+                                url 'http://www.apache.org/license/LICENSE-2.0.txt'
+                                distribution 'repo'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id 'geekbeast'
+                                name 'Matthew Tamayo-Rios'
+                                email 'matthew@kryptnostic.com'
+                            }
+                            developer {
+                                id 'hubsmoke'
+                                name 'Sina Iman'
+                                email 'sina@kryptnostic.com'
+                            }
+                            developer {
+                                id 'nickdhewitt'
+                                name 'Nick Hewitt'
+                                email 'nick@kryptnostic.com'
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

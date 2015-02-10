@@ -54,8 +54,8 @@ repositories {
 }
 
 ext.spring_security_version='3.2.5.RELEASE'
-ext.spring_framework_version='4.1.0.RELEASE'
-ext.jackson_version='2.4.2'
+ext.spring_framework_version='4.1.4.RELEASE'
+ext.jackson_version='2.5.1'
 ext.jetty_version='9.2.2.v20140723'
 ext.hazelcast_version='3.4'
 dependencies {
@@ -192,7 +192,7 @@ compile "log4j:log4j:1.2.17"
      * Websocket / CometD support
      */
      compile "org.atmosphere:atmosphere-runtime:2.0.5"
-    
+     
     /*
      * Jars in lib folder, generally Hyperdex
      */
@@ -202,129 +202,31 @@ compile "log4j:log4j:1.2.17"
      * TESTING
      */
      testCompile 'junit:junit:4.11'
-     testCompile 'com.squareup.retrofit:retrofit:1.6.1'
-     testCompile 'com.squareup.retrofit:retrofit-converters:1.6.1'
+     testCompile 'com.squareup.retrofit:retrofit:1.9.0'
+     testCompile 'com.squareup.retrofit:retrofit-converters:1.9.0'
  }
-
- configurations {
-    pom
-}
 
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    /*wtp {
-        facet {
-            facet name: "java", version:"1.7"
-            facet name:"jst.web" , version:"3.1"
-        }
-        }*/
-        ext.sourceCompatibility=JavaVersion.VERSION_1_8
-        ext.targetCompatibility=JavaVersion.VERSION_1_8
-    }
+    ext.sourceCompatibility=JavaVersion.VERSION_1_8
+    ext.targetCompatibility=JavaVersion.VERSION_1_8
+}
 
-    ext {
-        snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-        releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        localUrl = "file:/${project.projectDir}/artifacts"
-    }
+task sourcesJar(type : Jar) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
 
-    ext.repoUrl = snapshotUrl
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
 
-    task wrapper(type: Wrapper) {
-        gradleVersion = '2.0'
-    }
-
-    task sourceJar (type : Jar) {
-      classifier = 'sources'
-      from sourceSets.main.allSource
-  }
-
-  task javadocJar(type: Jar, dependsOn:javadoc) {
-      classifier = 'javadoc'
-      from javadoc.destinationDir
-  }
-
-  ext."signing.keyId" = 'FDEB5A45'
-  ext."signing.secretKeyRingFile" = '/Users/mtamayo/.gnupg/secring.gpg'
-  ext."signing.password" = 'id'
-  ext.isReleaseBuild = false
-
-  if (ext.isReleaseBuild) {
-    //(type : Sign, dependsOn: [jar, javadocJar, sourceJar]) 
-    signing {
-        sign configurations.archives
-    }
-    
-    signing {
-        sign configurations.pom
-    }
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
 }
 
 artifacts {
-    archives jar
-    archives javadocJar
-    archives sourceJar
-}
-
-if( !project.ext.hasProperty( 'user' ) ) {
-    project.ext.user = ''
-}
-
-if( !project.ext.hasProperty( 'password') ) {
-    project.ext.password = ''
-}
-
-publishing {
-    repositories {
-        maven { 
-            url repoUrl
-            credentials {
-                username = project.ext.user   
-                password = project.ext.password
-            }
-        }
-    }
-
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            version '0.1.0-SNAPSHOT'
-            /*artifact ('README.md') {
-                classifier = 'README'
-                extension  = 'md'
-                }*/
-
-            //artifact javadocJar
-            artifact sourceJar
-
-            pom.withXml {
-                asNode().children().last() + {
-                    resolveStrategy = Closure.DELEGATE_FIRST
-                    name 'rhizome'
-                    description 'Light weight Java web framework'
-                    url 'https://www.github.com/geekbeast/rhizome'
-                    scm {
-                        url 'https://www.github.com/geekbeast/rhizome'
-                        connection 'https://www.github.com/geekbeast/rhizome'
-                        developerConnection 'https://www.github.com/geekbeast/rhizome'
-                    }
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/license/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id 'geekbeast'
-                            name 'Matthew Tamayo-Rios'
-                            email 'matthew@geekbeast.com'
-                        }
-                    }
-                }
-            }
-        }
-    }
+    archives jar,sourcesJar,javadocJar
 }
