@@ -47,7 +47,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         this.keyMapper = keyMapper;
     }
 
-    private <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
+    protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
         int numTries = 0;
         HyperDexClientException exception = null;
         T val = null;
@@ -72,7 +72,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
         return val;
     }
 
-    private interface ClientOperation<T> {
+    protected interface ClientOperation<T> {
         T exec( Client client ) throws HyperDexClientException;
     }
 
