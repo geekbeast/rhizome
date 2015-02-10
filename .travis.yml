@@ -1,5 +1,5 @@
 language: java
 jdk:
   - oraclejdk8
-before_script: "git fetch --tags"
-script: "./gradlew assemble check"
+before_script: git fetch --tags
+script: ./gradlew assemble check
