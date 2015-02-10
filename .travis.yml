@@ -1,8 +1,5 @@
 language: java
 jdk:
   - oraclejdk8
-install: 
-    - git fetch --tags
-    - git pull --tags
-before_script: git fetch --tags
-script: ./gradlew assemble check
+install: git fetch --tags
+script: ./gradlew check
