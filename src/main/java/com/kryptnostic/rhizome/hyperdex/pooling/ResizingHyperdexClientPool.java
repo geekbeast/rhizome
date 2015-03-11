@@ -66,9 +66,9 @@ public class ResizingHyperdexClientPool implements HyperdexClientPool {
     @Scheduled(
         fixedRate = 5 * 60000 )
     public void ping() {
-        Client c = acquire(); 
+        Client c = acquire();
         Set<Client> stopSet = Sets.newHashSet();
-        
+
         while ( !stopSet.contains( c ) ) {
             if ( isClientHealthy( c ) ) {
                 release( c );
@@ -77,15 +77,15 @@ public class ResizingHyperdexClientPool implements HyperdexClientPool {
             c = acquire();
         }
     }
-    
+
     public int available() {
         return clients.size();
     }
-    
+
     private boolean isClientHealthy( Client c ) {
         try {
-            return c.get( hyperdexConfiguration.getHealthCheckKeyspace().get() , HEALTH_CHECK_KEY ).get( HEALTH_CHECK_DATA_FIELD ).toString()
-                    .equals( HEALTH_CHECK_VALUE );
+            return c.get( hyperdexConfiguration.getHealthCheckKeyspace().get(), HEALTH_CHECK_KEY )
+                    .get( HEALTH_CHECK_DATA_FIELD ).toString().equals( HEALTH_CHECK_VALUE );
         } catch ( HyperDexClientException e ) {
             return false;
         }
