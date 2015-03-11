@@ -48,22 +48,22 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     }
 
     protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
-        int numTries = 0;
+        // int numTries = 0;
         HyperDexClientException exception = null;
         T val = null;
 
-        while ( ++numTries < MAX_TRIES ) {
-            exception = null;
-            try {
-                Client client = pool.acquire();
-                val = clientOperation.exec( client );
-                pool.release( client );
-                break;
-            } catch ( HyperDexClientException e ) {
-                exception = e;
-                logger.error( e.getMessage() );
-            }
+        // while ( ++numTries < MAX_TRIES ) {
+        // exception = null;
+        try {
+            Client client = pool.acquire();
+            val = clientOperation.exec( client );
+            pool.release( client );
+            // break;
+        } catch ( HyperDexClientException e ) {
+            exception = e;
+            logger.error( e.getMessage() );
         }
+        // }
 
         if ( exception != null ) {
             throw exception;
@@ -151,7 +151,7 @@ public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
             try {
                 values.put( entry.getKey(), mapper.fromHyperdexMap( (Map<String, Object>) entry.getValue().waitForIt() ) );
             } catch ( HyperdexMappingException | HyperDexClientException e ) {
-                if( e instanceof HyperdexMappingException ) {
+                if ( e instanceof HyperdexMappingException ) {
                     delete( entry.getKey() );
                 }
                 logger.error( "Unable to unmap returned object for key {} in space {}", entry.getKey(), space, e );
