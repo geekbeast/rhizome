@@ -78,7 +78,7 @@ public class ResizingHyperdexClientPool implements HyperdexClientPool {
         }
     }
     
-    public int size() {
+    public int available() {
         return clients.size();
     }
     
