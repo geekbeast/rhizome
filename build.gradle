@@ -147,6 +147,7 @@ compile "log4j:log4j:1.2.17"
      compile "com.fasterxml.jackson.dataformat:jackson-dataformat-smile:${jackson_version}"
      compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jackson_version}"
      compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
+     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.5.1"
      compile 'org.yaml:snakeyaml:1.13'
 
     /*

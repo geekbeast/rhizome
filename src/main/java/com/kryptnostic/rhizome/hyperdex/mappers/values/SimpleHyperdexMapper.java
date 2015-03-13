@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.collect.ImmutableMap;
 import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
@@ -26,6 +27,7 @@ public class SimpleHyperdexMapper<V> implements HyperdexMapper<V> {
         this( valueClass, new ObjectMapper() );
         mapper.registerModule( new GuavaModule() );
         mapper.registerModule( new AfterburnerModule() );
+        mapper.registerModule( new JodaModule() );
     }
 
     public SimpleHyperdexMapper( Class<V> valueClass, ObjectMapper mapper ) {
