@@ -120,7 +120,8 @@ compile "log4j:log4j:1.2.17"
      */
      compile 'joda-time:joda-time:2.3'
      compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.5.1"
-
+    
+     compile 'com.datastax.cassandra:cassandra-driver-core:2.1.5'
     /*
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
