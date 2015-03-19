@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import jersey.repackaged.com.google.common.collect.Iterables;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
+import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.mapstores.HyperdexMappingException;
 
@@ -81,7 +83,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
         try {
             s = session.execute( LOAD_QUERY.bind( keyMapper.getKey( key ) ) );
             Row result = s.one();
-            if( result == null ) {
+            if ( result == null ) {
                 return null;
             }
             return mapper.map( result.getString( "data" ) );
@@ -98,14 +100,14 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
         } );
     }
 
+    @SuppressWarnings( "unchecked" )
     @Override
-    public Set<K> loadAllKeys() {/*
-                                  * ResultSet s; try { s = session.execute( LOAD_ALL_QUERY.bind() );
-                                  * s.all().stream().map( ( Row r ) -> { r.getBytes( "data" ) }); return mapper.map(
-                                  * s.one().getBytes( "data" ).array() ); } catch ( HyperdexMappingException e ) {
-                                  * logger.error( "Unable to map key to cassandra key." ); }
-                                  */
-        return null;
+    public Set<K> loadAllKeys() {
+        ResultSet s;
+        s = session.execute( LOAD_ALL_QUERY.bind() );
+        return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
+            return (K) r.getString( "id" );
+        } ) );
     }
 
     @Override
