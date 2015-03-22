@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.mapstores;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 
 import jersey.repackaged.com.google.common.collect.Maps;
 
@@ -15,16 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
 import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
 
 public class BaseHyperdexJacksonKeyValueMapStore<K, V> implements MapStore<K, V> {
-    private static final ListeningExecutorService executor  = MoreExecutors.listeningDecorator( Executors
-                                                                    .newCachedThreadPool() );
-    private static final int                      MAX_TRIES = 200;
     protected final Logger                        logger    = LoggerFactory.getLogger( getClass() );
 
     static {
