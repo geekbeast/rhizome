@@ -119,7 +119,6 @@ compile "log4j:log4j:1.2.17"
      JODA TIME - A better datetime class.
      */
      compile 'joda-time:joda-time:2.3'
-     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.5.1"
     
      compile 'com.datastax.cassandra:cassandra-driver-core:2.1.5'
     /*
@@ -149,7 +148,7 @@ compile "log4j:log4j:1.2.17"
      compile "com.fasterxml.jackson.dataformat:jackson-dataformat-smile:${jackson_version}"
      compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jackson_version}"
      compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
-     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.5.1"
+     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
      compile 'org.yaml:snakeyaml:1.13'
 
     /*
