@@ -119,7 +119,7 @@ compile "log4j:log4j:1.2.17"
      JODA TIME - A better datetime class.
      */
      compile 'joda-time:joda-time:2.3'
-    
+
      compile 'com.datastax.cassandra:cassandra-driver-core:2.1.5'
     /*
      * APACHE COMMONS
