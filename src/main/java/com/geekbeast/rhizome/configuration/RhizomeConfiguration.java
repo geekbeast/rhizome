@@ -10,6 +10,7 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
+import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.google.common.base.Optional;
 
 /**
@@ -27,6 +28,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String                                 HYPERDEX_CONFIGURATION_PROPERTY                 = "hyperdex";
     protected static final String                                 GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String                                 HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast";
+    protected static final String                                 RETHINKDB_CONFIGURATION_PROPERTY                = "rethinkdb";
     protected static final boolean                                PERSISTENCE_ENABLED_DEFAULT                     = true;
     protected static final boolean                                SESSION_CLUSTERING_ENABLED_DEFAULT              = true;
 
@@ -38,11 +40,13 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<GraphiteConfiguration>               graphiteConfiguration;
     protected final Optional<CassandraConfiguration>              cassandraConfiguration;
     protected final Optional<HyperdexConfiguration>               hyperdexConfiguration;
+    protected final Optional<RethinkDbConfiguration>              rethinkDbConfiguration;
 
     @JsonCreator
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
+            @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY ) Optional<RethinkDbConfiguration> rethinkDbConfiguration,
             @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY ) Optional<HyperdexConfiguration> hyperdexConfiguration,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration,
@@ -51,6 +55,7 @@ public class RhizomeConfiguration implements Configuration {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.cassandraConfiguration = cassandraConfiguration;
+        this.rethinkDbConfiguration = rethinkDbConfiguration;
         this.hyperdexConfiguration = hyperdexConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
@@ -60,7 +65,8 @@ public class RhizomeConfiguration implements Configuration {
     public String toString() {
         return "RhizomeConfiguration [persistData=" + persistData + ", hazelcastSessionFilterConfiguration="
                 + hazelcastSessionFilterConfiguration + ", graphiteConfiguration=" + graphiteConfiguration
-                + ", cassandraConfiguration=" + cassandraConfiguration + "]";
+                + ", cassandraConfiguration=" + cassandraConfiguration + ", rethinkDbConfiguration="
+                + rethinkDbConfiguration + "]";
     }
 
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )
@@ -76,6 +82,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
     public Optional<CassandraConfiguration> getCassandraConfiguration() {
         return cassandraConfiguration;
+    }
+
+    @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY )
+    public Optional<RethinkDbConfiguration> getRethinkDbConfiguration() {
+        return rethinkDbConfiguration;
     }
 
     @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY )

@@ -7,18 +7,18 @@ import org.hyperdex.client.Client;
 import org.hyperdex.client.HyperDexClientException;
 import org.hyperdex.client.Iterator;
 
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
+import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import com.kryptnostic.rhizome.hyperdex.mappers.HyperdexMapper;
 import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
+import com.kryptnostic.rhizome.mappers.MapStoreDataMapper;
 
 public class PreloadingHyperdexJacksonKeyValueMapStore<V> extends BaseHyperdexJacksonKeyValueMapStore<String, V> {
     public PreloadingHyperdexJacksonKeyValueMapStore(
             String space,
             HyperdexClientPool pool,
-            HyperdexKeyMapper<String> keyMapper,
-            HyperdexMapper<V> valueMapper ) {
+            MapStoreKeyMapper<String> keyMapper,
+            MapStoreDataMapper<V> valueMapper ) {
         super( space, pool, keyMapper, valueMapper );
     }
 

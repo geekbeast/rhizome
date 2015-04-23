@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.hyperdex.mappers.keys;
+package com.kryptnostic.rhizome.mappers.keys;
 
 import org.hyperdex.client.ByteString;
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
-import com.kryptnostic.rhizome.mapstores.HyperdexMappingException;
+import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class JacksonHyperdexKeyMapper<K> implements HyperdexKeyMapper<K> {
+public class JacksonHyperdexKeyMapper<K> implements MapStoreKeyMapper<K> {
     private static final Logger logger = LoggerFactory.getLogger( JacksonHyperdexKeyMapper.class );
 
     private final ObjectMapper  mapper;
@@ -28,12 +28,17 @@ public class JacksonHyperdexKeyMapper<K> implements HyperdexKeyMapper<K> {
     }
 
     @Override
-    public ByteString getKey( K key ) throws HyperdexMappingException {
+    public ByteString getKey( K key ) throws MappingException {
         try {
             return ByteString.wrap( mapper.writeValueAsBytes( key ) );
         } catch ( JsonProcessingException e ) {
             logger.error( "Unable to marshall data for hyperdex" );
-            throw new HyperdexMappingException( "Error marshalling data to hyperdex map." );
+            throw new MappingException( "Error marshalling data to hyperdex map." );
         }
+    }
+
+    @Override
+    public K fromString( String str ) throws MappingException {
+        throw new UnsupportedOperationException( this.getClass().getCanonicalName() + " not implemented" );
     }
 }

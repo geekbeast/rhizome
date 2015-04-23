@@ -19,10 +19,10 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexKeyMapper;
+import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
-import com.kryptnostic.rhizome.mapstores.HyperdexMappingException;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     private final Cluster                cluster;
@@ -30,7 +30,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     private static final String          KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};";
     private static final String          TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
     protected final CassandraMapper<V>   mapper;
-    protected final HyperdexKeyMapper<K> keyMapper;
+    protected final MapStoreKeyMapper<K> keyMapper;
 
     private final PreparedStatement      LOAD_QUERY;
     private final PreparedStatement      STORE_QUERY;
@@ -42,7 +42,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     public BaseCassandraMapStore(
             String keyspace,
             String table,
-            HyperdexKeyMapper<K> keyMapper,
+            MapStoreKeyMapper<K> keyMapper,
             CassandraMapper<V> mapper,
             CassandraConfiguration configuration ) {
         this.keyMapper = keyMapper;
@@ -87,7 +87,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
                 return null;
             }
             return mapper.map( result.getString( "data" ) );
-        } catch ( HyperdexMappingException e ) {
+        } catch ( MappingException e ) {
             logger.error( "Unable to map key to cassandra key." );
         }
         return null;
@@ -115,7 +115,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
         ResultSet s;
         try {
             s = session.execute( STORE_QUERY.bind( keyMapper.getKey( key ), mapper.asString( value ) ) );
-        } catch ( HyperdexMappingException e ) {
+        } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value );
         }
     }
@@ -132,7 +132,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
         ResultSet s;
         try {
             s = session.execute( DELETE_QUERY.bind( keyMapper.getKey( key ) ) );
-        } catch ( HyperdexMappingException e ) {
+        } catch ( MappingException e ) {
             logger.error( "Unable to delete key {} : value {} ", key );
         }
     }
