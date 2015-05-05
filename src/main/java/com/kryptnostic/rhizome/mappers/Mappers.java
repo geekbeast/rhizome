@@ -1,22 +1,22 @@
 package com.kryptnostic.rhizome.mappers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kryptnostic.rhizome.mappers.values.SimpleMapper;
-import com.kryptnostic.rhizome.mappers.values.StringMapper;
+import com.kryptnostic.rhizome.mappers.values.SimpleValueMapper;
+import com.kryptnostic.rhizome.mappers.values.StringValueMapper;
 
 public final class Mappers {
-    private static final StringMapper stringHyperdexMapper = new StringMapper();
+    private static final StringValueMapper stringHyperdexMapper = new StringValueMapper();
     private Mappers() {}
     
-    public static <V> SimpleMapper<V> newMapper( Class<V> clazz, ObjectMapper mapper ) {
-        return new SimpleMapper<V>( clazz, mapper );
+    public static <V> SimpleValueMapper<V> newMapper( Class<V> clazz, ObjectMapper mapper ) {
+        return new SimpleValueMapper<V>( clazz, mapper );
     }
 
-    public static <V> SimpleMapper<V> newMapper( Class<V> clazz ) {
-        return new SimpleMapper<V>( clazz );
+    public static <V> SimpleValueMapper<V> newMapper( Class<V> clazz ) {
+        return new SimpleValueMapper<V>( clazz );
     }
     
-    public static StringMapper newStringMapper() {
+    public static StringValueMapper newStringMapper() {
         return stringHyperdexMapper;
     }
 }

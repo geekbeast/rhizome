@@ -1,26 +1,25 @@
-package com.kryptnostic.rhizome.mapstores;
+package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
 import com.google.common.collect.Sets;
-import com.kryptnostic.rhizome.mappers.MapStoreDataMapper;
-import com.kryptnostic.rhizome.rethinkdb.BaseRethinkDbMapStore;
-import com.kryptnostic.rhizome.rethinkdb.DefaultRethinkDbClientPool;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
 import com.rethinkdb.RethinkDBConnection;
 
-public class PreloadingRethinkDbMapStore<K, V> extends BaseRethinkDbMapStore<K, V> {
-    private static final Logger logger = LoggerFactory.getLogger( PreloadingRethinkDbMapStore.class );
+public class RethinkDbPreloadingMapStore<K, V> extends RethinkDbBaseMapStore<K, V> {
+    private static final Logger logger = LoggerFactory.getLogger( RethinkDbPreloadingMapStore.class );
 
-    public PreloadingRethinkDbMapStore(
-            DefaultRethinkDbClientPool pool,
+    public RethinkDbPreloadingMapStore(
+            RethinkDbDefaultClientPool pool,
             String db,
             String table,
-            MapStoreKeyMapper<K> keyMapper,
-            MapStoreDataMapper<V> mapper ) {
+            KeyMapper<K> keyMapper,
+            ValueMapper<V> mapper ) {
         super( pool, db, table, keyMapper, mapper );
     }
 
@@ -30,6 +29,7 @@ public class PreloadingRethinkDbMapStore<K, V> extends BaseRethinkDbMapStore<K, 
         Set<K> keys = Sets.newHashSet();
         try {
             Object results = tbl.pluck( ID_FIELD ).run( conn );
+            results.getClass();
             // while ( cursor != null && cursor.hasNext() ) {
             // try {
             // RqlObject obj = cursor.next();

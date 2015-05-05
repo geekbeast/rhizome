@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.mapstores;
+package com.kryptnostic.rhizome.mapstores.hyperdex;
 
 import java.io.IOException;
 

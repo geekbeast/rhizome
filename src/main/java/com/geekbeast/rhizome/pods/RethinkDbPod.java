@@ -11,9 +11,9 @@ import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.kryptnostic.rhizome.mappers.Mappers;
-import com.kryptnostic.rhizome.mappers.keys.KeyMappers;
-import com.kryptnostic.rhizome.rethinkdb.BaseRethinkDbMapStore;
-import com.kryptnostic.rhizome.rethinkdb.DefaultRethinkDbClientPool;
+import com.kryptnostic.rhizome.mappers.rethinkdb.keys.RethinkDbConfigurationKeyMapper;
+import com.kryptnostic.rhizome.mapstores.rethinkdb.RethinkDbBaseMapStore;
+import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
 import com.rethinkdb.RethinkDBConnection;
 
 @Configuration
@@ -39,20 +39,20 @@ public class RethinkDbPod {
     }
 
     @Bean
-    public DefaultRethinkDbClientPool rethinkDbClientPool() {
-        return new DefaultRethinkDbClientPool( rethinkDbConfiguration() );
+    public RethinkDbDefaultClientPool rethinkDbClientPool() {
+        return new RethinkDbDefaultClientPool( rethinkDbConfiguration() );
     }
 
     @Bean
-    public BaseRethinkDbMapStore<ConfigurationKey, String> configurationMapStore() {
+    public RethinkDbBaseMapStore<ConfigurationKey, String> configurationMapStore() {
         RethinkDbConfiguration config = rethinkDbConfiguration();
         if ( config != null ) {
             String configurationKeyspace = "configurations";
-            return new BaseRethinkDbMapStore<ConfigurationKey, String>(
+            return new RethinkDbBaseMapStore<ConfigurationKey, String>(
                     rethinkDbClientPool(),
                     "kryptnostic",
                     configurationKeyspace,
-                    KeyMappers.newConfigurationKeyMapper(),
+                    new RethinkDbConfigurationKeyMapper(),
                     Mappers.newStringMapper() );
         }
         return null;

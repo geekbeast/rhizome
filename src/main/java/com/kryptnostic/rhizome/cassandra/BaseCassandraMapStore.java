@@ -19,30 +19,30 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
-    private final Cluster                cluster;
-    private static final Logger          logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
-    private static final String          KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};";
-    private static final String          TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
-    protected final CassandraMapper<V>   mapper;
-    protected final MapStoreKeyMapper<K> keyMapper;
+    private final Cluster              cluster;
+    private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
+    private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};";
+    private static final String        TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
+    protected final CassandraMapper<V> mapper;
+    protected final KeyMapper<K>       keyMapper;
 
-    private final PreparedStatement      LOAD_QUERY;
-    private final PreparedStatement      STORE_QUERY;
-    private final PreparedStatement      DELETE_QUERY;
-    private final PreparedStatement      LOAD_ALL_QUERY;
-    private final PreparedStatement      DELETE_ALL_QUERY;
-    private final Session                session;
+    private final PreparedStatement    LOAD_QUERY;
+    private final PreparedStatement    STORE_QUERY;
+    private final PreparedStatement    DELETE_QUERY;
+    private final PreparedStatement    LOAD_ALL_QUERY;
+    private final PreparedStatement    DELETE_ALL_QUERY;
+    private final Session              session;
 
     public BaseCassandraMapStore(
             String keyspace,
             String table,
-            MapStoreKeyMapper<K> keyMapper,
+            KeyMapper<K> keyMapper,
             CassandraMapper<V> mapper,
             CassandraConfiguration configuration ) {
         this.keyMapper = keyMapper;
@@ -81,7 +81,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     public V load( K key ) {
         ResultSet s;
         try {
-            s = session.execute( LOAD_QUERY.bind( keyMapper.getKey( key ) ) );
+            s = session.execute( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
             Row result = s.one();
             if ( result == null ) {
                 return null;
@@ -114,7 +114,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     public void store( K key, V value ) {
         ResultSet s;
         try {
-            s = session.execute( STORE_QUERY.bind( keyMapper.getKey( key ), mapper.asString( value ) ) );
+            s = session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value );
         }
@@ -131,7 +131,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     public void delete( K key ) {
         ResultSet s;
         try {
-            s = session.execute( DELETE_QUERY.bind( keyMapper.getKey( key ) ) );
+            s = session.execute( DELETE_QUERY.bind( keyMapper.fromKey( key ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to delete key {} : value {} ", key );
         }

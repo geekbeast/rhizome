@@ -1,16 +1,16 @@
 package com.kryptnostic.rhizome.mappers.keys;
 
-import com.geekbeast.rhizome.configuration.hyperdex.MapStoreKeyMapper;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class StringKeyMapper implements MapStoreKeyMapper<String> {
+public class StringKeyMapper implements KeyMapper<String> {
     @Override
-    public String getKey( String key ) {
+    public String fromKey( String key ) {
         return key;
     }
 
     @Override
-    public String fromString( String str ) throws MappingException {
-        return str;
+    public String toKey( String value ) throws MappingException {
+        return value;
     }
 }

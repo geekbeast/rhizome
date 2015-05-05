@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.hyperdex.pooling;
+package com.kryptnostic.rhizome.pooling.hyperdex;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,9 +16,9 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Queues;
 
-public class ResizingHyperdexClientPool implements HyperdexClientPool {
+public class HyperdexResizingClientPool implements HyperdexClientPool {
     private static final Logger           logger                  = LoggerFactory
-                                                                          .getLogger( ResizingHyperdexClientPool.class );
+                                                                          .getLogger( HyperdexResizingClientPool.class );
     private static final String           HEALTH_CHECK_KEY        = "hyperdex-client-pool";
     private static final String           HEALTH_CHECK_DATA_FIELD = "data";
     private static final String           HEALTH_CHECK_VALUE      = "hyperdex-client-pool-is-good";
@@ -26,7 +26,7 @@ public class ResizingHyperdexClientPool implements HyperdexClientPool {
     private ConcurrentLinkedQueue<Client> clients                 = Queues.newConcurrentLinkedQueue();
     private final HyperdexConfiguration   hyperdexConfiguration;
 
-    public ResizingHyperdexClientPool( HyperdexConfiguration hyperdexConfiguration ) {
+    public HyperdexResizingClientPool( HyperdexConfiguration hyperdexConfiguration ) {
         this.hyperdexConfiguration = hyperdexConfiguration;
     }
 

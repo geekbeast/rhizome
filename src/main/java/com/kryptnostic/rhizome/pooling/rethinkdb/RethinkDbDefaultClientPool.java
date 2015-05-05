@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.rethinkdb;
+package com.kryptnostic.rhizome.pooling.rethinkdb;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -11,14 +11,14 @@ import com.google.common.collect.Queues;
 import com.rethinkdb.RethinkDB;
 import com.rethinkdb.RethinkDBConnection;
 
-public class DefaultRethinkDbClientPool {
+public class RethinkDbDefaultClientPool {
     private static final Logger                        logger  = LoggerFactory
-                                                                       .getLogger( DefaultRethinkDbClientPool.class );
+                                                                       .getLogger( RethinkDbDefaultClientPool.class );
 
     private ConcurrentLinkedQueue<RethinkDBConnection> clients = Queues.newConcurrentLinkedQueue();
     private final RethinkDbConfiguration               config;
 
-    public DefaultRethinkDbClientPool( RethinkDbConfiguration config ) {
+    public RethinkDbDefaultClientPool( RethinkDbConfiguration config ) {
         this.config = config;
     }
 
