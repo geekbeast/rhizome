@@ -8,25 +8,20 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.JacksonValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class TypeReferenceValueMapper<V> implements ValueMapper<V> {
+public class TypeReferenceValueMapper<V> extends JacksonValueMapper<V> {
     private static final Logger    logger = LoggerFactory.getLogger( TypeReferenceValueMapper.class );
 
-    private final ObjectMapper     mapper;
     private final TypeReference<V> reference;
 
     public TypeReferenceValueMapper( TypeReference<V> valueClass ) {
         this( valueClass, new ObjectMapper() );
-        mapper.registerModule( new GuavaModule() );
-        mapper.registerModule( new AfterburnerModule() );
     }
 
     public TypeReferenceValueMapper( TypeReference<V> valueClass, ObjectMapper mapper ) {
-        this.mapper = mapper;
+        super( mapper );
         this.reference = valueClass;
     }
 

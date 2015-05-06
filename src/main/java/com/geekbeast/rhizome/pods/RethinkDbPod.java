@@ -11,7 +11,7 @@ import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.kryptnostic.rhizome.mappers.Mappers;
-import com.kryptnostic.rhizome.mappers.rethinkdb.keys.RethinkDbConfigurationKeyMapper;
+import com.kryptnostic.rhizome.mappers.keys.ConfigurationKeyMapper;
 import com.kryptnostic.rhizome.mapstores.rethinkdb.RethinkDbBaseMapStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
 import com.rethinkdb.RethinkDBConnection;
@@ -52,7 +52,7 @@ public class RethinkDbPod {
                     rethinkDbClientPool(),
                     "kryptnostic",
                     configurationKeyspace,
-                    new RethinkDbConfigurationKeyMapper(),
+                    new ConfigurationKeyMapper(),
                     Mappers.newStringMapper() );
         }
         return null;

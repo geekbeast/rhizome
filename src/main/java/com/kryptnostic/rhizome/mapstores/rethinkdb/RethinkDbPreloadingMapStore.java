@@ -1,13 +1,17 @@
 package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
 import com.rethinkdb.RethinkDBConnection;
 
@@ -29,16 +33,19 @@ public class RethinkDbPreloadingMapStore<K, V> extends RethinkDbBaseMapStore<K, 
         Set<K> keys = Sets.newHashSet();
         try {
             Object results = tbl.pluck( ID_FIELD ).run( conn );
-            results.getClass();
-            // while ( cursor != null && cursor.hasNext() ) {
-            // try {
-            // RqlObject obj = cursor.next();
-            // K key = keyMapper.fromString( (String) obj.getMap().get( ID_FIELD ) );
-            // keys.add( key );
-            // } catch ( MappingException e ) {
-            // logger.error( "{}", e );
-            // }
-            // }
+            if ( results instanceof List ) {
+                List<Object> resultList = (List<Object>) results;
+                for ( Object res : resultList ) {
+                    Map<String, Object> resultMap = (Map<String, Object>) res;
+                    String resKey = (String) resultMap.get( KeyMapper.ID_ATTRIBUTE );
+                    try {
+                        K key = keyMapper.toKey( resKey );
+                        keys.add( key );
+                    } catch ( MappingException e ) {
+                        logger.error( "Could not map key from RethinkDb {} {}", e, new TypeReference<K>() {}.getClass() );
+                    }
+                }
+            }
         } finally {
             if ( conn != null ) {
                 pool.release( conn );

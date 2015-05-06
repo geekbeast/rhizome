@@ -40,13 +40,13 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
     protected static final String        DATA_FIELD    = "data";
     protected static final String        ID_FIELD      = "id";
 
-    protected static final int           MAX_THREADS   = 16;
+    protected static final int           MAX_THREADS   = Runtime.getRuntime().availableProcessors();
     protected static final int           STORAGE_BATCH = 3000;
     protected static final int           LOAD_BATCH    = 3000;
 
     protected RethinkDbDefaultClientPool pool;
     protected Table                      tbl;
-    protected final ExecutorService      exec          = Executors.newFixedThreadPool( MAX_THREADS );
+    protected final ExecutorService      exec          = Executors.newWorkStealingPool( MAX_THREADS );
     protected final KeyMapper<K>         keyMapper;
     protected final ValueMapper<V>       mapper;
     protected final String               table;
@@ -105,7 +105,15 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
                 return null;
             }
 
-            V val = mapper.fromBytes( (Map) rawValue );
+            V val = null;
+            if ( rawValue instanceof Map ) {
+                Map<String, Object> mapValue = (Map<String, Object>) rawValue;
+                String encodedString = (String) mapValue.get( ValueMapper.DATA_ATTRIBUTE );
+                byte[] decodedBytes = Base64.decodeBase64( encodedString.getBytes() );
+                val = mapper.fromBytes( decodedBytes );
+            } else {
+                logger.error( "Could not read value from RethinkDb" );
+            }
 
             return val;
 
@@ -157,8 +165,9 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
 
                             K key = keyMapper.toKey( (String) obj.get( ID_FIELD ) );
                             Map<String, Object> encoded = (Map<String, Object>) obj.get( DATA_FIELD );
-                            String str = new String( Base64.decodeBase64( (String) encoded.get( DATA_FIELD ) ) );
-                            V val = mapper.toKey( str );
+                            String encodedString = (String) encoded.get( DATA_FIELD );
+                            byte[] decodedBytes = Base64.decodeBase64( encodedString.getBytes() );
+                            V val = mapper.fromBytes( decodedBytes );
                             results.put( key, val );
                             keyCount.incrementAndGet();
 
@@ -189,8 +198,8 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
             }
         }
 
-        System.out.println( "ERRORS: " + errors.get() );
-        System.out.println( "KEYCOUNT: " + keyCount.get() );
+        logger.debug( "ERRORS: " + errors.get() );
+        logger.debug( "KEYCOUNT: " + keyCount.get() );
 
         return results;
     }
@@ -207,7 +216,7 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
             Object idKey = keyMapper.fromKey( key );
             conn = pool.acquire();
 
-            byte[] val = Base64.encodeBase64( mapper.toValueString( value ).getBytes() );
+            byte[] val = Base64.encodeBase64( mapper.toBytes( value ) );
             MapObject binaryData = new MapObject().with( "$reql_type$", "BINARY" ).with( "data", val );
             tbl.insert(
                     new MapObject().with( ID_FIELD, idKey ).with( DATA_FIELD, binaryData ),
@@ -232,8 +241,8 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
         for ( Map.Entry<K, V> entry : map.entrySet() ) {
             try {
 
-                byte[] val = Base64.encodeBase64( mapper.toValueString( entry.getValue() ).getBytes() );
-                String idKey = (String) keyMapper.fromKey( entry.getKey() );
+                byte[] val = Base64.encodeBase64( mapper.toBytes( entry.getValue() ) );
+                String idKey = keyMapper.fromKey( entry.getKey() );
                 MapObject binaryData = new MapObject().with( "$reql_type$", "BINARY" ).with( "data", val );
                 data.add( new MapObject().with( ID_FIELD, idKey ).with( DATA_FIELD, binaryData ) );
 
@@ -296,7 +305,10 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
         RethinkDBConnection conn = pool.acquire();
 
         try {
-            tbl.get( key ).delete().run( conn );
+            String keyString = keyMapper.fromKey( key );
+            tbl.get( keyString ).delete().run( conn );
+        } catch ( MappingException e ) {
+            logger.error( "Failed to map key of type {}", key.getClass().getCanonicalName() );
         } finally {
             pool.release( conn );
         }
@@ -305,9 +317,17 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
     @Override
     public void deleteAll( Collection<K> keys ) {
         RethinkDBConnection conn = pool.acquire();
-
         try {
-            tbl.getAll( (List<Object>) keys ).delete().run( conn );
+            List<Object> stringKeys = Lists.newArrayList();
+            for ( K k : keys ) {
+                try {
+                    String keyString = keyMapper.fromKey( k );
+                    stringKeys.add( keyString );
+                } catch ( MappingException e ) {
+                    logger.error( "Failed to map key of type {}", k.getClass().getCanonicalName() );
+                }
+            }
+            tbl.getAll( stringKeys ).delete().run( conn );
         } finally {
             pool.release( conn );
         }

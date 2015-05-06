@@ -11,30 +11,31 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexPreloadingJacksonKeyValueMapStore<V> extends HyperdexBaseJacksonKeyValueMapStore<String, V> {
+public class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
     public HyperdexPreloadingJacksonKeyValueMapStore(
             String space,
             HyperdexClientPool pool,
-            KeyMapper<String> keyMapper,
+            KeyMapper<K> keyMapper,
             ValueMapper<V> valueMapper ) {
         super( space, pool, keyMapper, valueMapper );
     }
 
     @Override
-    public Set<String> loadAllKeys() {
+    public Set<K> loadAllKeys() {
         Client client = pool.acquire();
-        Set<String> keys = Sets.newHashSet();
+        Set<K> keys = Sets.newHashSet();
         try {
             Iterator i = client.search( space, ImmutableMap.of() );
             try {
                 while ( i.hasNext() ) {
                     @SuppressWarnings( "unchecked" )
                     Map<String, Object> obj = (Map<String, Object>) i.next();
-                    keys.add( obj.get( "id" ).toString() );
+                    keys.add( keyMapper.toKey( obj.get( "id" ).toString() ) );
                 }
-            } catch ( HyperDexClientException e ) {
+            } catch ( HyperDexClientException | MappingException e ) {
                 logger.error( "Failed to load all keys.", e );
             }
         } finally {
