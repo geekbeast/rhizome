@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,104 +20,112 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dkhenry.RethinkDB.RqlConnection;
+import com.dkhenry.RethinkDB.RqlCursor;
+import com.dkhenry.RethinkDB.RqlObject;
+import com.dkhenry.RethinkDB.RqlQuery.Table;
+import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.google.common.base.Stopwatch;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
-import com.rethinkdb.Cursor;
-import com.rethinkdb.RethinkDB;
-import com.rethinkdb.RethinkDBConnection;
-import com.rethinkdb.ast.query.gen.Table;
-import com.rethinkdb.model.ConflictStrategy;
-import com.rethinkdb.model.Durability;
-import com.rethinkdb.model.MapObject;
-import com.rethinkdb.response.model.DMLResult;
+import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
-    private static final Base64            codec         = new Base64();
-    private static final Logger            logger        = LoggerFactory.getLogger( RethinkDbBaseMapStore.class );
-    protected static final String          DATA_FIELD    = "data";
-    protected static final String          ID_FIELD      = "id";
+public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V> {
+    private static final Base64                        codec         = new Base64();
+    private static final Logger                        logger        = LoggerFactory
+                                                                             .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
+    protected static final String                      DATA_FIELD    = "data";
+    protected static final String                      ID_FIELD      = "id";
 
-    protected static final int             MAX_THREADS   = Runtime.getRuntime().availableProcessors() - 1;
-    protected static final int             STORAGE_BATCH = 200;
-    protected static final int             LOAD_BATCH    = 200;
+    protected static final int                         MAX_THREADS   = Runtime.getRuntime().availableProcessors();
+    protected static final int                         STORAGE_BATCH = 3000;
+    protected static final int                         LOAD_BATCH    = 3000;
 
-    protected RethinkDbDefaultClientPool   pool;
-    protected Table                        tbl;
-    protected static final ExecutorService exec          = Executors.newFixedThreadPool( MAX_THREADS );
-    protected final KeyMapper<K>           keyMapper;
-    protected final ValueMapper<V>         mapper;
-    protected final String                 table;
-    protected static final RethinkDB       r             = RethinkDB.r;
+    protected static final ExecutorService             exec          = Executors.newFixedThreadPool( MAX_THREADS );
 
-    public RethinkDbBaseMapStore(
-            RethinkDbDefaultClientPool pool,
+    protected final RethinkDbAlternateDriverClientPool pool;
+    protected final Table                              tbl;
+    protected final KeyMapper<K>                       keyMapper;
+    protected final ValueMapper<V>                     mapper;
+    protected final String                             table;
+
+    public RethinkDbBaseMapStoreAlternateDriver(
+            RethinkDbAlternateDriverClientPool pool,
             String db,
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
-        RethinkDBConnection conn = null;
+        RqlConnection conn = null;
         this.pool = pool;
         this.table = table;
         this.keyMapper = keyMapper;
         this.mapper = mapper;
 
         conn = pool.acquire();
-
-        List<String> databases = r.dbList().run( conn );
-        if ( !databases.contains( db ) ) {
-            r.dbCreate( db ).run( conn );
+        boolean dbExists = false;
+        boolean tableExists = false;
+        try {
+            // check if db exists
+            RqlCursor cursor = conn.run( conn.db_list() );
+            if ( cursor != null && cursor.hasNext() ) {
+                RqlObject obj = cursor.next();
+                List<String> list = Lists.newArrayList( obj.getList().toArray( new String[] {} ) );
+                dbExists = list.contains( db );
+            }
+            if ( !dbExists ) {
+                conn.run( conn.db_create( db ) );
+            }
+            // check for table existence
+            cursor = conn.run( conn.db( db ).table_list() );
+            if ( cursor != null && cursor.hasNext() ) {
+                RqlObject obj = cursor.next();
+                List<String> list = Lists.newArrayList( obj.getList().toArray( new String[] {} ) );
+                tableExists = list.contains( table );
+            }
+            if ( !tableExists ) {
+                conn.run( conn.db( db ).table_create( table ) );
+            }
+        } catch ( RqlDriverException e ) {
+            handleError( e );
         }
-        List<String> tables = r.db( db ).tableList().run( conn );
-        if ( !tables.contains( table ) ) {
-            r.db( db ).tableCreate( table ).run( conn );
-        }
 
-        tbl = r.db( db ).table( table );
+        // close connection
+        tbl = conn.db( db ).table( table );
         pool.release( conn );
     }
 
-    public RethinkDbBaseMapStore(
+    private void handleError( RqlDriverException e ) {
+        if ( e.getMessage() != null ) {
+            logger.error( e.getMessage() );
+        } else {
+            logger.error( "{}", e );
+        }
+    }
+
+    public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbConfiguration config,
             String db,
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
-        this( new RethinkDbDefaultClientPool( config ), db, table, keyMapper, mapper );
+        this( new RethinkDbAlternateDriverClientPool( config ), db, table, keyMapper, mapper );
     }
 
     @Override
     public V load( K key ) {
-        RethinkDBConnection conn = pool.acquire();
+        RqlConnection conn = pool.acquire();
         try {
-
-            Map<String, Object> objects = tbl.get( keyMapper.fromKey( key ) ).run( conn );
-
-            if ( objects == null ) {
-                return null;
+            String keyString = keyMapper.fromKey( key );
+            RqlCursor cursor = conn.run( tbl.get( keyString ) );
+            RqlObject obj = cursor.next();
+            if ( obj != null && obj.isMap() ) {
+                V val = RethinkDbBaseMapStoreAlternateDriver.this.getValueFromCursorObject( obj );
+                return val;
             }
-
-            Object rawValue = objects.get( DATA_FIELD );
-
-            if ( rawValue == null ) {
-                return null;
-            }
-
-            V val = null;
-            if ( rawValue instanceof Map ) {
-                Map<String, Object> mapValue = (Map<String, Object>) rawValue;
-                val = RethinkDbBaseMapStore.this.getValueFromCursorObject( mapValue );
-            } else {
-                logger.error( "Could not read value from RethinkDb" );
-            }
-
-            return val;
-
-        } catch ( MappingException e ) {
+        } catch ( RqlDriverException | MappingException e ) {
             logger.error( "{}", e );
         } finally {
             pool.release( conn );
@@ -155,26 +164,32 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
                 public Map<K, V> call() {
                     Map<K, V> results = Maps.newHashMap();
                     Stopwatch watch = Stopwatch.createStarted();
-                    RethinkDBConnection conn = pool.acquire();
+
+                    RqlConnection conn = pool.acquire();
+                    RqlCursor cursor = null;
                     List<Object> subListOfData = data.subList( fIndex, fMax );
-                    Cursor<Map<String, Object>> cursor = tbl.getAll( subListOfData ).run( conn );
+                    try {
+                        cursor = conn.run( tbl.get_all( subListOfData.toArray() ) );
+                    } catch ( RqlDriverException e1 ) {
+                        logger.error( "{}", e1 );
+                    }
                     while ( cursor != null && cursor.hasNext() ) {
                         try {
-                            Map<String, Object> obj = cursor.next();
-
-                            K key = keyMapper.toKey( (String) obj.get( ID_FIELD ) );
-                            V val = RethinkDbBaseMapStore.this.getValueFromCursorObject( obj );
+                            RqlObject obj = cursor.next();
+                            Map<String, Object> d = obj.getMap();
+                            K key = keyMapper.toKey( (String) d.get( ID_FIELD ) );
+                            V val = RethinkDbBaseMapStoreAlternateDriver.this.getValueFromCursorObject( obj );
                             results.put( key, val );
                             keyCount.incrementAndGet();
-
-                        } catch ( MappingException e ) {
+                        } catch ( RqlDriverException | MappingException e ) {
                             errors.incrementAndGet();
                             logger.error( "{}", e );
                         }
                     }
                     pool.release( conn );
                     logger.info(
-                            "Retrieval of {} elements took {} ms",
+                            "{} Retrieval of {} elements took {} ms",
+                            table,
                             fMax - fIndex,
                             watch.elapsed( TimeUnit.MILLISECONDS ) );
                     return results;
@@ -205,46 +220,43 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
         return null;
     }
 
-    // private V getValueFromCursorObject( Map<String, Object> obj ) throws MappingException {
-    // Map<String, Object> encoded = (Map<String, Object>) obj.get( DATA_FIELD );
-    // String encodedString = (String) encoded.get( DATA_FIELD );
-    // byte[] decodedBytes = codec.decodeBase64( encodedString.getBytes() );
-    // V val = mapper.fromBytes( decodedBytes );
-    // return val;
-    // }
-    //
-    // private Object prepareValueForStorage( V value ) throws MappingException {
-    // byte[] val = codec.encodeBase64( mapper.toBytes( value ) );
-    // MapObject binaryData = new MapObject().with( "$reql_type$", "BINARY" ).with( "data", val );
-    // return binaryData;
-    // }
-
-    private V getValueFromCursorObject( Map<String, Object> obj ) throws MappingException {
-        Map<String, Object> encoded = (Map<String, Object>) obj.get( DATA_FIELD );
-        String encodedString = (String) encoded.get( DATA_FIELD );
-        byte[] decodedBytes = codec.decodeBase64( encodedString.getBytes() );
+    private V getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
+        String encoded = (String) obj.getMap().get( DATA_FIELD );
+        byte[] decodedBytes = codec.decodeBase64( encoded );
         V val = mapper.fromBytes( decodedBytes );
         return val;
     }
 
     private Object prepareValueForStorage( V value ) throws MappingException {
-        byte[] val = codec.encodeBase64( mapper.toBytes( value ) );
-        MapObject binaryData = new MapObject().with( "data", val );
-        return binaryData;
+        byte[] bytes = mapper.toBytes( value );
+        String payload = new String( codec.encodeBase64( bytes ) );
+        return payload;
     }
 
     @Override
     public void store( K key, V value ) {
-        RethinkDBConnection conn = null;
+        RqlConnection conn = null;
         try {
             Object idKey = keyMapper.fromKey( key );
-            conn = pool.acquire();
             Object valuePayload = prepareValueForStorage( value );
-            tbl.insert(
-                    new MapObject().with( ID_FIELD, idKey ).with( DATA_FIELD, valuePayload ),
-                    Durability.hard,
-                    false,
-                    ConflictStrategy.replace ).run( conn );
+
+            Map<String, Object> data = new HashMap() {
+                {
+                    put( ID_FIELD, idKey );
+                    put( DATA_FIELD, valuePayload );
+                }
+            };
+            HashMap<String, Object> insertOptions = new HashMap() {
+                {
+                    put( "conflict", "replace" );
+                }
+            };
+            conn = pool.acquire();
+            try {
+                conn.run( tbl.insert( data ), insertOptions );
+            } catch ( RqlDriverException e ) {
+                logger.error( "Store failed", e );
+            }
 
         } catch ( MappingException e ) {
             logger.error( "Failed to map value or key {}", e );
@@ -278,31 +290,44 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
                 @Override
                 public Long call() {
                     Stopwatch watch = Stopwatch.createStarted();
-                    RethinkDBConnection conn = pool.acquire();
+                    RqlConnection conn = pool.acquire();
                     long affected = 0;
                     try {
                         List<Map<String, Object>> toInsert = Lists.newArrayList();
                         final List<Map.Entry<K, V>> list = data.subList( finalIndex, finalMax );
                         for ( Map.Entry<K, V> entry : list ) {
                             try {
-
-                                String idKey = keyMapper.fromKey( entry.getKey() );
-                                Object valuePayload = prepareValueForStorage( entry.getValue() );
-                                toInsert.add( new MapObject().with( ID_FIELD, idKey ).with( DATA_FIELD, valuePayload ) );
-
+                                toInsert.add( new HashMap() {
+                                    {
+                                        put( ID_FIELD, keyMapper.fromKey( entry.getKey() ) );
+                                        put( DATA_FIELD, prepareValueForStorage( entry.getValue() ) );
+                                    }
+                                } );
                             } catch ( MappingException e ) {
                                 logger.error( "{}", e );
                             }
                         }
-                        DMLResult results = tbl.insert( toInsert, Durability.hard, true, ConflictStrategy.replace )
-                                .run( conn );
+                        HashMap<String, Object> insertOptions = new HashMap() {
+                            {
+                                put( "conflict", "replace" );
+                            }
+                        };
 
-                        affected += results.getInserted();
+                        RqlCursor cursor = conn.run( tbl.insert( toInsert.toArray() ), insertOptions );
+                        while ( cursor != null && cursor.hasNext() ) {
+                            RqlObject obj = cursor.next();
+                            Map m = obj.getMap();
+                            affected += (long) (double) m.get( "inserted" );
+                        }
+
+                    } catch ( RqlDriverException e ) {
+                        logger.error( "StoreAll failed", e );
                     } finally {
                         pool.release( conn );
                     }
                     logger.info(
-                            "Insert of {} elements took {} ms",
+                            "{} Insert of {} elements took {} ms",
+                            table,
                             ( finalMax - finalIndex ),
                             watch.elapsed( TimeUnit.MILLISECONDS ) );
                     return affected;
@@ -328,13 +353,13 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
 
     @Override
     public void delete( K key ) {
-        RethinkDBConnection conn = pool.acquire();
+        RqlConnection conn = pool.acquire();
 
         try {
             String keyString = keyMapper.fromKey( key );
-            tbl.get( keyString ).delete().run( conn );
-        } catch ( MappingException e ) {
-            logger.error( "Failed to map key of type {}", key.getClass().getCanonicalName() );
+            conn.run( tbl.get( keyString ).delete() );
+        } catch ( MappingException | RqlDriverException e ) {
+            logger.error( "Failed to delete key {} of type {}", key, key.getClass().getCanonicalName() );
         } finally {
             pool.release( conn );
         }
@@ -342,7 +367,7 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
 
     @Override
     public void deleteAll( Collection<K> keys ) {
-        RethinkDBConnection conn = pool.acquire();
+        RqlConnection conn = pool.acquire();
         try {
             List<Object> stringKeys = Lists.newArrayList();
             for ( K k : keys ) {
@@ -353,7 +378,10 @@ public class RethinkDbBaseMapStore<K, V> implements MapStore<K, V> {
                     logger.error( "Failed to map key of type {}", k.getClass().getCanonicalName() );
                 }
             }
-            tbl.getAll( stringKeys ).delete().run( conn );
+            conn.run( tbl.get_all( stringKeys.toArray() ).delete() );
+
+        } catch ( RqlDriverException e ) {
+            logger.error( "Failed to delete all keys {}", keys, e );
         } finally {
             pool.release( conn );
         }

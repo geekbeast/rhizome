@@ -202,7 +202,7 @@ dependencies {
      /*
       * RethinkDB
       */
-     //compile "com.dkhenry:rethinkjava:0.9"
+     compile "com.dkhenry:rethinkjava:0.9"
      //compile "com.rethinkdb:rethink-java-driver:0.3"
      compile(project(":rethink-java-driver"))
      

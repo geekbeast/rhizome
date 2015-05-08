@@ -7,14 +7,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import com.dkhenry.RethinkDB.RqlConnection;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.kryptnostic.rhizome.mappers.Mappers;
 import com.kryptnostic.rhizome.mappers.keys.ConfigurationKeyMapper;
-import com.kryptnostic.rhizome.mapstores.rethinkdb.RethinkDbBaseMapStore;
-import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbDefaultClientPool;
-import com.rethinkdb.RethinkDBConnection;
+import com.kryptnostic.rhizome.mapstores.rethinkdb.RethinkDbBaseMapStoreAlternateDriver;
+import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 @Configuration
 public class RethinkDbPod {
@@ -34,21 +34,21 @@ public class RethinkDbPod {
     @Bean
     @Scope(
         value = ConfigurableBeanFactory.SCOPE_PROTOTYPE )
-    public RethinkDBConnection rethinkConnection() {
+    public RqlConnection rethinkConnection() {
         return rethinkDbClientPool().acquire();
     }
 
     @Bean
-    public RethinkDbDefaultClientPool rethinkDbClientPool() {
-        return new RethinkDbDefaultClientPool( rethinkDbConfiguration() );
+    public RethinkDbAlternateDriverClientPool rethinkDbClientPool() {
+        return new RethinkDbAlternateDriverClientPool( rethinkDbConfiguration() );
     }
 
     @Bean
-    public RethinkDbBaseMapStore<ConfigurationKey, String> configurationMapStore() {
+    public RethinkDbBaseMapStoreAlternateDriver<ConfigurationKey, String> configurationMapStore() {
         RethinkDbConfiguration config = rethinkDbConfiguration();
         if ( config != null ) {
             String configurationKeyspace = "configurations";
-            return new RethinkDbBaseMapStore<ConfigurationKey, String>(
+            return new RethinkDbBaseMapStoreAlternateDriver<ConfigurationKey, String>(
                     rethinkDbClientPool(),
                     "kryptnostic",
                     configurationKeyspace,
