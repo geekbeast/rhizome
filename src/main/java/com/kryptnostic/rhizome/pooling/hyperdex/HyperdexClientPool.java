@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.hyperdex.pooling;
+package com.kryptnostic.rhizome.pooling.hyperdex;
 
 import javax.annotation.Nullable;
 

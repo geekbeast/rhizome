@@ -12,9 +12,9 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.google.common.base.Optional;
-import com.kryptnostic.rhizome.hyperdex.pooling.HyperdexClientPool;
-import com.kryptnostic.rhizome.hyperdex.pooling.ResizingHyperdexClientPool;
-import com.kryptnostic.rhizome.mapstores.ConfigurationHyperdexMapstore;
+import com.kryptnostic.rhizome.mapstores.hyperdex.HyperdexConfigurationMapstore;
+import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
+import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexResizingClientPool;
 
 @Configuration
 public class HyperdexPod {
@@ -45,19 +45,20 @@ public class HyperdexPod {
 
     @Bean
     public HyperdexClientPool hyperdexClientPool() {
-        return new ResizingHyperdexClientPool( hyperdexConfiguration() );
+        return new HyperdexResizingClientPool( hyperdexConfiguration() );
     }
 
     @Bean
-    public ConfigurationHyperdexMapstore configurationMapStore() {
+    public HyperdexConfigurationMapstore configurationMapStore() {
         HyperdexConfiguration hyperdexConfiguration = hyperdexConfiguration();
         Optional<String> configurationKeyspace;
         if ( hyperdexConfiguration != null ) {
             configurationKeyspace = hyperdexConfiguration().getConfigurationKeyspace();
             if ( configurationKeyspace.isPresent() ) {
-                return new ConfigurationHyperdexMapstore( configurationKeyspace.get(), hyperdexClientPool() );
+                return new HyperdexConfigurationMapstore( configurationKeyspace.get(), hyperdexClientPool() );
             }
         }
         return null;
     }
+
 }
