@@ -34,23 +34,29 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V> {
-    private static final Base64                        codec         = new Base64();
-    private static final Logger                        logger        = LoggerFactory
-                                                                             .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
-    protected static final String                      DATA_FIELD    = "data";
-    protected static final String                      ID_FIELD      = "id";
+    private static final Base64                        codec          = new Base64();
+    private static final Logger                        logger         = LoggerFactory
+                                                                              .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
+    protected static final String                      DATA_FIELD     = "data";
+    protected static final String                      ID_FIELD       = "id";
 
-    protected static final int                         MAX_THREADS   = Runtime.getRuntime().availableProcessors();
-    protected static final int                         STORAGE_BATCH = 3000;
-    protected static final int                         LOAD_BATCH    = 3000;
+    protected static final int                         MAX_THREADS    = Runtime.getRuntime().availableProcessors();
+    protected static final int                         STORAGE_BATCH  = 3000;
+    protected static final int                         LOAD_BATCH     = 3000;
 
-    protected static final ExecutorService             exec          = Executors.newFixedThreadPool( MAX_THREADS );
+    protected static final ExecutorService             exec           = Executors.newFixedThreadPool( MAX_THREADS );
 
     protected final RethinkDbAlternateDriverClientPool pool;
     protected final Table                              tbl;
     protected final KeyMapper<K>                       keyMapper;
     protected final ValueMapper<V>                     mapper;
     protected final String                             table;
+
+    public static final HashMap<String, Object>        INSERT_OPTIONS = new HashMap<String, Object>() {
+                                                                          {
+                                                                              put( "conflict", "replace" );
+                                                                          }
+                                                                      };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
@@ -222,6 +228,9 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
 
     private V getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
         String encoded = (String) obj.getMap().get( DATA_FIELD );
+        if ( encoded == null ) {
+            return null;
+        }
         byte[] decodedBytes = codec.decodeBase64( encoded );
         V val = mapper.fromBytes( decodedBytes );
         return val;
@@ -240,20 +249,16 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
             Object idKey = keyMapper.fromKey( key );
             Object valuePayload = prepareValueForStorage( value );
 
-            Map<String, Object> data = new HashMap() {
+            Map<String, Object> data = new HashMap<String, Object>() {
                 {
                     put( ID_FIELD, idKey );
                     put( DATA_FIELD, valuePayload );
                 }
             };
-            HashMap<String, Object> insertOptions = new HashMap() {
-                {
-                    put( "conflict", "replace" );
-                }
-            };
+
             conn = pool.acquire();
             try {
-                conn.run( tbl.insert( data ), insertOptions );
+                conn.run( tbl.insert( data ), INSERT_OPTIONS );
             } catch ( RqlDriverException e ) {
                 logger.error( "Store failed", e );
             }
@@ -297,7 +302,7 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
                         final List<Map.Entry<K, V>> list = data.subList( finalIndex, finalMax );
                         for ( Map.Entry<K, V> entry : list ) {
                             try {
-                                toInsert.add( new HashMap() {
+                                toInsert.add( new HashMap<String, Object>() {
                                     {
                                         put( ID_FIELD, keyMapper.fromKey( entry.getKey() ) );
                                         put( DATA_FIELD, prepareValueForStorage( entry.getValue() ) );
@@ -307,13 +312,8 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
                                 logger.error( "{}", e );
                             }
                         }
-                        HashMap<String, Object> insertOptions = new HashMap() {
-                            {
-                                put( "conflict", "replace" );
-                            }
-                        };
 
-                        RqlCursor cursor = conn.run( tbl.insert( toInsert.toArray() ), insertOptions );
+                        RqlCursor cursor = conn.run( tbl.insert( toInsert.toArray() ), INSERT_OPTIONS );
                         while ( cursor != null && cursor.hasNext() ) {
                             RqlObject obj = cursor.next();
                             Map m = obj.getMap();

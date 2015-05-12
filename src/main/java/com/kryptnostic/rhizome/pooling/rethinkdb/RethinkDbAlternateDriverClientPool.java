@@ -21,7 +21,6 @@ public class RethinkDbAlternateDriverClientPool {
 
     public RethinkDbAlternateDriverClientPool( RethinkDbConfiguration config ) {
         this.config = config;
-
     }
 
     private RqlConnection createClient() {
