@@ -31,7 +31,7 @@ public class RethinkDbAlternateDriverClientPool {
         try {
             c = RqlConnection.connect( hostname, port );
             int sz = size.incrementAndGet();
-            logger.debug( "Added rethink client, size is {} {}", sz, clients.size() );
+            logger.trace( "Added rethink client, size is {} {}", sz, clients.size() );
         } catch ( RqlDriverException e ) {
             logger.error( "Failed to connect to RethinkDb {}", e );
         }
@@ -42,7 +42,7 @@ public class RethinkDbAlternateDriverClientPool {
         RqlConnection c = null;
         int sz = size.get();
 
-        logger.debug( "Attempting to acquire rethink client..., size is {} {}", sz, clients.size() );
+        logger.trace( "Attempting to acquire rethink client..., size is {} {}", sz, clients.size() );
         c = clients.poll();
 
         if ( c == null ) {
@@ -50,7 +50,7 @@ public class RethinkDbAlternateDriverClientPool {
         }
 
         sz = size.get();
-        logger.debug( "Acquired rethink client, size is {} {}", sz, clients.size() );
+        logger.trace( "Acquired rethink client, size is {} {}", sz, clients.size() );
         return c;
     }
 
@@ -61,7 +61,7 @@ public class RethinkDbAlternateDriverClientPool {
     public void release( RqlConnection c ) {
         clients.offer( c );
         int sz = size.get();
-        logger.debug( "Released rethink client, size is {} {}", sz, clients.size() );
+        logger.trace( "Released rethink client, size is {} {}", sz, clients.size() );
     }
 
     public int available() {
