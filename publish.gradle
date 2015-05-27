@@ -5,11 +5,13 @@ exec {
 }
 def branch=stdout.toString().trim();
 
-if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("release/") ) ) && 
-    ( System.getenv("bamboo_JAR_SIGNING_KEYRING") != null) && 
-    ( System.getenv("bamboo_JAR_SIGNING_PASSWORD")!=null ) && 
-    ( System.getenv("bamboo_SONATYPE_USERNAME")!=null ) && 
-    ( System.getenv("bamboo_SONATYPE_PASSWORD")!=null ) ) {
+if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("release/") ) ) &&
+    ( System.getenv("bamboo_JAR_SIGNING_KEYRING") != null) &&
+    ( System.getenv("bamboo_JAR_SIGNING_PASSWORD") !=null ) &&
+    ( System.getenv("bamboo_SONATYPE_USERNAME") !=null ) &&
+    ( System.getenv("bamboo_SONATYPE_PASSWORD") !=null ) &&
+    ( System.getenv("bamboo_ARTIFACTORY_USERNAME") !=null ) &&
+    ( System.getenv("bamboo_ARTIFACTORY_PASSWORD") != null)) {
 
 
     apply plugin: "signing"
@@ -17,6 +19,7 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
 
     ext {
         snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+        artifactoryUrl = "https://artifactory.krypt.int/artifactory/libs-snapshot"
         releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
         localUrl = "file:/${project.projectDir}/artifacts"
     }
@@ -37,9 +40,10 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
         sign configurations.pom
     }
 
+
     publishing {
         repositories {
-            maven { 
+            maven {
                 url branch.equals("develop") ? snapshotUrl : releaseUrl
                 credentials {
                     username = "$System.env.bamboo_SONATYPE_USERNAME"
@@ -62,13 +66,13 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
                 pom.withXml {
                     asNode().children().last() + {
                         resolveStrategy = Closure.DELEGATE_FIRST
-                        name 'fhe-core'
-                        description 'Kryptnostic implementations of Fully Homomorphic Encryption'
-                        url 'https://www.github.com/kryptnostic/fhe-core'
+                        name 'rhizome'
+                        description 'Java Framework for building clustered RESTful web applications'
+                        url 'https://github.com/kryptnostic/rhizome'
                         scm {
-                            url 'https://www.github.com/kryptnostic/fhe-core'
-                            connection 'https://www.github.com/kryptnostic/fhe-core'
-                            developerConnection 'https://www.github.com/kryptnostic/fhe-core'
+                            url 'https://github.com/kryptnostic/rhizome'
+                            connection 'https://github.com/kryptnostic/rhizome'
+                            developerConnection 'https://github.com/kryptnostic/rhizome'
                         }
                         licenses {
                             license {
@@ -84,14 +88,19 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
                                 email 'matthew@kryptnostic.com'
                             }
                             developer {
-                                id 'hubsmoke'
-                                name 'Sina Iman'
-                                email 'sina@kryptnostic.com'
-                            }
-                            developer {
                                 id 'nickdhewitt'
                                 name 'Nick Hewitt'
                                 email 'nick@kryptnostic.com'
+                            }
+                            developer {
+                                id 'rbuckheit'
+                                name 'Ryan Buckheit'
+                                email 'ryan@kryptnostic.com'
+                            }
+                            developer {
+                                id 'makosblade'
+                                name 'Drew Bailey'
+                                email 'drew@kryptnostic.com'
                             }
                         }
                     }

@@ -15,7 +15,7 @@ def getVersionName = { ->
 }
 
 description = "Java Framework for building clustered RESTful web applications"
-group = "com.geekbeast"
+group = "com.kryptnostic"
 version = getVersionName()
 
 apply plugin: "maven-publish"
@@ -25,7 +25,7 @@ apply plugin: "maven"
 apply plugin: "eclipse"
 apply plugin: "idea"
 //apply plugin: "war"
-//apply from: "publish.gradle"
+apply from: "publish.gradle"
 apply plugin: "signing"
 apply plugin: "jacoco"
 
