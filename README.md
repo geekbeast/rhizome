@@ -58,3 +58,10 @@ Using log4j through sl4j facade, hopefully upgrade to logback soon.
 ##### Joda Time
 
 Better date time
+
+##### RethinkDB
+
+Persistence layer.
+
+Note:
+There is no official rethink Java driver, so for now we're using the driver provided by dkhenry (see build.gradle). It's README isn't up to date. See RethinkDB driver in rhizome.mapstores. Syntax is similar to API docs in Rethink. We use Rethink to store Base64 encoded strings as it's optimized for storing strings. We tried storing binary data and measured a large perf decrease.
