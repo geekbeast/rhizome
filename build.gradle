@@ -235,7 +235,7 @@ task javadocJar(type: Jar) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2'
+    gradleVersion = '2.4'
 }
 
 artifacts {
