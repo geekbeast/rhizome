@@ -29,15 +29,19 @@ public class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBas
         Set<K> keys = Sets.newHashSet();
         try {
             Iterator i = client.search( space, ImmutableMap.of() );
-            try {
-                while ( i.hasNext() ) {
-                    @SuppressWarnings( "unchecked" )
-                    Map<String, Object> obj = (Map<String, Object>) i.next();
-                    keys.add( keyMapper.toKey( obj.get( "id" ).toString() ) );
+            while ( i.hasNext() ) {
+                @SuppressWarnings( "unchecked" )
+                Map<String, Object> obj = (Map<String, Object>) i.next();
+                String objectId = obj.get( "id" ).toString();
+
+                try {
+                    keys.add( keyMapper.toKey( objectId ) );
+                } catch (  MappingException e ) {
+                    logger.error("Mapping key with id: {} failed!", objectId);
                 }
-            } catch ( HyperDexClientException | MappingException e ) {
-                logger.error( "Failed to load all keys.", e );
             }
+        } catch (HyperDexClientException e) {
+            logger.error("Failed to load all keys.", e);
         } finally {
             pool.release( client );
         }
