@@ -56,11 +56,11 @@ repositories {
     }
 }
 
-ext.spring_security_version='3.2.5.RELEASE'
-ext.spring_framework_version='4.1.4.RELEASE'
+ext.spring_security_version='4.0.1.RELEASE'
+ext.spring_framework_version='4.1.6.RELEASE'
 ext.jackson_version='2.4.4'
-ext.jetty_version='9.2.2.v20140723'
-ext.hazelcast_version='3.4'
+ext.jetty_version='9.3.0.v20150612'
+ext.hazelcast_version='3.5'
 dependencies {
     /*
      * Servlet API 3.1 
@@ -154,6 +154,7 @@ dependencies {
      compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
      compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
      compile 'org.yaml:snakeyaml:1.13'
+     compile 'com.jayway.jsonpath:json-path-assert:0.9.1'
 
     /*
      * @Inject and @Nullable support
@@ -188,7 +189,8 @@ dependencies {
 
      compile "asm:asm:3.3.1"
      compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
-     compile "org.eclipse.jetty:jetty-jsp:${jetty_version}"
+     //TODO: Once GA version of jetty-jsp is released update version.
+     compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
      compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
      compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
