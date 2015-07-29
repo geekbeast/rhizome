@@ -56,10 +56,24 @@ repositories {
     }
 }
 
+buildscript {
+  repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+      url 'http://repo.spring.io/milestone'
+      }
+  }
+  dependencies {
+    classpath 'org.hidetake:gradle-ssh-plugin:1.0.1'
+    classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE'
+  }
+}
+
 ext.spring_security_version='4.0.1.RELEASE'
-ext.spring_framework_version='4.1.6.RELEASE'
+ext.spring_framework_version='4.2.0.RC3'
 ext.jackson_version='2.4.4'
-ext.jetty_version='9.3.0.v20150612'
+ext.jetty_version='9.3.1.v20150714'
 ext.hazelcast_version='3.5'
 dependencies {
     /*
@@ -75,8 +89,8 @@ dependencies {
      * Currently use Log4J through sl4j. 
      * TODO: Switch to logback
      */
-     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.6'
-     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.6'
+     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.7'
+     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.7'
 
 	//    compile "ch.qos.logback:logback-classic:1.0.13"
 	compile "log4j:log4j:1.2.17"
@@ -190,16 +204,17 @@ dependencies {
      compile "asm:asm:3.3.1"
      compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
      //TODO: Once GA version of jetty-jsp is released update version.
-     compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
+     //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
      compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
-     compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
+     compile "org.eclipse.jetty.websocket:websocket-server:9.3.1.v20150714"
+     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.1.v20150714"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
     /*
      * ATMOSPHERE 
      * Websocket / CometD support
      */
-     compile "org.atmosphere:atmosphere-runtime:2.0.5"
+     //compile "org.atmosphere:atmosphere-runtime:2.0.5"
      
      /*
       * RethinkDB
@@ -217,6 +232,18 @@ dependencies {
      testCompile 'junit:junit:4.11'
      testCompile 'com.squareup.retrofit:retrofit:1.9.0'
      testCompile 'com.squareup.retrofit:retrofit-converters:1.9.0'
+     
+    /*
+     * WEBSOCKET DEPENDENCIES
+     */
+      
+      compile "org.springframework:spring-websocket:${project.spring_framework_version}"
+      compile "org.springframework:spring-messaging:${project.spring_framework_version}"
+      //compile "org.springframework.integration:spring-integration-core:4.2.0.M2"
+      //compile "org.springframework.integration:spring-integration-ws:4.2.0.M2"
+      //compile "org.springframework.integration:spring-integration-xml:${project.spring_framework_version}"
+      compile "org.springframework.integration:spring-integration-websocket:4.2.0.M2"
+      testCompile("junit:junit")
  }
 
 eclipse {

@@ -3,7 +3,6 @@ package com.geekbeast.rhizome.core;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jasper.servlet.JspServlet;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -56,7 +55,7 @@ public class JettyLoam implements Loam {
         context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
 
         // TODO: Make loaded servlet classes configurable
-        context.addServlet( JspServlet.class, "*.jsp" );
+        //context.addServlet( JspServlet.class, "*.jsp" );
 
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
         server = new Server();
