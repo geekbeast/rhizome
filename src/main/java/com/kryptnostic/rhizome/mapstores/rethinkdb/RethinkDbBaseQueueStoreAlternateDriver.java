@@ -27,6 +27,7 @@ import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Sets;
 import com.hazelcast.core.QueueStore;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
@@ -138,11 +139,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
         Map<Long, T> results = Maps.newConcurrentMap();
 
         int sz = keys.size();
-        List<Long> rawData = Lists.newArrayList( keys );
-        final List<Object> data = Lists.newArrayList();
-        for ( Long k : rawData ) {
-            data.add( k );
-        }
+        List<Long> data = Lists.newArrayList( keys );
         int step = LOAD_BATCH;
         AtomicInteger errors = new AtomicInteger();
         AtomicInteger keyCount = new AtomicInteger();
@@ -163,7 +160,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
 
                     RqlConnection conn = pool.acquire();
                     RqlCursor cursor = null;
-                    List<Object> subListOfData = data.subList( fIndex, fMax );
+                    List<Long> subListOfData = data.subList( fIndex, fMax );
                     try {
                         cursor = conn.run( tbl.get_all( subListOfData.toArray() ) );
                     } catch ( RqlDriverException e1 ) {
@@ -173,7 +170,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
                         try {
                             RqlObject obj = cursor.next();
                             Map<String, Object> d = obj.getMap();
-                            Long key = (Long) d.get( ID_FIELD );
+                            Long key = ((Double)d.get( ID_FIELD )).longValue();
                             T val = RethinkDbBaseQueueStoreAlternateDriver.this.getValueFromCursorObject( obj );
                             results.put( key, val );
                             keyCount.incrementAndGet();
@@ -213,7 +210,29 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
 
     @Override
     public Set<Long> loadAllKeys() {
-        return null;
+        RqlConnection conn = pool.acquire();
+        Set<Long> keys = Sets.newHashSet();
+        try {
+            RqlCursor cursor = conn.run( tbl.pluck( ID_FIELD ) );
+            while ( cursor != null && cursor.hasNext() ) {
+                try {
+                    RqlObject obj = cursor.next();
+                    System.out.println("loading queue " + (Double)obj.getMap().get( ID_FIELD ));
+                    Double key = (Double)obj.getMap().get( ID_FIELD );
+                    keys.add( key.longValue() );
+                } catch ( RqlDriverException e ) {
+                    logger.error( "{}", e );
+                }
+            }
+        } catch ( RqlDriverException e ) {
+            logger.error( "{}", e );
+        } finally {
+            if ( conn != null ) {
+                pool.release( conn );
+            }
+        }
+        return keys;
+
     }
 
     private T getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
