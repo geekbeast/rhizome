@@ -56,20 +56,6 @@ repositories {
     }
 }
 
-buildscript {
-  repositories {
-    jcenter()
-    mavenCentral()
-    maven {
-      url 'http://repo.spring.io/milestone'
-      }
-  }
-  dependencies {
-    classpath 'org.hidetake:gradle-ssh-plugin:1.0.1'
-    classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE'
-  }
-}
-
 ext.spring_security_version='4.0.1.RELEASE'
 ext.spring_framework_version='4.2.0.RC3'
 ext.jackson_version='2.4.4'
@@ -214,7 +200,6 @@ dependencies {
      * ATMOSPHERE 
      * Websocket / CometD support
      */
-     //compile "org.atmosphere:atmosphere-runtime:2.0.5"
      
      /*
       * RethinkDB
@@ -239,9 +224,6 @@ dependencies {
       
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-      //compile "org.springframework.integration:spring-integration-core:4.2.0.M2"
-      //compile "org.springframework.integration:spring-integration-ws:4.2.0.M2"
-      //compile "org.springframework.integration:spring-integration-xml:${project.spring_framework_version}"
       compile "org.springframework.integration:spring-integration-websocket:4.2.0.M2"
       testCompile("junit:junit")
  }

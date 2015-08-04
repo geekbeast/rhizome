@@ -162,7 +162,7 @@ public class Rhizome implements WebApplicationInitializer {
                     configuration.getServletName(),
                     new DispatcherServlet( dispatchServletContext ) );
             if ( configuration.getLoadOnStartup().isPresent() ) {
-            	dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
+            	 dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
             	
             }
             dispatcher.setAsyncSupported(true);

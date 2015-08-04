@@ -2,14 +2,11 @@ package com.geekbeast.rhizome.configuration.jetty;
 
 import java.util.Random;
 
-import org.springframework.integration.annotation.MessagingGateway;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
-@MessagingGateway
 @JsonIgnoreProperties(
     ignoreUnknown = false )
 public class EndpointConfiguration {
