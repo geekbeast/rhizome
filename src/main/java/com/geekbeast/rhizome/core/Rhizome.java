@@ -1,5 +1,6 @@
 package com.geekbeast.rhizome.core;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -162,7 +163,7 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
-    public AnnotationConfigWebApplicationContext getContext() {
+    public static AnnotationConfigWebApplicationContext getContext() {
         return rhizomeContext;
     }
 
@@ -204,13 +205,14 @@ public class Rhizome implements WebApplicationInitializer {
     protected void initialize() {
         synchronized ( rhizomeContext ) {
             if ( !isInitialized ) {
-                rhizomeContext.register( ConfigurationPod.class );
-                rhizomeContext.register( MetricsPod.class );
-                rhizomeContext.register( AsyncPod.class );
-                rhizomeContext.register( HazelcastPod.class );
-                rhizomeContext.register( ServletContainerPod.class );
+                Arrays.asList( getDefaultPods() ).forEach( pod -> rhizomeContext.register( pod ) );
                 isInitialized = true;
             }
         }
+    }
+
+    public static Class<?>[] getDefaultPods() {
+        return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
+                ServletContainerPod.class };
     }
 }

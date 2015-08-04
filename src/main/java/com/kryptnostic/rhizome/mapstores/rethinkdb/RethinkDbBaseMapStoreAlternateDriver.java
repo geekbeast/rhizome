@@ -57,6 +57,11 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
                                                                               put( "conflict", "replace" );
                                                                           }
                                                                       };
+    public static final HashMap<String, Object>        INSERT_OPTIONS_FOR_ADD = new HashMap<String, Object>() {
+                                                                          {
+                                                                              put( "conflict", "error" );
+                                                                          }
+                                                                      };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
