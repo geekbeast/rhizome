@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.mapstores;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
@@ -11,6 +12,13 @@ import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
 import com.kryptnostic.rhizome.mappers.keys.StringKeyMapper;
 
+
+/**
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ *
+ * This test requires a cassandra instance to be locally available in order to run thest.
+ */
+@Ignore
 public class CassandraMapstoreTester {
     @Test
     public void testCassandraMapstore() {
