@@ -2,11 +2,14 @@ package com.geekbeast.rhizome.configuration.jetty;
 
 import java.util.Random;
 
+import org.springframework.integration.annotation.MessagingGateway;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
+@MessagingGateway
 @JsonIgnoreProperties(
     ignoreUnknown = false )
 public class EndpointConfiguration {
@@ -34,7 +37,7 @@ public class EndpointConfiguration {
     /*
      * Pass in 0 for port numbers to automatically generate random ports for unit testing / integration testing.
      */
-
+    
     @JsonCreator
     public EndpointConfiguration(
             @JsonProperty(

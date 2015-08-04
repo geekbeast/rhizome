@@ -1,10 +1,10 @@
 package com.geekbeast.rhizome.configuration.service;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.annotation.Nullable;
-import javax.el.MethodNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -90,7 +90,7 @@ public interface ConfigurationService {
                 Method keyGetter = Preconditions.checkNotNull( clazz.getMethod( "key" ), clazz.getName()
                         + " is missing required static method key()." );
                 return (ConfigurationKey) keyGetter.invoke( null );
-            } catch ( MethodNotFoundException nfe ) {
+            } catch ( InvocationTargetException nfe ) {
                 logger.error( clazz.getName() + " is missing required static method key().", nfe );
                 return null;
             } catch ( Exception e ) {
