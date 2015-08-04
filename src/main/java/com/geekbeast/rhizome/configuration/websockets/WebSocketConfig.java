@@ -31,75 +31,27 @@ import com.geekbeast.rhizome.pods.RethinkDbPod;
 import com.kryptnostic.helper.services.v1.HandshakeInterceptor;
 import com.kryptnostic.helper.services.v1.MyHandler;
 
-//@Configuration
-//@EnableWebSocket
-//@Import( { HandshakeInterceptor.class } )
-//public class WebSocketConfig implements WebSocketConfigurer {
 
-@EnableAsync
 @Configuration
-//@EnableScheduling
-//@ComponentScan("org.springframework.samples")
 @EnableWebSocketMessageBroker
 @Import( { HandshakeInterceptor.class } )
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 	
-//	@Async
-//	@Bean
-//	public ServletServerContainerFactoryBean createWebSocketContainer() {
-//		ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-//		container.setMaxTextMessageBufferSize(8192);
-//		container.setMaxBinaryMessageBufferSize(8192);
-//		container.setAsyncSendTimeout(1000);
-//		container.getObject().
-//		return container;
-//	}
 	
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
-		config.enableSimpleBroker("/one", "/two", "/three");
-		config.setApplicationDestinationPrefixes("/sockettesting");
+		config.enableSimpleBroker("/topic");
+		config.setApplicationDestinationPrefixes("/proxy");
 	}
 	
-	@Override
+	@Override 
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/sockettesting")
+		registry.addEndpoint("/")
 			.setHandshakeHandler(new DefaultHandshakeHandler(upgradeStrategy()))
 			.addInterceptors(new HandshakeInterceptor())
 			.setAllowedOrigins("*")
 			.withSockJS();
 	}
-
-//	@Override
-//	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-////		LoggerFactory.getLogger( WebSocketConfig.class ).debug("REGISTER WEB SOCKET HANDLERS");
-//		registry.addHandler(myHandler(), "/")
-//			.setAllowedOrigins("*")
-//			.addInterceptors(new HandshakeInterceptor());
-////			.withSockJS();
-//	}
-	
-//	@Override
-//	public void registerStompEndpoints(StompEndpointRegistry registry) {
-//		registry.addEndpoint("/socketone").withSockJS()
-//			.setClientLibraryUrl("http://localhost:8000/");
-//	}
-
-	// @Bean
-	// protected void configureStompEndpoints(StompEndpointRegistry registry) {
-	// registry.addEndpoint("/sockettest").withSockJS();
-	// }
-	//
-	// @Override
-	// public void configureMessageBroker(MessageBrokerRegistry registry) {
-	// registry.enableSimpleBroker("/sockettest/", "/test/");
-	// registry.setApplicationDestinationPrefixes("/sockettest");
-	// }
-
-//	@Bean
-//	public TextWebSocketHandler myHandler() {
-//		return new MyHandler();
-//	}
 
 	@Bean
 	public RequestUpgradeStrategy upgradeStrategy() {
@@ -115,9 +67,5 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 		return new DefaultHandshakeHandler(upgradeStrategy());
 	}
 
-//	 @Bean
-//	 public IntegrationWebSocketContainer serverWebSocketContainer() {
-//	 return new ServerWebSocketContainer("/socketone");
-//	 }
 
 }
