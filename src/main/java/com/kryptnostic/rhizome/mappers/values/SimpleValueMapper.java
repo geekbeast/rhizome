@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.kryptnostic.rhizome.mappers.JacksonValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
@@ -21,6 +22,7 @@ public class SimpleValueMapper<V> extends JacksonValueMapper<V> {
 
     public SimpleValueMapper( Class<V> valueClass, ObjectMapper mapper ) {
         super( mapper );
+        
         this.valueClass = valueClass;
     }
 
