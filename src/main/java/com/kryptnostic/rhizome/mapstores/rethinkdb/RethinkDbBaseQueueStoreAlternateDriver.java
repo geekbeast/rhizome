@@ -217,7 +217,6 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
             while ( cursor != null && cursor.hasNext() ) {
                 try {
                     RqlObject obj = cursor.next();
-                    System.out.println("loading queue " + (Double)obj.getMap().get( ID_FIELD ));
                     Double key = (Double)obj.getMap().get( ID_FIELD );
                     keys.add( key.longValue() );
                 } catch ( RqlDriverException e ) {
