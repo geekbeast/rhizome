@@ -3,7 +3,6 @@ package com.geekbeast.rhizome.pods;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.geekbeast.rhizome.configuration.websockets.WebSocketConfig;
