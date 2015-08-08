@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.geekbeast.rhizome.configuration.ConfigurationConstants;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
@@ -27,7 +28,6 @@ import com.hazelcast.web.WebFilter;
 @Configuration
 public class HazelcastPod {
     public static final Logger   logger                     = LoggerFactory.getLogger( HazelcastPod.class );
-    public static final String   CONFIGURATIONS_MAP_NAME    = "configurations";
     public static final String   SESSIONS_MAP_NAME          = "sessions";
     public static final String   CONFIGURATION_UPDATE_TOPIC = "configuration-update-topic";
 
@@ -54,7 +54,7 @@ public class HazelcastPod {
 
     @Bean
     public IMap<ConfigurationKey, String> configurations() {
-        return hazelcastInstance().getMap( CONFIGURATIONS_MAP_NAME );
+        return hazelcastInstance().getMap( ConfigurationConstants.HZ.MAPS.CONFIGURATION );
     }
 
     @Bean

@@ -15,33 +15,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
-import com.hazelcast.core.MapStore;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements MapStore<K, V> {
+public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {
         HyperdexPreconfigurer.configure();
     }
 
+    protected final String             mapName;
     protected final ValueMapper<V>     mapper;
     protected final HyperdexClientPool pool;
     protected final String             space;
     protected final KeyMapper<K>       keyMapper;
 
     public HyperdexBaseJacksonKeyValueMapStore(
+            String mapName,
             String space,
             HyperdexClientPool pool,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
+        this.mapName = mapName;
         this.mapper = mapper;
         this.pool = pool;
         this.space = space;
         this.keyMapper = keyMapper;
+        RegistryBasedHazelcastInstanceConfigurationPod.register( mapName, this );
     }
 
     protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
@@ -248,5 +255,11 @@ public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements MapStore<K, V>
     @Override
     public void deleteAll( Collection<K> keys ) {
         keys.forEach( key -> delete( key ) );
+    }
+    
+    @Override
+    public MapConfig getMapConfig() {
+        return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) ).setName( mapName );
+        
     }
 }

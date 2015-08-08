@@ -6,7 +6,7 @@ import com.kryptnostic.rhizome.mappers.keys.ConfigurationKeyMapper;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 public class HyperdexConfigurationMapstore extends HyperdexBaseJacksonKeyValueMapStore<ConfigurationKey, String> {
-    public HyperdexConfigurationMapstore( String space, HyperdexClientPool pool ) {
-        super( space, pool, new ConfigurationKeyMapper(), Mappers.newStringMapper() );
+    public HyperdexConfigurationMapstore( String mapName, String space, HyperdexClientPool pool ) {
+        super( mapName, space, pool, new ConfigurationKeyMapper(), Mappers.newStringMapper() );
     }
 }

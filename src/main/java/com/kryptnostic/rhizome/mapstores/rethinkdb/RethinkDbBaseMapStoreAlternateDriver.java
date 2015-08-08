@@ -26,51 +26,60 @@ import com.dkhenry.RethinkDB.RqlObject;
 import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.google.common.base.Stopwatch;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V> {
-    private static final Base64                        codec          = new Base64();
-    private static final Logger                        logger         = LoggerFactory
-                                                                              .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
-    protected static final String                      DATA_FIELD     = "data";
-    protected static final String                      ID_FIELD       = "id";
+public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteringMapStore<K, V> {
+    private static final Base64                        codec                  = new Base64();
+    private static final Logger                        logger                 = LoggerFactory
+                                                                                      .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
+    protected static final String                      DATA_FIELD             = "data";
+    protected static final String                      ID_FIELD               = "id";
 
-    protected static final int                         MAX_THREADS    = Runtime.getRuntime().availableProcessors();
-    protected static final int                         STORAGE_BATCH  = 3000;
-    protected static final int                         LOAD_BATCH     = 3000;
+    protected static final int                         MAX_THREADS            = Runtime.getRuntime()
+                                                                                      .availableProcessors();
+    protected static final int                         STORAGE_BATCH          = 3000;
+    protected static final int                         LOAD_BATCH             = 3000;
 
-    protected static final ExecutorService             exec           = Executors.newFixedThreadPool( MAX_THREADS );
+    protected static final ExecutorService             exec                   = Executors
+                                                                                      .newFixedThreadPool( MAX_THREADS );
 
     protected final RethinkDbAlternateDriverClientPool pool;
     protected final Table                              tbl;
     protected final KeyMapper<K>                       keyMapper;
     protected final ValueMapper<V>                     mapper;
     protected final String                             table;
+    protected final String                             mapName;
 
-    public static final HashMap<String, Object>        INSERT_OPTIONS = new HashMap<String, Object>() {
-                                                                          {
-                                                                              put( "conflict", "replace" );
-                                                                          }
-                                                                      };
+    public static final HashMap<String, Object>        INSERT_OPTIONS         = new HashMap<String, Object>() {
+                                                                                  {
+                                                                                      put( "conflict", "replace" );
+                                                                                  }
+                                                                              };
     public static final HashMap<String, Object>        INSERT_OPTIONS_FOR_ADD = new HashMap<String, Object>() {
-                                                                          {
-                                                                              put( "conflict", "error" );
-                                                                          }
-                                                                      };
+                                                                                  {
+                                                                                      put( "conflict", "error" );
+                                                                                  }
+                                                                              };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
+            String mapName,
             String db,
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
         RqlConnection conn = null;
         this.pool = pool;
+        this.mapName = mapName;
         this.table = table;
         this.keyMapper = keyMapper;
         this.mapper = mapper;
@@ -106,6 +115,17 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
         // close connection
         tbl = conn.db( db ).table( table );
         pool.release( conn );
+        RegistryBasedHazelcastInstanceConfigurationPod.register( mapName, this );
+    }
+
+    public RethinkDbBaseMapStoreAlternateDriver(
+            RethinkDbConfiguration config,
+            String mapName,
+            String db,
+            String table,
+            KeyMapper<K> keyMapper,
+            ValueMapper<V> mapper ) {
+        this( new RethinkDbAlternateDriverClientPool( config ), mapName, db, table, keyMapper, mapper );
     }
 
     private void handleError( RqlDriverException e ) {
@@ -114,15 +134,6 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
         } else {
             logger.error( "{}", e );
         }
-    }
-
-    public RethinkDbBaseMapStoreAlternateDriver(
-            RethinkDbConfiguration config,
-            String db,
-            String table,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper ) {
-        this( new RethinkDbAlternateDriverClientPool( config ), db, table, keyMapper, mapper );
     }
 
     @Override
@@ -392,4 +403,10 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements MapStore<K, V
         }
     }
 
+    @Override
+    public MapConfig getMapConfig() {
+        return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) )
+                .setName( mapName );
+
+    }
 }

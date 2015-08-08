@@ -10,7 +10,11 @@ public class HyperdexJacksonStringKeyValueMapStore<V> extends HyperdexBaseJackso
         HyperdexPreconfigurer.configure();
     }
 
-    public HyperdexJacksonStringKeyValueMapStore( String space, HyperdexClientPool pool, ValueMapper<V> mapper ) {
-        super( space, pool, new StringKeyMapper(), mapper );
+    public HyperdexJacksonStringKeyValueMapStore(
+            String mapName,
+            String space,
+            HyperdexClientPool pool,
+            ValueMapper<V> mapper ) {
+        super( mapName, space, pool, new StringKeyMapper(), mapper );
     }
 }
