@@ -11,63 +11,50 @@ import org.hyperdex.client.ByteString;
 import org.hyperdex.client.Client;
 import org.hyperdex.client.Deferred;
 import org.hyperdex.client.HyperDexClientException;
+import org.hyperdex.client.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.hazelcast.core.QueueStore;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
+public class HyperdexBaseJacksonKeyValueQueueStore<T> implements QueueStore<T> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {
         HyperdexPreconfigurer.configure();
     }
 
-    protected final String             mapName;
-    protected final ValueMapper<V>     mapper;
+    protected final ValueMapper<T>     mapper;
     protected final HyperdexClientPool pool;
     protected final String             space;
-    protected final KeyMapper<K>       keyMapper;
 
-    public HyperdexBaseJacksonKeyValueMapStore(
-            String mapName,
+    public HyperdexBaseJacksonKeyValueQueueStore(
             String space,
             HyperdexClientPool pool,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper ) {
-        this.mapName = mapName;
+            ValueMapper<T> mapper ) {
         this.mapper = mapper;
         this.pool = pool;
         this.space = space;
-        this.keyMapper = keyMapper;
-        RegistryBasedHazelcastInstanceConfigurationPod.register( mapName, this );
     }
 
     protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
-        // int numTries = 0;
         HyperDexClientException exception = null;
         T val = null;
 
-        // while ( ++numTries < MAX_TRIES ) {
-        // exception = null;
         try {
             Client client = pool.acquire();
             val = clientOperation.exec( client );
             pool.release( client );
-            // break;
         } catch ( HyperDexClientException e ) {
             exception = e;
             logger.error( e.getMessage() );
         }
-        // }
 
         if ( exception != null ) {
             throw exception;
@@ -81,13 +68,12 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
     }
 
     @Override
-    public V load( K key ) {
+    public T load( Long key ) {
         Map<String, Object> value = null;
         try {
-            Object keyObject = keyMapper.fromKey( key );
 
             value = doSafeOperation( ( client ) -> {
-                return client.get( space, keyObject );
+                return client.get( space, key );
             } );
 
             if ( value == null ) {
@@ -99,12 +85,11 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
             logger.error( "Unable to unmap returned object for key {} in space {}", key, space, e );
             try {
                 logger.info( "Removing corrupted key {} in space {}", key, space );
-                Object keyObject = keyMapper.fromKey( key );
                 doSafeOperation( ( client ) -> {
-                    client.del( space, keyObject );
+                    client.del( space, key );
                     return null;
                 } );
-            } catch ( HyperDexClientException | MappingException e1 ) {
+            } catch ( HyperDexClientException e1 ) {
                 logger.error( "Couldn't get client when getting key {} in space {}", key, space, e1 );
             }
         } catch ( HyperDexClientException e ) {
@@ -118,30 +103,15 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
 
     @SuppressWarnings( "unchecked" )
     @Override
-    public Map<K, V> loadAll( final Collection<K> keys ) {
+    public Map<Long, T> loadAll( final Collection<Long> keys ) {
         logger.info( "Loading {} keys", keys.size() );
-        // Map<K,V> values = Maps.newHashMapWithExpectedSize( keys.size() );
-        // for( K key : keys ) {
-        // V value = load( key );
-        // if( value != null ) {
-        // values.put( key, value );
-        // }
-        // }
-        // return values;
-        //
-        final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
+
+        final Map<Long, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
         Client client = pool.acquire();
 
-        keys.forEach( ( K key ) -> {
-            Object keyObject;
+        keys.forEach( ( Long key ) -> {
             try {
-                keyObject = keyMapper.fromKey( key );
-            } catch ( Exception e ) {
-                logger.error( "Unable to read key for object key {} in space", key, space, e );
-                return;
-            }
-            try {
-                Deferred value = client.async_get( space, keyObject );
+                Deferred value = client.async_get( space, key );
                 if ( value != null ) {
                     deferredValues.put( key, value );
                 }
@@ -150,9 +120,9 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
             }
         } );
 
-        Map<K, V> values = Maps.newHashMapWithExpectedSize( keys.size() );
+        Map<Long, T> values = Maps.newHashMapWithExpectedSize( keys.size() );
 
-        for ( Map.Entry<K, Deferred> entry : deferredValues.entrySet() ) {
+        for ( Map.Entry<Long, Deferred> entry : deferredValues.entrySet() ) {
             try {
                 Map<String, Object> object = (Map<String, Object>) entry.getValue().waitForIt();
                 ByteString rawData = (ByteString) object.get( ValueMapper.DATA_ATTRIBUTE );
@@ -171,18 +141,31 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
     }
 
     @Override
-    public Set<K> loadAllKeys() {
-        // Overload this if you want to load some keys by default at startup.
-        return null;
+    public Set<Long> loadAllKeys() {
+        Client client = pool.acquire();
+        Set<Long> keys = Sets.newHashSet();
+        try {
+            Iterator i = client.search( space, ImmutableMap.of() );
+            while ( i.hasNext() ) {
+                @SuppressWarnings( "unchecked" )
+                Map<String, Object> obj = (Map<String, Object>) i.next();
+                Long key = ((Double)obj.get( "id" )).longValue();
+                keys.add( key );
+            }
+        } catch (HyperDexClientException e) {
+            logger.error("Failed to load all keys.", e);
+        } finally {
+            pool.release( client );
+        }
+        return keys;
     }
 
     @Override
-    public void store( K key, V value ) {
+    public void store( Long key, T value ) {
         try {
-            Object keyObject = keyMapper.fromKey( key );
             Map<String, Object> val = Maps.newHashMap();
             val.put( ValueMapper.DATA_ATTRIBUTE, ByteString.wrap( mapper.toBytes( value ) ) );
-            doSafeOperation( ( client ) -> client.put( space, keyObject, val ) );
+            doSafeOperation( ( client ) -> client.put( space, key, val ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to map object for key {} in space {}", key, space, e );
         } catch ( HyperDexClientException e ) {
@@ -191,26 +174,19 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
     }
 
     @Override
-    public void storeAll( Map<K, V> map ) {
-        Set<K> keys = map.keySet();
-        final Map<K, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
+    public void storeAll( Map<Long, T> map ) {
+        Set<Long> keys = map.keySet();
+        final Map<Long, Deferred> deferredValues = Maps.newHashMapWithExpectedSize( keys.size() );
         Client client = this.pool.acquire();
 
         final AtomicInteger i = new AtomicInteger();
-        keys.forEach( ( K key ) -> {
-            Object keyObject;
+        keys.forEach( ( Long key ) -> {
             try {
-                keyObject = keyMapper.fromKey( key );
-            } catch ( Exception e ) {
-                logger.error( "Unable to read key for object key {} in space", key, space, e );
-                return;
-            }
-            try {
-                V val = map.get( key );
+                T val = map.get( key );
                 ByteString data = ByteString.wrap( mapper.toBytes( val ) );
                 Map<String, Object> attrs = Maps.newHashMap();
                 attrs.put( ValueMapper.DATA_ATTRIBUTE, data );
-                Deferred value = client.async_put( space, keyObject, attrs );
+                Deferred value = client.async_put( space, key, attrs );
                 if ( value != null ) {
                     deferredValues.put( key, value );
                 }
@@ -227,7 +203,7 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
 
         int loaded = 0;
         logger.info( "Now waiting for deferred entries" );
-        for ( Map.Entry<K, Deferred> entry : deferredValues.entrySet() ) {
+        for ( Map.Entry<Long, Deferred> entry : deferredValues.entrySet() ) {
             try {
                 entry.getValue().waitForIt();
                 loaded++;
@@ -241,25 +217,17 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfR
     }
 
     @Override
-    public void delete( K key ) {
+    public void delete( Long key ) {
         try {
-            Object keyObject = keyMapper.fromKey( key );
-            doSafeOperation( ( client ) -> client.del( space, keyObject ) );
-        } catch ( MappingException e ) {
-            logger.error( "Error deleting key {} from hyperdex.", key, e );
+            doSafeOperation( ( client ) -> client.del( space, key ) );
         } catch ( HyperDexClientException e ) {
             logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
         }
     }
 
     @Override
-    public void deleteAll( Collection<K> keys ) {
-        keys.forEach( key -> delete( key ) );
+    public void deleteAll( Collection<Long> keys ) {
+        keys.forEach( key -> delete( key ) );                      
     }
-    
-    @Override
-    public MapConfig getMapConfig() {
-        return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) ).setName( mapName );
-        
-    }
+
 }

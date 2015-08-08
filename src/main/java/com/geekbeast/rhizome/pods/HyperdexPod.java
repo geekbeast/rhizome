@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import com.geekbeast.rhizome.configuration.ConfigurationConstants;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
@@ -55,7 +56,10 @@ public class HyperdexPod {
         if ( hyperdexConfiguration != null ) {
             configurationKeyspace = hyperdexConfiguration().getConfigurationKeyspace();
             if ( configurationKeyspace.isPresent() ) {
-                return new HyperdexConfigurationMapstore( configurationKeyspace.get(), hyperdexClientPool() );
+                return new HyperdexConfigurationMapstore(
+                        ConfigurationConstants.HZ.MAPS.CONFIGURATION,
+                        configurationKeyspace.get(),
+                        hyperdexClientPool() );
             }
         }
         return null;

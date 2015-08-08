@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import com.dkhenry.RethinkDB.RqlConnection;
+import com.geekbeast.rhizome.configuration.ConfigurationConstants;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
@@ -48,8 +49,9 @@ public class RethinkDbPod {
         RethinkDbConfiguration config = rethinkDbConfiguration();
         if ( config != null ) {
             String configurationKeyspace = "configurations";
-            return new RethinkDbBaseMapStoreAlternateDriver<ConfigurationKey, String>(
+            return new RethinkDbBaseMapStoreAlternateDriver<ConfigurationKey, String>( 
                     rethinkDbClientPool(),
+                    ConfigurationConstants.HZ.MAPS.CONFIGURATION,
                     "kryptnostic",
                     configurationKeyspace,
                     new ConfigurationKeyMapper(),

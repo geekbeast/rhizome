@@ -26,62 +26,45 @@ import com.dkhenry.RethinkDB.RqlObject;
 import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.google.common.base.Stopwatch;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.core.MapStore;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.google.common.collect.Sets;
+import com.hazelcast.core.QueueStore;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteringMapStore<K, V> {
-    private static final Base64                        codec                  = new Base64();
-    private static final Logger                        logger                 = LoggerFactory
-                                                                                      .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
-    protected static final String                      DATA_FIELD             = "data";
-    protected static final String                      ID_FIELD               = "id";
+public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> {
+    private static final Base64                        codec          = new Base64();
+    private static final Logger                        logger         = LoggerFactory
+                                                                              .getLogger( RethinkDbBaseQueueStoreAlternateDriver.class );
+    protected static final String                      DATA_FIELD     = "data";
+    protected static final String                      ID_FIELD       = "id";
 
-    protected static final int                         MAX_THREADS            = Runtime.getRuntime()
-                                                                                      .availableProcessors();
-    protected static final int                         STORAGE_BATCH          = 3000;
-    protected static final int                         LOAD_BATCH             = 3000;
+    protected static final int                         MAX_THREADS    = Runtime.getRuntime().availableProcessors();
+    protected static final int                         STORAGE_BATCH  = 3000;
+    protected static final int                         LOAD_BATCH     = 3000;
 
-    protected static final ExecutorService             exec                   = Executors
-                                                                                      .newFixedThreadPool( MAX_THREADS );
+    protected static final ExecutorService             exec           = Executors.newFixedThreadPool( MAX_THREADS );
 
     protected final RethinkDbAlternateDriverClientPool pool;
     protected final Table                              tbl;
-    protected final KeyMapper<K>                       keyMapper;
-    protected final ValueMapper<V>                     mapper;
+    protected final ValueMapper<T>                     mapper;
     protected final String                             table;
-    protected final String                             mapName;
 
-    public static final HashMap<String, Object>        INSERT_OPTIONS         = new HashMap<String, Object>() {
-                                                                                  {
-                                                                                      put( "conflict", "replace" );
-                                                                                  }
-                                                                              };
-    public static final HashMap<String, Object>        INSERT_OPTIONS_FOR_ADD = new HashMap<String, Object>() {
-                                                                                  {
-                                                                                      put( "conflict", "error" );
-                                                                                  }
-                                                                              };
+    public static final HashMap<String, Object>        INSERT_OPTIONS = new HashMap<String, Object>() {
+                                                                          {
+                                                                              put( "conflict", "replace" );
+                                                                          }
+                                                                      };
 
-    public RethinkDbBaseMapStoreAlternateDriver(
+    public RethinkDbBaseQueueStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
-            String mapName,
             String db,
             String table,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper ) {
+            ValueMapper<T> mapper ) {
         RqlConnection conn = null;
         this.pool = pool;
-        this.mapName = mapName;
         this.table = table;
-        this.keyMapper = keyMapper;
         this.mapper = mapper;
 
         conn = pool.acquire();
@@ -115,17 +98,6 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
         // close connection
         tbl = conn.db( db ).table( table );
         pool.release( conn );
-        RegistryBasedHazelcastInstanceConfigurationPod.register( mapName, this );
-    }
-
-    public RethinkDbBaseMapStoreAlternateDriver(
-            RethinkDbConfiguration config,
-            String mapName,
-            String db,
-            String table,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper ) {
-        this( new RethinkDbAlternateDriverClientPool( config ), mapName, db, table, keyMapper, mapper );
     }
 
     private void handleError( RqlDriverException e ) {
@@ -136,15 +108,22 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
         }
     }
 
+    public RethinkDbBaseQueueStoreAlternateDriver(
+            RethinkDbConfiguration config,
+            String db,
+            String table,
+            ValueMapper<T> mapper ) {
+        this( new RethinkDbAlternateDriverClientPool( config ), db, table, mapper );
+    }
+
     @Override
-    public V load( K key ) {
+    public T load( Long key ) {
         RqlConnection conn = pool.acquire();
         try {
-            String keyString = keyMapper.fromKey( key );
-            RqlCursor cursor = conn.run( tbl.get( keyString ) );
+            RqlCursor cursor = conn.run( tbl.get( key ) );
             RqlObject obj = cursor.next();
             if ( obj != null && obj.isMap() ) {
-                V val = RethinkDbBaseMapStoreAlternateDriver.this.getValueFromCursorObject( obj );
+                T val = RethinkDbBaseQueueStoreAlternateDriver.this.getValueFromCursorObject( obj );
                 return val;
             }
         } catch ( RqlDriverException | MappingException e ) {
@@ -156,19 +135,11 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
-    public Map<K, V> loadAll( Collection<K> keys ) {
-        Map<K, V> results = Maps.newConcurrentMap();
+    public Map<Long, T> loadAll( Collection<Long> keys ) {
+        Map<Long, T> results = Maps.newConcurrentMap();
 
         int sz = keys.size();
-        List<K> rawData = Lists.newArrayList( keys );
-        final List<Object> data = Lists.newArrayList();
-        for ( K k : rawData ) {
-            try {
-                data.add( keyMapper.fromKey( k ) );
-            } catch ( MappingException e ) {
-                logger.error( "Failed to map key {}", k, e );
-            }
-        }
+        List<Long> data = Lists.newArrayList( keys );
         int step = LOAD_BATCH;
         AtomicInteger errors = new AtomicInteger();
         AtomicInteger keyCount = new AtomicInteger();
@@ -180,16 +151,16 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
             }
             final int fIndex = i;
             final int fMax = max;
-            Future<Map<K, V>> t = exec.submit( new Callable<Map<K, V>>() {
+            Future<Map<Long, T>> t = exec.submit( new Callable<Map<Long, T>>() {
 
                 @Override
-                public Map<K, V> call() {
-                    Map<K, V> results = Maps.newHashMap();
+                public Map<Long, T> call() {
+                    Map<Long, T> results = Maps.newHashMap();
                     Stopwatch watch = Stopwatch.createStarted();
 
                     RqlConnection conn = pool.acquire();
                     RqlCursor cursor = null;
-                    List<Object> subListOfData = data.subList( fIndex, fMax );
+                    List<Long> subListOfData = data.subList( fIndex, fMax );
                     try {
                         cursor = conn.run( tbl.get_all( subListOfData.toArray() ) );
                     } catch ( RqlDriverException e1 ) {
@@ -199,8 +170,8 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
                         try {
                             RqlObject obj = cursor.next();
                             Map<String, Object> d = obj.getMap();
-                            K key = keyMapper.toKey( (String) d.get( ID_FIELD ) );
-                            V val = RethinkDbBaseMapStoreAlternateDriver.this.getValueFromCursorObject( obj );
+                            Long key = ((Double)d.get( ID_FIELD )).longValue();
+                            T val = RethinkDbBaseQueueStoreAlternateDriver.this.getValueFromCursorObject( obj );
                             results.put( key, val );
                             keyCount.incrementAndGet();
                         } catch ( RqlDriverException | MappingException e ) {
@@ -223,7 +194,7 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
 
         for ( Future f : tasks ) {
             try {
-                results.putAll( (Map<K, V>) f.get() );
+                results.putAll( (Map<Long, T>) f.get() );
             } catch ( InterruptedException e ) {
                 logger.error( "{}", e );
             } catch ( ExecutionException e ) {
@@ -238,36 +209,56 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
-    public Set<K> loadAllKeys() {
-        return null;
+    public Set<Long> loadAllKeys() {
+        RqlConnection conn = pool.acquire();
+        Set<Long> keys = Sets.newHashSet();
+        try {
+            RqlCursor cursor = conn.run( tbl.pluck( ID_FIELD ) );
+            while ( cursor != null && cursor.hasNext() ) {
+                try {
+                    RqlObject obj = cursor.next();
+                    Double key = (Double)obj.getMap().get( ID_FIELD );
+                    keys.add( key.longValue() );
+                } catch ( RqlDriverException e ) {
+                    logger.error( "{}", e );
+                }
+            }
+        } catch ( RqlDriverException e ) {
+            logger.error( "{}", e );
+        } finally {
+            if ( conn != null ) {
+                pool.release( conn );
+            }
+        }
+        return keys;
+
     }
 
-    private V getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
+    private T getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
         String encoded = (String) obj.getMap().get( DATA_FIELD );
         if ( encoded == null ) {
             return null;
         }
         byte[] decodedBytes = codec.decodeBase64( encoded );
-        V val = mapper.fromBytes( decodedBytes );
+        T val = mapper.fromBytes( decodedBytes );
         return val;
     }
 
-    private Object prepareValueForStorage( V value ) throws MappingException {
+    private Object prepareValueForStorage( T value ) throws MappingException {
         byte[] bytes = mapper.toBytes( value );
         String payload = new String( codec.encodeBase64( bytes ) );
         return payload;
     }
 
     @Override
-    public void store( K key, V value ) {
+    public void store( Long key, T value ) {
         RqlConnection conn = null;
         try {
-            Object idKey = keyMapper.fromKey( key );
             Object valuePayload = prepareValueForStorage( value );
 
             Map<String, Object> data = new HashMap<String, Object>() {
                 {
-                    put( ID_FIELD, idKey );
+                    put( ID_FIELD, key );
                     put( DATA_FIELD, valuePayload );
                 }
             };
@@ -290,8 +281,8 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
-    public void storeAll( Map<K, V> map ) {
-        List<Map.Entry<K, V>> data = Lists.newArrayList( map.entrySet() );
+    public void storeAll( Map<Long, T> map ) {
+        List<Map.Entry<Long, T>> data = Lists.newArrayList( map.entrySet() );
 
         long affected = 0;
 
@@ -315,12 +306,12 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
                     long affected = 0;
                     try {
                         List<Map<String, Object>> toInsert = Lists.newArrayList();
-                        final List<Map.Entry<K, V>> list = data.subList( finalIndex, finalMax );
-                        for ( Map.Entry<K, V> entry : list ) {
+                        final List<Map.Entry<Long, T>> list = data.subList( finalIndex, finalMax );
+                        for ( Map.Entry<Long, T> entry : list ) {
                             try {
                                 toInsert.add( new HashMap<String, Object>() {
                                     {
-                                        put( ID_FIELD, keyMapper.fromKey( entry.getKey() ) );
+                                        put( ID_FIELD, entry.getKey() );
                                         put( DATA_FIELD, prepareValueForStorage( entry.getValue() ) );
                                     }
                                 } );
@@ -368,13 +359,12 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
-    public void delete( K key ) {
+    public void delete( Long key ) {
         RqlConnection conn = pool.acquire();
 
         try {
-            String keyString = keyMapper.fromKey( key );
-            conn.run( tbl.get( keyString ).delete() );
-        } catch ( MappingException | RqlDriverException e ) {
+            conn.run( tbl.get( key ).delete() );
+        } catch ( RqlDriverException e ) {
             logger.error( "Failed to delete key {} of type {}", key, key.getClass().getCanonicalName() );
         } finally {
             pool.release( conn );
@@ -382,17 +372,12 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
-    public void deleteAll( Collection<K> keys ) {
+    public void deleteAll( Collection<Long> keys ) {
         RqlConnection conn = pool.acquire();
         try {
             List<Object> stringKeys = Lists.newArrayList();
-            for ( K k : keys ) {
-                try {
-                    String keyString = keyMapper.fromKey( k );
-                    stringKeys.add( keyString );
-                } catch ( MappingException e ) {
-                    logger.error( "Failed to map key of type {}", k.getClass().getCanonicalName() );
-                }
+            for ( Long k : keys ) {
+                stringKeys.add( k );
             }
             conn.run( tbl.get_all( stringKeys.toArray() ).delete() );
 
@@ -403,10 +388,4 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
         }
     }
 
-    @Override
-    public MapConfig getMapConfig() {
-        return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) )
-                .setName( mapName );
-
-    }
 }
