@@ -20,11 +20,12 @@ public class RethinkDbPreloadingMapStoreAlternateDriver<K, V> extends RethinkDbB
 
     public RethinkDbPreloadingMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
+            String mapName,
             String db,
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
-        super( pool, db, table, keyMapper, mapper );
+        super( pool, mapName, db, table, keyMapper, mapper );
     }
 
     @Override

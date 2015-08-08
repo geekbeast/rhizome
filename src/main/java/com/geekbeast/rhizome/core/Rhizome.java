@@ -35,6 +35,7 @@ import com.geekbeast.rhizome.pods.ConfigurationPod;
 import com.geekbeast.rhizome.pods.HazelcastPod;
 import com.geekbeast.rhizome.pods.MetricsPod;
 import com.geekbeast.rhizome.pods.ServletContainerPod;
+import com.geekbeast.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -213,6 +214,6 @@ public class Rhizome implements WebApplicationInitializer {
 
     public static Class<?>[] getDefaultPods() {
         return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
-                ServletContainerPod.class };
+                ServletContainerPod.class, BaseHazelcastInstanceConfigurationPod.class };
     }
 }

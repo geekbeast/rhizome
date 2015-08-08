@@ -14,13 +14,14 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
+public abstract class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
     public HyperdexPreloadingJacksonKeyValueMapStore(
+            String mapName,
             String space,
             HyperdexClientPool pool,
             KeyMapper<K> keyMapper,
             ValueMapper<V> valueMapper ) {
-        super( space, pool, keyMapper, valueMapper );
+        super( mapName, space, pool, keyMapper, valueMapper );
     }
 
     @Override
@@ -36,12 +37,12 @@ public class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBas
 
                 try {
                     keys.add( keyMapper.toKey( objectId ) );
-                } catch (  MappingException e ) {
-                    logger.error("Mapping key with id: {} failed!", objectId);
+                } catch ( MappingException e ) {
+                    logger.error( "Mapping key with id: {} failed!", objectId );
                 }
             }
-        } catch (HyperDexClientException e) {
-            logger.error("Failed to load all keys.", e);
+        } catch ( HyperDexClientException e ) {
+            logger.error( "Failed to load all keys.", e );
         } finally {
             pool.release( client );
         }

@@ -4,3 +4,5 @@
 
 # Set to false to disable persistence 
 enable-persistence:  false
+hazelcast:
+    instance-name: "test"
