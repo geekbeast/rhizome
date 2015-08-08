@@ -34,7 +34,7 @@ public class EndpointConfiguration {
     /*
      * Pass in 0 for port numbers to automatically generate random ports for unit testing / integration testing.
      */
-
+    
     @JsonCreator
     public EndpointConfiguration(
             @JsonProperty(

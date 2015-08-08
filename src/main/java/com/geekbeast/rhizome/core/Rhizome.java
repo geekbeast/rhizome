@@ -15,6 +15,7 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
@@ -63,7 +64,8 @@ public class Rhizome implements WebApplicationInitializer {
         intercrop( pods );
         initialize();
     }
-
+    
+    @Async
     @Override
     public void onStartup( ServletContext servletContext ) throws ServletException {
         servletContext.addListener( new SessionListener() );
@@ -76,19 +78,21 @@ public class Rhizome implements WebApplicationInitializer {
         JettyConfiguration jettyConfig = rhizomeContext.getBean( JettyConfiguration.class );
         RhizomeConfiguration configuration = rhizomeContext.getBean( RhizomeConfiguration.class );
         if ( configuration.isSessionClusteringEnabled() ) {
-            servletContext.addFilter( HAZELCAST_SESSION_FILTER_NAME, rhizomeContext.getBean( WebFilter.class ) )
-                    .addMappingForUrlPatterns(
+           FilterRegistration.Dynamic addFilter = servletContext.addFilter( HAZELCAST_SESSION_FILTER_NAME, rhizomeContext.getBean( WebFilter.class ) );
+                    addFilter.addMappingForUrlPatterns(
                             Sets.newEnumSet( ImmutableSet.of(
                                     DispatcherType.FORWARD,
                                     DispatcherType.REQUEST,
                                     DispatcherType.REQUEST ), DispatcherType.class ),
                             false,
                             "/*" );
+                    addFilter.setAsyncSupported(true);
         }
 
         Optional<GzipConfiguration> gzipConfig = jettyConfig.getGzipConfiguration();
         if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
             FilterRegistration.Dynamic gzipFilter = servletContext.addFilter( GZIP_FILTER_NAME, new GzipFilter() );
+            gzipFilter.setAsyncSupported(true);
             gzipFilter.addMappingForUrlPatterns( null, false, "/*" );
             gzipFilter.setInitParameter(
                     MIME_TYPES_PARAM,
@@ -140,6 +144,7 @@ public class Rhizome implements WebApplicationInitializer {
         ServletRegistration.Dynamic defaultServlet = servletContext.addServlet( "default", new DefaultServlet() );
         defaultServlet.addMapping( new String[] { "/*" } );
         defaultServlet.setLoadOnStartup( 1 );
+        defaultServlet.setAsyncSupported(true);
 
         registerDispatcherServlets( servletContext );
     }
@@ -152,14 +157,17 @@ public class Rhizome implements WebApplicationInitializer {
         for ( Entry<String, DispatcherServletConfiguration> configPair : dispatcherServletsConfigs.entrySet() ) {
             DispatcherServletConfiguration configuration = configPair.getValue();
             AnnotationConfigWebApplicationContext dispatchServletContext = new AnnotationConfigWebApplicationContext();
+            
             dispatchServletContext.setParent( rhizomeContext );
             dispatchServletContext.register( configuration.getPods().toArray( new Class<?>[ 0 ] ) );
             ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
                     configuration.getServletName(),
                     new DispatcherServlet( dispatchServletContext ) );
             if ( configuration.getLoadOnStartup().isPresent() ) {
-                dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
+            	 dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
+            	
             }
+            dispatcher.setAsyncSupported(true);
             dispatcher.addMapping( configuration.getMappings() );
         }
     }
