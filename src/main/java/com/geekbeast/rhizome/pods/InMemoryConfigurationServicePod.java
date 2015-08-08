@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.service.AbstractYamlConfigurationService;

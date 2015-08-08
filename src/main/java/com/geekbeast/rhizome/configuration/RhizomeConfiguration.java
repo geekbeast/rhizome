@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.configuration.graphite.GraphiteConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
@@ -27,10 +28,11 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String                                 CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
     protected static final String                                 HYPERDEX_CONFIGURATION_PROPERTY                 = "hyperdex";
     protected static final String                                 GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
-    protected static final String                                 HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast";
+    protected static final String                                 HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
     protected static final String                                 RETHINKDB_CONFIGURATION_PROPERTY                = "rethinkdb";
+    protected static final String                                 HAZELCAST_CONFIGURATION_PROPERTY                = "hazelcast";
     protected static final boolean                                PERSISTENCE_ENABLED_DEFAULT                     = true;
-    protected static final boolean                                SESSION_CLUSTERING_ENABLED_DEFAULT              = true;
+    protected static final boolean                                SESSION_CLUSTERING_ENABLED_DEFAULT              = false;
 
     protected final Logger                                        logger                                          = LoggerFactory
                                                                                                                           .getLogger( getClass() );
@@ -39,6 +41,7 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
     protected final Optional<GraphiteConfiguration>               graphiteConfiguration;
     protected final Optional<CassandraConfiguration>              cassandraConfiguration;
+    protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<HyperdexConfiguration>               hyperdexConfiguration;
     protected final Optional<RethinkDbConfiguration>              rethinkDbConfiguration;
 
@@ -50,6 +53,7 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY ) Optional<HyperdexConfiguration> hyperdexConfiguration,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration,
+            @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY ) Optional<HazelcastConfiguration> hazelcastConfiguration,
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY ) Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration ) {
 
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
@@ -58,6 +62,7 @@ public class RhizomeConfiguration implements Configuration {
         this.rethinkDbConfiguration = rethinkDbConfiguration;
         this.hyperdexConfiguration = hyperdexConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
+        this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
     }
 
@@ -102,6 +107,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY )
     public Optional<HazelcastSessionFilterConfiguration> getHazelcastSessionFilterConfiguration() {
         return hazelcastSessionFilterConfiguration;
+    }
+
+    @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY )
+    public Optional<HazelcastConfiguration> getHazelcastConfiguration() {
+        return hazelcastConfiguration;
     }
 
     public static ConfigurationKey key() {

@@ -4,11 +4,12 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
+import jersey.repackaged.com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
@@ -16,13 +17,14 @@ import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfi
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
 import com.google.common.eventbus.AsyncEventBus;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.web.WebFilter;
 
 @Configuration
-@ImportResource( { "classpath:/rhizome-hazel.xml" } )
 public class HazelcastPod {
     public static final Logger   logger                     = LoggerFactory.getLogger( HazelcastPod.class );
     public static final String   CONFIGURATIONS_MAP_NAME    = "configurations";
@@ -33,8 +35,9 @@ public class HazelcastPod {
      * Hazelcast is finicky and won't properly inject the hazelcast instance unless the resource is called specifically
      * by name Attempting @Inject or @Autowired causes a failure
      */
+
     @Inject
-    private HazelcastInstance    hazelcastInstance;
+    private Config               config;
 
     @Inject
     private RhizomeConfiguration configuration;
@@ -43,18 +46,25 @@ public class HazelcastPod {
     private AsyncEventBus        configurationUpdates;
 
     @Bean
+    public HazelcastInstance hazelcastInstance() {
+        return Hazelcast.getOrCreateHazelcastInstance( Preconditions.checkNotNull(
+                config,
+                "Hazelcast configuration must be present in order to use the HazelcastPod." ) );
+    }
+
+    @Bean
     public IMap<ConfigurationKey, String> configurations() {
-        return hazelcastInstance.getMap( CONFIGURATIONS_MAP_NAME );
+        return hazelcastInstance().getMap( CONFIGURATIONS_MAP_NAME );
     }
 
     @Bean
     public IMap<String, Object> sessions() {
-        return hazelcastInstance.getMap( SESSIONS_MAP_NAME );
+        return hazelcastInstance().getMap( SESSIONS_MAP_NAME );
     }
 
     @Bean
     public ITopic<com.geekbeast.rhizome.configuration.Configuration> configTopic() {
-        return hazelcastInstance.getTopic( CONFIGURATION_UPDATE_TOPIC );
+        return hazelcastInstance().getTopic( CONFIGURATION_UPDATE_TOPIC );
     }
 
     @Bean
@@ -64,7 +74,7 @@ public class HazelcastPod {
 
     @Bean
     public Properties hazelcastSessionFilterProperties() {
-        if( !configuration.isSessionClusteringEnabled() ) {
+        if ( !configuration.isSessionClusteringEnabled() ) {
             return null;
         }
         HazelcastSessionFilterConfiguration filterConfig = configuration.getHazelcastSessionFilterConfiguration()
@@ -95,7 +105,7 @@ public class HazelcastPod {
 
     @Bean
     public WebFilter hazelcastSessionFilter() {
-        if( !configuration.isSessionClusteringEnabled() ) {
+        if ( !configuration.isSessionClusteringEnabled() ) {
             return null;
         }
         return new WebFilter( hazelcastSessionFilterProperties() );

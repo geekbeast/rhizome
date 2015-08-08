@@ -31,6 +31,7 @@ import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.geekbeast.rhizome.pods.AsyncPod;
+import com.geekbeast.rhizome.pods.BaseHazelcastInstanceConfigurationPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
 import com.geekbeast.rhizome.pods.HazelcastPod;
 import com.geekbeast.rhizome.pods.MetricsPod;
@@ -213,6 +214,6 @@ public class Rhizome implements WebApplicationInitializer {
 
     public static Class<?>[] getDefaultPods() {
         return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
-                ServletContainerPod.class };
+                ServletContainerPod.class, BaseHazelcastInstanceConfigurationPod.class };
     }
 }
