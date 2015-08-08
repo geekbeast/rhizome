@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.serializers;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
@@ -14,6 +15,7 @@ public abstract class AbstractJacksonStreamSerializer<T> implements StreamSerial
     protected AbstractJacksonStreamSerializer( Class<T> clazz, ObjectMapper mapper ) {
         this.clazz = clazz;
         this.mapper = mapper;
+        RegistryBasedHazelcastInstanceConfigurationPod.register( clazz, this );
     }
 
     @Override
