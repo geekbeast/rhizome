@@ -14,7 +14,7 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public abstract class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
+public class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
     public HyperdexPreloadingJacksonKeyValueMapStore(
             String mapName,
             String space,

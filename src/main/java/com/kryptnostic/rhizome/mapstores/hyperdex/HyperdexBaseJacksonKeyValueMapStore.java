@@ -24,7 +24,7 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
+public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {

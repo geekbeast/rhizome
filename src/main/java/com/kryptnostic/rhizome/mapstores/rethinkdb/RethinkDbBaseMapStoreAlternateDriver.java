@@ -30,7 +30,6 @@ import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfig
 import com.google.common.base.Stopwatch;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
