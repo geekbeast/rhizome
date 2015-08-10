@@ -85,8 +85,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     }
 
     public static void register( String mapName, SelfRegisteringMapStore<?, ?> mapStore ) {
-        Preconditions.checkArgument( mapRegistry.putIfAbsent( mapName, mapStore ) == null, "Map already registered" );
-        ;
+        mapRegistry.put( mapName, mapStore );
     }
 
     public static void register( Class<?> hzSerializableClass, Serializer serializer ) {
