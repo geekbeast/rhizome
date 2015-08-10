@@ -36,9 +36,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     public static void register( Class<?> hzSerializableClass, Serializer serializer ) {
-        Preconditions.checkArgument(
-                serializerRegistry.putIfAbsent( hzSerializableClass, serializer ) == null,
-                "Serializer already registered" );
-        ;
+        serializerRegistry.put( hzSerializableClass, serializer );
     }
 }
