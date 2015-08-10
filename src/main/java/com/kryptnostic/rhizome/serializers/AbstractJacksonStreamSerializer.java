@@ -4,11 +4,11 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.StreamSerializer;
 
-public abstract class AbstractJacksonStreamSerializer<T> implements StreamSerializer<T> {
+public abstract class AbstractJacksonStreamSerializer<T> implements SelfRegisteringStreamSerializer<T> {
     private final ObjectMapper mapper;
     private final Class<T>     clazz;
 
@@ -33,5 +33,9 @@ public abstract class AbstractJacksonStreamSerializer<T> implements StreamSerial
         byte[] bytes = new byte[ in.readInt() ];
         in.readFully( bytes );
         return mapper.readValue( bytes, clazz );
+    }
+    
+    public Class<T> getClazz() {
+        return clazz;
     }
 }

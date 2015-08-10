@@ -221,7 +221,7 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
-    public static Class<?>[] getDefaultPods() {
+    public Class<?>[] getDefaultPods() {
         return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
                 ServletContainerPod.class, BaseHazelcastInstanceConfigurationPod.class };
     }
