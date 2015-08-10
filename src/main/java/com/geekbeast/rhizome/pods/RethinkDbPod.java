@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 
 import com.dkhenry.RethinkDB.RqlConnection;
@@ -18,6 +19,7 @@ import com.kryptnostic.rhizome.mapstores.rethinkdb.RethinkDbBaseMapStoreAlternat
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 @Configuration
+@Profile("rethinkdb")
 public class RethinkDbPod {
     private static final Logger               logger        = LoggerFactory.getLogger( RethinkDbPod.class );
     private static final RhizomeConfiguration configuration = ConfigurationPod.getRhizomeConfiguration();

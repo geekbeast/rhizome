@@ -27,7 +27,7 @@ public class HazelcastConfiguration {
     private static final List<String> SEED_DEFAULT               = ImmutableList.of( "127.0.0.1" );
     private static final int          REPLICATION_FACTOR_DEFAULT = 2;
 
-    private final List<String>        cassandraSeedNodes;
+    private final List<String>        hazelcastSeedNodes;
     private final int                 replicationFactor;
     private final String              instanceName;
     private final String              group;
@@ -40,20 +40,20 @@ public class HazelcastConfiguration {
             @JsonProperty( GROUP_PROPERTY ) Optional<String> group,
             @JsonProperty( PASSWORD_PROPERTY ) Optional<String> password,
             @JsonProperty( PORT_PROPERTY ) Optional<Integer> port,
-            @JsonProperty( SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
+            @JsonProperty( SEED_NODES_PROPERTY ) Optional<List<String>> hazelcastSeedNodes,
             @JsonProperty( REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
 
         this.group = group.or( DEFAULT_GROUP_NAME );
         this.password = group.or( DEFAULT_PASSWORD );
         this.port = port.or( DEFAULT_PORT );
-        this.cassandraSeedNodes = cassandraSeedNodes.or( SEED_DEFAULT );
+        this.hazelcastSeedNodes = hazelcastSeedNodes.or( SEED_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
         this.instanceName = instanceName.or( DEFAULT_INSTANCE_NAME );
     }
 
     @JsonProperty( SEED_NODES_PROPERTY )
     public List<String> getHazelcastSeedNodes() {
-        return cassandraSeedNodes;
+        return hazelcastSeedNodes;
     }
 
     @JsonProperty( REPLICATION_FACTOR )
