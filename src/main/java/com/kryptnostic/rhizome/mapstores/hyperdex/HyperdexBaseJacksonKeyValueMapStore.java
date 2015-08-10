@@ -260,6 +260,5 @@ public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisterin
     @Override
     public MapConfig getMapConfig() {
         return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) ).setName( mapName );
-        
     }
 }
