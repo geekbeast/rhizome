@@ -4,9 +4,9 @@ import com.hazelcast.config.QueueConfig;
 import com.hazelcast.core.QueueStore;
 
 /**
- * Used for implementing self-registration of map stores into HazelcastInstances.
+ * Used for implementing self-registration of queue stores into HazelcastInstances.
  * 
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
+ * @author Julianna Lamb &lt;julianna@kryptnostic.com&gt;
  *
  * @param <K> The key type for the map store
  * @param <V> They value type for the map store.
