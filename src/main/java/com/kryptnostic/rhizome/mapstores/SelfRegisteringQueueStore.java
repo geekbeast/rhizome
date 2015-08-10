@@ -8,8 +8,7 @@ import com.hazelcast.core.QueueStore;
  * 
  * @author Julianna Lamb &lt;julianna@kryptnostic.com&gt;
  *
- * @param <K> The key type for the map store
- * @param <V> They value type for the map store.
+ * @param <T> The type for the queue store
  */
 public interface SelfRegisteringQueueStore<T> extends QueueStore<T> {
     QueueConfig getQueueConfig();
