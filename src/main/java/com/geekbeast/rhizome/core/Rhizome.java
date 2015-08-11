@@ -4,12 +4,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+
+import jersey.repackaged.com.google.common.base.Preconditions;
 
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.GzipFilter;
@@ -50,24 +55,33 @@ import com.hazelcast.web.WebFilter;
  *
  */
 public class Rhizome implements WebApplicationInitializer {
-    private static final String                                  HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
-    private static final String                                  GZIP_FILTER_NAME              = "GzipFilter";
-    private static final String                                  MIME_TYPES_PARAM              = "mimeTypes";
-    protected final static AnnotationConfigWebApplicationContext rhizomeContext                = new AnnotationConfigWebApplicationContext();
-    protected static boolean                                     isInitialized                 = false;
+    private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
+    private static final String                            GZIP_FILTER_NAME              = "GzipFilter";
+    private static final String                            MIME_TYPES_PARAM              = "mimeTypes";
+    protected static Lock                                  startupLock                   = new ReentrantLock();
+    protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
+    protected static AtomicBoolean                         isInitialized                 = new AtomicBoolean( false );
+    protected final AnnotationConfigWebApplicationContext  context;
 
     public Rhizome() {
         this( new Class[ 0 ] );
     }
 
     public Rhizome( Class<?>... pods ) {
+        this( new AnnotationConfigWebApplicationContext(), pods );
+    }
+
+    public Rhizome( AnnotationConfigWebApplicationContext context, Class<?>... pods ) {
+        this.context = context;
         intercrop( pods );
+
         initialize();
     }
 
     @Async
     @Override
     public void onStartup( ServletContext servletContext ) throws ServletException {
+        Preconditions.checkNotNull( rhizomeContext, "Rhizome context cannot be null for startup." );
         servletContext.addListener( new SessionListener() );
 
         /*
@@ -173,32 +187,46 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
-    public static AnnotationConfigWebApplicationContext getContext() {
-        return rhizomeContext;
+    public AnnotationConfigWebApplicationContext getContext() {
+        return context;
     }
 
     public <T> T harvest( Class<T> clazz ) {
-        return rhizomeContext.getBean( clazz );
+        return context.getBean( clazz );
     }
 
     public void intercrop( Class<?>... pods ) {
         if ( pods != null && pods.length > 0 ) {
-            rhizomeContext.register( pods );
+            context.register( pods );
         }
     }
 
     public void sprout( String... activeProfiles ) throws Exception {
         for ( String profile : activeProfiles ) {
-            rhizomeContext.getEnvironment().addActiveProfile( profile );
+            context.getEnvironment().addActiveProfile( profile );
         }
-        rhizomeContext.refresh();
-        for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
-            loam.start();
+
+        /*
+         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2)
+         */
+        try {
+            startupLock.lock();
+            Preconditions.checkState(
+                    rhizomeContext == null,
+                    "Rhizome context should be null for the duration of startup." );
+            rhizomeContext = context;
+            context.refresh();
+            for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
+                loam.start();
+            }
+            rhizomeContext = null;
+        } finally {
+            startupLock.unlock();
         }
     }
 
     public void wilt() throws BeansException, Exception {
-        Collection<Loam> loams = rhizomeContext.getBeansOfType( Loam.class ).values();
+        Collection<Loam> loams = context.getBeansOfType( Loam.class ).values();
         for ( Loam loam : loams ) {
             loam.stop();
         }
@@ -213,10 +241,9 @@ public class Rhizome implements WebApplicationInitializer {
      * bootstrap beans.
      */
     protected void initialize() {
-        synchronized ( rhizomeContext ) {
-            if ( !isInitialized ) {
-                Arrays.asList( getDefaultPods() ).forEach( pod -> rhizomeContext.register( pod ) );
-                isInitialized = true;
+        synchronized ( context ) {
+            if ( !isInitialized.getAndSet( true ) ) {
+                Arrays.asList( getDefaultPods() ).forEach( pod -> context.register( pod ) );
             }
         }
     }
