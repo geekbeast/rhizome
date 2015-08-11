@@ -403,9 +403,13 @@ public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteri
     }
 
     @Override
+    public MapStoreConfig getMapStoreConfig() {
+        return new MapStoreConfig().setImplementation( this ).setEnabled( true ).setWriteDelaySeconds( 0 );
+    }
+
+    @Override
     public MapConfig getMapConfig() {
-        return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( new MapStoreConfig().setImplementation( this ) )
-                .setName( mapName );
+        return new MapConfig(mapName).setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() );
 
     }
 }

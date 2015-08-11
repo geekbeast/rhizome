@@ -50,7 +50,8 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
-                .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+                .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
+                .setQueueConfigs( getQueueConfigs() );
         return config;
     }
 
@@ -87,6 +88,20 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     }
 
     @Inject
+    public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
+        for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
+            mapRegistry.put( s.getMapConfig().getName(), s );
+        }
+    }
+
+    @Inject
+    public void registerQueueStores( Set<SelfRegisteringQueueStore<?>> queueStores ) {
+        for ( SelfRegisteringQueueStore<?> s : queueStores ) {
+            queueRegistry.put( s.getQueueConfig().getName(), s );
+        }
+    }
+
+    @Inject
     public void register( Set<SelfRegisteringStreamSerializer<?>> serializers ) {
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
@@ -105,4 +120,50 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         serializerRegistry.put( hzSerializableClass, serializer );
     }
 
+    // TODO: Make map and serializer beans as startup will fail if there is not at least one bean of that type.
+    @Bean
+    public SelfRegisteringQueueStore<?> noopQ() {
+        return new SelfRegisteringQueueStore<Void>() {
+
+            @Override
+            public void store( Long key, Void value ) {
+
+            }
+
+            @Override
+            public void storeAll( Map<Long, Void> map ) {
+
+            }
+
+            @Override
+            public void delete( Long key ) {
+
+            }
+
+            @Override
+            public void deleteAll( Collection<Long> keys ) {
+
+            }
+
+            @Override
+            public Void load( Long key ) {
+                return null;
+            }
+
+            @Override
+            public Map<Long, Void> loadAll( Collection<Long> keys ) {
+                return null;
+            }
+
+            @Override
+            public Set<Long> loadAllKeys() {
+                return null;
+            }
+
+            @Override
+            public QueueConfig getQueueConfig() {
+                return new QueueConfig( "noop" );
+            }
+        };
+    }
 }

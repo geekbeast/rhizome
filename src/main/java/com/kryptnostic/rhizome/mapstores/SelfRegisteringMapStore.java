@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.mapstores;
 
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.core.MapStore;
 
 /**
@@ -13,4 +14,5 @@ import com.hazelcast.core.MapStore;
  */
 public interface SelfRegisteringMapStore<K, V> extends MapStore<K, V> {
     MapConfig getMapConfig();
+    MapStoreConfig getMapStoreConfig();
 }
