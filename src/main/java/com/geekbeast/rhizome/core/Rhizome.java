@@ -60,7 +60,7 @@ public class Rhizome implements WebApplicationInitializer {
     private static final String                            MIME_TYPES_PARAM              = "mimeTypes";
     protected static Lock                                  startupLock                   = new ReentrantLock();
     protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected static AtomicBoolean                         isInitialized                 = new AtomicBoolean( false );
+    protected AtomicBoolean                         isInitialized                 = new AtomicBoolean( false );
     protected final AnnotationConfigWebApplicationContext  context;
 
     public Rhizome() {
@@ -74,7 +74,6 @@ public class Rhizome implements WebApplicationInitializer {
     public Rhizome( AnnotationConfigWebApplicationContext context, Class<?>... pods ) {
         this.context = context;
         intercrop( pods );
-
         initialize();
     }
 
