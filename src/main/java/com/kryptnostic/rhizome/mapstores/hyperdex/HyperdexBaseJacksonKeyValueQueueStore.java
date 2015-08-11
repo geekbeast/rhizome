@@ -18,12 +18,14 @@ import org.slf4j.LoggerFactory;
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import com.hazelcast.core.QueueStore;
+import com.hazelcast.config.QueueConfig;
+import com.hazelcast.config.QueueStoreConfig;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexBaseJacksonKeyValueQueueStore<T> implements QueueStore<T> {
+public class HyperdexBaseJacksonKeyValueQueueStore<T> implements SelfRegisteringQueueStore<T> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {
@@ -33,14 +35,17 @@ public class HyperdexBaseJacksonKeyValueQueueStore<T> implements QueueStore<T> {
     protected final ValueMapper<T>     mapper;
     protected final HyperdexClientPool pool;
     protected final String             space;
+    protected final String             queueName;
 
     public HyperdexBaseJacksonKeyValueQueueStore(
+            String queueName,
             String space,
             HyperdexClientPool pool,
             ValueMapper<T> mapper ) {
         this.mapper = mapper;
         this.pool = pool;
         this.space = space;
+        this.queueName = queueName;
     }
 
     protected <T> T doSafeOperation( ClientOperation<T> clientOperation ) throws HyperDexClientException {
@@ -149,11 +154,11 @@ public class HyperdexBaseJacksonKeyValueQueueStore<T> implements QueueStore<T> {
             while ( i.hasNext() ) {
                 @SuppressWarnings( "unchecked" )
                 Map<String, Object> obj = (Map<String, Object>) i.next();
-                Long key = ((Double)obj.get( "id" )).longValue();
+                Long key = ( (Double) obj.get( "id" ) ).longValue();
                 keys.add( key );
             }
-        } catch (HyperDexClientException e) {
-            logger.error("Failed to load all keys.", e);
+        } catch ( HyperDexClientException e ) {
+            logger.error( "Failed to load all keys.", e );
         } finally {
             pool.release( client );
         }
@@ -227,7 +232,13 @@ public class HyperdexBaseJacksonKeyValueQueueStore<T> implements QueueStore<T> {
 
     @Override
     public void deleteAll( Collection<Long> keys ) {
-        keys.forEach( key -> delete( key ) );                      
+        keys.forEach( key -> delete( key ) );
+    }
+
+    @Override
+    public QueueConfig getQueueConfig() {
+        return new QueueConfig().setBackupCount( 2 )
+                .setQueueStoreConfig( new QueueStoreConfig().setStoreImplementation( this ) ).setName( queueName );
     }
 
 }

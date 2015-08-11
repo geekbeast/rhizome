@@ -9,7 +9,11 @@ public class HyperdexJacksonStringKeyValueQueueStore<T> extends HyperdexBaseJack
         HyperdexPreconfigurer.configure();
     }
 
-    public HyperdexJacksonStringKeyValueQueueStore( String space, HyperdexClientPool pool, ValueMapper<T> mapper ) {
-        super( space, pool, mapper );
+    public HyperdexJacksonStringKeyValueQueueStore(
+            String queueName,
+            String space,
+            HyperdexClientPool pool,
+            ValueMapper<T> mapper ) {
+        super( queueName, space, pool, mapper );
     }
 }

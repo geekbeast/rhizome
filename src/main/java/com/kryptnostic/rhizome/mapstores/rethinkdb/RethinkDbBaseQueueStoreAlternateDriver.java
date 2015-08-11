@@ -28,12 +28,14 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
-import com.hazelcast.core.QueueStore;
+import com.hazelcast.config.QueueConfig;
+import com.hazelcast.config.QueueStoreConfig;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> {
+public class RethinkDbBaseQueueStoreAlternateDriver<T> implements SelfRegisteringQueueStore<T> {
     private static final Base64                        codec          = new Base64();
     private static final Logger                        logger         = LoggerFactory
                                                                               .getLogger( RethinkDbBaseQueueStoreAlternateDriver.class );
@@ -50,6 +52,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
     protected final Table                              tbl;
     protected final ValueMapper<T>                     mapper;
     protected final String                             table;
+    protected final String                             queueName;
 
     public static final HashMap<String, Object>        INSERT_OPTIONS = new HashMap<String, Object>() {
                                                                           {
@@ -61,11 +64,13 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
             RethinkDbAlternateDriverClientPool pool,
             String db,
             String table,
+            String queueName,
             ValueMapper<T> mapper ) {
         RqlConnection conn = null;
         this.pool = pool;
         this.table = table;
         this.mapper = mapper;
+        this.queueName = queueName;
 
         conn = pool.acquire();
         boolean dbExists = false;
@@ -112,8 +117,9 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
             RethinkDbConfiguration config,
             String db,
             String table,
+            String queueName,
             ValueMapper<T> mapper ) {
-        this( new RethinkDbAlternateDriverClientPool( config ), db, table, mapper );
+        this( new RethinkDbAlternateDriverClientPool( config ), db, table, queueName, mapper );
     }
 
     @Override
@@ -170,7 +176,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
                         try {
                             RqlObject obj = cursor.next();
                             Map<String, Object> d = obj.getMap();
-                            Long key = ((Double)d.get( ID_FIELD )).longValue();
+                            Long key = ( (Double) d.get( ID_FIELD ) ).longValue();
                             T val = RethinkDbBaseQueueStoreAlternateDriver.this.getValueFromCursorObject( obj );
                             results.put( key, val );
                             keyCount.incrementAndGet();
@@ -217,7 +223,7 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
             while ( cursor != null && cursor.hasNext() ) {
                 try {
                     RqlObject obj = cursor.next();
-                    Double key = (Double)obj.getMap().get( ID_FIELD );
+                    Double key = (Double) obj.getMap().get( ID_FIELD );
                     keys.add( key.longValue() );
                 } catch ( RqlDriverException e ) {
                     logger.error( "{}", e );
@@ -386,6 +392,12 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements QueueStore<T> 
         } finally {
             pool.release( conn );
         }
+    }
+
+    @Override
+    public QueueConfig getQueueConfig() {
+        return new QueueConfig().setBackupCount( 2 )
+                .setQueueStoreConfig( new QueueStoreConfig().setStoreImplementation( this ) ).setName( queueName );
     }
 
 }
