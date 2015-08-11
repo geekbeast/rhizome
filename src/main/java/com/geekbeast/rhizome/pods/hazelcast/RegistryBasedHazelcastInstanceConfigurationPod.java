@@ -17,22 +17,26 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MulticastConfig;
 import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
 @Configuration
 public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
+    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
@@ -77,11 +81,21 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         } );
     }
 
+    protected Map<String, QueueConfig> getQueueConfigs() {
+        return Maps.transformEntries( queueRegistry, ( k, v ) -> {
+            return v.getQueueConfig();
+        } );
+    }
+
     @Inject
     public void register( Set<SelfRegisteringStreamSerializer<?>> serializers ) {
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
+    }
+
+    public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
+        queueRegistry.put( queueName, queueStore );
     }
 
     public static void register( String mapName, SelfRegisteringMapStore<?, ?> mapStore ) {
