@@ -21,6 +21,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.config.MulticastConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.QueueConfig;
@@ -163,6 +164,57 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             @Override
             public QueueConfig getQueueConfig() {
                 return new QueueConfig( "noop" );
+            }
+        };
+    }
+    
+    @Bean
+    public SelfRegisteringMapStore<?,?> noopM() {
+        return new SelfRegisteringMapStore<Void,Void>(){
+
+            @Override
+            public void store( Void key, Void value ) {
+                
+            }
+
+            @Override
+            public void storeAll( Map<Void, Void> map ) {
+                
+            }
+
+            @Override
+            public void delete( Void key ) {
+                
+            }
+
+            @Override
+            public void deleteAll( Collection<Void> keys ) {
+                
+            }
+
+            @Override
+            public Void load( Void key ) {
+                return null;
+            }
+
+            @Override
+            public Map<Void, Void> loadAll( Collection<Void> keys ) {
+                return null;
+            }
+
+            @Override
+            public Iterable<Void> loadAllKeys() {
+                return null;
+            }
+
+            @Override
+            public MapConfig getMapConfig() {
+                return new MapConfig("blah").setMapStoreConfig( getMapStoreConfig() );
+            }
+
+            @Override
+            public MapStoreConfig getMapStoreConfig() {
+                return new MapStoreConfig();
             }
         };
     }
