@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,6 +36,8 @@ import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
 @Configuration
 public class RegistryBasedHazelcastInstanceConfigurationPod {
+    private static final Logger                                               logger             = LoggerFactory
+                                                                                                         .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
@@ -91,7 +95,11 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     @Inject
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
-            mapRegistry.put( s.getMapConfig().getName(), s );
+            if ( s != null ) {
+                mapRegistry.put( s.getMapConfig().getName(), s );
+            } else {
+                logger.warn( "Encountered null entry when registering map stores." );
+            }
         }
     }
 
@@ -167,29 +175,29 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             }
         };
     }
-    
+
     @Bean
-    public SelfRegisteringMapStore<?,?> noopM() {
-        return new SelfRegisteringMapStore<Void,Void>(){
+    public SelfRegisteringMapStore<?, ?> noopM() {
+        return new SelfRegisteringMapStore<Void, Void>() {
 
             @Override
             public void store( Void key, Void value ) {
-                
+
             }
 
             @Override
             public void storeAll( Map<Void, Void> map ) {
-                
+
             }
 
             @Override
             public void delete( Void key ) {
-                
+
             }
 
             @Override
             public void deleteAll( Collection<Void> keys ) {
-                
+
             }
 
             @Override
@@ -209,7 +217,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
 
             @Override
             public MapConfig getMapConfig() {
-                return new MapConfig("blah").setMapStoreConfig( getMapStoreConfig() );
+                return new MapConfig( "blah" ).setMapStoreConfig( getMapStoreConfig() );
             }
 
             @Override
