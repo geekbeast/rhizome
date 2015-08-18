@@ -53,7 +53,7 @@ public class BaseHazelcastInstanceConfigurationPod {
 
     protected JoinConfig getJoinConfig( List<String> nodes ) {
         return new JoinConfig().setMulticastConfig( new MulticastConfig().setEnabled( false ).setLoopbackModeEnabled(
-                false ) );
+                false ) ).setTcpIpConfig( getTcpIpConfig( nodes ) );
     }
 
     protected TcpIpConfig getTcpIpConfig( List<String> nodes ) {
