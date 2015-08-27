@@ -33,7 +33,7 @@ public class RethinkDbAlternateDriverClientPool {
             int sz = size.incrementAndGet();
             logger.trace( "Added rethink client, size is {} {}", sz, clients.size() );
         } catch ( RqlDriverException e ) {
-            logger.error( "Failed to connect to RethinkDb {}", e );
+            logger.error( "Failed to connect to RethinkDb on host {} with port {} ", hostname, port, e );
         }
         return c;
     }
