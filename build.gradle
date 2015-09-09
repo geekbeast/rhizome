@@ -60,7 +60,7 @@ ext.spring_security_version='4.0.1.RELEASE'
 ext.spring_framework_version='4.2.0.RC3'
 ext.jackson_version='2.4.4'
 ext.jetty_version='9.3.1.v20150714'
-ext.hazelcast_version='3.5.1'
+ext.hazelcast_version='3.5.2'
 dependencies {
     /*
      * Servlet API 3.1 
