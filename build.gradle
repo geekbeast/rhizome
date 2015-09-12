@@ -75,8 +75,8 @@ dependencies {
      * Currently use Log4J through sl4j. 
      * TODO: Switch to logback
      */
-     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.7'
-     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.7'
+     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.12'
+     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.12'
      compile "org.apache.logging.log4j:log4j:2.3"
 
     /*
