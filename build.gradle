@@ -77,9 +77,7 @@ dependencies {
      */
      compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.7'
      compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.7'
-
-	//    compile "ch.qos.logback:logback-classic:1.0.13"
-	compile "log4j:log4j:1.2.17"
+     compile "org.apache.logging.log4j:log4j:2.3"
 
     /*
      * CORE SPRING FRAMEWORK DEPENDENCIES
@@ -121,7 +119,7 @@ dependencies {
     /*
      JODA TIME - A better datetime class.
      */
-     compile 'joda-time:joda-time:2.3'
+     compile 'joda-time:joda-time:2.8.2'
 
      compile 'com.datastax.cassandra:cassandra-driver-core:2.1.5'
     /*
@@ -196,6 +194,15 @@ dependencies {
      compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.1.v20150714"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
+
+    /*
+     * JAVAMAIL
+     * Java email client.
+     */
+     compile 'javax.mail:javax.mail-api:1.5.2'
+     compile 'javax.mail:mail:1.5.0-b01'
+     compile "org.jodd:jodd-mail:3.6.6"
+     
     /*
      * ATMOSPHERE 
      * Websocket / CometD support
