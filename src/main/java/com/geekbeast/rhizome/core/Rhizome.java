@@ -218,8 +218,8 @@ public class Rhizome implements WebApplicationInitializer {
             for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
                 loam.start();
             }
-            rhizomeContext = null;
         } finally {
+            rhizomeContext = null;
             startupLock.unlock();
         }
     }
