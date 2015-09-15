@@ -19,4 +19,9 @@ public class UUIDSet extends HashSet<UUID> {
         super();
     }
 
+    public static UUIDSet of( UUID uuid ) {
+        UUIDSet us = new UUIDSet( 1 );
+        us.add( uuid );
+        return us;
+    }
 }
