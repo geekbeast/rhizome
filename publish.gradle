@@ -68,6 +68,7 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
 
                 artifact javadocJar
                 artifact sourcesJar
+                artifact testJar
 
                 pom.withXml {
                     asNode().children().last() + {
