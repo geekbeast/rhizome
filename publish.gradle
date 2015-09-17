@@ -5,6 +5,17 @@ exec {
 }
 def branch=stdout.toString().trim();
 
+apply plugin: "signing"
+apply plugin: "maven-publish"
+
+ext {
+    snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+    artifactorySnapshotUrl = "http://artifactory.krypt.int/artifactory/libs-snapshot-local"
+    artifactoryReleaseUrl = "http://artifactory.krypt.int/artifactory/libs-release-local"
+    releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+    localUrl = "file:/${project.projectDir}/artifacts"
+}
+
 if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("release/") ) ) &&
     ( System.getenv("bamboo_JAR_SIGNING_KEYRING") != null) &&
     ( System.getenv("bamboo_JAR_SIGNING_PASSWORD") !=null ) &&
@@ -12,17 +23,6 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
     ( System.getenv("bamboo_SONATYPE_PASSWORD") !=null ) &&
     ( System.getenv("bamboo_ARTIFACTORY_USERNAME") !=null ) &&
     ( System.getenv("bamboo_ARTIFACTORY_PASSWORD") != null)) {
-
-
-    apply plugin: "signing"
-    apply plugin: "maven-publish"
-
-    ext {
-        snapshotUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-        artifactoryUrl = "https://artifactory.krypt.int/artifactory/libs-snapshot"
-        releaseUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        localUrl = "file:/${project.projectDir}/artifacts"
-    }
 
     ext."signing.keyId" = 'FDEB5A45'
     ext."signing.secretKeyRingFile" = "$System.env.bamboo_JAR_SIGNING_KEYRING"
@@ -40,14 +40,20 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
         sign configurations.pom
     }
 
-
     publishing {
         repositories {
             maven {
-                url branch.equals("develop") ? snapshotUrl : releaseUrl
+                url branch.equals("master") ? releaseUrl : snapshotUrl
                 credentials {
                     username = "$System.env.bamboo_SONATYPE_USERNAME"
                     password = "$System.env.bamboo_SONATYPE_PASSWORD"
+                }
+            }
+            maven {
+                url branch.equals("master") ? artifactoryReleaseUrl : artifactorySnapshotUrl
+                credentials {
+                    username = "$System.env.bamboo_ARTIFACTORY_USERNAME"
+                    password = "$System.env.bamboo_ARTIFACTORY_PASSWORD"
                 }
             }
         }
@@ -62,6 +68,7 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
 
                 artifact javadocJar
                 artifact sourcesJar
+                artifact testJar
 
                 pom.withXml {
                     asNode().children().last() + {

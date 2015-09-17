@@ -5,10 +5,17 @@ import java.util.Map.Entry;
 
 import com.hazelcast.map.AbstractEntryProcessor;
 
+/**
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ *
+ * @param <K> The type for the key in the underlying hazelcast map.
+ * @param <V> The container type for the value in the underlying hazelcast map.
+ * @param <T> The type for the values in container {@code V extends Collection<T>}
+ */
 public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractEntryProcessor<K, V> {
     private static final long serialVersionUID = 4022386342619821133L;
 
-    private final V           newObjects;
+    protected final V           newObjects;
 
     protected AbstractMerger( V objects ) {
         this.newObjects = objects;

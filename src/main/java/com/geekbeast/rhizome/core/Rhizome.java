@@ -212,14 +212,14 @@ public class Rhizome implements WebApplicationInitializer {
             startupLock.lock();
             Preconditions.checkState(
                     rhizomeContext == null,
-                    "Rhizome context should be null for the duration of startup." );
+                    "Rhizome context should be null before startup of startup." );
             rhizomeContext = context;
             context.refresh();
             for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
                 loam.start();
             }
-            rhizomeContext = null;
         } finally {
+            rhizomeContext = null;
             startupLock.unlock();
         }
     }
