@@ -15,7 +15,7 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbPreloadingMapStoreAlternateDriver<K, V> extends RethinkDbBaseMapStoreAlternateDriver<K, V> {
+public abstract class RethinkDbPreloadingMapStoreAlternateDriver<K, V> extends RethinkDbBaseMapStoreAlternateDriver<K, V> {
     private static final Logger logger = LoggerFactory.getLogger( RethinkDbPreloadingMapStoreAlternateDriver.class );
 
     public RethinkDbPreloadingMapStoreAlternateDriver(

@@ -2,12 +2,12 @@ package com.kryptnostic.rhizome.mappers.values;
 
 import java.io.IOException;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.kryptnostic.rhizome.mappers.JacksonValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
@@ -22,7 +22,7 @@ public class SimpleValueMapper<V> extends JacksonValueMapper<V> {
 
     public SimpleValueMapper( Class<V> valueClass, ObjectMapper mapper ) {
         super( mapper );
-        
+
         this.valueClass = valueClass;
     }
 
@@ -31,8 +31,11 @@ public class SimpleValueMapper<V> extends JacksonValueMapper<V> {
         try {
             return mapper.writeValueAsBytes( value );
         } catch ( JsonProcessingException e ) {
-            logger.error( "Unable to unmarshall data [{}] to hyperdex.", value, e );
-            throw new MappingException( "Error marshalling data to hyperdex." );
+            logger.error( "Unable to unmarshall class [{}] using data [{}] for mapstore.",
+                    valueClass.getCanonicalName(),
+                    value,
+                    e );
+            throw new MappingException( "Error marshalling data." );
         }
     }
 
@@ -41,8 +44,12 @@ public class SimpleValueMapper<V> extends JacksonValueMapper<V> {
         try {
             return data == null ? null : mapper.readValue( data, valueClass );
         } catch ( IOException e ) {
-            logger.error( "Unable to unmarshall data from hyperdex {}", data, e );
-            throw new MappingException( "Error unmarshalling data from hyperdex." );
+            logger.error( "Unable to unmarshall class [{}] using data [{}] from mapstore with string form: {}.",
+                    valueClass.getCanonicalName(),
+                    data,
+                    StringUtils.newStringUtf8( data ),
+                    e );
+            throw new MappingException( "Error unmarshalling data." );
         }
     }
 }

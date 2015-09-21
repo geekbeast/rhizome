@@ -21,10 +21,10 @@ import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
+public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {
@@ -256,14 +256,24 @@ public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisterin
     public void deleteAll( Collection<K> keys ) {
         keys.forEach( key -> delete( key ) );
     }
-    
+
     @Override
     public MapStoreConfig getMapStoreConfig() {
-        return  new MapStoreConfig().setImplementation( this ).setEnabled( true );
+        return new MapStoreConfig().setImplementation( this ).setEnabled( true );
     }
-    
+
     @Override
     public MapConfig getMapConfig() {
         return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() ).setName( mapName );
+    }
+
+    @Override
+    public String getMapName() {
+        return this.mapName;
+    }
+
+    @Override
+    public String getTable() {
+        return this.space;
     }
 }

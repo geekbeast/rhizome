@@ -5,7 +5,7 @@ import com.kryptnostic.rhizome.mappers.keys.JacksonKeyMapper;
 import com.kryptnostic.rhizome.mappers.values.TypeReferenceValueMapper;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexMagicJacksonMapperStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
+public abstract class HyperdexMagicJacksonMapperStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
 
     public HyperdexMagicJacksonMapperStore(
             String mapName,
@@ -14,5 +14,4 @@ public class HyperdexMagicJacksonMapperStore<K, V> extends HyperdexBaseJacksonKe
             TypeReference<V> reference ) {
         super( mapName, space, pool, new JacksonKeyMapper<K>(), new TypeReferenceValueMapper<V>( reference ) );
     }
-
 }

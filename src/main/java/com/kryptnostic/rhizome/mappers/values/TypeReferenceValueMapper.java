@@ -41,7 +41,7 @@ public class TypeReferenceValueMapper<V> extends JacksonValueMapper<V> {
         try {
             return data == null ? null : mapper.readValue( data, reference );
         } catch ( IOException e ) {
-            logger.error( "Unable to unmarshall data from {}, as string: ", data, StringUtils.newStringUtf8( data ), e );
+            logger.error( "Unable to unmarshall data from {}, as string: {}", data, StringUtils.newStringUtf8( data ), e );
             throw new MappingException( "Error unmarshalling data." );
         }
     }
