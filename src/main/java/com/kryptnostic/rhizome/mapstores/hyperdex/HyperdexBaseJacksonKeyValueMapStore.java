@@ -256,14 +256,24 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements Testa
     public void deleteAll( Collection<K> keys ) {
         keys.forEach( key -> delete( key ) );
     }
-    
+
     @Override
     public MapStoreConfig getMapStoreConfig() {
-        return  new MapStoreConfig().setImplementation( this ).setEnabled( true );
+        return new MapStoreConfig().setImplementation( this ).setEnabled( true );
     }
-    
+
     @Override
     public MapConfig getMapConfig() {
         return new MapConfig().setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() ).setName( mapName );
+    }
+
+    @Override
+    public String getMapName() {
+        return this.mapName;
+    }
+
+    @Override
+    public String getTable() {
+        return this.space;
     }
 }
