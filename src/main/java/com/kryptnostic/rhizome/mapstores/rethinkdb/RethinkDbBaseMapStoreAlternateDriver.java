@@ -409,6 +409,16 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig(mapName).setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() );
+        return new MapConfig( mapName ).setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() );
+    }
+
+    @Override
+    public String getTable() {
+        return this.table;
+    }
+
+    @Override
+    public String getMapName() {
+        return this.mapName;
     }
 }
