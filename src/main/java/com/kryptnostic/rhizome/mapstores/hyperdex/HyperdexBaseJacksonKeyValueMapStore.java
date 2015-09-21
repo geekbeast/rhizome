@@ -21,10 +21,10 @@ import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
-public class HyperdexBaseJacksonKeyValueMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
+public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 
     static {
