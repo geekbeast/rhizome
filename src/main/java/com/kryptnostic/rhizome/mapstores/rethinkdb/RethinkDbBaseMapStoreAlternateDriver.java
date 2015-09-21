@@ -33,10 +33,10 @@ import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
-public class RethinkDbBaseMapStoreAlternateDriver<K, V> implements SelfRegisteringMapStore<K, V> {
+public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private static final Base64                        codec                  = new Base64();
     private static final Logger                        logger                 = LoggerFactory
                                                                                       .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
