@@ -195,8 +195,8 @@ dependencies {
      //TODO: Once GA version of jetty-jsp is released update version.
      //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
      compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
-     compile "org.eclipse.jetty.websocket:websocket-server:9.3.1.v20150714"
-     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.1.v20150714"
+     compile "org.eclipse.jetty.websocket:websocket-server:9.3.3.v20150827"
+     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.3.v20150827"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
 
@@ -226,7 +226,7 @@ dependencies {
     /*
      * TESTING
      */
-     testCompile 'junit:junit:4.11'
+     testCompile 'junit:junit:4.12'
      testCompile 'com.squareup.retrofit:retrofit:1.9.0'
      testCompile 'com.squareup.retrofit:retrofit-converters:1.9.0'
      
@@ -236,7 +236,7 @@ dependencies {
       
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-      compile "org.springframework.integration:spring-integration-websocket:4.2.0.M2"
+      compile "org.springframework.integration:spring-integration-websocket:4.2.0.RELEASE"
  }
 
 eclipse {
