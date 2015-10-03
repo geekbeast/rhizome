@@ -278,4 +278,5 @@ task wrapper(type: Wrapper) {
 
 artifacts {
     archives jar,sourcesJar,javadocJar
+    tests testJar
 }
