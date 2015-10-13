@@ -3,16 +3,14 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 import java.util.Collection;
 import java.util.Map.Entry;
 
-import com.hazelcast.map.AbstractEntryProcessor;
-
 /**
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  * @param <K> The type for the key in the underlying hazelcast map.
  * @param <V> The container type for the value in the underlying hazelcast map.
  * @param <T> The type for the values in container {@code V extends Collection<T>}
  */
-public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractEntryProcessor<K, V> {
+public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
     private static final long serialVersionUID = 4022386342619821133L;
 
     protected final V           newObjects;
@@ -68,6 +66,6 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
         }
         return true;
     }
-    
-    
+
+
 }

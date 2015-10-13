@@ -3,9 +3,7 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 import java.util.Collection;
 import java.util.Map.Entry;
 
-import com.hazelcast.map.AbstractEntryProcessor;
-
-public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractEntryProcessor<K, V> {
+public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
     private static final long serialVersionUID = 1500519104651067092L;
 
     protected final V         objectsToRemove;
