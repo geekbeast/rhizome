@@ -105,6 +105,7 @@ public class Rhizome implements WebApplicationInitializer {
 
         Optional<GzipConfiguration> gzipConfig = jettyConfig.getGzipConfiguration();
         if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
+            // TODO: GzipFilter is deprecated
             FilterRegistration.Dynamic gzipFilter = servletContext.addFilter( GZIP_FILTER_NAME, new GzipFilter() );
             gzipFilter.setAsyncSupported( true );
             gzipFilter.addMappingForUrlPatterns( null, false, "/*" );
@@ -127,7 +128,7 @@ public class Rhizome implements WebApplicationInitializer {
                 rhizomeContext.getBean( "getMetricRegistry", MetricRegistry.class ) );
 
         /*
-         * 
+         *
          */
 
         ServletRegistration.Dynamic adminServlet = servletContext.addServlet( "admin", AdminServlet.class );
