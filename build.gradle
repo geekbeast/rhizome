@@ -79,8 +79,7 @@ dependencies {
      compile group: 'javax.servlet', name: 'jstl', version:'1.2'
 
     /*
-     * SL4J + LOG4J
-     * Currently use Log4J through sl4j. 
+     * SL4J + LOG4J2
      */
     compile group: "org.slf4j", name: "slf4j-api", version:"${slf4j_version}"
 
