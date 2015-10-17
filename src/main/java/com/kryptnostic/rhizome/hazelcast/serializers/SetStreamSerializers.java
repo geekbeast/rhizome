@@ -19,11 +19,11 @@ public class SetStreamSerializers {
 
     public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
         int size = in.readInt();
-        return deserialize( in, Sets.newHashSetWithExpectedSize( size ),  f );
+        return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
     }
 
-    public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
-        for ( int i = 0; i < set.size(); ++i ) {
+    public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, int size, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
+        for ( int i = 0; i < size; ++i ) {
             T elem = f.apply( in );
             if ( elem != null ) {
                 set.add( elem );
