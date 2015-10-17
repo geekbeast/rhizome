@@ -9,7 +9,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
 public class SetStreamSerializers {
-    
+
     public static <T> void serialize( ObjectDataOutput out , Set<T> elements, IoPerformingConsumer<T> c ) throws IOException {
         out.writeInt( elements.size() );
         for( T elem :  elements ) {
@@ -19,13 +19,16 @@ public class SetStreamSerializers {
 
     public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
         int size = in.readInt();
-        Set<T> s = Sets.newHashSetWithExpectedSize( size );
+        return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
+    }
+
+    public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, int size, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
         for ( int i = 0; i < size; ++i ) {
             T elem = f.apply( in );
             if ( elem != null ) {
-                s.add( elem );
+                set.add( elem );
             }
         }
-        return s;
+        return set;
     }
 }
