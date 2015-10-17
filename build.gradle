@@ -35,7 +35,7 @@ ext.sourceCompatibility=JavaVersion.VERSION_1_8
 ext.targetCompatibility=JavaVersion.VERSION_1_8
 
 repositories {
-    mavenCentral()  
+    mavenCentral()
     maven {
       url 'http://artifactory.krypt.int/artifactory/libs-snapshot/'
     }
@@ -50,10 +50,10 @@ repositories {
     }
     maven {
         url "http://maven.springframework.org/milestone"
-    } 
+    }
     maven {
         url "http://repo.maven.apache.org/maven2"
-    } 
+    }
     maven {
         url "https://oss.sonatype.org/content/repositories/snapshots"
     }
@@ -62,11 +62,13 @@ repositories {
     }
 }
 
-ext.spring_security_version='4.0.1.RELEASE'
-ext.spring_framework_version='4.2.0.RC3'
+ext.spring_security_version='4.0.2.RELEASE'
+ext.spring_framework_version='4.2.1.RELEASE'
 ext.jackson_version='2.4.4'
-ext.jetty_version='9.3.1.v20150714'
-ext.hazelcast_version='3.5.2'
+ext.jetty_version='9.3.3.v20150827'
+ext.hazelcast_version='3.5.3'
+ext.slf4j_version='1.7.12'
+ext.log4j_version='2.4.1'
 dependencies {
     /*
      * Servlet API 3.1 
@@ -77,13 +79,13 @@ dependencies {
      compile group: 'javax.servlet', name: 'jstl', version:'1.2'
 
     /*
-     * SL4J + LOG4J
-     * Currently use Log4J through sl4j. 
-     * TODO: Switch to logback
+     * SL4J + LOG4J2
      */
-     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.7.12'
-     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.12'
-     compile "org.apache.logging.log4j:log4j:2.3"
+    compile group: "org.slf4j", name: "slf4j-api", version:"${slf4j_version}"
+
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4j_version}" 
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: "${log4j_version}" 
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4j_version}" 
 
     /*
      * CORE SPRING FRAMEWORK DEPENDENCIES
@@ -127,14 +129,14 @@ dependencies {
      */
      compile 'joda-time:joda-time:2.8.2'
 
-     compile 'com.datastax.cassandra:cassandra-driver-core:2.1.5'
+     compile 'com.datastax.cassandra:cassandra-driver-core:2.1.7.1'
     /*
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
      */
 
      compile 'commons-io:commons-io:2.4'
-     compile 'org.apache.commons:commons-lang3:3.1'
+     compile 'org.apache.commons:commons-lang3:3.4'
      compile 'commons-logging:commons-logging:1.1.3'
      compile 'commons-collections:commons-collections:3.2.1'
      compile 'commons-codec:commons-codec:1.9'
@@ -158,8 +160,9 @@ dependencies {
      compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
      compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
      compile 'org.yaml:snakeyaml:1.13'
-     compile 'com.jayway.jsonpath:json-path-assert:0.9.1'
-
+     //Needed to avoid NoSuchMethodErrors when using mockito + junit + spring
+     compile "com.jayway.jsonpath:json-path-assert:1.1.0"
+     
     /*
      * @Inject and @Nullable support
      */
@@ -196,8 +199,8 @@ dependencies {
      //TODO: Once GA version of jetty-jsp is released update version.
      //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
      compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
-     compile "org.eclipse.jetty.websocket:websocket-server:9.3.1.v20150714"
-     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.1.v20150714"
+     compile "org.eclipse.jetty.websocket:websocket-server:9.3.3.v20150827"
+     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.3.v20150827"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
 
@@ -227,7 +230,7 @@ dependencies {
     /*
      * TESTING
      */
-     testCompile 'junit:junit:4.11'
+     testCompile 'junit:junit:4.12'
      testCompile 'com.squareup.retrofit:retrofit:1.9.0'
      testCompile 'com.squareup.retrofit:retrofit-converters:1.9.0'
      
@@ -237,7 +240,7 @@ dependencies {
       
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-      compile "org.springframework.integration:spring-integration-websocket:4.2.0.M2"
+      compile "org.springframework.integration:spring-integration-websocket:4.2.0.RELEASE"
  }
 
 eclipse {
