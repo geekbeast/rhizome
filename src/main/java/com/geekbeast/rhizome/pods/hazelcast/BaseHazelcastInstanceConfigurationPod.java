@@ -6,16 +6,15 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import jersey.repackaged.com.google.common.base.Preconditions;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;

@@ -4,13 +4,12 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.springframework.context.annotation.Bean;
 
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.service.AbstractYamlConfigurationService;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
+import com.google.common.collect.Maps;
 import com.google.common.eventbus.AsyncEventBus;
 
 public class InMemoryConfigurationServicePod {

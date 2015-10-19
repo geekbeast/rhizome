@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.hyperdex.client.ByteString;
 import org.hyperdex.client.Client;
 import org.hyperdex.client.Deferred;
@@ -16,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;

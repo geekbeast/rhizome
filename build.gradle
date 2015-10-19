@@ -172,7 +172,9 @@ dependencies {
     /*
      * Jersey Spring Integration
      */
-     compile 'org.glassfish.jersey.ext:jersey-spring3:2.11'
+     compile ( 'org.glassfish.jersey.ext:jersey-spring3:2.11' ) {
+        exclude group: 'org.glassfish.jersey.bundles.repackaged'
+     }
 
     /*
      * Kryo serialization -- faster generic Java serialization
