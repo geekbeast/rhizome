@@ -86,7 +86,6 @@ public class HazelcastConfiguration {
         return port;
     }
 
-
     public String getRole() {
         return role;
     }

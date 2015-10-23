@@ -19,6 +19,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
@@ -58,6 +60,27 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
                 .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
+    }
+
+    @Bean
+    public ClientConfig getHazelcastClientConfiguration() {
+        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Preconditions.checkArgument(
+                maybeConfiguration.isPresent(),
+                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
+        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( HazelcastConfiguration.SERVER_ROLE.equals( hzConfiguration.getRole() ) ) {
+            return null;
+        }
+        ClientConfig clientConfig = new ClientConfig()
+            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
+            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+        return clientConfig;
+    }
+
+    private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
     }
 
     protected NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {

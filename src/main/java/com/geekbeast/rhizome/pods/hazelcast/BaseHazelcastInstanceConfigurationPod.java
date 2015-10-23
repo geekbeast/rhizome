@@ -49,17 +49,20 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     @Bean
-    public Optional<ClientConfig> getHazelcastClientConfiguration() {
+    public ClientConfig getHazelcastClientConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Preconditions.checkArgument(
+                maybeConfiguration.isPresent(),
+                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
         if ( HazelcastConfiguration.SERVER_ROLE.equals( hzConfiguration.getRole() ) ) {
-            return Optional.<ClientConfig>absent();
+            return null;
         }
         ClientConfig clientConfig = new ClientConfig()
             .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
             .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
             .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
-        return Optional.of( clientConfig );
+        return clientConfig;
     }
 
     private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {

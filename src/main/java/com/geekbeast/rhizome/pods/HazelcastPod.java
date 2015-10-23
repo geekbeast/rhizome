@@ -17,7 +17,6 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
-import com.google.common.base.Optional;
 import com.google.common.eventbus.AsyncEventBus;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
@@ -44,7 +43,7 @@ public class HazelcastPod {
     private Config                  config;
 
     @Inject
-    private Optional<ClientConfig>  clientConfig;
+    private ClientConfig            clientConfig;
 
     @Inject
     private RhizomeConfiguration    configuration;
@@ -54,9 +53,9 @@ public class HazelcastPod {
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
-        if ( clientConfig.isPresent() ) {
+        if ( clientConfig != null ) {
             return HazelcastClient.newHazelcastClient(
-                    Preconditions.checkNotNull( clientConfig.get(), HAZELCAST_CONFIGURATION_ERR ) );
+                    Preconditions.checkNotNull( clientConfig, HAZELCAST_CONFIGURATION_ERR ) );
         }
         return Hazelcast.getOrCreateHazelcastInstance(
                 Preconditions.checkNotNull( config, HAZELCAST_CONFIGURATION_ERR ) );
