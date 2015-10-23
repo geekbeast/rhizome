@@ -16,6 +16,8 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
@@ -46,25 +48,43 @@ public class BaseHazelcastInstanceConfigurationPod {
         return config;
     }
 
-    protected NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+    @Bean
+    public Optional<ClientConfig> getHazelcastClientConfiguration() {
+        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( HazelcastConfiguration.SERVER_ROLE.equals( hzConfiguration.getRole() ) ) {
+            return Optional.<ClientConfig>absent();
+        }
+        ClientConfig clientConfig = new ClientConfig()
+            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
+            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+        return Optional.of( clientConfig );
+    }
+
+    private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
+    }
+
+    protected static NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {
         return new NetworkConfig().setPort( hzConfiguration.getPort() ).setJoin(
                 getJoinConfig( hzConfiguration.getHazelcastSeedNodes() ) );
     }
 
-    protected JoinConfig getJoinConfig( List<String> nodes ) {
+    protected static JoinConfig getJoinConfig( List<String> nodes ) {
         return new JoinConfig().setMulticastConfig( new MulticastConfig().setEnabled( false ).setLoopbackModeEnabled(
                 false ) ).setTcpIpConfig( getTcpIpConfig( nodes ) );
     }
 
-    protected TcpIpConfig getTcpIpConfig( List<String> nodes ) {
+    protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
         return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
 
-    protected Map<String, MapConfig> getMapConfigs() {
+    protected static Map<String, MapConfig> getMapConfigs() {
         return ImmutableMap.of();
     }
 
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected static Collection<SerializerConfig> getSerializerConfigs() {
         return ImmutableList.of();
     }
 

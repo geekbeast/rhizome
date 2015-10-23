@@ -17,7 +17,10 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.google.common.base.Optional;
 import com.google.common.eventbus.AsyncEventBus;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -30,6 +33,7 @@ public class HazelcastPod {
     public static final Logger   logger                     = LoggerFactory.getLogger( HazelcastPod.class );
     public static final String   SESSIONS_MAP_NAME          = "sessions";
     public static final String   CONFIGURATION_UPDATE_TOPIC = "configuration-update-topic";
+    private static final String HAZELCAST_CONFIGURATION_ERR = "Hazelcast configuration must be present in order to use the HazelcastPod.";
 
     /*
      * Hazelcast is finicky and won't properly inject the hazelcast instance unless the resource is called specifically
@@ -37,19 +41,25 @@ public class HazelcastPod {
      */
 
     @Inject
-    private Config               config;
+    private Config                  config;
 
     @Inject
-    private RhizomeConfiguration configuration;
+    private Optional<ClientConfig>  clientConfig;
 
     @Inject
-    private AsyncEventBus        configurationUpdates;
+    private RhizomeConfiguration    configuration;
+
+    @Inject
+    private AsyncEventBus           configurationUpdates;
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
-        return Hazelcast.getOrCreateHazelcastInstance( Preconditions.checkNotNull(
-                config,
-                "Hazelcast configuration must be present in order to use the HazelcastPod." ) );
+        if ( clientConfig.isPresent() ) {
+            return HazelcastClient.newHazelcastClient(
+                    Preconditions.checkNotNull( clientConfig.get(), HAZELCAST_CONFIGURATION_ERR ) );
+        }
+        return Hazelcast.getOrCreateHazelcastInstance(
+                Preconditions.checkNotNull( config, HAZELCAST_CONFIGURATION_ERR ) );
     }
 
     @Bean
