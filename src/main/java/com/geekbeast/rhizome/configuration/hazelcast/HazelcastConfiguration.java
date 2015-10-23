@@ -44,7 +44,7 @@ public class HazelcastConfiguration {
             @JsonProperty( REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
 
         this.group = group.or( DEFAULT_GROUP_NAME );
-        this.password = group.or( DEFAULT_PASSWORD );
+        this.password = password.or( DEFAULT_PASSWORD );
         this.port = port.or( DEFAULT_PORT );
         this.hazelcastSeedNodes = hazelcastSeedNodes.or( SEED_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
