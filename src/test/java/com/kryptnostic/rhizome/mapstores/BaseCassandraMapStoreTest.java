@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.mapstores;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -19,6 +20,7 @@ import com.kryptnostic.rhizome.mappers.keys.StringKeyMapper;
  *
  * This test requires a cassandra instance to be locally available in order to run thest.
  */
+@Ignore
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
