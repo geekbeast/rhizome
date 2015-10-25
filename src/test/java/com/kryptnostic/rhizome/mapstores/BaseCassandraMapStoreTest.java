@@ -1,9 +1,10 @@
 package com.kryptnostic.rhizome.mapstores;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -14,24 +15,33 @@ import com.kryptnostic.rhizome.mappers.keys.StringKeyMapper;
 
 
 /**
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  * This test requires a cassandra instance to be locally available in order to run thest.
  */
-@Ignore
-public class CassandraMapstoreTester {
-    @Test
-    public void testCassandraMapstore() {
-        BaseCassandraMapStore<String, String> store = new BaseCassandraMapStore<String, String>(
-                "test",
-                "test",
-                new StringKeyMapper(),
-                new SimpleCassandraMapper<String>( String.class ),
-                new CassandraConfiguration(
+public class BaseCassandraMapStoreTest {
+
+    private final CassandraConfiguration config = new CassandraConfiguration(
                         Optional.of( false ),
                         Optional.of( ImmutableList.of( "localhost" ) ),
                         Optional.of( "test" ),
-                        Optional.of( 3 ) ) );
+                        Optional.of( 3 ) );
+    @Test
+    public void testCassandraMapstore() {
+
+        Cluster clust = new Cluster.Builder()
+            .addContactPoints( config.getCassandraSeedNodes() )
+            .build();
+
+        Session newSession = clust.newSession();
+        BaseCassandraMapStore<String, String> store = new BaseCassandraMapStore<String, String>(
+                config.getKeyspace(),
+                "test",
+                new StringKeyMapper(),
+                new SimpleCassandraMapper<String>( String.class ),
+                config.getReplicationFactor(),
+                newSession,
+                clust );
 
         store.store( "blah", "humbugabcdef" );
         Assert.assertEquals( "humbugabcdef", store.load( "blah" ) );

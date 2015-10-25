@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 
 import com.geekbeast.rhizome.configuration.ConfigurationConstants;
@@ -18,6 +19,7 @@ import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexResizingClientPool;
 
 @Configuration
+@Profile( "hyperdex" )
 public class HyperdexPod {
     private static final Logger               logger        = LoggerFactory.getLogger( HyperdexPod.class );
 
@@ -31,10 +33,9 @@ public class HyperdexPod {
     public HyperdexConfiguration hyperdexConfiguration() {
         if ( configuration.getHyperdexConfiguration().isPresent() ) {
             return configuration.getHyperdexConfiguration().get();
-        } else {
-            logger.error( "Hyperdex configuration is missing. Please add a hyperdex configuration to rhizome.yaml" );
-            return null;
         }
+        logger.error( "Hyperdex configuration is missing. Please add a hyperdex configuration to rhizome.yaml" );
+        return null;
     }
 
     @Bean
