@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
-import jersey.repackaged.com.google.common.collect.Sets;
-
+import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.hazelcast.objects.OrderedUUIDSet;
@@ -57,6 +56,11 @@ public class SetStreamSerializers {
     public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
         int size = in.readInt();
         return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
+    }
+
+    public static <T> Set<T> deserializeOrdered( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
+        int size = in.readInt();
+        return deserialize( in, Sets.newLinkedHashSetWithExpectedSize( size ), size, f );
     }
 
     public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, int size, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {

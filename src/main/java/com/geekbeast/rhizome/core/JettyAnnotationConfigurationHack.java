@@ -7,8 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.annotation.HandlesTypes;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-
 import org.eclipse.jetty.annotations.AnnotationConfiguration;
 import org.eclipse.jetty.annotations.ClassInheritanceHandler;
 import org.eclipse.jetty.annotations.ContainerInitializerAnnotationHandler;
@@ -19,10 +17,12 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import com.google.common.collect.Lists;
+
 /**
  * This class contains an exact replica of the annotation configuration class, with the exception that it registers a
  * {@code RhizomeWebApplicationInitializer} for discovery during class path scanning.
- * 
+ *
  * @author Matthew Tamayo-Rios
  */
 public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {

@@ -4,8 +4,6 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
-import jersey.repackaged.com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +15,7 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AsyncEventBus;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;

@@ -5,11 +5,10 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.google.common.base.Preconditions;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DataSerializable;
-
-import jersey.repackaged.com.google.common.base.Preconditions;
 
 public class SimpleConfigurationKey implements ConfigurationKey, DataSerializable {
     private String uri;
