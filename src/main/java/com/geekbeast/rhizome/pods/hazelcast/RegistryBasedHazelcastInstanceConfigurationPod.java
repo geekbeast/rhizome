@@ -69,7 +69,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        if ( HazelcastConfiguration.SERVER_ROLE.equals( hzConfiguration.getRole() ) ) {
+        if ( hzConfiguration.isServer() ) {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
