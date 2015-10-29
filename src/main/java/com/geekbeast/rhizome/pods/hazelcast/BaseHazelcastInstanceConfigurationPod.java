@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.client.config.ClientConfig;
@@ -35,7 +36,11 @@ public class BaseHazelcastInstanceConfigurationPod {
     protected RhizomeConfiguration configuration;
 
     @Bean
-    public Config getHazelcastConfiguration() {
+    public HazelcastConfigurationContainer getHazelcastConfiguration() {
+        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+    }
+
+    public Config getHazelcastServerConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
@@ -48,7 +53,6 @@ public class BaseHazelcastInstanceConfigurationPod {
         return config;
     }
 
-    @Bean
     public ClientConfig getHazelcastClientConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(

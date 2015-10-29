@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
@@ -48,12 +49,19 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     protected RhizomeConfiguration                                            configuration;
 
     @Bean
-    public Config getHazelcastConfiguration() {
+    public HazelcastConfigurationContainer getHazelcastConfiguration() {
+        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+    }
+
+    public Config getHazelcastServerConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( !hzConfiguration.isServer() ) {
+            return null;
+        }
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
@@ -62,7 +70,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         return config;
     }
 
-    @Bean
     public ClientConfig getHazelcastClientConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(
