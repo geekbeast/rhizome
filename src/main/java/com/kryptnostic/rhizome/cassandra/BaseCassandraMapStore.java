@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.cassandra;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import jersey.repackaged.com.google.common.collect.Iterables;
@@ -18,7 +19,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
 import com.hazelcast.core.MapStore;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
@@ -27,7 +27,7 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     private final Cluster              cluster;
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
-    private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};";
+    private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
     private static final String        TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
     protected final CassandraMapper<V> mapper;
     protected final KeyMapper<K>       keyMapper;
@@ -44,12 +44,12 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
             String table,
             KeyMapper<K> keyMapper,
             CassandraMapper<V> mapper,
-            CassandraConfiguration configuration ) {
+            int replicationFactor,
+            Session sess,
+            Cluster globalCluster) {
         this.keyMapper = keyMapper;
         this.mapper = mapper;
-        Cluster.Builder b = Cluster.builder();
-        configuration.getCassandraSeedNodes().forEach( ( node ) -> b.addContactPoint( node ) );
-        cluster = b.build();
+        this.cluster = globalCluster;
 
         Metadata metadata = cluster.getMetadata();
         logger.info( "Connected to cluster: {}", metadata.getClusterName() );
@@ -60,9 +60,8 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
                     host.getAddress(),
                     host.getRack() );
         }
-
-        session = cluster.newSession();
-        session.execute( String.format( KEYSPACE_QUERY, keyspace ) );
+        session = sess;
+        session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
         LOAD_QUERY = session.prepare( QueryBuilder.select( "data" ).from( keyspace, table )
@@ -112,9 +111,8 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
 
     @Override
     public void store( K key, V value ) {
-        ResultSet s;
         try {
-            s = session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
+            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value );
         }
@@ -122,16 +120,15 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
 
     @Override
     public void storeAll( Map<K, V> map ) {
-        map.forEach( ( K k, V v ) -> {
-            store( k, v );
-        } );
+        for ( Entry<K, V> ent : map.entrySet() ) {
+            store( ent.getKey(), ent.getValue() );
+        }
     }
 
     @Override
     public void delete( K key ) {
-        ResultSet s;
         try {
-            s = session.execute( DELETE_QUERY.bind( keyMapper.fromKey( key ) ) );
+            session.execute( DELETE_QUERY.bind( keyMapper.fromKey( key ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to delete key {} : value {} ", key );
         }
@@ -139,8 +136,7 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
 
     @Override
     public void deleteAll( Collection<K> keys ) {
-        ResultSet s;
-        s = session.execute( DELETE_ALL_QUERY.bind( keys ) );
+        session.execute( DELETE_ALL_QUERY.bind( keys ) );
     }
 
 }
