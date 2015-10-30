@@ -9,13 +9,12 @@ import org.springframework.context.annotation.Profile;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
-import com.geekbeast.rhizome.configuration.ConfigurationConstants;
+import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.geekbeast.rhizome.pods.CassandraMapStoreFactory.CassandraMapStoreFactoryBuilder;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
-import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
-import com.kryptnostic.rhizome.mappers.keys.ConfigurationKeyMapper;
 
 @Configuration
 @Profile( "cassandra" )
@@ -51,14 +50,15 @@ public class CassandraPod {
     public static BaseCassandraMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
-        return new BaseCassandraMapStore<ConfigurationKey, String>(
-                config.getKeyspace(),
-                ConfigurationConstants.HZ.MAPS.CONFIGURATION,
-                new ConfigurationKeyMapper(),
-                new SimpleCassandraMapper<String>( String.class ),
-                config.getReplicationFactor(),
-                cluster.newSession(),
-                cluster );
+        return new CassandraMapStoreFactoryBuilder()
+                .withTable( HZ.MAPS.CONFIGURATION )
+                .withKeyspace( config.getKeyspace() )
+                .withMapName( "kryptnostic" )
+                .withConfiguration( config )
+                .withCluster( cluster )
+                .build()
+                    .getMapstore( ConfigurationKey.class, String.class );
+
     }
 
 }
