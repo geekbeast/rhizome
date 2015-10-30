@@ -51,13 +51,11 @@ public class CassandraPod {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
         return new CassandraMapStoreFactoryBuilder()
-                .withTable( HZ.MAPS.CONFIGURATION )
-                .withKeyspace( config.getKeyspace() )
-                .withMapName( "kryptnostic" )
+                .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .withConfiguration( config )
                 .withCluster( cluster )
                 .build()
-                    .getMapstore( ConfigurationKey.class, String.class );
+                .getMapstore( ConfigurationKey.class, String.class );
 
     }
 

@@ -19,6 +19,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
@@ -41,22 +42,20 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
     private final PreparedStatement    LOAD_ALL_QUERY;
     private final PreparedStatement    DELETE_ALL_QUERY;
     private final Session              session;
-    private int replicationFactor;
+    private final int replicationFactor;
 
     public BaseCassandraMapStore(
-            String keyspace,
             String table,
             String mapName,
             KeyMapper<K> keyMapper,
             CassandraMapper<V> mapper,
-            int replicationFactor,
-            Session sess,
+            CassandraConfiguration config,
             Cluster globalCluster) {
         this.keyMapper = keyMapper;
         this.mapper = mapper;
-        this.replicationFactor = replicationFactor;
         this.cluster = globalCluster;
         this.mapName = mapName;
+        this.replicationFactor = config.getReplicationFactor();
 
         Metadata metadata = cluster.getMetadata();
         logger.info( "Connected to cluster: {}", metadata.getClusterName() );
@@ -67,7 +66,8 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
                     host.getAddress(),
                     host.getRack() );
         }
-        session = sess;
+        String keyspace = config.getKeyspace();
+        session = cluster.newSession();
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 

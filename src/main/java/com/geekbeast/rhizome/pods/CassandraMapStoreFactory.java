@@ -20,33 +20,28 @@ public class CassandraMapStoreFactory {
     private final CassandraConfiguration config;
     private final String mapName;
     private final String table;
-    private final String keyspace;
 
     CassandraMapStoreFactory(
             Cluster cluster,
             CassandraConfiguration config,
             String mapName,
-            String table,
-            String keyspace ) {
+            String table ) {
         super();
         this.cluster = cluster;
         this.config = config;
         this.mapName = mapName;
         this.table = table;
-        this.keyspace = keyspace;
     }
 
     public <K, V> BaseCassandraMapStore<K, V> getMapstore( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) keyMapperRegistry.get( keyType );
         CassandraMapper<V> valueMapper = new SimpleCassandraMapper<V>( valType );
         return new BaseCassandraMapStore<K, V>(
-                keyspace,
                 table,
                 mapName,
                 keyMapper,
                 valueMapper,
-                config.getReplicationFactor(),
-                cluster.newSession(),
+                config,
                 cluster){ /* No-op */ };
     }
 
@@ -54,7 +49,6 @@ public class CassandraMapStoreFactory {
 
         private String table;
         private String mapName;
-        private String keyspace;
         private CassandraConfiguration config;
         private Cluster cluster;
 
@@ -70,11 +64,6 @@ public class CassandraMapStoreFactory {
             return this;
         }
 
-        public CassandraMapStoreFactoryBuilder withKeyspace( String keyspace ) {
-            this.keyspace = keyspace;
-            return this;
-        }
-
         public CassandraMapStoreFactoryBuilder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
             return this;
@@ -86,8 +75,13 @@ public class CassandraMapStoreFactory {
         }
 
         public CassandraMapStoreFactory build() {
-            return new CassandraMapStoreFactory( cluster, config, mapName, table, keyspace );
+            return new CassandraMapStoreFactory( cluster, config, mapName, table );
         }
 
+        public CassandraMapStoreFactoryBuilder withTableAndMapName( String name ) {
+            this.table = name;
+            this.mapName = name;
+            return this;
+        }
     }
 }

@@ -37,7 +37,6 @@ public class BaseCassandraMapStoreTest {
         BaseCassandraMapStore<String, String> store = new CassandraMapStoreFactoryBuilder()
                 .withCluster( clust )
                 .withConfiguration( config )
-                .withKeyspace( config.getKeyspace() )
                 .withMapName( "test" )
                 .withTable( "test" )
                 .build().getMapstore( String.class , String.class );
