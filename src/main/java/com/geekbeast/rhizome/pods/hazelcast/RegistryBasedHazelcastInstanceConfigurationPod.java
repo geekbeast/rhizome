@@ -31,6 +31,8 @@ import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
@@ -41,6 +43,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry = Maps.newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
@@ -92,6 +95,18 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         } );
     }
 
+    @Bean
+    public Map<Class<?>, KeyMapper<?>> getKeyMapperRegistry() {
+        return keyMapperRegistry;
+    }
+
+    @Inject
+    public void registerKeyMappers( Set<SelfRegisteringKeyMapper<?>> keyMappers ) {
+        for ( SelfRegisteringKeyMapper<?> mapper : keyMappers ) {
+            keyMapperRegistry.put( mapper.getClass(), mapper );
+        }
+    }
+
     @Inject
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
@@ -115,6 +130,10 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
+    }
+
+    public static void register( Class<?> valueType, SelfRegisteringKeyMapper<?> keyMapper ) {
+        keyMapperRegistry.put( valueType, keyMapper );
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
