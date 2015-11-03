@@ -15,10 +15,13 @@ import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
@@ -46,18 +49,45 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     protected RhizomeConfiguration                                            configuration;
 
     @Bean
-    public Config getHazelcastConfiguration() {
+    public HazelcastConfigurationContainer getHazelcastConfiguration() {
+        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+    }
+
+    public Config getHazelcastServerConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( !hzConfiguration.isServer() ) {
+            return null;
+        }
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
                 .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
+    }
+
+    public ClientConfig getHazelcastClientConfiguration() {
+        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Preconditions.checkArgument(
+                maybeConfiguration.isPresent(),
+                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
+        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( hzConfiguration.isServer() ) {
+            return null;
+        }
+        ClientConfig clientConfig = new ClientConfig()
+            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
+            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+        return clientConfig;
+    }
+
+    private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
     }
 
     protected NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {

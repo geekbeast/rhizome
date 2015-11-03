@@ -14,8 +14,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
-import jersey.repackaged.com.google.common.base.Preconditions;
-
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -44,6 +42,7 @@ import com.geekbeast.rhizome.pods.ServletContainerPod;
 import com.geekbeast.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.hazelcast.web.SessionListener;
@@ -178,9 +177,9 @@ public class Rhizome implements WebApplicationInitializer {
             ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
                     configuration.getServletName(),
                     new DispatcherServlet( dispatchServletContext ) );
+            Preconditions.checkNotNull( dispatcher, "A DispatcherServlet with this name has already been registered and fully configured" );
             if ( configuration.getLoadOnStartup().isPresent() ) {
                 dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
-
             }
             dispatcher.setAsyncSupported( true );
             dispatcher.addMapping( configuration.getMappings() );

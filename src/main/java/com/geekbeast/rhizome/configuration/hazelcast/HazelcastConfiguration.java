@@ -18,11 +18,13 @@ public class HazelcastConfiguration {
     private static final String       GROUP_PROPERTY             = "group";
     private static final String       PASSWORD_PROPERTY          = "password";
     private static final String       PORT_PROPERTY              = "port";
+    private static final String       SERVER_ROLE_PROPERTY       = "server";
 
     public static final String        DEFAULT_INSTANCE_NAME      = "rhizome-default";
     public static final String        DEFAULT_GROUP_NAME         = "rhizome-dev";
     public static final String        DEFAULT_PASSWORD           = "reticulating splines";
     public static final int           DEFAULT_PORT               = 5701;
+    public static final boolean       DEFAULT_SERVER_ROLE        = true;
 
     private static final List<String> SEED_DEFAULT               = ImmutableList.of( "127.0.0.1" );
     private static final int          REPLICATION_FACTOR_DEFAULT = 2;
@@ -33,6 +35,7 @@ public class HazelcastConfiguration {
     private final String              group;
     private final String              password;
     private final int                 port;
+    private final boolean             server;
 
     @JsonCreator
     public HazelcastConfiguration(
@@ -40,12 +43,14 @@ public class HazelcastConfiguration {
             @JsonProperty( GROUP_PROPERTY ) Optional<String> group,
             @JsonProperty( PASSWORD_PROPERTY ) Optional<String> password,
             @JsonProperty( PORT_PROPERTY ) Optional<Integer> port,
+            @JsonProperty( SERVER_ROLE_PROPERTY ) Optional<Boolean> role,
             @JsonProperty( SEED_NODES_PROPERTY ) Optional<List<String>> hazelcastSeedNodes,
             @JsonProperty( REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
 
         this.group = group.or( DEFAULT_GROUP_NAME );
         this.password = password.or( DEFAULT_PASSWORD );
         this.port = port.or( DEFAULT_PORT );
+        this.server = role.or( DEFAULT_SERVER_ROLE );
         this.hazelcastSeedNodes = hazelcastSeedNodes.or( SEED_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
         this.instanceName = instanceName.or( DEFAULT_INSTANCE_NAME );
@@ -79,6 +84,10 @@ public class HazelcastConfiguration {
     @JsonProperty( PORT_PROPERTY )
     public int getPort() {
         return port;
+    }
+
+    public boolean isServer() {
+        return server;
     }
 
 }
