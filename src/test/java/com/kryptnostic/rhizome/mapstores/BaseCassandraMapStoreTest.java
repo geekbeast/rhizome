@@ -6,11 +6,11 @@ import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.pods.CassandraMapStoreFactory.CassandraMapStoreFactoryBuilder;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
+import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory.Builder;
 
 
 /**
@@ -34,7 +34,7 @@ public class BaseCassandraMapStoreTest {
             .addContactPoints( config.getCassandraSeedNodes() )
             .build();
 
-        BaseCassandraMapStore<String, String> store = new CassandraMapStoreFactoryBuilder()
+        BaseCassandraMapStore<String, String> store = new Builder()
                 .withCluster( clust )
                 .withConfiguration( config )
                 .withMapName( "test" )

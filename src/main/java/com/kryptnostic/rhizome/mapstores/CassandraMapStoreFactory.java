@@ -1,11 +1,8 @@
-package com.geekbeast.rhizome.pods;
-
-import java.util.Map;
-
-import javax.inject.Inject;
+package com.kryptnostic.rhizome.mapstores;
 
 import com.datastax.driver.core.Cluster;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
@@ -13,15 +10,12 @@ import com.kryptnostic.rhizome.mappers.KeyMapper;
 
 public class CassandraMapStoreFactory {
 
-    @Inject
-    private Map<Class<?>, KeyMapper<?>> keyMapperRegistry;
-
-    private final Cluster cluster;
+    private final Cluster                cluster;
     private final CassandraConfiguration config;
-    private final String mapName;
-    private final String table;
+    private final String                 mapName;
+    private final String                 table;
 
-    CassandraMapStoreFactory(
+    private CassandraMapStoreFactory(
             Cluster cluster,
             CassandraConfiguration config,
             String mapName,
@@ -34,7 +28,7 @@ public class CassandraMapStoreFactory {
     }
 
     public <K, V> BaseCassandraMapStore<K, V> getMapstore( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) keyMapperRegistry.get( keyType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedHazelcastInstanceConfigurationPod.getKeyMapper( keyType );
         CassandraMapper<V> valueMapper = new SimpleCassandraMapper<V>( valType );
         return new BaseCassandraMapStore<K, V>(
                 table,
@@ -42,34 +36,34 @@ public class CassandraMapStoreFactory {
                 keyMapper,
                 valueMapper,
                 config,
-                cluster){ /* No-op */ };
+                cluster ) { /* No-op */ };
     }
 
-    public static class CassandraMapStoreFactoryBuilder {
+    public static class Builder {
 
-        private String table;
-        private String mapName;
+        private String                 table;
+        private String                 mapName;
         private CassandraConfiguration config;
-        private Cluster cluster;
+        private Cluster                cluster;
 
-        public CassandraMapStoreFactoryBuilder() {}
+        public Builder() {}
 
-        public CassandraMapStoreFactoryBuilder withTable( String table ) {
+        public Builder withTable( String table ) {
             this.table = table;
             return this;
         }
 
-        public CassandraMapStoreFactoryBuilder withMapName( String mapName ) {
+        public Builder withMapName( String mapName ) {
             this.mapName = mapName;
             return this;
         }
 
-        public CassandraMapStoreFactoryBuilder withConfiguration( CassandraConfiguration config ) {
+        public Builder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
             return this;
         }
 
-        public CassandraMapStoreFactoryBuilder withCluster( Cluster cluster ) {
+        public Builder withCluster( Cluster cluster ) {
             this.cluster = cluster;
             return this;
         }
@@ -78,7 +72,7 @@ public class CassandraMapStoreFactory {
             return new CassandraMapStoreFactory( cluster, config, mapName, table );
         }
 
-        public CassandraMapStoreFactoryBuilder withTableAndMapName( String name ) {
+        public Builder withTableAndMapName( String name ) {
             this.table = name;
             this.mapName = name;
             return this;

@@ -1,5 +1,8 @@
 package com.geekbeast.rhizome.pods;
 
+import java.net.InetAddress;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -7,14 +10,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.pods.CassandraMapStoreFactory.CassandraMapStoreFactoryBuilder;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
+import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory;
 
 @Configuration
 @Profile( "cassandra" )
@@ -24,11 +28,11 @@ public class CassandraPod {
 
     @Bean
     public static CassandraConfiguration cassandraConfiguration() {
-        if ( configuration.getCassandraConfiguration().isPresent() ) {
-            return configuration.getCassandraConfiguration().get();
+        if ( !configuration.getCassandraConfiguration().isPresent() ) {
+            logger.error( "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
+            return null;
         }
-        logger.error( "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
-        return null;
+        return configuration.getCassandraConfiguration().get();
     }
 
     public static PoolingOptions getPoolingOptions() {
@@ -50,7 +54,7 @@ public class CassandraPod {
     public static BaseCassandraMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
-        return new CassandraMapStoreFactoryBuilder()
+        return new CassandraMapStoreFactory.Builder()
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .withConfiguration( config )
                 .withCluster( cluster )
