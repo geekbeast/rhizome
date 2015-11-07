@@ -19,16 +19,20 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
-import com.hazelcast.core.MapStore;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 
-public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
+public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
     private final Cluster              cluster;
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
     private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
     private static final String        TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
+    private final String                mapName;
     protected final CassandraMapper<V> mapper;
     protected final KeyMapper<K>       keyMapper;
 
@@ -38,18 +42,20 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     private final PreparedStatement    LOAD_ALL_QUERY;
     private final PreparedStatement    DELETE_ALL_QUERY;
     private final Session              session;
+    private final int replicationFactor;
 
     public BaseCassandraMapStore(
-            String keyspace,
             String table,
+            String mapName,
             KeyMapper<K> keyMapper,
             CassandraMapper<V> mapper,
-            int replicationFactor,
-            Session sess,
+            CassandraConfiguration config,
             Cluster globalCluster) {
         this.keyMapper = keyMapper;
         this.mapper = mapper;
         this.cluster = globalCluster;
+        this.mapName = mapName;
+        this.replicationFactor = config.getReplicationFactor();
 
         Metadata metadata = cluster.getMetadata();
         logger.info( "Connected to cluster: {}", metadata.getClusterName() );
@@ -60,7 +66,8 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
                     host.getAddress(),
                     host.getRack() );
         }
-        session = sess;
+        String keyspace = config.getKeyspace();
+        session = cluster.newSession();
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
@@ -137,6 +144,16 @@ public class BaseCassandraMapStore<K, V> implements MapStore<K, V> {
     @Override
     public void deleteAll( Collection<K> keys ) {
         session.execute( DELETE_ALL_QUERY.bind( keys ) );
+    }
+
+    @Override
+    public MapStoreConfig getMapStoreConfig() {
+        return new MapStoreConfig().setImplementation( this ).setEnabled( true ).setWriteDelaySeconds( 0 );
+    }
+
+    @Override
+    public MapConfig getMapConfig() {
+        return new MapConfig( mapName ).setBackupCount( this.replicationFactor ).setMapStoreConfig( getMapStoreConfig() );
     }
 
 }

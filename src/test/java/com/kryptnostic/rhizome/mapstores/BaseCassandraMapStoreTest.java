@@ -5,14 +5,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
-import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
-import com.kryptnostic.rhizome.mappers.keys.StringKeyMapper;
+import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory.Builder;
 
 
 /**
@@ -28,6 +26,7 @@ public class BaseCassandraMapStoreTest {
                         Optional.of( ImmutableList.of( "localhost" ) ),
                         Optional.of( "test" ),
                         Optional.of( 3 ) );
+
     @Test
     public void testCassandraMapstore() {
 
@@ -35,15 +34,12 @@ public class BaseCassandraMapStoreTest {
             .addContactPoints( config.getCassandraSeedNodes() )
             .build();
 
-        Session newSession = clust.newSession();
-        BaseCassandraMapStore<String, String> store = new BaseCassandraMapStore<String, String>(
-                config.getKeyspace(),
-                "test",
-                new StringKeyMapper(),
-                new SimpleCassandraMapper<String>( String.class ),
-                config.getReplicationFactor(),
-                newSession,
-                clust );
+        BaseCassandraMapStore<String, String> store = new Builder()
+                .withCluster( clust )
+                .withConfiguration( config )
+                .withMapName( "test" )
+                .withTable( "test" )
+                .build().getMapstore( String.class , String.class );
 
         store.store( "blah", "humbugabcdef" );
         Assert.assertEquals( "humbugabcdef", store.load( "blah" ) );
