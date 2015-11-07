@@ -15,7 +15,7 @@ public class CassandraMapStoreFactory {
     private final String                 mapName;
     private final String                 table;
 
-    private CassandraMapStoreFactory(
+    CassandraMapStoreFactory(
             Cluster cluster,
             CassandraConfiguration config,
             String mapName,
