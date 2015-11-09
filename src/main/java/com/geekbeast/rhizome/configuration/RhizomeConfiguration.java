@@ -68,10 +68,12 @@ public class RhizomeConfiguration implements Configuration {
 
     @Override
     public String toString() {
-        return "RhizomeConfiguration [persistData=" + persistData + ", hazelcastSessionFilterConfiguration="
-                + hazelcastSessionFilterConfiguration + ", graphiteConfiguration=" + graphiteConfiguration
-                + ", cassandraConfiguration=" + cassandraConfiguration + ", rethinkDbConfiguration="
-                + rethinkDbConfiguration + "]";
+        return "RhizomeConfiguration [persistData=" + persistData
+                + ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration
+                + ", graphiteConfiguration=" + graphiteConfiguration
+                + ", cassandraConfiguration=" + cassandraConfiguration
+                + ", rethinkDbConfiguration=" + rethinkDbConfiguration + "]";
+
     }
 
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )

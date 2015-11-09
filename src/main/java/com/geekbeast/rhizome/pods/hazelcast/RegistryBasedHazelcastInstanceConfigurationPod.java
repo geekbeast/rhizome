@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -15,10 +16,13 @@ import org.springframework.context.annotation.Configuration;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
@@ -31,6 +35,9 @@ import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
@@ -41,23 +48,51 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry = Maps.newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
 
     @Bean
-    public Config getHazelcastConfiguration() {
+    public HazelcastConfigurationContainer getHazelcastConfiguration() {
+        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+    }
+
+    public Config getHazelcastServerConfiguration() {
         Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( !hzConfiguration.isServer() ) {
+            return null;
+        }
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
                 .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
+    }
+
+    public ClientConfig getHazelcastClientConfiguration() {
+        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Preconditions.checkArgument(
+                maybeConfiguration.isPresent(),
+                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
+        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        if ( hzConfiguration.isServer() ) {
+            return null;
+        }
+        ClientConfig clientConfig = new ClientConfig()
+            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
+            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+        return clientConfig;
+    }
+
+    private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
     }
 
     protected NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {
@@ -92,6 +127,17 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         } );
     }
 
+    public static KeyMapper<?> getKeyMapper( Class<?> clazz ) {
+        return keyMapperRegistry.get( clazz );
+    }
+
+    @Inject
+    public void registerKeyMappers( Set<SelfRegisteringKeyMapper<?>> keyMappers ) {
+        for ( SelfRegisteringKeyMapper<?> mapper : keyMappers ) {
+            keyMapperRegistry.put( mapper.getClazz(), mapper );
+        }
+    }
+
     @Inject
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
@@ -115,6 +161,10 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
+    }
+
+    public static void register( Class<?> valueType, SelfRegisteringKeyMapper<?> keyMapper ) {
+        keyMapperRegistry.put( valueType, keyMapper );
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
@@ -174,6 +224,26 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
                 return new QueueConfig( "noop" );
             }
         };
+    }
+
+    @Bean
+    public SelfRegisteringKeyMapper<?> noopKM() {
+        return new SelfRegisteringKeyMapper<Void>() {
+
+            @Override
+            public String fromKey( Void key ) throws MappingException {
+                return null;
+            }
+
+            @Override
+            public Void toKey( String value ) throws MappingException {
+                return null;
+            }
+
+            @Override
+            public Class<Void> getClazz() {
+                return Void.class;
+            }};
     }
 
     @Bean

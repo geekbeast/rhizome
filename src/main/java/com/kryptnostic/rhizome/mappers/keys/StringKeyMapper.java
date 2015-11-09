@@ -1,9 +1,9 @@
 package com.kryptnostic.rhizome.mappers.keys;
 
-import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class StringKeyMapper implements KeyMapper<String> {
+public class StringKeyMapper implements SelfRegisteringKeyMapper<String> {
     @Override
     public String fromKey( String key ) {
         return key;
@@ -12,5 +12,10 @@ public class StringKeyMapper implements KeyMapper<String> {
     @Override
     public String toKey( String value ) throws MappingException {
         return value;
+    }
+
+    @Override
+    public Class<String> getClazz() {
+        return String.class;
     }
 }

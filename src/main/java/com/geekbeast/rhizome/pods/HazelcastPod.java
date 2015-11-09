@@ -4,8 +4,6 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
-import jersey.repackaged.com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -14,10 +12,14 @@ import org.springframework.context.annotation.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import com.google.common.base.Optional;
 import com.google.common.eventbus.AsyncEventBus;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -27,9 +29,10 @@ import com.hazelcast.web.WebFilter;
 
 @Configuration
 public class HazelcastPod {
-    public static final Logger   logger                     = LoggerFactory.getLogger( HazelcastPod.class );
-    public static final String   SESSIONS_MAP_NAME          = "sessions";
-    public static final String   CONFIGURATION_UPDATE_TOPIC = "configuration-update-topic";
+    public static final Logger              logger                      = LoggerFactory.getLogger( HazelcastPod.class );
+    public static final String              SESSIONS_MAP_NAME           = "sessions";
+    public static final String              CONFIGURATION_UPDATE_TOPIC  = "configuration-update-topic";
+    private static final String             HAZELCAST_CONFIGURATION_ERR = "Hazelcast configuration must be present in order to use the HazelcastPod.";
 
     /*
      * Hazelcast is finicky and won't properly inject the hazelcast instance unless the resource is called specifically
@@ -37,19 +40,25 @@ public class HazelcastPod {
      */
 
     @Inject
-    private Config               config;
+    private HazelcastConfigurationContainer config;
 
     @Inject
-    private RhizomeConfiguration configuration;
+    private RhizomeConfiguration            configuration;
 
     @Inject
-    private AsyncEventBus        configurationUpdates;
+    private AsyncEventBus                   configurationUpdates;
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
-        return Hazelcast.getOrCreateHazelcastInstance( Preconditions.checkNotNull(
-                config,
-                "Hazelcast configuration must be present in order to use the HazelcastPod." ) );
+        Optional<Config> serverConfig = config.getServerConfig();
+        Optional<ClientConfig> clientConfig = config.getClientConfig();
+        if ( serverConfig.isPresent() ) {
+            return Hazelcast.getOrCreateHazelcastInstance( serverConfig.get() );
+        } else if ( clientConfig.isPresent() ) {
+            return HazelcastClient.newHazelcastClient( clientConfig.get() );
+        } else {
+            throw new IllegalStateException( HAZELCAST_CONFIGURATION_ERR );
+        }
     }
 
     @Bean
