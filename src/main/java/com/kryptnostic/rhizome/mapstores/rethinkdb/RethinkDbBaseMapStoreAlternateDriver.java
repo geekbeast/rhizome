@@ -13,9 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +25,8 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
@@ -409,7 +408,8 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig( mapName ).setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() );
+        return new MapConfig( mapName ).setBackupCount( 0 ).setAsyncBackupCount( 1 )
+                .setMapStoreConfig( getMapStoreConfig() );
     }
 
     @Override

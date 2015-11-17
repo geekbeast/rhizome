@@ -74,9 +74,8 @@ public class MetricsPod implements MetricsConfigurer {
             return new Graphite( new InetSocketAddress(
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() ) );
-        } else {
-            return null;
         }
+        return null;
     }
 
     @PostConstruct
@@ -96,8 +95,7 @@ public class MetricsPod implements MetricsConfigurer {
     protected String getGlobalName() {
         if ( config.getGraphiteConfiguration().isPresent() ) {
             return config.getGraphiteConfiguration().get().getGraphiteGlobalPrefix();
-        } else {
-            return "global";
         }
+        return "global";
     }
 }

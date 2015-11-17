@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
-import jersey.repackaged.com.google.common.collect.Sets;
-
+import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.hazelcast.objects.OrderedUUIDSet;
@@ -21,12 +20,12 @@ public class SetStreamSerializers {
     }
 
     public static void fastUUIDSetSerialize( ObjectDataOutput out, Set<UUID> object ) throws IOException{
-        long[] least = new long[object.size()];
-        long[] most = new long[object.size()];
+        long[] least = new long[ object.size() ];
+        long[] most = new long[ object.size() ];
         int i = 0;
         for ( UUID uuid : object ) {
-            least[i] = uuid.getLeastSignificantBits();
-            most[i] = uuid.getMostSignificantBits();
+            least[ i ] = uuid.getLeastSignificantBits();
+            most[ i ] = uuid.getMostSignificantBits();
             i++;
         }
         out.writeInt( i );
@@ -49,7 +48,7 @@ public class SetStreamSerializers {
         long[] least = in.readLongArray();
         long[] most = in.readLongArray();
         for ( int i=0; i < size; i++ ) {
-            set.add( new UUID( most[i], least[i] ) );
+            set.add( new UUID( most[ i ], least[ i ] ) );
         }
         return set;
     }

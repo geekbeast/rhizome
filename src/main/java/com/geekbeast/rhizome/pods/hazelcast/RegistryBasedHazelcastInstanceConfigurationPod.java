@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Resource;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
@@ -68,8 +68,10 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         Config config = new Config( hzConfiguration.getInstanceName() )
+                .setProperty( "hazelcast.logging.type", "slf4j" )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ).setAllowUnsafe( true )
+                        .setUseNativeByteOrder( true ) )
                 .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
@@ -85,9 +87,11 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
+                .setProperty( "hazelcast.logging.type", "slf4j" )
             .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
             .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ).setAllowUnsafe( true )
+                        .setUseNativeByteOrder( true ) );
         return clientConfig;
     }
 
