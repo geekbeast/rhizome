@@ -24,7 +24,6 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
-import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
@@ -37,6 +36,8 @@ import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
+import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
@@ -48,7 +49,8 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
-    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, SelfRegisteringKeyMapper<?>>   keyMapperRegistry   = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMapperRegistry = Maps.newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
@@ -133,6 +135,17 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
 
     public static KeyMapper<?> getKeyMapper( Class<?> clazz ) {
         return keyMapperRegistry.get( clazz );
+    }
+
+    public static ValueMapper<?> getValueMapper( Class<?> clazz ) {
+        return valueMapperRegistry.get( clazz );
+    }
+
+    @Inject
+    public void registerValueMappers( Set<SelfRegisteringValueMapper<?>> valueMappers ) {
+        for ( SelfRegisteringValueMapper<?> mapper : valueMappers ) {
+            valueMapperRegistry.put( mapper.getClazz(), mapper );
+        }
     }
 
     @Inject
@@ -248,6 +261,27 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             public Class<Void> getClazz() {
                 return Void.class;
             }};
+    }
+
+    @Bean
+    public SelfRegisteringValueMapper<?> noopVM() {
+        return new SelfRegisteringValueMapper<Void>() {
+
+            @Override
+            public byte[] toBytes( Void value ) throws MappingException {
+                return null;
+            }
+
+            @Override
+            public Void fromBytes( byte[] data ) throws MappingException {
+                return null;
+            }
+
+            @Override
+            public Class<Void> getClazz() {
+                return Void.class;
+            }
+        };
     }
 
     @Bean
