@@ -8,55 +8,65 @@ import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 
-public class CassandraMapStoreFactory {
+public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
-    private final Cluster                cluster;
-    private final CassandraConfiguration config;
-    private final String                 mapName;
-    private final String                 table;
+    final Cluster                cluster;
+    final CassandraConfiguration config;
 
     CassandraMapStoreFactory(
             Cluster cluster,
-            CassandraConfiguration config,
-            String mapName,
-            String table ) {
+            CassandraConfiguration config ) {
         super();
         this.cluster = cluster;
         this.config = config;
-        this.mapName = mapName;
-        this.table = table;
     }
 
-    public <K, V> BaseCassandraMapStore<K, V> getMapstore( Class<K> keyType, Class<V> valType ) {
+    @Override
+    public <K, V> MapStoreBuilder<K, V> getMapStoreBuilder( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedHazelcastInstanceConfigurationPod.getKeyMapper( keyType );
-        CassandraMapper<V> valueMapper = new SimpleCassandraMapper<V>( valType );
-        return new BaseCassandraMapStore<K, V>(
-                table,
-                mapName,
-                keyMapper,
-                valueMapper,
-                config,
-                cluster ) { /* No-op */ };
+        CassandraMapper<V> valueMapper = new SimpleCassandraMapper<>( valType );
+        return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
+    }
+
+    public class CassandraMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
+
+        public CassandraMapStoreBuilder(
+                KeyMapper<K> keyMapper,
+                CassandraMapper<V> valueMapper ) {
+            super( keyMapper, valueMapper );
+        }
+
+        @Override
+        public TestableSelfRegisteringMapStore<K, V> build() {
+            return new BaseCassandraMapStore<K, V>(
+                    tableName,
+                    mapName,
+                    keyMapper,
+                    (CassandraMapper<V>) valueMapper,
+                    config,
+                    cluster) {
+                @Override
+                public K generateTestKey() {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                }
+
+                @Override
+                public V generateTestValue() throws Exception {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                }
+            };
+        }
+
     }
 
     public static class Builder {
 
-        private String                 table;
-        private String                 mapName;
         private CassandraConfiguration config;
         private Cluster                cluster;
 
         public Builder() {}
-
-        public Builder withTable( String table ) {
-            this.table = table;
-            return this;
-        }
-
-        public Builder withMapName( String mapName ) {
-            this.mapName = mapName;
-            return this;
-        }
 
         public Builder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
@@ -69,13 +79,8 @@ public class CassandraMapStoreFactory {
         }
 
         public CassandraMapStoreFactory build() {
-            return new CassandraMapStoreFactory( cluster, config, mapName, table );
-        }
-
-        public Builder withTableAndMapName( String name ) {
-            this.table = name;
-            this.mapName = name;
-            return this;
+            return new CassandraMapStoreFactory( cluster, config );
         }
     }
+
 }
