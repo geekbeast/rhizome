@@ -19,7 +19,7 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     final RethinkDbAlternateDriverClientPool pool;
     final String                             dbName;
 
-    public RethinkDbMapStoreFactory( RethinkDbAlternateDriverClientPool pool, String dbName ) {
+    RethinkDbMapStoreFactory( RethinkDbAlternateDriverClientPool pool, String dbName ) {
         super();
         this.pool = pool;
         this.dbName = dbName;
@@ -29,6 +29,12 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     public <K, V> MapStoreBuilder<K, V> getMapStoreBuilder( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedHazelcastInstanceConfigurationPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedHazelcastInstanceConfigurationPod.getValueMapper( valType );
+        if ( valueMapper == null ) {
+            throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
+        }
+        if ( keyMapper == null ) {
+            throw new RuntimeException( "There is no KeyMapper registered for type " + keyType );
+        }
         return new RethinkdbMapStoreBuilder<>( pool, dbName, keyMapper, valueMapper );
     }
 
