@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.collect.Maps;
 
@@ -35,6 +36,7 @@ public final class ObjectMapperRegistry {
         ObjectMapper yamlMapper = new ObjectMapper( new YAMLFactory() );
         yamlMapper.registerModule( new GuavaModule() );
         yamlMapper.registerModule( new AfterburnerModule() );
+        yamlMapper.registerModule( new JodaModule() );
         return yamlMapper;
     }
 
@@ -42,6 +44,7 @@ public final class ObjectMapperRegistry {
         ObjectMapper smileMapper = new ObjectMapper( new SmileFactory() );
         smileMapper.registerModule( new GuavaModule() );
         smileMapper.registerModule( new AfterburnerModule() );
+        smileMapper.registerModule( new JodaModule() );
         return smileMapper;
     }
 
@@ -49,6 +52,7 @@ public final class ObjectMapperRegistry {
         ObjectMapper mapper = new ObjectMapper( new SmileFactory() );
         mapper.registerModule( new GuavaModule() );
         mapper.registerModule( new AfterburnerModule() );
+        mapper.registerModule( new JodaModule() );
         return mapper;
     }
 

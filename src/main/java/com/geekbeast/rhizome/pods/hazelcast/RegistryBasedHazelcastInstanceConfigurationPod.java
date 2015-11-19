@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Resource;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -45,17 +44,23 @@ import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final Logger                                               logger             = LoggerFactory
                                                                                                          .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
-    private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
-    private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
-    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
-    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps
+                                                                                                         .newConcurrentMap();
+    private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps
+                                                                                                         .newConcurrentMap();
+    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
+                                                                                                         .newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry  = Maps
+                                                                                                         .newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
-        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+        return new HazelcastConfigurationContainer(
+                getHazelcastServerConfiguration(),
+                getHazelcastClientConfiguration() );
     }
 
     public Config getHazelcastServerConfiguration() {
@@ -85,9 +90,9 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
-            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
-            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
+                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
         return clientConfig;
     }
 
@@ -243,7 +248,8 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             @Override
             public Class<Void> getClazz() {
                 return Void.class;
-            }};
+            }
+        };
     }
 
     @Bean
@@ -296,4 +302,5 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             }
         };
     }
+
 }
