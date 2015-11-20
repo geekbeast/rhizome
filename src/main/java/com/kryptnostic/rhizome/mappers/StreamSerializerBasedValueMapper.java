@@ -8,14 +8,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
-import com.kryptnostic.rhizome.hazelcast.serializers.ObjectOutputSelfRegisteringStreamSerializer;
+import com.kryptnostic.rhizome.hazelcast.serializers.GenericSelfRegisteringStreamSerializer;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValueMapper<T> {
 
-    private final ObjectOutputSelfRegisteringStreamSerializer<T> serializer;
+    private final GenericSelfRegisteringStreamSerializer<T> serializer;
 
-    public StreamSerializerBasedValueMapper( ObjectOutputSelfRegisteringStreamSerializer<T> serializer ) {
+    public StreamSerializerBasedValueMapper( GenericSelfRegisteringStreamSerializer<T> serializer ) {
         this.serializer = serializer;
     }
 

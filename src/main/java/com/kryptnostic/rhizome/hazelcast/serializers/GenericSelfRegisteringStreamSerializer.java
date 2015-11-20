@@ -6,7 +6,7 @@ import java.io.ObjectOutput;
 
 import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
-public interface ObjectOutputSelfRegisteringStreamSerializer<T> extends SelfRegisteringStreamSerializer<T> {
+public interface GenericSelfRegisteringStreamSerializer<T> extends SelfRegisteringStreamSerializer<T> {
 
     void serialize( ObjectOutput out, T object ) throws IOException;
 
