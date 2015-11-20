@@ -6,3 +6,4 @@ bin/
 build/
 artifacts/
 .project
+/generated_src/
