@@ -19,10 +19,10 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     final RethinkDbAlternateDriverClientPool pool;
     final String                             dbName;
 
-    RethinkDbMapStoreFactory( RethinkDbAlternateDriverClientPool pool, String dbName ) {
+    RethinkDbMapStoreFactory( Builder builder ) {
         super();
-        this.pool = pool;
-        this.dbName = dbName;
+        this.pool = builder.getPool();
+        this.dbName = builder.getDbName();
     }
 
     @Override
@@ -92,8 +92,22 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
             return this;
         }
 
+        /**
+         * @return the pool
+         */
+        public RethinkDbAlternateDriverClientPool getPool() {
+            return pool;
+        }
+
+        /**
+         * @return the dbName
+         */
+        public String getDbName() {
+            return dbName;
+        }
+
         public RethinkDbMapStoreFactory build() {
-            return new RethinkDbMapStoreFactory( pool, dbName );
+            return new RethinkDbMapStoreFactory( this );
         }
 
     }

@@ -30,10 +30,9 @@ public class RethinkDbPod {
     public RethinkDbConfiguration rethinkDbConfiguration() {
         if ( configuration.getRethinkDbConfiguration().isPresent() ) {
             return configuration.getRethinkDbConfiguration().get();
-        } else {
-            logger.error( "RethinkDB configuration is missing. Please add a RethinkDB configuration to rhizome.yaml" );
-            return null;
         }
+        logger.error( "RethinkDB configuration is missing. Please add a RethinkDB configuration to rhizome.yaml" );
+        return null;
     }
 
     @Bean

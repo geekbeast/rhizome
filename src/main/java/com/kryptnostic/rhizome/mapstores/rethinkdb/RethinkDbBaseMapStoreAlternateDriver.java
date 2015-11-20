@@ -75,14 +75,13 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
-        RqlConnection conn = null;
         this.pool = pool;
         this.mapName = mapName;
         this.table = table;
         this.keyMapper = keyMapper;
         this.mapper = mapper;
 
-        conn = pool.acquire();
+        RqlConnection conn = pool.acquire();
         boolean dbExists = false;
         boolean tableExists = false;
         try {
