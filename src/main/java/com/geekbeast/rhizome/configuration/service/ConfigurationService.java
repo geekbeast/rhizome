@@ -15,12 +15,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.registries.ObjectMapperRegistry;
-import com.geekbeast.rhizome.utils.RhizomeUtils;
 import com.google.common.base.Preconditions;
+import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils;
 
 /**
  * Configuration service API for getting, setting, and registering for configuration updates.
- * 
+ *
  * @author Matthew Tamayo-Rios
  */
 public interface ConfigurationService {
@@ -29,7 +29,7 @@ public interface ConfigurationService {
     /**
      * Retrieves an existing configuration. The configuration class must have a static {@code getKey()} method that will
      * be used as key to lookup the YAML configuration.
-     * 
+     *
      * @param clazz
      * @return The configuration if it can be found, null otherwise.
      * @throws IOException
@@ -38,7 +38,7 @@ public interface ConfigurationService {
 
     /**
      * Creates or updates a configuration and fires a configuration update event to all subscribers.
-     * 
+     *
      * @param configuration The configuration to be updated or created
      * @throws IOException
      */
@@ -47,7 +47,7 @@ public interface ConfigurationService {
     /**
      * Registers a subscriber that will receive updated configuration events at methods annotated with guava's
      * {@code @Subscribe} annotation.
-     * 
+     *
      * @param subscriber
      */
     // public abstract <T extends Configuration> s<Configuration> getAllConfigurations();
@@ -65,7 +65,7 @@ public interface ConfigurationService {
          * bootstrapping an application context or a database connection, which the Configuration service may depend on.
          * The configuration class must have a static {@code getKey()} method that will be used as the name of the
          * resource containing the YAML configuration.
-         * 
+         *
          * @param clazz - The configuration class to load.
          * @return The configuration if it can successfully loaded, null otherwise.
          */
@@ -103,7 +103,7 @@ public interface ConfigurationService {
             T s = null;
 
             try {
-                String yamlString = RhizomeUtils.loadResourceToString( key.getUri() );
+                String yamlString = RhizomeUtils.Streams.loadResourceToString( key.getUri() );
                 if ( StringUtils.isBlank( yamlString ) ) {
                     throw new IOException( "Unable to read configuration from classpath." );
                 }
