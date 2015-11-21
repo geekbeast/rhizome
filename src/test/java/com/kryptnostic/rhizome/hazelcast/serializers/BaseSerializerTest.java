@@ -34,7 +34,7 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
     protected abstract D createInput();
 
     @Test
-    public void testSerializeDeserialize() throws NoSuchMethodException, SecurityException, IOException {
+    public void testSerializeDeserialize() throws SecurityException, IOException {
         D inputObject = createInput();
 
         SerializationService ss = ( new DefaultSerializationServiceBuilder() ).build();

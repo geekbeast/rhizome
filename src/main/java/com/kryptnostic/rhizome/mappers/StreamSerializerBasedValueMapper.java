@@ -1,49 +1,44 @@
 package com.kryptnostic.rhizome.mappers;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 
-import com.kryptnostic.rhizome.hazelcast.serializers.GenericSelfRegisteringStreamSerializer;
+import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
+import com.hazelcast.internal.serialization.SerializationService;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValueMapper<T> {
 
-    private final GenericSelfRegisteringStreamSerializer<T> serializer;
+    private final SelfRegisteringStreamSerializer<T> serializer;
+    private final SerializationService                      serializationService;
 
-    public StreamSerializerBasedValueMapper( GenericSelfRegisteringStreamSerializer<T> serializer ) {
+    public StreamSerializerBasedValueMapper( SelfRegisteringStreamSerializer<T> serializer, SerializationService serializationService ) {
         this.serializer = serializer;
+        this.serializationService = serializationService;
     }
 
     @Override
     public byte[] toBytes( T value ) throws MappingException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ObjectOutput objOs;
+        ObjectDataOutput objOs = serializationService.createObjectDataOutput();
         try {
-            objOs = new ObjectOutputStream( os );
-            serializer.serialize( objOs, value );
+            serializer.write( objOs, value );
+            return objOs.toByteArray();
         } catch ( IOException e ) {
             throw new MappingException( e );
         }
-        return os.toByteArray();
     }
 
     @Override
     public T fromBytes( byte[] data ) throws MappingException {
-        ByteArrayInputStream is = new ByteArrayInputStream( data );
-        ObjectInput in;
+        ObjectDataInput in = serializationService.createObjectDataInput( data );
         T deserialize;
         try {
-            in = new ObjectInputStream( is );
-            deserialize = serializer.deserialize( in );
+            deserialize = serializer.read( in );
+            return deserialize;
         } catch ( IOException e ) {
             throw new MappingException( e );
         }
-        return deserialize;
     }
 
     @Override
