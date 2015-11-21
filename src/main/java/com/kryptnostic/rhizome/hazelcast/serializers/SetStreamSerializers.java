@@ -1,8 +1,6 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,7 +12,7 @@ import com.kryptnostic.rhizome.hazelcast.objects.UUIDSet;
 
 public class SetStreamSerializers {
 
-    public static <T> void serialize( ObjectOutput out, Set<T> elements, IoPerformingConsumer<T> c ) throws IOException {
+    public static <T> void serialize( ObjectDataOutput out, Set<T> elements, IoPerformingConsumer<T> c ) throws IOException {
         out.writeInt( elements.size() );
         for( T elem :  elements ) {
             c.accept( elem );
@@ -56,12 +54,12 @@ public class SetStreamSerializers {
         return set;
     }
 
-    public static <T> Set<T> deserialize( ObjectInput in, IoPerformingFunction<ObjectInput, T> f ) throws IOException {
+    public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
         int size = in.readInt();
         return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
     }
 
-    public static <T> Set<T> deserialize( ObjectInput in, Set<T> set, int size, IoPerformingFunction<ObjectInput, T> f )
+    public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, int size, IoPerformingFunction<ObjectDataInput, T> f )
             throws IOException {
         for ( int i = 0; i < size; ++i ) {
             T elem = f.apply( in );
