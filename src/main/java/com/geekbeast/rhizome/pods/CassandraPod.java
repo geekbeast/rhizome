@@ -14,7 +14,7 @@ import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
-import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory;
+import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
 @Configuration
 @Profile( "cassandra" )
@@ -54,7 +54,7 @@ public class CassandraPod {
                 .withConfiguration( config )
                 .withCluster( cluster )
                 .build()
-                .getMapStoreBuilder( ConfigurationKey.class, String.class )
+                .build( ConfigurationKey.class, String.class )
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .build();
 

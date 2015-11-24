@@ -1,12 +1,16 @@
-package com.kryptnostic.rhizome.mapstores;
+package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import com.datastax.driver.core.Cluster;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
+import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
+import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
@@ -22,8 +26,8 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     }
 
     @Override
-    public <K, V> MapStoreBuilder<K, V> getMapStoreBuilder( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedHazelcastInstanceConfigurationPod.getKeyMapper( keyType );
+    public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
+        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         CassandraMapper<V> valueMapper = new SimpleCassandraMapper<>( valType );
         return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }

@@ -7,6 +7,6 @@ package com.kryptnostic.rhizome.mapstores;
  */
 public interface KryptnosticMapStoreFactory {
 
-    <K, V> MapStoreBuilder<K, V> getMapStoreBuilder( Class<K> keyType, Class<V> valType );
+    <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType );
 
 }

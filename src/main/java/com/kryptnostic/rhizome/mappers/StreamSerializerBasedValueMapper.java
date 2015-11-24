@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.internal.serialization.SerializationService;
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.BufferObjectDataInput;
+import com.hazelcast.nio.BufferObjectDataOutput;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValueMapper<T> {
@@ -20,8 +20,7 @@ public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValue
 
     @Override
     public byte[] toBytes( T value ) throws MappingException {
-        ObjectDataOutput objOs = serializationService.createObjectDataOutput();
-        try {
+        try ( BufferObjectDataOutput objOs = serializationService.createObjectDataOutput() ) {
             serializer.write( objOs, value );
             return objOs.toByteArray();
         } catch ( IOException e ) {
@@ -31,11 +30,8 @@ public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValue
 
     @Override
     public T fromBytes( byte[] data ) throws MappingException {
-        ObjectDataInput in = serializationService.createObjectDataInput( data );
-        T deserialize;
-        try {
-            deserialize = serializer.read( in );
-            return deserialize;
+        try ( BufferObjectDataInput in = serializationService.createObjectDataInput( data ) ) {
+            return serializer.read( in );
         } catch ( IOException e ) {
             throw new MappingException( e );
         }

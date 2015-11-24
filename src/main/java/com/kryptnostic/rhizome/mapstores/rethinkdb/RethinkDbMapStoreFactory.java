@@ -1,6 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -26,9 +26,9 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     }
 
     @Override
-    public <K, V> MapStoreBuilder<K, V> getMapStoreBuilder( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedHazelcastInstanceConfigurationPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedHazelcastInstanceConfigurationPod.getValueMapper( valType );
+    public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
+        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
         if ( valueMapper == null ) {
             throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
         }
