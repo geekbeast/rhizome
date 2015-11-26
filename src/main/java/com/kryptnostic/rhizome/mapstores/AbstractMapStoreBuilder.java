@@ -4,10 +4,11 @@ import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 
 public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K, V> {
-    protected final ValueMapper<V> valueMapper;
-    protected final KeyMapper<K>   keyMapper;
+    protected ValueMapper<V> valueMapper;
+    protected KeyMapper<K>   keyMapper;
     protected String               mapName;
     protected String               tableName;
+    public boolean           objectFormat;
 
     public AbstractMapStoreBuilder(
             KeyMapper<K> keyMapper,
@@ -15,6 +16,12 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
         this.keyMapper = keyMapper;
         this.valueMapper = valueMapper;
 
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> setObjectInMemoryFormat() {
+        this.objectFormat = true;
+        return this;
     }
 
     @Override
@@ -33,6 +40,18 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     public MapStoreBuilder<K, V> withTableAndMapName( String tableAndMapName ) {
         this.tableName = tableAndMapName;
         this.mapName = tableAndMapName;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> withCustomKeyMapper( KeyMapper<K> mapper ) {
+        this.keyMapper = mapper;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> withCustomValueMapper( ValueMapper<V> mapper ) {
+        this.valueMapper = mapper;
         return this;
     }
 

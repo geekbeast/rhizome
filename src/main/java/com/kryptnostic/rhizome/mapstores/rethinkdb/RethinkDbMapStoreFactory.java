@@ -1,6 +1,8 @@
 package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
+import com.hazelcast.config.InMemoryFormat;
+import com.hazelcast.config.MapConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -54,13 +56,23 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
 
         @Override
         public TestableSelfRegisteringMapStore<K, V> build() {
-            return new RethinkDbBaseMapStoreAlternateDriver<K, V>(
+            RethinkDbBaseMapStoreAlternateDriver<K, V> rethinkDbBaseMapStoreAlternateDriver = new RethinkDbBaseMapStoreAlternateDriver<K, V>(
                     pool,
                     mapName,
                     dbName,
                     tableName,
                     keyMapper,
                     valueMapper) {
+
+                @Override
+                public MapConfig getMapConfig() {
+                    MapConfig mapConfig = super.getMapConfig();
+                    if ( objectFormat ) {
+                        mapConfig.setInMemoryFormat( InMemoryFormat.OBJECT );
+                    }
+                    return mapConfig;
+                }
+
                 @Override
                 public K generateTestKey() {
                     // TODO Auto-generated method stub
@@ -73,6 +85,8 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
                     throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
                 }
             };
+
+            return rethinkDbBaseMapStoreAlternateDriver;
         }
     }
 

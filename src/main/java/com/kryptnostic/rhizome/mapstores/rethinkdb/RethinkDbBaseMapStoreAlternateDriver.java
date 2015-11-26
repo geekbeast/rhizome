@@ -407,8 +407,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig( mapName ).setBackupCount( 0 ).setAsyncBackupCount( 1 )
-                .setMapStoreConfig( getMapStoreConfig() );
+        return new MapConfig( mapName ).setBackupCount( 0 ).setMapStoreConfig( getMapStoreConfig() );
     }
 
     @Override
