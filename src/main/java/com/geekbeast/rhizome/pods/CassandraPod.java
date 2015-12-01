@@ -13,7 +13,7 @@ import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
+import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
 @Configuration

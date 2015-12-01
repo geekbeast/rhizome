@@ -3,10 +3,9 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import com.datastax.driver.core.Cluster;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
-import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.cassandra.CassandraMapper;
-import com.kryptnostic.rhizome.cassandra.SimpleCassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
@@ -28,7 +27,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        CassandraMapper<V> valueMapper = new SimpleCassandraMapper<>( valType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
         return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
@@ -36,7 +35,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
         public CassandraMapStoreBuilder(
                 KeyMapper<K> keyMapper,
-                CassandraMapper<V> valueMapper ) {
+                ValueMapper<V> valueMapper ) {
             super( keyMapper, valueMapper );
         }
 

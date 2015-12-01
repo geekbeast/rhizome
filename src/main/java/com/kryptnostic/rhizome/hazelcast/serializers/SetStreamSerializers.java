@@ -35,20 +35,20 @@ public class SetStreamSerializers {
 
     public static OrderedUUIDSet fastOrderedUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        OrderedUUIDSet set = new OrderedUUIDSet( size );
+        OrderedUUIDSet set = com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Sets.newOrderedUUIDSetWithExpectedSize( size );
         return (OrderedUUIDSet) processEntries( set, size, in );
     }
 
     public static UUIDSet fastUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        UUIDSet set = new UUIDSet( size );
+        UUIDSet set = com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Sets.newUUIDSetWithExpectedSize( size );
         return (UUIDSet) processEntries( set, size, in );
     }
 
     private static Set<UUID> processEntries( Set<UUID> set, int size, ObjectDataInput in ) throws IOException {
         long[] least = in.readLongArray();
         long[] most = in.readLongArray();
-        for ( int i=0; i < size; i++ ) {
+        for ( int i = 0; i < size; i++ ) {
             set.add( new UUID( most[ i ], least[ i ] ) );
         }
         return set;

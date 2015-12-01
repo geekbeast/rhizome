@@ -62,11 +62,6 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                                                                                       put( "conflict", "replace" );
                                                                                   }
                                                                               };
-    public static final HashMap<String, Object>        INSERT_OPTIONS_FOR_ADD = new HashMap<String, Object>() {
-                                                                                  {
-                                                                                      put( "conflict", "error" );
-                                                                                  }
-                                                                              };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
@@ -330,7 +325,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                         while ( cursor != null && cursor.hasNext() ) {
                             RqlObject obj = cursor.next();
                             Map m = obj.getMap();
-                            affected += (long) (double) m.get( "inserted" );
+                            affected += (long) m.get( "inserted" );
                         }
 
                     } catch ( RqlDriverException e ) {
@@ -338,7 +333,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                     } finally {
                         pool.release( conn );
                     }
-                    logger.info(
+                    logger.debug(
                             "{} Insert of {} elements took {} ms",
                             table,
                             ( finalMax - finalIndex ),

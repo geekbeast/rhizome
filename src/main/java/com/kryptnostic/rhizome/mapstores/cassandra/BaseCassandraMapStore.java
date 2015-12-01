@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.cassandra;
+package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,6 +20,7 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
@@ -123,7 +124,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
         try {
             session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
         } catch ( MappingException e ) {
-            logger.error( "Unable to store key {} : value {} ", key, value );
+            logger.error( "Unable to store key {} : value {} ", key, value, e );
         }
     }
 
