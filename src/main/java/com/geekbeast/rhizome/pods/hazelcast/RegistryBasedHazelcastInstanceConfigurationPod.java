@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Resource;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -35,9 +34,6 @@ import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
@@ -48,7 +44,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
-    private static final ConcurrentMap<Class<?>, KeyMapper<?>>                keyMapperRegistry = Maps.newConcurrentMap();
 
     @Inject
     protected RhizomeConfiguration                                            configuration;
@@ -68,8 +63,10 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         Config config = new Config( hzConfiguration.getInstanceName() )
+                .setProperty( "hazelcast.logging.type", "slf4j" )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ).setAllowUnsafe( true )
+                        .setUseNativeByteOrder( true ) )
                 .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
@@ -85,10 +82,20 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
+                .setProperty( "hazelcast.logging.type", "slf4j" )
             .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
             .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+                .setSerializationConfig( getSerializationConfig() );
         return clientConfig;
+    }
+
+    @Bean
+    public static SerializationConfig getSerializationConfig() {
+        SerializationConfig config = new SerializationConfig()
+                .setSerializerConfigs( getSerializerConfigs() )
+                .setAllowUnsafe( true )
+                .setUseNativeByteOrder( true );
+        return config;
     }
 
     private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
@@ -109,7 +116,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
 
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected static Collection<SerializerConfig> getSerializerConfigs() {
         return Collections2.transform( serializerRegistry.entrySet(), e -> {
             return new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() );
         } );
@@ -125,17 +132,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         return Maps.transformEntries( queueRegistry, ( k, v ) -> {
             return v.getQueueConfig();
         } );
-    }
-
-    public static KeyMapper<?> getKeyMapper( Class<?> clazz ) {
-        return keyMapperRegistry.get( clazz );
-    }
-
-    @Inject
-    public void registerKeyMappers( Set<SelfRegisteringKeyMapper<?>> keyMappers ) {
-        for ( SelfRegisteringKeyMapper<?> mapper : keyMappers ) {
-            keyMapperRegistry.put( mapper.getClazz(), mapper );
-        }
     }
 
     @Inject
@@ -161,10 +157,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
-    }
-
-    public static void register( Class<?> valueType, SelfRegisteringKeyMapper<?> keyMapper ) {
-        keyMapperRegistry.put( valueType, keyMapper );
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
@@ -224,26 +216,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
                 return new QueueConfig( "noop" );
             }
         };
-    }
-
-    @Bean
-    public SelfRegisteringKeyMapper<?> noopKM() {
-        return new SelfRegisteringKeyMapper<Void>() {
-
-            @Override
-            public String fromKey( Void key ) throws MappingException {
-                return null;
-            }
-
-            @Override
-            public Void toKey( String value ) throws MappingException {
-                return null;
-            }
-
-            @Override
-            public Class<Void> getClazz() {
-                return Void.class;
-            }};
     }
 
     @Bean

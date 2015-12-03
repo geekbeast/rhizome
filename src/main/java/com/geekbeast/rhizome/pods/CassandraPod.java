@@ -1,8 +1,5 @@
 package com.geekbeast.rhizome.pods;
 
-import java.net.InetAddress;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -10,15 +7,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
-import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory;
+import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore;
+import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
 @Configuration
 @Profile( "cassandra" )
@@ -54,12 +50,13 @@ public class CassandraPod {
     public static BaseCassandraMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
-        return new CassandraMapStoreFactory.Builder()
-                .withTableAndMapName( HZ.MAPS.CONFIGURATION )
+        return (BaseCassandraMapStore<ConfigurationKey, String>) new CassandraMapStoreFactory.Builder()
                 .withConfiguration( config )
                 .withCluster( cluster )
                 .build()
-                .getMapstore( ConfigurationKey.class, String.class );
+                .build( ConfigurationKey.class, String.class )
+                .withTableAndMapName( HZ.MAPS.CONFIGURATION )
+                .build();
 
     }
 

@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.mapstores;
+package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -9,8 +9,7 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.kryptnostic.rhizome.cassandra.BaseCassandraMapStore;
-import com.kryptnostic.rhizome.mapstores.CassandraMapStoreFactory.Builder;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 
 /**
@@ -34,12 +33,11 @@ public class BaseCassandraMapStoreTest {
             .addContactPoints( config.getCassandraSeedNodes() )
             .build();
 
-        BaseCassandraMapStore<String, String> store = new Builder()
-                .withCluster( clust )
-                .withConfiguration( config )
+        TestableSelfRegisteringMapStore<String, String> store = new CassandraMapStoreFactory( clust, config )
+                .build( String.class, String.class )
                 .withMapName( "test" )
-                .withTable( "test" )
-                .build().getMapstore( String.class , String.class );
+                .withTableName( "test" )
+                .build();
 
         store.store( "blah", "humbugabcdef" );
         Assert.assertEquals( "humbugabcdef", store.load( "blah" ) );

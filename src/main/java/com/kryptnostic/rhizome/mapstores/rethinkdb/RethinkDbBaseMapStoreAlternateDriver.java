@@ -13,9 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +25,8 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
@@ -63,11 +62,6 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                                                                                       put( "conflict", "replace" );
                                                                                   }
                                                                               };
-    public static final HashMap<String, Object>        INSERT_OPTIONS_FOR_ADD = new HashMap<String, Object>() {
-                                                                                  {
-                                                                                      put( "conflict", "error" );
-                                                                                  }
-                                                                              };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
@@ -76,14 +70,13 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
             String table,
             KeyMapper<K> keyMapper,
             ValueMapper<V> mapper ) {
-        RqlConnection conn = null;
         this.pool = pool;
         this.mapName = mapName;
         this.table = table;
         this.keyMapper = keyMapper;
         this.mapper = mapper;
 
-        conn = pool.acquire();
+        RqlConnection conn = pool.acquire();
         boolean dbExists = false;
         boolean tableExists = false;
         try {
@@ -332,7 +325,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                         while ( cursor != null && cursor.hasNext() ) {
                             RqlObject obj = cursor.next();
                             Map m = obj.getMap();
-                            affected += (long) (double) m.get( "inserted" );
+                            affected += (long) m.get( "inserted" );
                         }
 
                     } catch ( RqlDriverException e ) {
@@ -340,7 +333,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                     } finally {
                         pool.release( conn );
                     }
-                    logger.info(
+                    logger.debug(
                             "{} Insert of {} elements took {} ms",
                             table,
                             ( finalMax - finalIndex ),
@@ -409,7 +402,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig( mapName ).setBackupCount( 2 ).setMapStoreConfig( getMapStoreConfig() );
+        return new MapConfig( mapName ).setBackupCount( 0 ).setMapStoreConfig( getMapStoreConfig() );
     }
 
     @Override
