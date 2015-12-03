@@ -46,7 +46,7 @@ public final class ObjectMapperRegistry {
     }
 
     protected static ObjectMapper createPlainMapper() {
-        ObjectMapper mapper = new ObjectMapper( new SmileFactory() );
+        ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule( new GuavaModule() );
         mapper.registerModule( new AfterburnerModule() );
         return mapper;
