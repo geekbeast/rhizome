@@ -6,19 +6,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.collect.Maps;
 
 public final class ObjectMapperRegistry {
-    private static final ConcurrentMap<String, ObjectMapper> mappers      = Maps.newConcurrentMap();
-    private static final String                              YAML_MAPPER  = "yaml-mapper";
-    private static final String                              SMILE_MAPPER = "smile-mapper";
-    private static final String                              PLAIN_MAPPER = "plain-mapper";
+
+    private static final ConcurrentMap<String, ObjectMapper> mappers = Maps.newConcurrentMap();
+
+    private static final String YAML_MAPPER  = "yaml-mapper";
+    private static final String SMILE_MAPPER = "smile-mapper";
+    private static final String JSON_MAPPER = "json-mapper";
 
     static {
         mappers.put( YAML_MAPPER, createYamlMapper() );
         mappers.put( SMILE_MAPPER, createSmileMapper() );
-        mappers.put( PLAIN_MAPPER, createPlainMapper() );
+        mappers.put(JSON_MAPPER, createJsonMapper() );
     }
 
     private ObjectMapperRegistry() {}
@@ -45,9 +48,10 @@ public final class ObjectMapperRegistry {
         return smileMapper;
     }
 
-    protected static ObjectMapper createPlainMapper() {
-        ObjectMapper mapper = new ObjectMapper( new SmileFactory() );
+    protected static ObjectMapper createJsonMapper() {
+        ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule( new GuavaModule() );
+        mapper.registerModule( new JodaModule() );
         mapper.registerModule( new AfterburnerModule() );
         return mapper;
     }
@@ -60,8 +64,8 @@ public final class ObjectMapperRegistry {
         return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.SMILE_MAPPER );
     }
 
-    public static ObjectMapper getPlainMapper() {
-        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.PLAIN_MAPPER );
+    public static ObjectMapper getJsonMapper() {
+        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.JSON_MAPPER);
     }
 
 }
