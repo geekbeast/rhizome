@@ -16,12 +16,12 @@ public final class ObjectMapperRegistry {
 
     private static final String YAML_MAPPER  = "yaml-mapper";
     private static final String SMILE_MAPPER = "smile-mapper";
-    private static final String PLAIN_MAPPER = "json-mapper";
+    private static final String JSON_MAPPER = "json-mapper";
 
     static {
         mappers.put( YAML_MAPPER, createYamlMapper() );
         mappers.put( SMILE_MAPPER, createSmileMapper() );
-        mappers.put( PLAIN_MAPPER, createJsonMapper() );
+        mappers.put(JSON_MAPPER, createJsonMapper() );
     }
 
     private ObjectMapperRegistry() {}
@@ -65,7 +65,7 @@ public final class ObjectMapperRegistry {
     }
 
     public static ObjectMapper getJsonMapper() {
-        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.PLAIN_MAPPER );
+        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.JSON_MAPPER);
     }
 
 }
