@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.registries.ObjectMapperRegistry;
 
 /**
- * A {@link Converter} that handles both json and byte arrays. Based off work by Kai Waldron
- * (kaiwaldron@gmail.com)
+ * A {@link Converter} that handles both json and byte arrays. Based off work by Kai Waldron (kaiwaldron@gmail.com)
  * 
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
@@ -37,22 +36,13 @@ public class RhizomeConverter implements Converter {
         this.objectMapper = ObjectMapperRegistry.getPlainMapper();
     }
 
-
     @Override
     public Object fromBody( TypedInput body, Type type ) throws ConversionException {
-        try {
+        try ( InputStream in = body.in() ) {
             if ( StringUtils.equals( body.mimeType(), BYTE_MIME_TYPE ) ) {
-                return IOUtils.toByteArray( body.in() );
+                return IOUtils.toByteArray( in );
             }
-
             JavaType javaType = objectMapper.getTypeFactory().constructType( type );
-
-            InputStream in = body.in();
-
-            if ( in.available() == 0 ) {
-                return null;
-            }
-
             return objectMapper.readValue( body.in(), javaType );
         } catch ( IOException e ) {
             logger.error( "Unable to deserialize object of type {} from body with mime-type {}.",
