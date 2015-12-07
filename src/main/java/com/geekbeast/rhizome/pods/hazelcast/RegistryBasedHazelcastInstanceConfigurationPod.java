@@ -41,16 +41,20 @@ import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 public class RegistryBasedHazelcastInstanceConfigurationPod {
     private static final Logger                                               logger             = LoggerFactory
                                                                                                          .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
-    private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps.newConcurrentMap();
-    private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps.newConcurrentMap();
-    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps.newConcurrentMap();
-
+    private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps
+                                                                                                         .newConcurrentMap();
+    private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps
+                                                                                                         .newConcurrentMap();
+    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
+                                                                                                         .newConcurrentMap();
     @Inject
     protected RhizomeConfiguration                                            configuration;
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
-        return new HazelcastConfigurationContainer( getHazelcastServerConfiguration(), getHazelcastClientConfiguration() );
+        return new HazelcastConfigurationContainer(
+                getHazelcastServerConfiguration(),
+                getHazelcastClientConfiguration() );
     }
 
     public Config getHazelcastServerConfiguration() {
@@ -65,9 +69,12 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setProperty( "hazelcast.logging.type", "slf4j" )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ).setAllowUnsafe( true )
+                .setSerializationConfig( new SerializationConfig()
+                        .setSerializerConfigs( getSerializerConfigs() )
+                        .setAllowUnsafe( true )
                         .setUseNativeByteOrder( true ) )
-                .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) )
+                .setMapConfigs( getMapConfigs() )
+                .setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
         return config;
     }
@@ -82,10 +89,11 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
-                .setProperty( "hazelcast.logging.type", "slf4j" )
-            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
-            .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( getSerializationConfig() );
+                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
+                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
+                .setProperty( "hazelcast.logging.type", "slf4j" );
+
         return clientConfig;
     }
 
@@ -268,4 +276,5 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             }
         };
     }
+
 }
