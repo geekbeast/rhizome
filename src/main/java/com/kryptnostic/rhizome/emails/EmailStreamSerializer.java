@@ -4,20 +4,19 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import jersey.repackaged.com.google.common.collect.Lists;
 import jodd.mail.Email;
 import jodd.mail.EmailAttachment;
 import jodd.mail.EmailMessage;
 import jodd.mail.MailAddress;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
+public abstract class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
 
     @Override
     public void write( ObjectDataOutput out, Email object ) throws IOException {
@@ -30,9 +29,7 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
     }
 
     @Override
-    public int getTypeId() {
-        return 0;
-    }
+    public abstract int getTypeId();
 
     @Override
     public void destroy() {
