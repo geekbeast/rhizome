@@ -236,8 +236,8 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
-     testCompile 'com.squareup.retrofit:retrofit:1.9.0'
-     testCompile 'com.squareup.retrofit:retrofit-converters:1.9.0'
+     compile 'com.squareup.retrofit:retrofit:1.9.0'
+     compile 'com.squareup.retrofit:retrofit-converters:1.9.0'
      
     /*
      * WEBSOCKET DEPENDENCIES
