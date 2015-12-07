@@ -4,6 +4,7 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public interface KeyMapper<K> {
     public static final String ID_ATTRIBUTE = "id";
+    public static final String DEFAULT_SEPARATOR = ":";
 
     /**
      * @param key

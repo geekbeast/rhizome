@@ -6,9 +6,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import jersey.repackaged.com.google.common.base.Preconditions;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,7 +13,9 @@ import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.Config;
@@ -49,7 +48,8 @@ public class BaseHazelcastInstanceConfigurationPod {
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
-                .setMapConfigs( getMapConfigs() ).setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+                .setMapConfigs( getMapConfigs() )
+                .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
         return config;
     }
 
@@ -63,9 +63,9 @@ public class BaseHazelcastInstanceConfigurationPod {
             return null;
         }
         ClientConfig clientConfig = new ClientConfig()
-            .setNetworkConfig( getClientNetworkConfig( hzConfiguration) )
             .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-            .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) );
+                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
+                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) );
         return clientConfig;
     }
 

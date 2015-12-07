@@ -1,3 +1,7 @@
+plugins {
+    id 'org.inferred.processors' version '1.1'
+}
+
 //Easy semantic version based off describe + tags
 def getVersionName = { ->
     def stdout = new ByteArrayOutputStream()
@@ -58,7 +62,7 @@ repositories {
         url "https://oss.sonatype.org/content/repositories/snapshots"
     }
     maven {
-    		url "https://raw.github.com/dkhenry/rethinkjava/mvn-repo"
+        url "https://raw.github.com/dkhenry/rethinkjava/mvn-repo"
     }
 
 }
@@ -66,12 +70,25 @@ repositories {
 ext.spring_security_version='4.0.2.RELEASE'
 ext.spring_framework_version='4.2.1.RELEASE'
 ext.jackson_version='2.4.4'
-ext.jetty_version='9.3.3.v20150827'
-ext.hazelcast_version='3.5.3'
+ext.jetty_version='9.3.6.v20151106'
+ext.hazelcast_version='3.6-EA2'
+//ext.hazelcast_version='3.6-EA'
+//ext.hazelcast_version='3.5.3'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.4.1'
+ext.retrofit_version='1.9.0'
 ext.cassandra_driver_version='2.1.8'
+ext.rethinkdb_snapshot_version='2.2-b1-SNAPSHOT'
+ext.immutables_version='2.1.0'
+
 dependencies {
+
+    /*
+     * Immutables library for immutable objects
+     */
+    // processor comes from org.inferred.processors, https://github.com/palantir/gradle-processors
+    processor "org.immutables:value:${immutables_version}"
+
     /*
      * Servlet API 3.1 
      * 100% Java Servlet Container and Servlet Configuration
@@ -175,11 +192,6 @@ dependencies {
      compile 'org.glassfish.jersey.ext:jersey-spring3:2.11'
 
     /*
-     * Kryo serialization -- faster generic Java serialization
-     */
-     compile 'com.esotericsoftware.kryo:kryo:2.22'
-
-    /*
      * HAZELCAST - DISTRIBUTED DATA GRID
      * Transparent http clustering, distributed java.util collections
      */
@@ -203,7 +215,6 @@ dependencies {
      compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.3.v20150827"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
-
     /*
      * JAVAMAIL
      * Java email client.
@@ -212,15 +223,13 @@ dependencies {
      compile 'javax.mail:mail:1.5.0-b01'
      compile "org.jodd:jodd-mail:3.6.6"
      
-    /*
-     * ATMOSPHERE 
-     * Websocket / CometD support
-     */
-     
      /*
       * RethinkDB
       */
      compile "com.dkhenry:rethinkjava:0.9"
+     // snapshot official rethink driver
+     compile "com.rethinkdb:rethinkdb-driver:${rethinkdb_snapshot_version}"
+     
      
      /**
       * Cassandra
