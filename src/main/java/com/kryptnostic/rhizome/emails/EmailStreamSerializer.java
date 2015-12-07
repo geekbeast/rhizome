@@ -6,7 +6,6 @@ import java.util.List;
 
 import jersey.repackaged.com.google.common.collect.Lists;
 import jodd.mail.Email;
-import jodd.mail.EmailAttachment;
 import jodd.mail.EmailMessage;
 import jodd.mail.MailAddress;
 
@@ -57,8 +56,7 @@ public abstract class EmailStreamSerializer implements SelfRegisteringStreamSeri
             out.writeLong( object.getSentDate().getTime() );
         }
         serializeEmailMessages( out, object.getAllMessages() );
-
-        // TODO: Serializing e-mail attachments is hard.
+        // TODO: Handle attachments  
         // TODO: What do we do with headers in email?
     }
 
@@ -147,13 +145,5 @@ public abstract class EmailStreamSerializer implements SelfRegisteringStreamSeri
         return messages;
     }
 
-    public static void serializeAttachments( ObjectDataOutput out, Email email ) throws IOException {
-        for ( EmailAttachment attachment : email.getAttachments() ) {
-            out.writeUTF( attachment.getContentId() );
-            out.writeUTF( attachment.getEncodedName() );
-            out.writeUTF( attachment.getName() );
-            out.writeInt( attachment.getSize() );
-            out.writeByteArray( attachment.toByteArray() );
-        }
-    }
+    
 }
