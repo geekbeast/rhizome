@@ -34,8 +34,6 @@ import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
-import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
@@ -224,27 +222,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
             @Override
             public QueueConfig getQueueConfig() {
                 return new QueueConfig( "noop" );
-            }
-        };
-    }
-
-    @Bean
-    public SelfRegisteringKeyMapper<?> noopKM() {
-        return new SelfRegisteringKeyMapper<Void>() {
-
-            @Override
-            public String fromKey( Void key ) throws MappingException {
-                return null;
-            }
-
-            @Override
-            public Void toKey( String value ) throws MappingException {
-                return null;
-            }
-
-            @Override
-            public Class<Void> getClazz() {
-                return Void.class;
             }
         };
     }
