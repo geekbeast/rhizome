@@ -9,16 +9,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.registries.ObjectMapperRegistry;
+
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.geekbeast.rhizome.registries.ObjectMapperRegistry;
 
 /**
  * A {@link Converter} that handles both json and byte arrays. Based off work by Kai Waldron (kaiwaldron@gmail.com)
@@ -33,7 +33,7 @@ public class RhizomeConverter implements Converter {
     private final ObjectMapper  objectMapper;
 
     public RhizomeConverter() {
-        this.objectMapper = ObjectMapperRegistry.getPlainMapper();
+        this.objectMapper = ObjectMapperRegistry.getJsonMapper();
     }
 
     @Override
