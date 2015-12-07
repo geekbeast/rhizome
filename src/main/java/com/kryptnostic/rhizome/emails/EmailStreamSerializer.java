@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import jersey.repackaged.com.google.common.collect.Lists;
 import jodd.mail.Email;
+import jodd.mail.EmailAttachment;
 import jodd.mail.EmailMessage;
 import jodd.mail.MailAddress;
 
@@ -22,8 +26,7 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
 
     @Override
     public Email read( ObjectDataInput in ) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        return deserialize( in );
     }
 
     @Override
@@ -50,8 +53,14 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         out.writeUTF( object.getSubject() );
         out.writeUTF( object.getSubjectEncoding() );
         out.writeInt( object.getPriority() );
-        out.writeLong( object.getSentDate().getTime() );
+        Date sentDate = object.getSentDate();
+        boolean hasSentDate = ( sentDate != null );
+        out.writeBoolean( hasSentDate );
+        if ( hasSentDate ) {
+            out.writeLong( object.getSentDate().getTime() );
+        }
         serializeEmailMessages( out, object.getAllMessages() );
+
         // TODO: Serializing e-mail attachments is hard.
         // TODO: What do we do with headers in email?
     }
@@ -67,7 +76,13 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         String subject = in.readUTF();
         String subjectEncoding = in.readUTF();
         int priority = in.readInt();
-        long sentTime = in.readLong();
+        boolean hasSentDate = in.readBoolean();
+
+        if ( hasSentDate ) {
+            long sentTime = in.readLong();
+            email.setSentDate( new Date( sentTime ) ); // This is here to avoid double if check & auto-boxing
+        }
+
         List<EmailMessage> messages = deserializeEmailMessages( in );
         for ( EmailMessage message : messages ) {
             email.addMessage( message );
@@ -80,7 +95,6 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         email.setReplyTo( replyTo );
         email.setSubject( subject, subjectEncoding );
         email.setPriority( priority );
-        email.setSentDate( new Date( sentTime ) );
 
         return email;
     }
@@ -89,6 +103,13 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         out.writeInt( addresses.length );
         for ( MailAddress address : addresses ) {
             out.writeUTF( address.getEmail() );
+
+            String personalName = address.getPersonalName();
+            boolean hasPersonalName = StringUtils.isNotBlank( personalName );
+            out.writeBoolean( hasPersonalName );
+            if ( hasPersonalName ) {
+                out.writeUTF( address.getPersonalName() );
+            }
         }
     }
 
@@ -96,7 +117,14 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         int length = in.readInt();
         MailAddress[] addresses = new MailAddress[ length ];
         for ( int i = 0; i < length; ++i ) {
-            addresses[ i ] = new MailAddress( in.readUTF() );
+            String email = in.readUTF();
+            boolean hasPersonalName = in.readBoolean();
+            if ( hasPersonalName ) {
+                String personalName = in.readUTF();
+                addresses[ i ] = new MailAddress( personalName, email );
+            } else {
+                addresses[ i ] = new MailAddress( email );
+            }
         }
         return addresses;
     }
@@ -122,4 +150,13 @@ public class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Em
         return messages;
     }
 
+    public static void serializeAttachments( ObjectDataOutput out, Email email ) throws IOException {
+        for ( EmailAttachment attachment : email.getAttachments() ) {
+            out.writeUTF( attachment.getContentId() );
+            out.writeUTF( attachment.getEncodedName() );
+            out.writeUTF( attachment.getName() );
+            out.writeInt( attachment.getSize() );
+            out.writeByteArray( attachment.toByteArray() );
+        }
+    }
 }
