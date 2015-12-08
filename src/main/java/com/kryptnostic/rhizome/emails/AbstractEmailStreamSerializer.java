@@ -15,7 +15,7 @@ import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 
-public abstract class EmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
+public abstract class AbstractEmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
 
     @Override
     public void write( ObjectDataOutput out, Email object ) throws IOException {
