@@ -69,10 +69,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         Config config = new Config( hzConfiguration.getInstanceName() )
                 .setProperty( "hazelcast.logging.type", "slf4j" )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( new SerializationConfig()
-                        .setSerializerConfigs( getSerializerConfigs() )
-                        .setAllowUnsafe( true )
-                        .setUseNativeByteOrder( true ) )
+                .setSerializationConfig( getSerializationConfig() )
                 .setMapConfigs( getMapConfigs() )
                 .setNetworkConfig( getNetworkConfig( hzConfiguration ) )
                 .setQueueConfigs( getQueueConfigs() );
@@ -91,7 +88,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
         ClientConfig clientConfig = new ClientConfig()
                 .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( new SerializationConfig().setSerializerConfigs( getSerializerConfigs() ) )
+                .setSerializationConfig( getSerializationConfig() )
                 .setProperty( "hazelcast.logging.type", "slf4j" );
 
         return clientConfig;
