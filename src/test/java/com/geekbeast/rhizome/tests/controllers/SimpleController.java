@@ -21,6 +21,7 @@ import retrofit.client.Response;
 import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
+import com.geekbeast.rhizome.tests.bootstrap.RhizomeTests;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 
 @Controller( SimpleControllerAPI.CONTROLLER )
@@ -117,5 +118,18 @@ public class SimpleController implements SimpleControllerAPI {
     public ResponseEntity<String> teapot( HttpServletResponse response ) {
         teapot();
         return new ResponseEntity<String>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
+    }
+
+    @Override
+    public Response gzipTest() {
+        return null;
+    }
+
+    @RequestMapping(
+        value = GET.GZIP_TEST,
+        method = RequestMethod.GET,
+        produces = MediaType.TEXT_PLAIN )
+    public @ResponseBody String gzipTestHandler() {
+        return RhizomeTests.TEST_STRING;
     }
 }

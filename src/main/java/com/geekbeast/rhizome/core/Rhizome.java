@@ -15,7 +15,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
 import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.scheduling.annotation.Async;
@@ -31,8 +30,6 @@ import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
-import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
-import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.geekbeast.rhizome.pods.AsyncPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
@@ -40,8 +37,6 @@ import com.geekbeast.rhizome.pods.HazelcastPod;
 import com.geekbeast.rhizome.pods.MetricsPod;
 import com.geekbeast.rhizome.pods.ServletContainerPod;
 import com.geekbeast.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -87,7 +82,6 @@ public class Rhizome implements WebApplicationInitializer {
          * to conditionally enabled session clustering among other things.
          */
 
-        JettyConfiguration jettyConfig = rhizomeContext.getBean( JettyConfiguration.class );
         RhizomeConfiguration configuration = rhizomeContext.getBean( RhizomeConfiguration.class );
         if ( configuration.isSessionClusteringEnabled() ) {
             FilterRegistration.Dynamic addFilter = servletContext.addFilter(
@@ -100,17 +94,6 @@ public class Rhizome implements WebApplicationInitializer {
                     false,
                     "/*" );
             addFilter.setAsyncSupported( true );
-        }
-
-        Optional<GzipConfiguration> gzipConfig = jettyConfig.getGzipConfiguration();
-        if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
-            // TODO: GzipFilter is deprecated
-            FilterRegistration.Dynamic gzipFilter = servletContext.addFilter( GZIP_FILTER_NAME, new GzipFilter() );
-            gzipFilter.setAsyncSupported( true );
-            gzipFilter.addMappingForUrlPatterns( null, false, "/*" );
-            gzipFilter.setInitParameter(
-                    MIME_TYPES_PARAM,
-                    Joiner.on( "," ).skipNulls().join( gzipConfig.get().getGzipContentTypes() ) );
         }
 
         // Prevent jersey-spring3 from trying to initialize a spring application context.

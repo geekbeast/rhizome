@@ -1,9 +1,12 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,6 +37,7 @@ public class RhizomeTests {
     private static Lock                 testWriteLock = new ReentrantLock();
     private static final CountDownLatch latch         = new CountDownLatch(
                                                               RhizomeTests.class.getDeclaredMethods().length - 2 );
+    public static final String          TEST_STRING   = RandomStringUtils.random( 4096 );
 
     private static Rhizome              rhizome       = null;
 
@@ -65,6 +69,26 @@ public class RhizomeTests {
         Assert.assertEquals( expected, actual );
 
         latch.countDown();
+    }
+
+    @Test
+    public void testGzip() throws IOException {
+        SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
+
+        Response response = api.gzipTest();
+
+        Assert.assertNotNull( response );
+        Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
+        try ( InputStream in = response.getBody().in() ) {
+            String s = IOUtils.toString( in );
+            Assert.assertEquals( TEST_STRING, s );
+        }
+
+        TestConfiguration expected = new TestConfiguration( RandomStringUtils.random( 10 ), Optional.<String> absent() );
+        Assert.assertEquals( expected, api.setTestConfiguration( expected ) );
+        TestConfiguration actual = api.getTestConfiguration();
+        Assert.assertEquals( expected, actual );
+
     }
 
     @Test

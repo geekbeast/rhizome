@@ -11,6 +11,7 @@ public interface SimpleControllerAPI {
     String CONTROLLER = "/simple";
 
     interface GET {
+        String GZIP_TEST             = "/gzip";
         String CONTEXT_CONFIGURATION = "/context";
         String JETTY_CONFIGURATION   = "/jetty";
         String TEST_CONFIGURATION    = "/test";
@@ -20,6 +21,9 @@ public interface SimpleControllerAPI {
     interface PUT {
         String TEST_CONFIGURATION = "/test";
     }
+
+    @retrofit.http.GET( GET.GZIP_TEST )
+    Response gzipTest();
 
     @retrofit.http.GET( GET.CONTEXT_CONFIGURATION )
     ContextConfiguration getContextConfiguration();

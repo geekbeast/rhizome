@@ -26,11 +26,14 @@ public class JettyConfiguration implements Configuration {
     protected static final String                    SERVICE_ENDPOINT_CONFIGURATION_PROPERTY = "service-endpoint";
     protected static final String                    SECURITY_ENABLE_PROPERTY                = "security-enabled";
     protected static final String                    GZIP_CONFIGURATION_PROPERTY             = "gzip";
+    protected static final String                    DEFAULT_SERVLET_ENABLED_PROPERTY        = "default-servlet-enabled";
     protected static final int                       MAX_THREADS_DEFAULT                     = 500;
+    protected static final boolean                   DEFAULT_SERVLET_ENABLED_DEFAULT         = false;
 
     protected final Optional<String>                 keymanagerPassword;
     protected final int                              maxThreads;
     protected final boolean                          securityEnabled;
+    protected final boolean                          defaultServletEnabled;
     protected final Optional<ConnectorConfiguration> webConnectorConfiguration;
     protected final Optional<ConnectorConfiguration> serviceConnectorConfiguration;
     protected final Optional<ContextConfiguration>   contextConfiguration;
@@ -43,6 +46,7 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( WEB_ENDPOINT_CONFIGURATION_PROPERTY ) Optional<ConnectorConfiguration> webConnectorConfiguration,
             @JsonProperty( SERVICE_ENDPOINT_CONFIGURATION_PROPERTY ) Optional<ConnectorConfiguration> serviceConnectorConfiguration,
             @JsonProperty( MAX_THREADS_PROPERTY ) Optional<Integer> maxThreads,
+            @JsonProperty( DEFAULT_SERVLET_ENABLED_PROPERTY ) Optional<Boolean> defaultServletEnabled,
             @JsonProperty( KEYMANAGER_PASSWORD_PROPERTY ) Optional<String> keymanagerPassword,
             @JsonProperty( CONTEXT_CONFIGURATION_PROPERTY ) Optional<ContextConfiguration> contextConfiguration,
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration,
@@ -62,6 +66,7 @@ public class JettyConfiguration implements Configuration {
         this.truststoreConfiguration = truststoreConfiguration;
         this.gzipConfiguration = gzipConfiguration;
         this.securityEnabled = securityEnabled.or( false );
+        this.defaultServletEnabled = defaultServletEnabled.or( DEFAULT_SERVLET_ENABLED_DEFAULT );
     }
 
     public static ConfigurationKey key() {
@@ -112,6 +117,11 @@ public class JettyConfiguration implements Configuration {
     @JsonProperty( SECURITY_ENABLE_PROPERTY )
     public boolean isSecurityEnabled() {
         return securityEnabled;
+    }
+
+    @JsonProperty( DEFAULT_SERVLET_ENABLED_PROPERTY )
+    public boolean isDefaultServletEnabled() {
+        return defaultServletEnabled;
     }
 
     @JsonProperty( MAX_THREADS_PROPERTY )
