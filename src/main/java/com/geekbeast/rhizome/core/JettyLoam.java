@@ -3,12 +3,16 @@ package com.geekbeast.rhizome.core;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -20,8 +24,10 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.geekbeast.rhizome.configuration.jetty.ConnectorConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.GzipConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
+import com.google.common.base.Optional;
 
 public class JettyLoam implements Loam {
     private static final Logger      logger = LoggerFactory.getLogger( JettyLoam.class );
@@ -50,12 +56,12 @@ public class JettyLoam implements Loam {
          */
         JettyAnnotationConfigurationHack configurationHack = new JettyAnnotationConfigurationHack();
         if ( config.isSecurityEnabled() ) {
-            configurationHack.registerInitializer( RhizomeSecurity.class.getName() );
+            JettyAnnotationConfigurationHack.registerInitializer( RhizomeSecurity.class.getName() );
         }
         context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
 
         // TODO: Make loaded servlet classes configurable
-        //context.addServlet( JspServlet.class, "*.jsp" );
+        // context.addServlet( JspServlet.class, "*.jsp" );
 
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
         server = new Server();
@@ -67,7 +73,20 @@ public class JettyLoam implements Loam {
             configureEndpoint( config.getServiceConnectorConfiguration().get() );
         }
 
-        server.setHandler( context );
+        Handler handler = context;
+        Optional<GzipConfiguration> gzipConfig = config.getGzipConfiguration();
+        if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
+            // TODO: GzipFilter is deprecated
+            GzipHandler gzipHandler = new GzipHandler();
+            DefaultHandler defaultHandler = new DefaultHandler();
+            HandlerList handlerList = new HandlerList();
+            handlerList.setHandlers( new Handler[] { context, defaultHandler } );
+            gzipHandler.addIncludedMimeTypes( gzipConfig.get().getGzipContentTypes().toArray( new String[ 0 ] ) );
+            handler = gzipHandler;
+        }
+
+        server.setHandler( handler );
+
     }
 
     public JettyLoam( Class<? extends JettyConfiguration> clazz ) throws IOException {
