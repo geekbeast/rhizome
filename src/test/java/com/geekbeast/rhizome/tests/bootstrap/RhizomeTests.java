@@ -10,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
 import retrofit.client.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +32,7 @@ import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
+import com.google.common.net.HttpHeaders;
 
 public class RhizomeTests {
     private final static Logger         logger        = LoggerFactory.getLogger( RhizomeTests.class );
@@ -37,7 +40,7 @@ public class RhizomeTests {
     private static Lock                 testWriteLock = new ReentrantLock();
     private static final CountDownLatch latch         = new CountDownLatch(
                                                               RhizomeTests.class.getDeclaredMethods().length - 2 );
-    public static final String          TEST_STRING   = RandomStringUtils.random( 4096 );
+    public static final byte[]          TEST_BYTES    = RandomUtils.nextBytes( 4096 );
 
     private static Rhizome              rhizome       = null;
 
@@ -80,14 +83,15 @@ public class RhizomeTests {
         Assert.assertNotNull( response );
         Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
         try ( InputStream in = response.getBody().in() ) {
-            String s = IOUtils.toString( in );
-            Assert.assertEquals( TEST_STRING, s );
+            byte[] b = IOUtils.toByteArray( in );
+            Assert.assertArrayEquals( TEST_BYTES, b );
         }
-
-        TestConfiguration expected = new TestConfiguration( RandomStringUtils.random( 10 ), Optional.<String> absent() );
-        Assert.assertEquals( expected, api.setTestConfiguration( expected ) );
-        TestConfiguration actual = api.getTestConfiguration();
-        Assert.assertEquals( expected, actual );
+        for ( Header header : response.getHeaders() ) {
+            if ( header.getName() == HttpHeaders.CONTENT_TYPE ) {
+                Assert.assertEquals( "gzip", header.getValue() );
+                break;
+            }
+        }
 
     }
 

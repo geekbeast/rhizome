@@ -56,7 +56,7 @@ public class JettyLoam implements Loam {
          */
         JettyAnnotationConfigurationHack configurationHack = new JettyAnnotationConfigurationHack();
         if ( config.isSecurityEnabled() ) {
-            configurationHack.registerInitializer( RhizomeSecurity.class.getName() );
+            JettyAnnotationConfigurationHack.registerInitializer( RhizomeSecurity.class.getName() );
         }
         context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
 

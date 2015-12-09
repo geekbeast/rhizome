@@ -30,6 +30,7 @@ import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.geekbeast.rhizome.pods.AsyncPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
@@ -50,11 +51,9 @@ import com.hazelcast.web.WebFilter;
  */
 public class Rhizome implements WebApplicationInitializer {
     private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
-    private static final String                            GZIP_FILTER_NAME              = "GzipFilter";
-    private static final String                            MIME_TYPES_PARAM              = "mimeTypes";
     protected static Lock                                  startupLock                   = new ReentrantLock();
     protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected AtomicBoolean                         isInitialized                 = new AtomicBoolean( false );
+    protected AtomicBoolean                                isInitialized                 = new AtomicBoolean( false );
     protected final AnnotationConfigWebApplicationContext  context;
 
     public Rhizome() {
@@ -83,6 +82,8 @@ public class Rhizome implements WebApplicationInitializer {
          */
 
         RhizomeConfiguration configuration = rhizomeContext.getBean( RhizomeConfiguration.class );
+        JettyConfiguration jettyConfiguration = rhizomeContext.getBean( JettyConfiguration.class );
+
         if ( configuration.isSessionClusteringEnabled() ) {
             FilterRegistration.Dynamic addFilter = servletContext.addFilter(
                     HAZELCAST_SESSION_FILTER_NAME,
@@ -138,10 +139,12 @@ public class Rhizome implements WebApplicationInitializer {
         /*
          * Default Servlet
          */
-        ServletRegistration.Dynamic defaultServlet = servletContext.addServlet( "default", new DefaultServlet() );
-        defaultServlet.addMapping( new String[] { "/*" } );
-        defaultServlet.setLoadOnStartup( 1 );
-        defaultServlet.setAsyncSupported( true );
+        if ( jettyConfiguration.isDefaultServletEnabled() ) {
+            ServletRegistration.Dynamic defaultServlet = servletContext.addServlet( "default", new DefaultServlet() );
+            defaultServlet.addMapping( new String[] { "/*" } );
+            defaultServlet.setLoadOnStartup( 1 );
+            defaultServlet.setAsyncSupported( true );
+        }
 
         registerDispatcherServlets( servletContext );
     }
@@ -160,7 +163,8 @@ public class Rhizome implements WebApplicationInitializer {
             ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
                     configuration.getServletName(),
                     new DispatcherServlet( dispatchServletContext ) );
-            Preconditions.checkNotNull( dispatcher, "A DispatcherServlet with this name has already been registered and fully configured" );
+            Preconditions.checkNotNull( dispatcher,
+                    "A DispatcherServlet with this name has already been registered and fully configured" );
             if ( configuration.getLoadOnStartup().isPresent() ) {
                 dispatcher.setLoadOnStartup( configuration.getLoadOnStartup().get() );
             }

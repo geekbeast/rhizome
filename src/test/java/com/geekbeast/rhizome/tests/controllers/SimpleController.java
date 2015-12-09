@@ -129,7 +129,7 @@ public class SimpleController implements SimpleControllerAPI {
         value = GET.GZIP_TEST,
         method = RequestMethod.GET,
         produces = MediaType.TEXT_PLAIN )
-    public @ResponseBody String gzipTestHandler() {
-        return RhizomeTests.TEST_STRING;
+    public @ResponseBody byte[] gzipTestHandler() {
+        return RhizomeTests.TEST_BYTES;
     }
 }
