@@ -82,6 +82,7 @@ public class JettyLoam implements Loam {
             HandlerList handlerList = new HandlerList();
             handlerList.setHandlers( new Handler[] { context, defaultHandler } );
             gzipHandler.addIncludedMimeTypes( gzipConfig.get().getGzipContentTypes().toArray( new String[ 0 ] ) );
+            gzipHandler.setHandler( handlerList );
             handler = gzipHandler;
         }
 
