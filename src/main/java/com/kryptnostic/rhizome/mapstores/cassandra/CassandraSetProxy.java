@@ -5,15 +5,17 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.kryptnostic.rhizome.mappers.SetProxy;
+import com.datastax.driver.core.querybuilder.Select.Where;
+import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 
-public class CassandraSetProxy<T> implements SetProxy<T> {
+public abstract class CassandraSetProxy<T> implements SetProxy<T> {
     public static final String SET_ID_FIELD = "setId";
-    private final Session session;
-    private final String  table;
-    private final UUID setId;
+    private final Session      session;
+    private final String       table;
+    private final UUID         setId;
 
     public CassandraSetProxy( Cluster cluster, String keyspace, String table, UUID setId ) {
         this.session = cluster.connect( keyspace );
@@ -23,13 +25,14 @@ public class CassandraSetProxy<T> implements SetProxy<T> {
 
     @Override
     public int size() {
-        session.execute( QueryBuilder.select().all().from( table ).where( QueryBuilder.eq(  SET_ID_FIELD, setId ) );
+        Where countQuery = QueryBuilder.select().countAll().from( table ).where( QueryBuilder.eq( SET_ID_FIELD, setId ) );
+        ResultSet execute = session.execute( countQuery );
+        return execute.all().size();
     }
 
     @Override
     public boolean isEmpty() {
-        // TODO Auto-generated method stub
-        return false;
+        return size() == 0;
     }
 
     @Override
@@ -95,7 +98,6 @@ public class CassandraSetProxy<T> implements SetProxy<T> {
     @Override
     public void clear() {
         // TODO Auto-generated method stub
-
     }
 
 }
