@@ -42,20 +42,20 @@ if( ( (branch.equals("develop") || branch.equals("master") || branch.contains("r
 
     publishing {
         repositories {
+            //maven {
+             //   url branch.equals("master") ? releaseUrl : snapshotUrl
+                //credentials {
+               //     username = "$System.env.bamboo_SONATYPE_USERNAME"
+              //      password = "$System.env.bamboo_SONATYPE_PASSWORD"
+             //   }
+            //}
             maven {
-                url branch.equals("master") ? releaseUrl : snapshotUrl
+                url branch.equals("master") ? artifactoryReleaseUrl : artifactorySnapshotUrl
                 credentials {
-                    username = "$System.env.bamboo_SONATYPE_USERNAME"
-                    password = "$System.env.bamboo_SONATYPE_PASSWORD"
+                    username = "$System.env.bamboo_ARTIFACTORY_USERNAME"
+                    password = "$System.env.bamboo_ARTIFACTORY_PASSWORD"
                 }
             }
-            //maven {
-                //url branch.equals("master") ? artifactoryReleaseUrl : artifactorySnapshotUrl
-                //credentials {
-                    //username = "$System.env.bamboo_ARTIFACTORY_USERNAME"
-                    //password = "$System.env.bamboo_ARTIFACTORY_PASSWORD"
-                //}
-            //}
         }
 
         publications {
