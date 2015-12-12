@@ -1,8 +1,8 @@
 package com.kryptnostic.rhizome.mappers.values;
 
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 
-public class ByteArrayValueMapper implements ValueMapper<byte[]> {
+public class ByteArrayValueMapper implements SelfRegisteringValueMapper<byte[]> {
 
     @Override
     public byte[] toBytes( byte[] value ) {
@@ -12,6 +12,11 @@ public class ByteArrayValueMapper implements ValueMapper<byte[]> {
     @Override
     public byte[] fromBytes( byte[] data ) {
         return data;
+    }
+
+    @Override
+    public Class<byte[]> getClazz() {
+        return byte[].class;
     }
 
 }

@@ -1,12 +1,9 @@
-package com.kryptnostic.rhizome.cassandra;
+package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import jersey.repackaged.com.google.common.collect.Iterables;
-import jersey.repackaged.com.google.common.collect.Maps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +20,15 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
-public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapStore<K, V> {
+import jersey.repackaged.com.google.common.collect.Iterables;
+import jersey.repackaged.com.google.common.collect.Maps;
+
+public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private final Cluster              cluster;
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
     private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
@@ -43,6 +44,7 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
     private final PreparedStatement    DELETE_ALL_QUERY;
     private final Session              session;
     private final int replicationFactor;
+    private final String               table;
 
     public BaseCassandraMapStore(
             String table,
@@ -51,6 +53,7 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
             CassandraMapper<V> mapper,
             CassandraConfiguration config,
             Cluster globalCluster) {
+        this.table = table;
         this.keyMapper = keyMapper;
         this.mapper = mapper;
         this.cluster = globalCluster;
@@ -121,7 +124,7 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
         try {
             session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
         } catch ( MappingException e ) {
-            logger.error( "Unable to store key {} : value {} ", key, value );
+            logger.error( "Unable to store key {} : value {} ", key, value, e );
         }
     }
 
@@ -156,4 +159,13 @@ public abstract class BaseCassandraMapStore<K, V> implements SelfRegisteringMapS
         return new MapConfig( mapName ).setBackupCount( this.replicationFactor ).setMapStoreConfig( getMapStoreConfig() );
     }
 
+    @Override
+    public String getMapName() {
+        return mapName;
+    }
+
+    @Override
+    public String getTable() {
+        return table;
+    }
 }

@@ -1,12 +1,16 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -18,6 +22,7 @@ import org.springframework.http.HttpStatus;
 
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
 import retrofit.client.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +32,7 @@ import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
+import com.google.common.net.HttpHeaders;
 
 public class RhizomeTests {
     private final static Logger         logger        = LoggerFactory.getLogger( RhizomeTests.class );
@@ -34,6 +40,7 @@ public class RhizomeTests {
     private static Lock                 testWriteLock = new ReentrantLock();
     private static final CountDownLatch latch         = new CountDownLatch(
                                                               RhizomeTests.class.getDeclaredMethods().length - 2 );
+    public static final byte[]          TEST_BYTES    = RandomUtils.nextBytes( 4096 );
 
     private static Rhizome              rhizome       = null;
 
@@ -65,6 +72,27 @@ public class RhizomeTests {
         Assert.assertEquals( expected, actual );
 
         latch.countDown();
+    }
+
+    @Test
+    public void testGzip() throws IOException {
+        SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
+
+        Response response = api.gzipTest();
+
+        Assert.assertNotNull( response );
+        Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
+        try ( InputStream in = response.getBody().in() ) {
+            byte[] b = IOUtils.toByteArray( in );
+            Assert.assertArrayEquals( TEST_BYTES, b );
+        }
+        for ( Header header : response.getHeaders() ) {
+            if ( header.getName() == HttpHeaders.CONTENT_TYPE ) {
+                Assert.assertEquals( "gzip", header.getValue() );
+                break;
+            }
+        }
+
     }
 
     @Test

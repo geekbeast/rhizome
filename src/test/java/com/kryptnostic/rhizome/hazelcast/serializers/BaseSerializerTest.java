@@ -1,16 +1,13 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DefaultSerializationServiceBuilder;
-import com.hazelcast.nio.serialization.ObjectDataInputStream;
-import com.hazelcast.nio.serialization.ObjectDataOutputStream;
 import com.hazelcast.nio.serialization.SerializationService;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
@@ -25,7 +22,7 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
     }
 
     protected abstract T createSerializer();
-    
+
     /**
      * Override this class when deserializer is expected to deal with encrypted data.
      * @return
@@ -37,21 +34,19 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
     protected abstract D createInput();
 
     @Test
-    public void testSerializeDeserialize() throws NoSuchMethodException, SecurityException, IOException {
+    public void testSerializeDeserialize() throws SecurityException, IOException {
         D inputObject = createInput();
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         SerializationService ss = ( new DefaultSerializationServiceBuilder() ).build();
-        ObjectDataOutputStream dataOut = ss.createObjectDataOutputStream( out );
+        ObjectDataOutput dataOut = ss.createObjectDataOutput( 1 );
 
         serializer.write( dataOut, inputObject );
 
-        byte[] inputData = out.toByteArray();
+        byte[] inputData = dataOut.toByteArray();
 
-        InputStream in = new ByteArrayInputStream( inputData );
-        ObjectDataInputStream dataIn = ss.createObjectDataInputStream( in );
-        
-        D outputObject = (D) deserializer.read( dataIn );
+        ObjectDataInput dataIn = ss.createObjectDataInput( inputData );
+
+        D outputObject = deserializer.read( dataIn );
 
         Assert.assertEquals( inputObject, outputObject );
     }
