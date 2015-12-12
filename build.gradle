@@ -253,7 +253,7 @@ dependencies {
       
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-      compile "org.springframework.integration:spring-integration-websocket:4.2.0.RELEASE"
+      compile "org.springframework.integration:spring-integration-websocket:4.2.3.RELEASE"
  }
 
 eclipse {
