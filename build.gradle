@@ -67,8 +67,8 @@ repositories {
 
 }
 
-ext.spring_security_version='4.0.2.RELEASE'
-ext.spring_framework_version='4.2.1.RELEASE'
+ext.spring_security_version='4.0.3.RELEASE'
+ext.spring_framework_version='4.2.3.RELEASE'
 ext.jackson_version='2.4.4'
 ext.jetty_version='9.3.6.v20151106'
 ext.hazelcast_version='3.6-EA2'
@@ -210,8 +210,8 @@ dependencies {
      //TODO: Once GA version of jetty-jsp is released update version.
      //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
      compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
-     compile "org.eclipse.jetty.websocket:websocket-server:9.3.3.v20150827"
-     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:9.3.3.v20150827"
+     compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
+     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
      compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
 
     /*
