@@ -229,12 +229,12 @@ public class Rhizome implements WebApplicationInitializer {
     protected void initialize() {
         synchronized ( context ) {
             if ( !isInitialized.getAndSet( true ) ) {
-                Arrays.asList( getDefaultPods() ).forEach( pod -> context.register( pod ) );
+                Arrays.asList( getServicePods() ).forEach( pod -> context.register( pod ) );
             }
         }
     }
 
-    public Class<?>[] getDefaultPods() {
+    public Class<?>[] getServicePods() {
         return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
                 ServletContainerPod.class, BaseHazelcastInstanceConfigurationPod.class };
     }
