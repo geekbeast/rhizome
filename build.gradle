@@ -143,7 +143,7 @@ dependencies {
     /*
      JODA TIME - A better datetime class.
      */
-     compile 'joda-time:joda-time:2.8.2'
+     compile 'joda-time:joda-time:2.9.1'
 
      compile 'com.datastax.cassandra:cassandra-driver-core:2.1.7.1'
     /*
@@ -193,7 +193,7 @@ dependencies {
      * Transparent http clustering, distributed java.util collections
      */
      compile "com.hazelcast:hazelcast:${hazelcast_version}"
-     compile "com.hazelcast:hazelcast-client:${hazelcast_version}"
+     compile "com.hazelcast:hazelcast-client-new:${hazelcast_version}"
      compile "com.hazelcast:hazelcast-wm:${hazelcast_version}"
      compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
 
