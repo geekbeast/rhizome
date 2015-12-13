@@ -71,8 +71,8 @@ public class SimpleController implements SimpleControllerAPI {
     public @ResponseBody TestConfiguration getTestConfiguration() {
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
-        } catch ( IOException e ) {
-            logger.error( "Failed to rest test configuration.", e );
+        } catch ( Exception e ) {
+            logger.error( "Failed to get test configuration.", e );
             return null;
         }
     }

@@ -8,10 +8,12 @@ import javax.inject.Inject;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
+import com.geekbeast.rhizome.pods.HazelcastPod;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -37,6 +39,7 @@ import com.hazelcast.config.TcpIpConfig;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 @Configuration
+@Import(HazelcastPod.class)
 public class BaseHazelcastInstanceConfigurationPod {
 
     @Inject
