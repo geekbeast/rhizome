@@ -1,8 +1,0 @@
-##
-# Rhizome Bootstrap Configuration
-##
-
-# Set to false to disable persistence 
-required: "kryptodoge"
-optional: "maybe"
-    
