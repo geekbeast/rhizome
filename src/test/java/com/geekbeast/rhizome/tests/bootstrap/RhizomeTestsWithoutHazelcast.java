@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 import retrofit.RestAdapter;
@@ -25,8 +27,12 @@ import retrofit.client.Header;
 import retrofit.client.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.configuration.jetty.ConnectorConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
+import com.geekbeast.rhizome.core.JettyLoam;
+import com.geekbeast.rhizome.core.Loam;
 import com.geekbeast.rhizome.core.Rhizome;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.rhizome.pods.InMemoryConfigurationServicePod;
 import com.geekbeast.rhizome.tests.configurations.JacksonConverter;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
@@ -34,11 +40,12 @@ import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
 
-public class RhizomeTests {
-    private final static Logger logger        = LoggerFactory.getLogger( RhizomeTests.class );
+public class RhizomeTestsWithoutHazelcast {
+    private final static Logger logger        = LoggerFactory.getLogger( RhizomeTestsWithoutHazelcast.class );
+    private final static int    HTTP_PORT     = 8082;
+    private final static int    HTTPS_PORT    = 8444;
     private static RestAdapter  adapter;
     private static Lock         testWriteLock = new ReentrantLock();
-    public static final byte[]  TEST_BYTES    = RandomUtils.nextBytes( 4096 );
 
     private static Rhizome      rhizome       = null;
 
@@ -46,12 +53,49 @@ public class RhizomeTests {
         testWriteLock.lock();
     }
 
+    @Configuration
+    static class RhizomeTestWithoutHazelcast {
+        @Inject
+        private JettyConfiguration jettyConfiguration;
+
+        @Bean
+        public Loam servicesJetty() throws IOException {
+            return new JettyLoam( forTestWithoutHazelcast( jettyConfiguration ) );
+        }
+
+        private static JettyConfiguration forTestWithoutHazelcast( JettyConfiguration configuration ) {
+            ConnectorConfiguration cc = configuration.getWebConnectorConfiguration().get();
+            ConnectorConfiguration ncc = new ConnectorConfiguration(
+                    Optional.of( HTTP_PORT ),
+                    Optional.of( HTTPS_PORT ),
+                    Optional.of( cc.useSSL() ),
+                    Optional.of( cc.requireSSL() ),
+                    Optional.of( cc.needClientAuth() ),
+                    Optional.of( cc.wantClientAuth() ),
+                    cc.getCertificateAlias() );
+            return new JettyConfiguration(
+                    Optional.of( ncc ),
+                    configuration.getServiceConnectorConfiguration(),
+                    Optional.of( configuration.getMaxThreads() ),
+                    Optional.absent(),
+                    configuration.getKeyManagerPassword(),
+                    configuration.getContextConfiguration(),
+                    configuration.getKeystoreConfiguration(),
+                    configuration.getTruststoreConfiguration(),
+                    configuration.getGzipConfiguration(),
+                    Optional.of( configuration.isSecurityEnabled() ) );
+        }
+    }
+
     @BeforeClass
     public static void plant() throws Exception {
-        rhizome = new Rhizome( DispatcherServletsPod.class, RegistryBasedHazelcastInstanceConfigurationPod.class );
+        rhizome = new Rhizome(
+                RhizomeTestWithoutHazelcast.class,
+                DispatcherServletsPod.class,
+                InMemoryConfigurationServicePod.class );
         rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
-        adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
+        adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8082/rhizome/api" )
                 .setConverter( new JacksonConverter() ).build();
     }
 
@@ -80,7 +124,7 @@ public class RhizomeTests {
         Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
         try ( InputStream in = response.getBody().in() ) {
             byte[] b = IOUtils.toByteArray( in );
-            Assert.assertArrayEquals( TEST_BYTES, b );
+            Assert.assertArrayEquals( RhizomeTests.TEST_BYTES, b );
         }
         for ( Header header : response.getHeaders() ) {
             if ( header.getName() == HttpHeaders.CONTENT_TYPE ) {

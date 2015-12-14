@@ -12,12 +12,12 @@ import com.geekbeast.rhizome.core.JettyLoam;
 import com.geekbeast.rhizome.core.Loam;
 
 @Configuration
-public class ServletContainerPod {
+public class JettyContainerPod implements LoamPod {
     @Inject
     private JettyConfiguration jettyConfiguration;
 
     @Bean
-    public Loam jettyServer() throws IOException {
+    public Loam getLoam() throws IOException {
         return new JettyLoam( jettyConfiguration );
     }
 }
