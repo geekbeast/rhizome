@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -8,9 +9,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Host;
-import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -20,8 +18,8 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.cassandra.CassandraMapper;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
@@ -29,12 +27,11 @@ import jersey.repackaged.com.google.common.collect.Iterables;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private final Cluster              cluster;
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
     private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
-    private static final String        TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data text);";
-    private final String                mapName;
-    protected final CassandraMapper<V> mapper;
+    private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data blob);";
+    protected final String          mapName;
+    protected final ValueMapper<V>  valueMapper;
     protected final KeyMapper<K>       keyMapper;
 
     private final PreparedStatement    LOAD_QUERY;
@@ -42,35 +39,35 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     private final PreparedStatement    DELETE_QUERY;
     private final PreparedStatement    LOAD_ALL_QUERY;
     private final PreparedStatement    DELETE_ALL_QUERY;
-    private final Session              session;
+    protected final Session         session;
     private final int replicationFactor;
-    private final String               table;
+    protected final String          table;
 
     public BaseCassandraMapStore(
             String table,
             String mapName,
             KeyMapper<K> keyMapper,
-            CassandraMapper<V> mapper,
+            ValueMapper<V> mapper,
             CassandraConfiguration config,
-            Cluster globalCluster) {
+            Session globalSession ) {
         this.table = table;
         this.keyMapper = keyMapper;
-        this.mapper = mapper;
-        this.cluster = globalCluster;
+        this.valueMapper = mapper;
+        this.session = globalSession;
         this.mapName = mapName;
         this.replicationFactor = config.getReplicationFactor();
 
-        Metadata metadata = cluster.getMetadata();
-        logger.info( "Connected to cluster: {}", metadata.getClusterName() );
-        for ( Host host : metadata.getAllHosts() ) {
-            logger.info(
-                    "Datacenter: {}; Host: {}; Rack: {}\n",
-                    host.getDatacenter(),
-                    host.getAddress(),
-                    host.getRack() );
-        }
+        // Find a better place for this. It shouldn't be here.
+        // Metadata metadata = cluster.getMetadata();
+        // logger.info( "Connected to cluster: {}", metadata.getClusterName() );
+        // for ( Host host : metadata.getAllHosts() ) {
+        // logger.info(
+        // "Datacenter: {}; Host: {}; Rack: {}\n",
+        // host.getDatacenter(),
+        // host.getAddress(),
+        // host.getRack() );
+        // }
         String keyspace = config.getKeyspace();
-        session = cluster.newSession();
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
@@ -95,9 +92,10 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
             if ( result == null ) {
                 return null;
             }
-            return mapper.map( result.getString( "data" ) );
+            ByteBuffer bytes = result.getBytes( "data" );
+            return valueMapper.fromBytes( bytes.array() );
         } catch ( MappingException e ) {
-            logger.error( "Unable to map key to cassandra key." );
+            logger.error( "Unable to map key to cassandra key.", e );
         }
         return null;
     }
@@ -122,7 +120,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     @Override
     public void store( K key, V value ) {
         try {
-            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), mapper.asString( value ) ) );
+            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), valueMapper.toBytes( value ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value, e );
         }

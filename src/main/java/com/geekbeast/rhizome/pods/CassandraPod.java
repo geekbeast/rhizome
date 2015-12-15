@@ -52,12 +52,11 @@ public class CassandraPod {
         Cluster cluster = getCluster();
         return (BaseCassandraMapStore<ConfigurationKey, String>) new CassandraMapStoreFactory.Builder()
                 .withConfiguration( config )
-                .withCluster( cluster )
+                .withSession( cluster.newSession() )
                 .build()
                 .build( ConfigurationKey.class, String.class )
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .build();
-
     }
 
 }

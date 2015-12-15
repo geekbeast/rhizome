@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.mapstores.rethinkdb;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
+import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -25,6 +26,11 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
         super();
         this.pool = builder.getPool();
         this.dbName = builder.getDbName();
+    }
+
+    @Override
+    public <K, C extends SetProxy<K, V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
+        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }
 
     @Override
@@ -125,4 +131,5 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
         }
 
     }
+
 }

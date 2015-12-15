@@ -2,25 +2,28 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.UUID;
 
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 
-public abstract class CassandraSetProxy<T> implements SetProxy<T> {
+public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     public static final String SET_ID_FIELD = "setId";
     private final Session      session;
     private final String       table;
-    private final UUID         setId;
+    private final K            setId;
+    private final Class<T>     clazz;
 
-    public CassandraSetProxy( Cluster cluster, String keyspace, String table, UUID setId ) {
-        this.session = cluster.connect( keyspace );
-        this.table = table;
+    public CassandraSetProxy( Session session, String keyspace, String table, K setId, Class<T> concreteClass ) {
+        // use cluster.newSession() here to avoid having to connect to cassandra on object creation
+        this.session = session;
+        // fully qualify table names so that we can get away with
+        // passing around one session throughout the application
+        this.table = keyspace.concat( "." ).concat( table );
         this.setId = setId;
+        this.clazz = concreteClass;
     }
 
     @Override
@@ -98,6 +101,11 @@ public abstract class CassandraSetProxy<T> implements SetProxy<T> {
     @Override
     public void clear() {
         // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Class<T> getType() {
+        return clazz;
     }
 
 }
