@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -17,7 +16,6 @@ import javax.servlet.ServletRegistration;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
@@ -34,10 +32,9 @@ import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.geekbeast.rhizome.pods.AsyncPod;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
-import com.geekbeast.rhizome.pods.HazelcastPod;
+import com.geekbeast.rhizome.pods.JettyContainerPod;
+import com.geekbeast.rhizome.pods.LoamPod;
 import com.geekbeast.rhizome.pods.MetricsPod;
-import com.geekbeast.rhizome.pods.ServletContainerPod;
-import com.geekbeast.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -51,26 +48,36 @@ import com.hazelcast.web.WebFilter;
  */
 public class Rhizome implements WebApplicationInitializer {
     private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
-    protected static Lock                                  startupLock                   = new ReentrantLock();
+    protected static final Class<?>[]                      DEFAULT_SERVICE_PODS          = new Class<?>[] {
+                                                                                         ConfigurationPod.class,
+                                                                                         MetricsPod.class,
+                                                                                         AsyncPod.class };
+    protected static final Lock                            startupLock                   = new ReentrantLock();
     protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected AtomicBoolean                                isInitialized                 = new AtomicBoolean( false );
     protected final AnnotationConfigWebApplicationContext  context;
 
     public Rhizome() {
-        this( new Class[ 0 ] );
+        this( new Class<?>[] {} );
     }
 
     public Rhizome( Class<?>... pods ) {
-        this( new AnnotationConfigWebApplicationContext(), pods );
+        this( JettyContainerPod.class, pods );
     }
 
-    public Rhizome( AnnotationConfigWebApplicationContext context, Class<?>... pods ) {
+    public Rhizome( Class<? extends LoamPod> loamPodClass, Class<?>... pods ) {
+        this( new AnnotationConfigWebApplicationContext(), loamPodClass, pods );
+    }
+
+    public Rhizome(
+            AnnotationConfigWebApplicationContext context,
+            Class<? extends LoamPod> loamPodClass,
+            Class<?>... pods ) {
         this.context = context;
         intercrop( pods );
-        initialize();
+        intercrop( loamPodClass );
+        Arrays.asList( getDefaultServicePods() ).forEach( pod -> context.register( pod ) );
     }
 
-    @Async
     @Override
     public void onStartup( ServletContext servletContext ) throws ServletException {
         Preconditions.checkNotNull( rhizomeContext, "Rhizome context cannot be null for startup." );
@@ -193,7 +200,8 @@ public class Rhizome implements WebApplicationInitializer {
         }
 
         /*
-         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2)
+         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2) switch in the correct singleton
+         * context 3) set back to null and release lock once Jetty has finished starting.
          */
         try {
             startupLock.lock();
@@ -221,21 +229,9 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
-    /**
-     * This method should be overridden if any of the built-in defaults are not desired. To add additional
-     * configurations beyond the built in defaults, {@code intercrop(...)} should be called to register @Configuration
-     * bootstrap beans.
-     */
-    protected void initialize() {
-        synchronized ( context ) {
-            if ( !isInitialized.getAndSet( true ) ) {
-                Arrays.asList( getDefaultPods() ).forEach( pod -> context.register( pod ) );
-            }
-        }
-    }
+    // This method is not static so it can be sub-classed and overridden.
 
-    public Class<?>[] getDefaultPods() {
-        return new Class<?>[] { ConfigurationPod.class, MetricsPod.class, AsyncPod.class, HazelcastPod.class,
-                ServletContainerPod.class, BaseHazelcastInstanceConfigurationPod.class };
+    public Class<?>[] getDefaultServicePods() {
+        return DEFAULT_SERVICE_PODS;
     }
 }

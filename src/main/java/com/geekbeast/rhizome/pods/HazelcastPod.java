@@ -40,18 +40,18 @@ public class HazelcastPod {
      */
 
     @Inject
-    private HazelcastConfigurationContainer config;
+    private HazelcastConfigurationContainer hazelcastContainerConfiguration;
 
     @Inject
-    private RhizomeConfiguration            configuration;
+    private RhizomeConfiguration            rhizomeConfiguration;
 
     @Inject
     private AsyncEventBus                   configurationUpdates;
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
-        Optional<Config> serverConfig = config.getServerConfig();
-        Optional<ClientConfig> clientConfig = config.getClientConfig();
+        Optional<Config> serverConfig = hazelcastContainerConfiguration.getServerConfig();
+        Optional<ClientConfig> clientConfig = hazelcastContainerConfiguration.getClientConfig();
         if ( serverConfig.isPresent() ) {
             return Hazelcast.getOrCreateHazelcastInstance( serverConfig.get() );
         } else if ( clientConfig.isPresent() ) {
@@ -83,10 +83,10 @@ public class HazelcastPod {
 
     @Bean
     public Properties hazelcastSessionFilterProperties() {
-        if ( !configuration.isSessionClusteringEnabled() ) {
+        if ( !rhizomeConfiguration.isSessionClusteringEnabled() ) {
             return null;
         }
-        HazelcastSessionFilterConfiguration filterConfig = configuration.getHazelcastSessionFilterConfiguration()
+        HazelcastSessionFilterConfiguration filterConfig = rhizomeConfiguration.getHazelcastSessionFilterConfiguration()
                 .orNull();
         if ( filterConfig == null ) {
             return null;
@@ -114,7 +114,7 @@ public class HazelcastPod {
 
     @Bean
     public WebFilter hazelcastSessionFilter() {
-        if ( !configuration.isSessionClusteringEnabled() ) {
+        if ( !rhizomeConfiguration.isSessionClusteringEnabled() ) {
             return null;
         }
         return new WebFilter( hazelcastSessionFilterProperties() );

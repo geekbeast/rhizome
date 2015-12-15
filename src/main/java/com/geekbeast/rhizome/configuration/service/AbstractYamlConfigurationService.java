@@ -39,7 +39,7 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
     public <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException {
         Preconditions.checkNotNull( clazz, "Requested configuration class cannot be null." );
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
-        Preconditions.checkState( key != null && StringUtils.isBlank( key.getUri() ), "Configuration id for class "
+        Preconditions.checkState( key != null && StringUtils.isNotBlank( key.getUri() ), "Configuration id for class "
                 + clazz.getName() + " cannot be blank or null" );
 
         try {

@@ -5,10 +5,10 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.hazelcast.internal.serialization.SerializationService;
-import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.DefaultSerializationServiceBuilder;
+import com.hazelcast.nio.serialization.SerializationService;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
 public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
@@ -38,7 +38,7 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
         D inputObject = createInput();
 
         SerializationService ss = ( new DefaultSerializationServiceBuilder() ).build();
-        ObjectDataOutput dataOut = ss.createObjectDataOutput();
+        ObjectDataOutput dataOut = ss.createObjectDataOutput( 1 );
 
         serializer.write( dataOut, inputObject );
 
