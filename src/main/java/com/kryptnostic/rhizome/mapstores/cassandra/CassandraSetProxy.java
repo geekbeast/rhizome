@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -19,17 +20,20 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
-    private static final String     COUNT_RESULT_COLUMN_NAME = "count";
     private static final Logger     logger                   = LoggerFactory.getLogger( CassandraSetProxy.class );
+
+    private static final String     COUNT_RESULT_COLUMN_NAME = "count";
+    private static final String     VALUE_RESULT_COLUMN_NAME = "results";
 
     private final Session           session;
     private final String            qualifiedTable;
     private final String            mappedSetId;
-    private final ValueMapper<T>    typeMapper;
+    final ValueMapper<T>            typeMapper;
 
     private final PreparedStatement CONTAINS_STATEMENT;
     private final PreparedStatement SIZE_STATEMENT;
     private final PreparedStatement ADD_STATEMENT;
+    final PreparedStatement         GET_PAGE_STATEMENT;
 
     public CassandraSetProxy(
             Session session,
@@ -56,6 +60,9 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
                 QueryBuilder.insertInto( qualifiedTable )
                         .value( KEY_COLUMN_NAME, mappedSetId )
                         .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
+        this.GET_PAGE_STATEMENT = session.prepare(
+                QueryBuilder.select( VALUE_COLUMN_NAME ).from( qualifiedTable ).where( setIsThisSet ) );
+
     }
 
     @Override
@@ -93,8 +100,41 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public Iterator<T> iterator() {
-        // TODO Auto-generated method stub
-        return null;
+        return new SetProxyIterator( session );
+    }
+
+    public class SetProxyIterator implements Iterator<T> {
+
+        private final Iterator<Row> internalIterator;
+
+        public SetProxyIterator( Session session ) {
+            ResultSet currentResultPage = session.execute( GET_PAGE_STATEMENT.bind() );
+            internalIterator = currentResultPage.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return internalIterator.hasNext();
+        }
+
+        @Override
+        public T next() {
+            Row next = internalIterator.next();
+            return getObjectFromRow( next );
+        }
+
+        private T getObjectFromRow( Row row ) {
+            ByteBuffer bytes = row.getBytes( VALUE_RESULT_COLUMN_NAME );
+            byte[] array = bytes.array();
+            try {
+                T fromBytes = typeMapper.fromBytes( array );
+                return fromBytes;
+            } catch ( MappingException e ) {
+                logger.error( "Exception while mapping", e );
+            }
+            return null;
+        }
+
     }
 
     @Override
