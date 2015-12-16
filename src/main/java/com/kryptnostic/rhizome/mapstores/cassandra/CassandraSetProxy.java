@@ -40,6 +40,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     private static final String     MAPPING_ERROR            = "Exception while mapping";
 
+    private static final String     UNSTABLE_API_EXCEPTION   = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
+
     public CassandraSetProxy(
             Session session,
             String keyspace,
@@ -156,12 +158,12 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public Object[] toArray() {
-        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
     @Override
     public <T> T[] toArray( T[] a ) {
-        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
     @Override
@@ -191,7 +193,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean containsAll( Collection<?> c ) {
-        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
     @Override
@@ -202,8 +204,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean retainAll( Collection<?> c ) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
     @Override
@@ -214,7 +215,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
 }
