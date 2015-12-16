@@ -25,9 +25,10 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private static final String     COUNT_RESULT_COLUMN_NAME = "count";
     private static final String     VALUE_RESULT_COLUMN_NAME = "results";
 
-    private final Session           session;
     private final String            qualifiedTable;
     private final String            mappedSetId;
+
+    private final Session           session;
     final ValueMapper<T>            typeMapper;
 
     private final PreparedStatement CONTAINS_STATEMENT;
