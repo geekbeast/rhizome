@@ -3,34 +3,65 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select.Where;
+import com.datastax.driver.core.querybuilder.Select;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+import com.kryptnostic.rhizome.mappers.KeyMapper;
+import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
-    public static final String SET_ID_FIELD = "setId";
-    private final Session      session;
-    private final String       table;
-    private final K            setId;
-    private final Class<T>     clazz;
+    private static final String     COUNT_RESULT_COLUMN_NAME = "count";
+    private static final Logger     logger                   = LoggerFactory.getLogger( CassandraSetProxy.class );
 
-    public CassandraSetProxy( Session session, String keyspace, String table, K setId, Class<T> concreteClass ) {
+    private final Session           session;
+    private final String            qualifiedTable;
+    private final String            mappedSetId;
+    private final ValueMapper<T>    typeMapper;
+
+    private final PreparedStatement CONTAINS_STATEMENT;
+    private final PreparedStatement SIZE_STATEMENT;
+    private final PreparedStatement ADD_STATEMENT;
+
+    public CassandraSetProxy(
+            Session session,
+            String keyspace,
+            String table,
+            K setId,
+            KeyMapper<K> keyMapper,
+            ValueMapper<T> typeMapper ) {
         // use cluster.newSession() here to avoid having to connect to cassandra on object creation
         this.session = session;
+        this.typeMapper = typeMapper;
         // fully qualify table names so that we can get away with
         // passing around one session throughout the application
-        this.table = keyspace.concat( "." ).concat( table );
-        this.setId = setId;
-        this.clazz = concreteClass;
+        this.qualifiedTable = keyspace.concat( "." ).concat( table );
+        this.mappedSetId = keyMapper.fromKey( setId );
+
+        final Clause setIsThisSet = QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId );
+        final Select countInTable = QueryBuilder.select().countAll().from( qualifiedTable );
+        final Clause whereContainsValue = QueryBuilder.contains( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() );
+
+        this.CONTAINS_STATEMENT = session.prepare( countInTable.where( setIsThisSet ).and( whereContainsValue ) );
+        this.SIZE_STATEMENT = session.prepare( countInTable.where( setIsThisSet ) );
+        this.ADD_STATEMENT = session.prepare(
+                QueryBuilder.insertInto( qualifiedTable )
+                        .value( KEY_COLUMN_NAME, mappedSetId )
+                        .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
     }
 
     @Override
     public int size() {
-        Where countQuery = QueryBuilder.select().countAll().from( table ).where( QueryBuilder.eq( SET_ID_FIELD, setId ) );
-        ResultSet execute = session.execute( countQuery );
-        return execute.all().size();
+        ResultSet execute = session.execute( SIZE_STATEMENT.bind() );
+        return getCountResult( execute );
     }
 
     @Override
@@ -40,8 +71,24 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean contains( Object o ) {
-        // TODO Auto-generated method stub
+        return containsValue( (T) o );
+    }
+
+    public boolean containsValue( T value ) {
+        ResultSet execute;
+        try {
+            execute = session.execute( CONTAINS_STATEMENT.bind( typeMapper.toBytes( value ) ) );
+            int results = getCountResult( execute );
+            return results == 1;
+        } catch ( MappingException e ) {
+            logger.error( "mapping exception attempting to hit cassandra", e );
+        }
         return false;
+    }
+
+    private static int getCountResult( ResultSet resultSet ) {
+        Row one = resultSet.one();
+        return one.getInt( COUNT_RESULT_COLUMN_NAME );
     }
 
     @Override
@@ -52,32 +99,36 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public Object[] toArray() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
     }
 
     @Override
     public <T> T[] toArray( T[] a ) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
     }
 
     @Override
     public boolean add( T e ) {
-        // TODO Auto-generated method stub
+        try {
+            byte[] bytes = typeMapper.toBytes( e );
+            // add to the set as a new row
+            ResultSet execute = session.execute( ADD_STATEMENT.bind( bytes ) );
+            Row one = execute.one();
+            return true;
+        } catch ( MappingException e1 ) {
+            logger.error( "mapping exception attempting to hit cassandra", e1 );
+        }
         return false;
     }
 
     @Override
     public boolean remove( Object o ) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean containsAll( Collection<?> c ) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
     }
 
     @Override
@@ -100,12 +151,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public void clear() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public Class<T> getType() {
-        return clazz;
+        throw new UnsupportedOperationException( "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com" );
     }
 
 }

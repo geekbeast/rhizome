@@ -33,18 +33,19 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     public <K, C extends SetProxy<K, V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
-        ValueMapper<C> setMapper = new SetProxyAwareValueMapper<C, V>( valueMapper );
         // create a SetProxyAwareValueMapper<C> that wraps valueMapper<V>
-        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, setMapper, valType );
+        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
     }
 
     public class ProxiedCassandraMapStoreBuilder<K, C extends SetProxy<K, V>, V> extends CassandraMapStoreBuilder<K, C> {
 
         private final Class<V> valType;
+        private final ValueMapper<V> innerValueMapper;
 
-        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<C> valueMapper, Class<V> valType ) {
-            super( keyMapper, valueMapper );
+        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper, Class<V> valType ) {
+            super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
             this.valType = valType;
+            this.innerValueMapper = valueMapper;
         }
 
         @Override
@@ -53,7 +54,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     tableName,
                     mapName,
                     keyMapper,
-                    valueMapper,
+                    innerValueMapper,
                     config,
                     session,
                     valType );

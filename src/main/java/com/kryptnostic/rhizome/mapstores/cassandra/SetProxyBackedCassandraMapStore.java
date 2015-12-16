@@ -14,16 +14,18 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> extends BaseCassandraMapStore<K, V> {
 
     private final Class<ST> valType;
+    private final ValueMapper<ST> innerTypeValueMapper;
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
             String mapName,
             KeyMapper<K> keyMapper,
-            ValueMapper<V> valueMapper,
+            ValueMapper<ST> valueMapper,
             CassandraConfiguration config,
             Session session,
             Class<ST> valType ) {
-        super( tableName, mapName, keyMapper, valueMapper, config, session );
+        super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<>( valueMapper ), config, session );
+        this.innerTypeValueMapper = valueMapper;
         this.valType = valType;
     }
 
@@ -33,7 +35,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> e
      */
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, ST>( session, mapName, table, key, valType );
+        return (V) new CassandraSetProxy<K, ST>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
     }
 
     /*
@@ -45,7 +47,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> e
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
         CassandraSetProxy<K, ST> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, mapName, table, key, valType );
+            value = new CassandraSetProxy<>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
