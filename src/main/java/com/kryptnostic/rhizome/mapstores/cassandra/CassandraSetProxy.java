@@ -34,7 +34,11 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private final PreparedStatement CONTAINS_STATEMENT;
     private final PreparedStatement SIZE_STATEMENT;
     private final PreparedStatement ADD_STATEMENT;
+    private final PreparedStatement DELETE_STATEMENT;
+
     final PreparedStatement         GET_PAGE_STATEMENT;
+
+    private static final String     MAPPING_ERROR            = "Exception while mapping";
 
     public CassandraSetProxy(
             Session session,
@@ -58,11 +62,23 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         this.CONTAINS_STATEMENT = session.prepare( countInTable.where( setIsThisSet ).and( whereContainsValue ) );
         this.SIZE_STATEMENT = session.prepare( countInTable.where( setIsThisSet ) );
         this.ADD_STATEMENT = session.prepare(
-                QueryBuilder.insertInto( qualifiedTable )
+                QueryBuilder
+                        .insertInto( qualifiedTable )
                         .value( KEY_COLUMN_NAME, mappedSetId )
                         .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
+
+        this.DELETE_STATEMENT = session.prepare(
+                QueryBuilder
+                        .delete( KEY_COLUMN_NAME, VALUE_COLUMN_NAME )
+                        .from( qualifiedTable )
+                        .where( setIsThisSet )
+                        .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
         this.GET_PAGE_STATEMENT = session.prepare(
-                QueryBuilder.select( VALUE_COLUMN_NAME ).from( qualifiedTable ).where( setIsThisSet ) );
+                QueryBuilder
+                        .select( VALUE_COLUMN_NAME )
+                        .from( qualifiedTable )
+                        .where( setIsThisSet ) );
 
     }
 
@@ -89,7 +105,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
             int results = getCountResult( execute );
             return results == 1;
         } catch ( MappingException e ) {
-            logger.error( "mapping exception attempting to hit cassandra", e );
+            logger.error( MAPPING_ERROR, e );
         }
         return false;
     }
@@ -131,7 +147,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
                 T fromBytes = typeMapper.fromBytes( array );
                 return fromBytes;
             } catch ( MappingException e ) {
-                logger.error( "Exception while mapping", e );
+                logger.error( MAPPING_ERROR, e );
             }
             return null;
         }
@@ -153,17 +169,23 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         try {
             byte[] bytes = typeMapper.toBytes( e );
             // add to the set as a new row
-            ResultSet execute = session.execute( ADD_STATEMENT.bind( bytes ) );
-            Row one = execute.one();
+            session.execute( ADD_STATEMENT.bind( bytes ) );
             return true;
         } catch ( MappingException e1 ) {
-            logger.error( "mapping exception attempting to hit cassandra", e1 );
+            logger.error( MAPPING_ERROR, e );
         }
         return false;
     }
 
     @Override
     public boolean remove( Object o ) {
+        try {
+            byte[] bytes = typeMapper.toBytes( (T) o );
+            session.execute( DELETE_STATEMENT.bind( bytes ) );
+            return true;
+        } catch ( MappingException e ) {
+            logger.error( MAPPING_ERROR, e );
+        }
         return false;
     }
 
