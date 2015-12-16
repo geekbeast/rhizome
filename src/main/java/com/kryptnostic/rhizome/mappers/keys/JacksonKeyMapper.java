@@ -12,7 +12,6 @@ import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class JacksonKeyMapper<K> implements KeyMapper<K> {
     private static final Logger logger = LoggerFactory.getLogger( JacksonKeyMapper.class );
@@ -30,22 +29,22 @@ public class JacksonKeyMapper<K> implements KeyMapper<K> {
     }
 
     @Override
-    public String fromKey( K key ) throws MappingException {
+    public String fromKey( K key ) {
         try {
             return mapper.writeValueAsString( key );
         } catch ( JsonProcessingException e ) {
-            logger.error( "Unable to marshall data" );
-            throw new MappingException( "Error marshalling data to map." );
+            logger.error( "Unable to marshall data", e );
+            throw new RuntimeException( "Error marshalling data to map.", e );
         }
     }
 
     @Override
-    public K toKey( String value ) throws MappingException {
+    public K toKey( String value ) {
         try {
             return mapper.readValue( value, new TypeReference<K>() {} );
         } catch ( IOException e ) {
-            logger.error( "Unable to unmarshall data" );
-            throw new MappingException( "Error unmarshalling data to map." );
+            logger.error( "Unable to unmarshall data", e );
+            throw new RuntimeException( "Error unmarshalling data to map.", e );
         }
     }
 

@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.hyperdex.client.ByteString;
 import org.hyperdex.client.Client;
 import org.hyperdex.client.Deferred;
@@ -23,6 +21,8 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
+
+import jersey.repackaged.com.google.common.collect.Maps;
 
 public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
@@ -104,7 +104,7 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements Testa
                     client.del( space, keyObject );
                     return null;
                 } );
-            } catch ( HyperDexClientException | MappingException e1 ) {
+            } catch ( HyperDexClientException e1 ) {
                 logger.error( "Couldn't get client when getting key {} in space {}", key, space, e1 );
             }
         } catch ( HyperDexClientException e ) {
@@ -245,8 +245,6 @@ public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements Testa
         try {
             Object keyObject = keyMapper.fromKey( key );
             doSafeOperation( ( client ) -> client.del( space, keyObject ) );
-        } catch ( MappingException e ) {
-            logger.error( "Error deleting key {} from hyperdex.", key, e );
         } catch ( HyperDexClientException e ) {
             logger.error( "Couldn't get client when getting key {} in space {}", key, space, e );
         }

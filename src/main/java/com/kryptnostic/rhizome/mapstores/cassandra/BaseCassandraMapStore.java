@@ -135,11 +135,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     @Override
     public void delete( K key ) {
-        try {
-            session.execute( DELETE_QUERY.bind( keyMapper.fromKey( key ) ) );
-        } catch ( MappingException e ) {
-            logger.error( "Unable to delete key {} : value {} ", key );
-        }
+        session.execute( DELETE_QUERY.bind( keyMapper.fromKey( key ) ) );
     }
 
     @Override

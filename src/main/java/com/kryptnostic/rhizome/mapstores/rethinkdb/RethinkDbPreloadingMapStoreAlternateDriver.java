@@ -12,7 +12,6 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 public abstract class RethinkDbPreloadingMapStoreAlternateDriver<K, V> extends RethinkDbBaseMapStoreAlternateDriver<K, V> {
@@ -40,7 +39,7 @@ public abstract class RethinkDbPreloadingMapStoreAlternateDriver<K, V> extends R
                     String rawData = (String) obj.getMap().get( ID_FIELD );
                     K key = keyMapper.toKey( rawData );
                     keys.add( key );
-                } catch ( RqlDriverException | MappingException e ) {
+                } catch ( RqlDriverException e ) {
                     logger.error( "{}", e );
                 }
             }

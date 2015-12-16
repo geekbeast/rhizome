@@ -11,7 +11,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 public abstract class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends HyperdexBaseJacksonKeyValueMapStore<K, V> {
@@ -34,12 +33,7 @@ public abstract class HyperdexPreloadingJacksonKeyValueMapStore<K, V> extends Hy
                 @SuppressWarnings( "unchecked" )
                 Map<String, Object> obj = (Map<String, Object>) i.next();
                 String objectId = obj.get( "id" ).toString();
-
-                try {
-                    keys.add( keyMapper.toKey( objectId ) );
-                } catch ( MappingException e ) {
-                    logger.error( "Mapping key with id: {} failed!", objectId );
-                }
+                keys.add( keyMapper.toKey( objectId ) );
             }
         } catch ( HyperDexClientException e ) {
             logger.error( "Failed to load all keys.", e );

@@ -47,12 +47,12 @@ public class RegistryBasedMappersPod {
         return new SelfRegisteringKeyMapper<Void>() {
 
             @Override
-            public String fromKey( Void key ) throws MappingException {
+            public String fromKey( Void key ) {
                 return null;
             }
 
             @Override
-            public Void toKey( String value ) throws MappingException {
+            public Void toKey( String value ) {
                 return null;
             }
 

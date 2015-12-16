@@ -11,7 +11,7 @@ public interface KeyMapper<K> {
      * @return Object or String that can be serialized from key
      * @throws MappingException
      */
-    String fromKey( K key ) throws MappingException;
+    String fromKey( K key );
 
-    K toKey( String value ) throws MappingException;
+    K toKey( String value );
 }
