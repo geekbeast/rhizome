@@ -71,7 +71,7 @@ ext.spring_security_version='4.0.3.RELEASE'
 ext.spring_framework_version='4.2.3.RELEASE'
 ext.jackson_version='2.4.4'
 ext.jetty_version='9.3.6.v20151106'
-ext.hazelcast_version='3.6-EA2'
+ext.hazelcast_version='3.5.4'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.4.1'
 ext.retrofit_version='1.9.0'
@@ -176,7 +176,7 @@ dependencies {
      compile 'org.yaml:snakeyaml:1.13'
      //Needed to avoid NoSuchMethodErrors when using mockito + junit + spring
      compile "com.jayway.jsonpath:json-path-assert:1.1.0"
-     
+
     /*
      * @Inject and @Nullable support
      */
