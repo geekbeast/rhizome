@@ -56,8 +56,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     keyMapper,
                     innerValueMapper,
                     config,
-                    session,
-                    valType );
+                    session );
         }
     }
 

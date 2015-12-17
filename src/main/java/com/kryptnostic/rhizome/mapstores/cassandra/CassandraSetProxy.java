@@ -22,9 +22,6 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private static final Logger     logger                   = LoggerFactory.getLogger( CassandraSetProxy.class );
 
-    private static final String     COUNT_RESULT_COLUMN_NAME = "count";
-    private static final String     VALUE_RESULT_COLUMN_NAME = "results";
-
     private final String            qualifiedTable;
     private final String            mappedSetId;
 
@@ -114,7 +111,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     private static int getCountResult( ResultSet resultSet ) {
         Row one = resultSet.one();
-        return one.getInt( COUNT_RESULT_COLUMN_NAME );
+        return one.getInt( CassandraQueryConstants.COUNT_RESULT_COLUMN_NAME );
     }
 
     @Override
@@ -143,7 +140,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         }
 
         private T getObjectFromRow( Row row ) {
-            ByteBuffer bytes = row.getBytes( VALUE_RESULT_COLUMN_NAME );
+            ByteBuffer bytes = row.getBytes( CassandraQueryConstants.VALUE_RESULT_COLUMN_NAME );
             byte[] array = bytes.array();
             try {
                 T fromBytes = typeMapper.fromBytes( array );

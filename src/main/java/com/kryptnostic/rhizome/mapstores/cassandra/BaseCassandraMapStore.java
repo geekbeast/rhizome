@@ -28,6 +28,7 @@ import jersey.repackaged.com.google.common.collect.Maps;
 
 public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
+
     private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
     private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data blob);";
     protected final String          mapName;
@@ -43,6 +44,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     private final int replicationFactor;
     protected final String          table;
 
+    final String                    keyspace;
+
     public BaseCassandraMapStore(
             String table,
             String mapName,
@@ -57,17 +60,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
         this.mapName = mapName;
         this.replicationFactor = config.getReplicationFactor();
 
-        // Find a better place for this. It shouldn't be here.
-        // Metadata metadata = cluster.getMetadata();
-        // logger.info( "Connected to cluster: {}", metadata.getClusterName() );
-        // for ( Host host : metadata.getAllHosts() ) {
-        // logger.info(
-        // "Datacenter: {}; Host: {}; Rack: {}\n",
-        // host.getDatacenter(),
-        // host.getAddress(),
-        // host.getRack() );
-        // }
-        String keyspace = config.getKeyspace();
+        keyspace = config.getKeyspace();
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
