@@ -82,7 +82,8 @@ public class BaseHazelcastInstanceConfigurationPod {
 
     }
 
-    public SerializationConfig getSerializationConfig() {
+    @Bean
+    public static SerializationConfig getSerializationConfig() {
         SerializationConfig config = new SerializationConfig()
                 .setSerializerConfigs( getSerializerConfigs() )
                 .setAllowUnsafe( true )
