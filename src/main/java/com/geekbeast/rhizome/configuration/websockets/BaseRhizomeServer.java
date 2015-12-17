@@ -17,6 +17,10 @@ public class BaseRhizomeServer {
         rhizome = new Rhizome( loamPodClass, pods );
     }
     
+    public void intercrop( Class<?>... pods ) {
+        rhizome.intercrop( pods );
+    }
+
     public void start( String... profiles ) throws Exception {
         rhizome.sprout( profiles );
     }
