@@ -82,6 +82,7 @@ public class BaseHazelcastInstanceConfigurationPod {
 
     }
 
+    @Bean
     public SerializationConfig getSerializationConfig() {
         SerializationConfig config = new SerializationConfig()
                 .setSerializerConfigs( getSerializerConfigs() )
