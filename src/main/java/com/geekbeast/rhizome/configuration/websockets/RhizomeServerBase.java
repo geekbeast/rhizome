@@ -12,6 +12,10 @@ public class RhizomeServerBase {
         rhizome = new Rhizome( classes );
     }
 
+    public void intercrop( Class<?>... pods ) {
+        rhizome.intercrop( pods );
+    }
+
     public void start( String... profiles ) throws Exception {
         rhizome.sprout( profiles );
     }

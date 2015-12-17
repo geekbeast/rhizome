@@ -49,9 +49,9 @@ import com.hazelcast.web.WebFilter;
 public class Rhizome implements WebApplicationInitializer {
     private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     protected static final Class<?>[]                      DEFAULT_SERVICE_PODS          = new Class<?>[] {
-                                                                                         ConfigurationPod.class,
-                                                                                         MetricsPod.class,
-                                                                                         AsyncPod.class };
+                                                                                                 ConfigurationPod.class,
+                                                                                                 MetricsPod.class,
+                                                                                                 AsyncPod.class };
     protected static final Lock                            startupLock                   = new ReentrantLock();
     protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
     protected final AnnotationConfigWebApplicationContext  context;
@@ -75,7 +75,7 @@ public class Rhizome implements WebApplicationInitializer {
         this.context = context;
         intercrop( pods );
         intercrop( loamPodClass );
-        Arrays.asList( getDefaultServicePods() ).forEach( pod -> context.register( pod ) );
+        intercrop( getDefaultServicePods() );
     }
 
     @Override
