@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -18,10 +19,17 @@ public class SetStreamSerializers {
             c.accept( elem );
         }
     }
+    
+    public static <T> void serialize( ObjectDataOutput out, Iterable<T> elements, IoPerformingConsumer<T> c ) throws IOException {
+        out.writeInt( Iterables.size( elements ) ); //Iterables correctly does collections efficiently.
+        for( T elem :  elements ) {
+            c.accept( elem );
+        }
+    }
 
-    public static void fastUUIDSetSerialize( ObjectDataOutput out, Set<UUID> object ) throws IOException {
-        long[] least = new long[ object.size() ];
-        long[] most = new long[ object.size() ];
+    public static void fastUUIDSetSerialize( ObjectDataOutput out, Iterable<UUID> object ) throws IOException {
+        long[] least = new long[ Iterables.size( object ) ];
+        long[] most = new long[ Iterables.size( object ) ];
         int i = 0;
         for ( UUID uuid : object ) {
             least[ i ] = uuid.getLeastSignificantBits();
@@ -59,8 +67,12 @@ public class SetStreamSerializers {
         return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
     }
 
-    public static <T> Set<T> deserialize( ObjectDataInput in, Set<T> set, int size, IoPerformingFunction<ObjectDataInput, T> f )
-            throws IOException {
+    public static <T> Set<T> deserialize(
+            ObjectDataInput in,
+            Set<T> set,
+            int size,
+            IoPerformingFunction<ObjectDataInput, T> f )
+                    throws IOException {
         for ( int i = 0; i < size; ++i ) {
             T elem = f.apply( in );
             if ( elem != null ) {
