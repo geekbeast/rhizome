@@ -16,6 +16,15 @@ import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
+/**
+ * Base cassandra-backed mapstore. This class should not execute any queries directly
+ * 
+ * @author Drew Bailey drew@kryptnostic.com
+ * @author Matthew Tamayo-Rios matthew@kryptnostic.com
+ *
+ * @param <K>
+ * @param <V>
+ */
 public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
 

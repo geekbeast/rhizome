@@ -14,7 +14,6 @@ import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
 @Configuration
@@ -45,24 +44,23 @@ public class CassandraPod {
     @Bean
     public static Cluster getCluster() {
         return new Cluster.Builder()
-            .withPoolingOptions( getPoolingOptions() )
-            .withProtocolVersion( ProtocolVersion.V3 )
-            .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
-            .build();
+                .withPoolingOptions( getPoolingOptions() )
+                .withProtocolVersion( ProtocolVersion.V3 )
+                .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
+                .build();
     }
 
     @Bean
-    public static BaseCassandraMapStore<ConfigurationKey, String> getConfigurationMapStore() {
+    public static TestableSelfRegisteringMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
-        TestableSelfRegisteringMapStore<ConfigurationKey, String> build = new CassandraMapStoreFactory.Builder()
+        return new CassandraMapStoreFactory.Builder()
                 .withConfiguration( config )
                 .withSession( cluster.newSession() )
                 .build()
                 .build( ConfigurationKey.class, String.class )
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .build();
-        return (BaseCassandraMapStore<ConfigurationKey, String>) build;
     }
 
 }
