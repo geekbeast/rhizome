@@ -13,6 +13,7 @@ import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore;
 import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
@@ -46,7 +47,6 @@ public class CassandraPod {
         return new Cluster.Builder()
             .withPoolingOptions( getPoolingOptions() )
             .withProtocolVersion( ProtocolVersion.V3 )
-            .withClusterName( "YELL AT DREW" )
             .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
             .build();
     }
@@ -55,13 +55,14 @@ public class CassandraPod {
     public static BaseCassandraMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
-        return (BaseCassandraMapStore<ConfigurationKey, String>) new CassandraMapStoreFactory.Builder()
+        TestableSelfRegisteringMapStore<ConfigurationKey, String> build = new CassandraMapStoreFactory.Builder()
                 .withConfiguration( config )
                 .withSession( cluster.newSession() )
                 .build()
                 .build( ConfigurationKey.class, String.class )
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )
                 .build();
+        return (BaseCassandraMapStore<ConfigurationKey, String>) build;
     }
 
 }

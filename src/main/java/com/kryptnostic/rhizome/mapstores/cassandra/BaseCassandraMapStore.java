@@ -31,6 +31,9 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     private static final String        KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
     private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data blob);";
+    private static final String     KEY_COLUMN_NAME   = "id";
+    private static final String     VALUE_COLUMN_NAME = "data";
+
     protected final String          mapName;
     protected final ValueMapper<V>  valueMapper;
     protected final KeyMapper<K>       keyMapper;
@@ -64,15 +67,23 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
-        LOAD_QUERY = session.prepare( QueryBuilder.select( "data" ).from( keyspace, table )
-                .where( QueryBuilder.eq( "id", QueryBuilder.bindMarker() ) ) );
-        STORE_QUERY = session.prepare( QueryBuilder.insertInto( keyspace, table )
-                .value( "id", QueryBuilder.bindMarker() ).value( "data", QueryBuilder.bindMarker() ) );
-        DELETE_QUERY = session.prepare( QueryBuilder.delete().from( keyspace, table )
-                .where( QueryBuilder.eq( "id", QueryBuilder.bindMarker() ) ) );
-        LOAD_ALL_QUERY = session.prepare( QueryBuilder.select( "id" ).from( keyspace, table ) );
-        DELETE_ALL_QUERY = session.prepare( QueryBuilder.delete().from( keyspace, table )
-                .where( QueryBuilder.in( "id", QueryBuilder.bindMarker() ) ) );
+        LOAD_QUERY = session.prepare( QueryBuilder
+                .select( VALUE_COLUMN_NAME ).from( keyspace, table )
+                .where( QueryBuilder.eq( KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+        STORE_QUERY = session.prepare( QueryBuilder
+                .insertInto( keyspace, table )
+                .value( KEY_COLUMN_NAME, QueryBuilder.bindMarker() )
+                .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
+        DELETE_QUERY = session.prepare( QueryBuilder
+                .delete().from( keyspace, table )
+                .where( QueryBuilder.eq( KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
+        LOAD_ALL_QUERY = session.prepare( QueryBuilder
+                .select( KEY_COLUMN_NAME ).from( keyspace, table ) );
+
+        DELETE_ALL_QUERY = session.prepare( QueryBuilder
+                .delete().from( keyspace, table )
+                .where( QueryBuilder.in( KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
     }
 
