@@ -28,7 +28,12 @@ public class CassandraPod {
             logger.error( "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
             return null;
         }
-        return configuration.getCassandraConfiguration().get();
+        CassandraConfiguration cassandraConfiguration = configuration.getCassandraConfiguration().get();
+        if ( cassandraConfiguration == null ) {
+            logger.error(
+                    "Seed nodes not found in cassandra configuration. Please add seed nodes to cassandra configuration block in rhizome.yaml" );
+        }
+        return cassandraConfiguration;
     }
 
     public static PoolingOptions getPoolingOptions() {

@@ -22,9 +22,6 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private static final Logger     logger                   = LoggerFactory.getLogger( CassandraSetProxy.class );
 
-    private final String            qualifiedTable;
-    private final String            mappedSetId;
-
     private final Session           session;
     final ValueMapper<T>            typeMapper;
 
@@ -51,32 +48,31 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         this.typeMapper = typeMapper;
         // fully qualify table names so that we can get away with
         // passing around one session throughout the application
-        this.qualifiedTable = keyspace.concat( "." ).concat( table );
-        this.mappedSetId = keyMapper.fromKey( setId );
+        String mappedSetId = keyMapper.fromKey( setId );
 
         final Clause setIsThisSet = QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId );
-        final Select countInTable = QueryBuilder.select().countAll().from( qualifiedTable );
+        final Select countInTable = QueryBuilder.select().countAll().from( keyspace, table );
         final Clause whereContainsValue = QueryBuilder.contains( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() );
 
         this.CONTAINS_STATEMENT = session.prepare( countInTable.where( setIsThisSet ).and( whereContainsValue ) );
         this.SIZE_STATEMENT = session.prepare( countInTable.where( setIsThisSet ) );
         this.ADD_STATEMENT = session.prepare(
                 QueryBuilder
-                        .insertInto( qualifiedTable )
+                        .insertInto( keyspace, table )
                         .value( KEY_COLUMN_NAME, mappedSetId )
                         .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
 
         this.DELETE_STATEMENT = session.prepare(
                 QueryBuilder
                         .delete( KEY_COLUMN_NAME, VALUE_COLUMN_NAME )
-                        .from( qualifiedTable )
+                        .from( keyspace, table )
                         .where( setIsThisSet )
                         .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
         this.GET_PAGE_STATEMENT = session.prepare(
                 QueryBuilder
                         .select( VALUE_COLUMN_NAME )
-                        .from( qualifiedTable )
+                        .from( keyspace, table )
                         .where( setIsThisSet ) );
 
     }
@@ -165,13 +161,16 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean add( T e ) {
+        if ( contains( e ) ) {
+            return false;
+        }
         try {
             byte[] bytes = typeMapper.toBytes( e );
             // add to the set as a new row
             session.execute( ADD_STATEMENT.bind( bytes ) );
             return true;
         } catch ( MappingException e1 ) {
-            logger.error( MAPPING_ERROR, e );
+            logger.error( MAPPING_ERROR, e1 );
         }
         return false;
     }
@@ -195,8 +194,14 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean addAll( Collection<? extends T> c ) {
-        // TODO Auto-generated method stub
-        return false;
+        boolean ret = false;
+        for ( T element : c ) {
+            boolean modified = add( element );
+            if ( modified ) {
+                ret = true;
+            }
+        }
+        return ret;
     }
 
     @Override

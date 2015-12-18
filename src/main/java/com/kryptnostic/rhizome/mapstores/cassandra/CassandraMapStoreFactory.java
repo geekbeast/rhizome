@@ -34,17 +34,15 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
         // create a SetProxyAwareValueMapper<C> that wraps valueMapper<V>
-        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
+        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
     public class ProxiedCassandraMapStoreBuilder<K, C extends SetProxy<K, V>, V> extends CassandraMapStoreBuilder<K, C> {
 
-        private final Class<V> valType;
         private final ValueMapper<V> innerValueMapper;
 
-        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper, Class<V> valType ) {
+        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper ) {
             super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
-            this.valType = valType;
             this.innerValueMapper = valueMapper;
         }
 

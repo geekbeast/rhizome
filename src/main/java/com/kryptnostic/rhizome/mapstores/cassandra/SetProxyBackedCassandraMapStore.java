@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -16,19 +18,19 @@ import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 
-public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> extends BaseCassandraMapStore<K, V> {
+public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> extends BaseCassandraMapStore<K, V> {
 
-    private final ValueMapper<ST>   innerTypeValueMapper;
+    private final ValueMapper<T>   innerTypeValueMapper;
     private final PreparedStatement LOAD_ALL_KEYS;
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
             String mapName,
             KeyMapper<K> keyMapper,
-            ValueMapper<ST> valueMapper,
+            ValueMapper<T> valueMapper,
             CassandraConfiguration config,
             Session session ) {
-        super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, ST>( valueMapper ), config, session );
+        super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
 
         this.LOAD_ALL_KEYS = session.prepare(
@@ -42,9 +44,10 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> e
      * (non-Javadoc)
      * @see com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore#load(java.lang.Object)
      */
+    @Nonnull
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, ST>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
+        return (V) new CassandraSetProxy<K, T>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
     }
 
     /*
@@ -54,7 +57,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, ST>, ST> e
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
-        CassandraSetProxy<K, ST> value;
+        CassandraSetProxy<K, T> value;
         for ( K key : keys ) {
             value = new CassandraSetProxy<>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
             results.put( key, (V) value );
