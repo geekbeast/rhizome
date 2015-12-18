@@ -6,6 +6,7 @@ public class CassandraQueryConstants {
 
     static final String COUNT_RESULT_COLUMN_NAME = "count";
     static final String VALUE_RESULT_COLUMN_NAME = "results";
+
     private static final String TEXT_TYPE                = "text";
     private static final String BLOB_TYPE                = "blob";
     private static final String UUID_TYPE                = "uuid";

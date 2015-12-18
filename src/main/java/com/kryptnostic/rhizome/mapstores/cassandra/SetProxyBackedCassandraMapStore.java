@@ -39,8 +39,11 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
 
-        String cassValType = CassandraQueryConstants.cassandraType( innerType );
+        // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
+
+        String cassValType = CassandraQueryConstants.cassandraType( innerType );
+        // create table
         session.execute( String.format( TABLE_QUERY,
                 keyspace,
                 table,
