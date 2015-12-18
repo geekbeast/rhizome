@@ -34,7 +34,7 @@ import com.hazelcast.config.TcpIpConfig;
 /**
  * This pod provides a basic hazelcast configuration without stream serializers, map stores, or queue stores. If
  * auto-registering of said object is desired use RegistryBasedHazelcastInstanceConfigurationPod.
- * 
+ *
  * @author Drew Bailey &lt;drew@kryptnostic.com&gt;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
@@ -82,7 +82,8 @@ public class BaseHazelcastInstanceConfigurationPod {
 
     }
 
-    public SerializationConfig getSerializationConfig() {
+    @Bean
+    public static SerializationConfig getSerializationConfig() {
         SerializationConfig config = new SerializationConfig()
                 .setSerializerConfigs( getSerializerConfigs() )
                 .setAllowUnsafe( true )
@@ -102,7 +103,7 @@ public class BaseHazelcastInstanceConfigurationPod {
         return ImmutableMap.of();
     }
 
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected static Collection<SerializerConfig> getSerializerConfigs() {
         return ImmutableList.of();
     }
 
