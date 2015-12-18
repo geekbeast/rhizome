@@ -21,7 +21,8 @@ public class SetStreamSerializers {
     }
     
     public static <T> void serialize( ObjectDataOutput out, Iterable<T> elements, IoPerformingConsumer<T> c ) throws IOException {
-        out.writeInt( Iterables.size( elements ) ); //Iterables correctly does collections efficiently.
+        //Iterables correctly does collections efficiently.
+        out.writeInt( Iterables.size( elements ) ); 
         for( T elem :  elements ) {
             c.accept( elem );
         }
