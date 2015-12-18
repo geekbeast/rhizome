@@ -83,7 +83,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     @Bean
-    public static SerializationConfig getSerializationConfig() {
+    public SerializationConfig getSerializationConfig() {
         SerializationConfig config = new SerializationConfig()
                 .setSerializerConfigs( getSerializerConfigs() )
                 .setAllowUnsafe( true )
@@ -103,7 +103,7 @@ public class BaseHazelcastInstanceConfigurationPod {
         return ImmutableMap.of();
     }
 
-    protected static Collection<SerializerConfig> getSerializerConfigs() {
+    protected Collection<SerializerConfig> getSerializerConfigs() {
         return ImmutableList.of();
     }
 

@@ -32,13 +32,13 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
                                                                                                          .newConcurrentMap();
 
-    @Bean
-    protected static Collection<SerializerConfig> getSerializerConfigs() {
+    @Override
+    protected Collection<SerializerConfig> getSerializerConfigs() {
         return Collections2.transform( serializerRegistry.entrySet(), e -> {
             return new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() );
         } );
     }
-
+    
     @Override
     protected Map<String, MapConfig> getMapConfigs() {
         return Maps.transformEntries( mapRegistry, ( k, v ) -> {
