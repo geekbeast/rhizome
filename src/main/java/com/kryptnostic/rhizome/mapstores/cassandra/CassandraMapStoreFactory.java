@@ -35,16 +35,18 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
         // create a SetProxyAwareValueMapper<C> that wraps valueMapper<V>
-        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper );
+        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
     }
 
     public class ProxiedCassandraMapStoreBuilder<K, C extends Set<V>, V> extends CassandraMapStoreBuilder<K, C> {
 
         private final ValueMapper<V> innerValueMapper;
+        private final Class<V>       valueType;
 
-        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper ) {
+        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper, Class<V> valueType ) {
             super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
             this.innerValueMapper = valueMapper;
+            this.valueType = valueType;
         }
 
         @Override
@@ -55,7 +57,8 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     keyMapper,
                     innerValueMapper,
                     config,
-                    session );
+                    session,
+                    valueType );
         }
     }
 
@@ -69,7 +72,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
         @Override
         public TestableSelfRegisteringMapStore<K, C> build() {
-            return new BaseCassandraMapStore<K, C>(
+            return new DefaultCassandraMapStore<K, C>(
                     tableName,
                     mapName,
                     keyMapper,

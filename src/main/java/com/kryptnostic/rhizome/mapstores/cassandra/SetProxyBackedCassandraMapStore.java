@@ -21,6 +21,9 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 
 public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 
+    private static final String     KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
+    private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
+
     private final ValueMapper<T>   innerTypeValueMapper;
     private final PreparedStatement LOAD_ALL_KEYS;
     private final PreparedStatement DELETE_KEY;
@@ -31,9 +34,21 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
             KeyMapper<K> keyMapper,
             ValueMapper<T> valueMapper,
             CassandraConfiguration config,
-            Session session ) {
+            Session session,
+            Class<T> innerType ) {
         super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
+
+        String cassValType = CassandraQueryConstants.cassandraType( innerType );
+        session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
+        session.execute( String.format( TABLE_QUERY,
+                keyspace,
+                table,
+                SetProxy.KEY_COLUMN_NAME,
+                SetProxy.VALUE_COLUMN_NAME,
+                cassValType,
+                SetProxy.KEY_COLUMN_NAME,
+                SetProxy.VALUE_COLUMN_NAME ) );
 
         this.LOAD_ALL_KEYS = session.prepare(
                 QueryBuilder
@@ -46,7 +61,6 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                         .delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
                         .from( keyspace, table )
                         .where( QueryBuilder.eq( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
-
     }
 
     /*
