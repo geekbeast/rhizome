@@ -1,9 +1,10 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.util.Set;
+
 import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
-import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -30,14 +31,14 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     }
 
     @Override
-    public <K, C extends SetProxy<K, V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
+    public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
         // create a SetProxyAwareValueMapper<C> that wraps valueMapper<V>
         return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
-    public class ProxiedCassandraMapStoreBuilder<K, C extends SetProxy<K, V>, V> extends CassandraMapStoreBuilder<K, C> {
+    public class ProxiedCassandraMapStoreBuilder<K, C extends Set<V>, V> extends CassandraMapStoreBuilder<K, C> {
 
         private final ValueMapper<V> innerValueMapper;
 

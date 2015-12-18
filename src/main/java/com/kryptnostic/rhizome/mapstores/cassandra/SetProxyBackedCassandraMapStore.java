@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Delete.Where;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Maps;
@@ -18,10 +19,11 @@ import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 
-public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> extends BaseCassandraMapStore<K, V> {
+public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 
     private final ValueMapper<T>   innerTypeValueMapper;
     private final PreparedStatement LOAD_ALL_KEYS;
+    private final PreparedStatement DELETE_KEY;
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
@@ -38,6 +40,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
                         .select( SetProxy.KEY_COLUMN_NAME )
                         .distinct()
                         .from( keyspace, table ) );
+
+        this.DELETE_KEY = session.prepare(
+                QueryBuilder
+                        .delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
+                        .from( keyspace, table )
+                        .where( QueryBuilder.eq( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
     }
 
     /*
@@ -47,7 +56,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
     @Nonnull
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, T>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
+        return (V) new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
     }
 
     /*
@@ -86,8 +95,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
      */
     @Override
     public void store( K key, V value ) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        SetProxy<K, T> proxy = new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
+        proxy.addAll( value );
     }
 
     /*
@@ -96,8 +105,10 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
      */
     @Override
     public void storeAll( Map<K, V> map ) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        map.forEach( ( K key, V setValue ) -> {
+            SetProxy<K, T> proxy = new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
+            proxy.addAll( setValue );
+        } );
     }
 
     /*
@@ -106,8 +117,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
      */
     @Override
     public void delete( K key ) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        String keyString = keyMapper.toString();
+        session.execute( DELETE_KEY.bind( keyString ) );
     }
 
     /*
@@ -116,19 +127,19 @@ public class SetProxyBackedCassandraMapStore<K, V extends SetProxy<K, T>, T> ext
      */
     @Override
     public void deleteAll( Collection<K> keys ) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        Where deleteAll = QueryBuilder.delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
+                .from( keyspace, table )
+                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, keys ) );
+        session.execute( deleteAll );
     }
 
     @Override
     public K generateTestKey() {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }
 
     @Override
     public V generateTestValue() throws Exception {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }
 

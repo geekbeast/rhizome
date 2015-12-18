@@ -194,6 +194,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean addAll( Collection<? extends T> c ) {
+        // TODO: make this efficient
         boolean ret = false;
         for ( T element : c ) {
             boolean modified = add( element );
@@ -211,8 +212,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean removeAll( Collection<?> c ) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
     @Override
