@@ -1,5 +1,7 @@
 package com.geekbeast.rhizome.pods;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +26,9 @@ public class CassandraPod {
     private static final Logger               logger        = LoggerFactory.getLogger( CassandraPod.class );
     private static final RhizomeConfiguration configuration = ConfigurationPod.getRhizomeConfiguration();
 
+    @Inject
+    RegistryBasedMappersPod mappers;
+    
     @Bean
     public static CassandraConfiguration cassandraConfiguration() {
         if ( !configuration.getCassandraConfiguration().isPresent() ) {
@@ -53,12 +58,13 @@ public class CassandraPod {
     }
 
     @Bean
-    public static TestableSelfRegisteringMapStore<ConfigurationKey, String> getConfigurationMapStore() {
+    public TestableSelfRegisteringMapStore<ConfigurationKey, String> getConfigurationMapStore() {
         CassandraConfiguration config = cassandraConfiguration();
         Cluster cluster = getCluster();
         return new CassandraMapStoreFactory.Builder()
                 .withConfiguration( config )
                 .withSession( cluster.newSession() )
+                .withMappers( mappers )
                 .build()
                 .build( ConfigurationKey.class, String.class )
                 .withTableAndMapName( HZ.MAPS.CONFIGURATION )

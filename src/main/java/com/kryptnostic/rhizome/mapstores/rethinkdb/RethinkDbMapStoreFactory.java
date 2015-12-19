@@ -19,6 +19,7 @@ import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientP
  *
  */
 public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
+    final RegistryBasedMappersPod            mappers;
 
     final RethinkDbAlternateDriverClientPool pool;
     final String                             dbName;
@@ -27,17 +28,19 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
         super();
         this.pool = builder.getPool();
         this.dbName = builder.getDbName();
+        this.mappers = builder.getMappers();
     }
 
     @Override
     public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        throw new UnsupportedOperationException(
+                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
         if ( valueMapper == null ) {
             throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
         }
@@ -100,11 +103,17 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     public static class Builder {
         private RethinkDbAlternateDriverClientPool pool;
         private String                             dbName;
+        private RegistryBasedMappersPod            mappers;
 
         public Builder() {}
 
         public Builder withPool( RethinkDbAlternateDriverClientPool pool ) {
             this.pool = pool;
+            return this;
+        }
+
+        public Builder withMapper( RegistryBasedMappersPod mappers ) {
+            this.mappers = mappers;
             return this;
         }
 
@@ -120,6 +129,10 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
             return pool;
         }
 
+        public RegistryBasedMappersPod getMappers() {
+            return mappers;
+        }
+        
         /**
          * @return the dbName
          */

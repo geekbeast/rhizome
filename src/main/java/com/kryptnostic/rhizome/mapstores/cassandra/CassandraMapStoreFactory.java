@@ -17,17 +17,19 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
     final Session                session;
     final CassandraConfiguration config;
+    final RegistryBasedMappersPod mappers;
 
     CassandraMapStoreFactory( Builder builder ) {
         super();
         this.session = builder.getSession();
         this.config = builder.getConfig();
+        this.mappers = builder.getMappers();
     }
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
         Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
         Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
         return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
@@ -35,8 +37,8 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
     @Override
     public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
         Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
         Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
         return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
@@ -103,8 +105,10 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
         private CassandraConfiguration config;
         private Session                session;
+        private RegistryBasedMappersPod mappers;
 
         public Builder() {}
+
 
         public Builder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
@@ -115,11 +119,21 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
             this.session = cluster;
             return this;
         }
+        
+        public Builder withMappers( RegistryBasedMappersPod mappers) {
+            this.mappers = mappers;
+            return this;
+        }
+
 
         public CassandraMapStoreFactory build() {
             return new CassandraMapStoreFactory( this );
         }
 
+        public RegistryBasedMappersPod getMappers() {
+            return mappers;
+        }
+        
         /**
          * @return the config
          */

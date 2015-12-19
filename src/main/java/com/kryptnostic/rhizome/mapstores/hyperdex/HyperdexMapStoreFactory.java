@@ -22,22 +22,25 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
 
     private final HyperdexClientPool pool;
     private final String             dbName;
+    private final RegistryBasedMappersPod mappers;
 
     public HyperdexMapStoreFactory( Builder builder ) {
         super();
         this.pool = builder.getPool();
         this.dbName = builder.getDbName();
+        this.mappers = builder.getMappers();
     }
 
     @Override
     public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        throw new UnsupportedOperationException(
+                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
         if ( valueMapper == null ) {
             throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
         }
@@ -49,7 +52,7 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
 
     public static class HyperdexMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
         private final HyperdexClientPool pool;
-        private final String                             dbName;
+        private final String             dbName;
 
         public HyperdexMapStoreBuilder(
                 HyperdexClientPool pool,
@@ -97,13 +100,19 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
     }
 
     public static class Builder {
-        private HyperdexClientPool pool;
-        private String                             dbName;
+        private HyperdexClientPool      pool;
+        private String                  dbName;
+        private RegistryBasedMappersPod mappers;
 
         public Builder() {}
 
         public Builder withPool( HyperdexClientPool pool ) {
             this.pool = pool;
+            return this;
+        }
+
+        public Builder withPool( RegistryBasedMappersPod mappers ) {
+            this.mappers = mappers;
             return this;
         }
 
@@ -124,6 +133,10 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
          */
         public String getDbName() {
             return dbName;
+        }
+
+        public RegistryBasedMappersPod getMappers() {
+            return mappers;
         }
 
         public HyperdexMapStoreFactory build() {
