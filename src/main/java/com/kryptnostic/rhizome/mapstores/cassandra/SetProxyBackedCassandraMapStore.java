@@ -42,7 +42,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
 
-        String cassValType = CassandraQueryConstants.cassandraType( innerType );
+        String cassValType = CassandraQueryConstants.cassandraValueType( innerType );
         // create table
         session.execute( String.format( TABLE_QUERY,
                 keyspace,

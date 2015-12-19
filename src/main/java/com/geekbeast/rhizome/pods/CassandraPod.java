@@ -1,5 +1,8 @@
 package com.geekbeast.rhizome.pods;
 
+import java.net.InetAddress;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -28,12 +31,11 @@ public class CassandraPod {
 
     @Inject
     RegistryBasedMappersPod mappers;
-    
+
     @Bean
     public static CassandraConfiguration cassandraConfiguration() {
         if ( !configuration.getCassandraConfiguration().isPresent() ) {
-            logger.error( "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
-            return null;
+            throw new RuntimeException( "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
         }
         CassandraConfiguration cassandraConfiguration = configuration.getCassandraConfiguration().get();
         if ( cassandraConfiguration == null ) {

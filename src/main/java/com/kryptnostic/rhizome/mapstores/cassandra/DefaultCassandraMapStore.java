@@ -96,7 +96,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     @Override
     public void store( K key, V value ) {
         try {
-            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), valueMapper.toBytes( value ) ) );
+            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), ByteBuffer.wrap( valueMapper.toBytes( value ) ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value, e );
         }
