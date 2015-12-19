@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.common.base.Preconditions;
@@ -38,7 +37,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             return new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() );
         } );
     }
-    
+
     @Override
     protected Map<String, MapConfig> getMapConfigs() {
         return Maps.transformEntries( mapRegistry, ( k, v ) -> {

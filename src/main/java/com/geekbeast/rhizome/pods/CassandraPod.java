@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
@@ -18,6 +19,7 @@ import com.kryptnostic.rhizome.mapstores.cassandra.CassandraMapStoreFactory;
 
 @Configuration
 @Profile( "cassandra" )
+@Import( { RegistryBasedMappersPod.class } )
 public class CassandraPod {
     private static final Logger               logger        = LoggerFactory.getLogger( CassandraPod.class );
     private static final RhizomeConfiguration configuration = ConfigurationPod.getRhizomeConfiguration();

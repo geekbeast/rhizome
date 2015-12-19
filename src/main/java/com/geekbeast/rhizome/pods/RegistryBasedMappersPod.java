@@ -14,10 +14,8 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 
 @Configuration
 public class RegistryBasedMappersPod {
-    private static final ConcurrentMap<Class<?>, SelfRegisteringKeyMapper<?>>   keyMapperRegistry   = Maps
-                                                                                                            .newConcurrentMap();
-    private static final ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMapperRegistry = Maps
-                                                                                                            .newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, SelfRegisteringKeyMapper<?>>   keyMapperRegistry   = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMapperRegistry = Maps.newConcurrentMap();
 
     public static KeyMapper<?> getKeyMapper( Class<?> clazz ) {
         return keyMapperRegistry.get( clazz );
@@ -42,4 +40,5 @@ public class RegistryBasedMappersPod {
             keyMapperRegistry.put( mapper.getClazz(), mapper );
         }
     }
+
 }

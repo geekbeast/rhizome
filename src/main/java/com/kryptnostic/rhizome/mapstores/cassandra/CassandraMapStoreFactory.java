@@ -5,6 +5,7 @@ import java.util.Set;
 import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
+import com.google.common.base.Preconditions;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -27,6 +28,8 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
         return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
@@ -34,7 +37,8 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
         KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
         ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
-        // create a SetProxyAwareValueMapper<C> that wraps valueMapper<V>
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
         return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
     }
 
