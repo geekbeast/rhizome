@@ -61,7 +61,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
 
         this.DELETE_KEY = session.prepare(
                 QueryBuilder
-                        .delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
+                        .delete()
                         .from( keyspace, table )
                         .where( QueryBuilder.eq( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
     }
