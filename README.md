@@ -27,17 +27,17 @@ Make it easy to build distributed web services in Java with dependency injection
 
 #### Overview
 
-##### Embedded Jetty ( and coming soon Tomcat ) for HTTP
+##### Embedded Jetty for HTTP
 
 Rhizome leverages Servlet 3.1 technologies and Spring for fully programatic web application configuration and development.  
 
-##### Jersey and/or Spring MVC for REST
+##### Jersey and/or Spring MVC for REST + WebSockets
 
 You can use Jersey and/or Spring MVC for building REST endpoints. 
 
-###### Atmosphere for Websockets / Long Polling
+###### STOMP for WebSockets 
 
-Atmosphere can be hooked up either through Spring MVC or Jersey to provide websocket or cometd endpoints for Ajax push / long polling.
+Straightforward integration with socks.js and STOMP.
 
 ##### Jackson for JSON
 
@@ -59,9 +59,9 @@ Using log4j through sl4j facade, hopefully upgrade to logback soon.
 
 Better date time
 
-##### RethinkDB
+##### RethinkDB / Cassandra / Hyperdex
 
-Persistence layer.
+Cached persistence layer integrated with Hyperdex.
 
 Note:
 There is no official rethink Java driver, so for now we're using the driver provided by dkhenry (see build.gradle). It's README isn't up to date. See RethinkDB driver in rhizome.mapstores. Syntax is similar to API docs in Rethink. We use Rethink to store Base64 encoded strings as it's optimized for storing strings. We tried storing binary data and measured a large perf decrease.
