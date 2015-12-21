@@ -33,7 +33,10 @@ public class BaseCassandraMapStoreTest {
             .addContactPoints( config.getCassandraSeedNodes() )
             .build();
 
-        TestableSelfRegisteringMapStore<String, String> store = new CassandraMapStoreFactory( clust, config )
+        CassandraMapStoreFactory.Builder builder = new CassandraMapStoreFactory.Builder().withConfiguration( config )
+                .withSession( clust.newSession() );
+
+        TestableSelfRegisteringMapStore<String, String> store = new CassandraMapStoreFactory( builder )
                 .build( String.class, String.class )
                 .withMapName( "test" )
                 .withTableName( "test" )

@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.mappers.keys;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class ConfigurationKeyMapper implements SelfRegisteringKeyMapper<ConfigurationKey> {
 
@@ -13,7 +12,7 @@ public class ConfigurationKeyMapper implements SelfRegisteringKeyMapper<Configur
     }
 
     @Override
-    public ConfigurationKey toKey( String value ) throws MappingException {
+    public ConfigurationKey toKey( String value ) {
         return new SimpleConfigurationKey( value );
     }
 

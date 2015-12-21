@@ -155,11 +155,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         List<K> rawData = Lists.newArrayList( keys );
         final List<Object> data = Lists.newArrayList();
         for ( K k : rawData ) {
-            try {
-                data.add( keyMapper.fromKey( k ) );
-            } catch ( MappingException e ) {
-                logger.error( "Failed to map key {}", k, e );
-            }
+            data.add( keyMapper.fromKey( k ) );
         }
         int step = LOAD_BATCH;
         AtomicInteger errors = new AtomicInteger();
@@ -366,7 +362,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         try {
             String keyString = keyMapper.fromKey( key );
             conn.run( tbl.get( keyString ).delete() );
-        } catch ( MappingException | RqlDriverException e ) {
+        } catch ( RqlDriverException e ) {
             logger.error( "Failed to delete key {} of type {}", key, key.getClass().getCanonicalName() );
         } finally {
             pool.release( conn );
@@ -379,12 +375,8 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         try {
             List<Object> stringKeys = Lists.newArrayList();
             for ( K k : keys ) {
-                try {
                     String keyString = keyMapper.fromKey( k );
                     stringKeys.add( keyString );
-                } catch ( MappingException e ) {
-                    logger.error( "Failed to map key of type {}", k.getClass().getCanonicalName() );
-                }
             }
             conn.run( tbl.get_all( stringKeys.toArray() ).delete() );
 

@@ -1,9 +1,11 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
-import com.datastax.driver.core.Cluster;
+import java.util.Set;
+
+import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
-import com.kryptnostic.rhizome.cassandra.CassandraMapper;
+import com.google.common.base.Preconditions;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
@@ -13,41 +15,76 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
-    final Cluster                cluster;
+    final Session                session;
     final CassandraConfiguration config;
+    final RegistryBasedMappersPod mappers;
 
-    CassandraMapStoreFactory(
-            Cluster cluster,
-            CassandraConfiguration config ) {
+    CassandraMapStoreFactory( Builder builder ) {
         super();
-        this.cluster = cluster;
-        this.config = config;
+        this.session = builder.getSession();
+        this.config = builder.getConfig();
+        this.mappers = builder.getMappers();
     }
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) RegistryBasedMappersPod.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) RegistryBasedMappersPod.getValueMapper( valType );
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
         return new CassandraMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
-    public class CassandraMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
+    @Override
+    public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
+        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
+        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
+        return new ProxiedCassandraMapStoreBuilder<>( keyMapper, valueMapper, valType );
+    }
+
+    public class ProxiedCassandraMapStoreBuilder<K, C extends Set<V>, V> extends CassandraMapStoreBuilder<K, C> {
+
+        private final ValueMapper<V> innerValueMapper;
+        private final Class<V>       valueType;
+
+        public ProxiedCassandraMapStoreBuilder( KeyMapper<K> keyMapper, ValueMapper<V> valueMapper, Class<V> valueType ) {
+            super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
+            this.innerValueMapper = valueMapper;
+            this.valueType = valueType;
+        }
+
+        @Override
+        public TestableSelfRegisteringMapStore<K, C> build() {
+            return new SetProxyBackedCassandraMapStore<K, C, V>(
+                    tableName,
+                    mapName,
+                    keyMapper,
+                    innerValueMapper,
+                    config,
+                    session,
+                    valueType );
+        }
+    }
+
+    public class CassandraMapStoreBuilder<K, C> extends AbstractMapStoreBuilder<K, C> {
 
         public CassandraMapStoreBuilder(
                 KeyMapper<K> keyMapper,
-                ValueMapper<V> valueMapper ) {
+                ValueMapper<C> valueMapper ) {
             super( keyMapper, valueMapper );
         }
 
         @Override
-        public TestableSelfRegisteringMapStore<K, V> build() {
-            return new BaseCassandraMapStore<K, V>(
+        public TestableSelfRegisteringMapStore<K, C> build() {
+            return new DefaultCassandraMapStore<K, C>(
                     tableName,
                     mapName,
                     keyMapper,
-                    (CassandraMapper<V>) valueMapper,
+                    valueMapper,
                     config,
-                    cluster) {
+                    session) {
                 @Override
                 public K generateTestKey() {
                     // TODO Auto-generated method stub
@@ -55,7 +92,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                 }
 
                 @Override
-                public V generateTestValue() throws Exception {
+                public C generateTestValue() throws Exception {
                     // TODO Auto-generated method stub
                     throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
                 }
@@ -67,22 +104,48 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     public static class Builder {
 
         private CassandraConfiguration config;
-        private Cluster                cluster;
+        private Session                session;
+        private RegistryBasedMappersPod mappers;
 
         public Builder() {}
+
 
         public Builder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
             return this;
         }
 
-        public Builder withCluster( Cluster cluster ) {
-            this.cluster = cluster;
+        public Builder withSession( Session cluster ) {
+            this.session = cluster;
+            return this;
+        }
+        
+        public Builder withMappers( RegistryBasedMappersPod mappers) {
+            this.mappers = mappers;
             return this;
         }
 
+
         public CassandraMapStoreFactory build() {
-            return new CassandraMapStoreFactory( cluster, config );
+            return new CassandraMapStoreFactory( this );
+        }
+
+        public RegistryBasedMappersPod getMappers() {
+            return mappers;
+        }
+        
+        /**
+         * @return the config
+         */
+        public CassandraConfiguration getConfig() {
+            return config;
+        }
+
+        /**
+         * @return the session
+         */
+        public Session getSession() {
+            return session;
         }
     }
 

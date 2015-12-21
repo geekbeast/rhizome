@@ -176,7 +176,7 @@ dependencies {
      compile 'org.yaml:snakeyaml:1.13'
      //Needed to avoid NoSuchMethodErrors when using mockito + junit + spring
      compile "com.jayway.jsonpath:json-path-assert:1.1.0"
-     
+
     /*
      * @Inject and @Nullable support
      */

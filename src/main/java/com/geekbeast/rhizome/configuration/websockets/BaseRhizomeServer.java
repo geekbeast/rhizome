@@ -4,14 +4,19 @@ import org.springframework.beans.BeansException;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.geekbeast.rhizome.core.Rhizome;
+import com.geekbeast.rhizome.pods.LoamPod;
 
-public class RhizomeServerBase {
+public class BaseRhizomeServer {
     private final Rhizome rhizome;
 
-    public RhizomeServerBase( Class<?>... classes ) {
+    public BaseRhizomeServer( Class<?>... classes ) {
         rhizome = new Rhizome( classes );
     }
 
+    public BaseRhizomeServer( Class<? extends LoamPod> loamPodClass, Class<?>... pods ) {
+        rhizome = new Rhizome( loamPodClass, pods );
+    }
+    
     public void intercrop( Class<?>... pods ) {
         rhizome.intercrop( pods );
     }
