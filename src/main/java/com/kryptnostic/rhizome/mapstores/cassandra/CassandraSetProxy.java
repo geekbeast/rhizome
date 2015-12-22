@@ -11,9 +11,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
+import com.datastax.driver.core.querybuilder.Select.Where;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
@@ -26,11 +25,11 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     final ValueMapper<T>            typeMapper;
 
     private final PreparedStatement CONTAINS_STATEMENT;
-    private final PreparedStatement SIZE_STATEMENT;
     private final PreparedStatement ADD_STATEMENT;
     private final PreparedStatement DELETE_STATEMENT;
 
-    final PreparedStatement         GET_PAGE_STATEMENT;
+    final Where                     GET_PAGE_STATEMENT;
+    private final Where             SIZE_STATEMENT;
 
     private static final String     MAPPING_ERROR            = "Exception while mapping";
 
@@ -46,16 +45,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         // use cluster.newSession() here to avoid having to connect to cassandra on object creation
         this.session = session;
         this.typeMapper = typeMapper;
-        // fully qualify table names so that we can get away with
-        // passing around one session throughout the application
         String mappedSetId = keyMapper.fromKey( setId );
 
-        final Clause setIsThisSet = QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId );
-        final Select countInTable = QueryBuilder.select().countAll().from( keyspace, table );
-        final Clause whereContainsValue = QueryBuilder.contains( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() );
-
-        this.CONTAINS_STATEMENT = session.prepare( countInTable.where( setIsThisSet ).and( whereContainsValue ) );
-        this.SIZE_STATEMENT = session.prepare( countInTable.where( setIsThisSet ) );
         this.ADD_STATEMENT = session.prepare(
                 QueryBuilder
                         .insertInto( keyspace, table )
@@ -64,22 +55,31 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
         this.DELETE_STATEMENT = session.prepare(
                 QueryBuilder
-                        .delete( KEY_COLUMN_NAME, VALUE_COLUMN_NAME )
+                        .delete()
                         .from( keyspace, table )
-                        .where( setIsThisSet )
+                        .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
                         .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
-        this.GET_PAGE_STATEMENT = session.prepare(
-                QueryBuilder
+        // Read-only calls
+        this.CONTAINS_STATEMENT = session.prepare(
+                QueryBuilder.select().countAll().from( keyspace, table )
+                        .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
+                        .and( QueryBuilder.in( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
+        // Calls with no variables
+        this.SIZE_STATEMENT = QueryBuilder.select().countAll()
+                .from( keyspace, table )
+                .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) );
+
+        this.GET_PAGE_STATEMENT = QueryBuilder
                         .select( VALUE_COLUMN_NAME )
                         .from( keyspace, table )
-                        .where( setIsThisSet ) );
-
+                .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) );
     }
 
     @Override
     public int size() {
-        ResultSet execute = session.execute( SIZE_STATEMENT.bind() );
+        ResultSet execute = session.execute( SIZE_STATEMENT );
         return getCountResult( execute );
     }
 
@@ -120,7 +120,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         private final Iterator<Row> internalIterator;
 
         public SetProxyIterator( Session session ) {
-            ResultSet currentResultPage = session.execute( GET_PAGE_STATEMENT.bind() );
+            ResultSet currentResultPage = session.execute( GET_PAGE_STATEMENT );
             internalIterator = currentResultPage.iterator();
         }
 
