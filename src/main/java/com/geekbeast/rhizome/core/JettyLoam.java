@@ -76,7 +76,6 @@ public class JettyLoam implements Loam {
         Handler handler = context;
         Optional<GzipConfiguration> gzipConfig = config.getGzipConfiguration();
         if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
-            // TODO: GzipFilter is deprecated
             GzipHandler gzipHandler = new GzipHandler();
             DefaultHandler defaultHandler = new DefaultHandler();
             HandlerList handlerList = new HandlerList();
@@ -131,7 +130,6 @@ public class JettyLoam implements Loam {
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
 
-            // TODO: Get rid of magic values.
             HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );
 

@@ -194,7 +194,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean addAll( Collection<? extends T> c ) {
-        // TODO: make this efficient
+        // TODO: p1: make this efficient
         boolean ret = false;
         for ( T element : c ) {
             boolean modified = add( element );
