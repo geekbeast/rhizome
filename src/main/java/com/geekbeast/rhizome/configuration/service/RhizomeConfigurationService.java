@@ -37,6 +37,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
         configurationsTopic.addMessageListener( this );
     }
 
+    @Override
     public @Nullable <T extends Configuration> T getConfiguration( Class<T> clazz ) {
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
 
@@ -98,7 +99,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
             persistConfiguration( configuration.getKey(), mapper.writeValueAsString( configuration ) );
             configurationsTopic.publish( configuration );
         } catch ( JsonProcessingException e ) {
-            logger.error( "Unable to set configuration {} = {}", configuration.getKey(), configuration );
+            logger.error( "Unable to set configuration {} = {}", configuration.getKey(), configuration, e );
         }
     }
 
@@ -125,7 +126,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
     protected void persistConfiguration( ConfigurationKey key, String configurationYaml ) {
         configurations.put( key, configurationYaml );
     }
-    
+
     public ObjectMapper getMapper() {
         return mapper;
     }

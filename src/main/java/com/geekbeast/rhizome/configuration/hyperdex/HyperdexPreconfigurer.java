@@ -36,7 +36,5 @@ public final class HyperdexPreconfigurer {
 
     private HyperdexPreconfigurer() {}
 
-    public static void configure() {
-
-    }
+    public static void configure() { /* No-Op */ }
 }

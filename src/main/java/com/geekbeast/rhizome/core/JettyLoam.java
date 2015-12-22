@@ -150,7 +150,7 @@ public class JettyLoam implements Loam {
     }
 
     void initializeSslContextFactory() {
-
+        /* No-Op */
     }
 
     public Server getServer() {

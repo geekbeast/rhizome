@@ -1,8 +1,5 @@
 package com.geekbeast.rhizome.pods;
 
-import java.net.InetAddress;
-import java.util.List;
-
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
