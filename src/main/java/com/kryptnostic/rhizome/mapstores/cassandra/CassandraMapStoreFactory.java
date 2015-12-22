@@ -119,7 +119,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
             this.session = cluster;
             return this;
         }
-        
+
         public Builder withMappers( RegistryBasedMappersPod mappers) {
             this.mappers = mappers;
             return this;
@@ -133,7 +133,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
         public RegistryBasedMappersPod getMappers() {
             return mappers;
         }
-        
+
         /**
          * @return the config
          */
