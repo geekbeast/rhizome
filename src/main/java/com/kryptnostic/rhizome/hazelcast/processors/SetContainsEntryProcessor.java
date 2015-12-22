@@ -4,7 +4,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * TODO: move to Rhizome at some point
  *
  * @author Drew Bailey drew@kryptnostic.com
  *
