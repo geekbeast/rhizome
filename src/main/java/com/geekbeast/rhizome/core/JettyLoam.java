@@ -34,7 +34,7 @@ public class JettyLoam implements Loam {
     private final JettyConfiguration config;
     private final Server             server;
 
-    protected JettyLoam() throws InterruptedException, JsonParseException, JsonMappingException, IOException {
+    protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
 
