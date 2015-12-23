@@ -1,13 +1,13 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class SetProxyAwareValueMapper<C, V> implements ValueMapper<C> {
+public class SetProxyAwareValueMapper<C, V> implements SelfRegisteringValueMapper<C> {
 
-    private final ValueMapper<V> valueMapper;
+    private final SelfRegisteringValueMapper<V> valueMapper;
 
-    public SetProxyAwareValueMapper( ValueMapper<V> valueMapper ) {
+    public SetProxyAwareValueMapper( SelfRegisteringValueMapper<V> valueMapper ) {
         this.valueMapper = valueMapper;
     }
 
@@ -21,6 +21,11 @@ public class SetProxyAwareValueMapper<C, V> implements ValueMapper<C> {
     public C fromBytes( byte[] data ) throws MappingException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+    }
+
+    @Override
+    public Class<C> getClazz() {
+        return null;
     }
 
 }

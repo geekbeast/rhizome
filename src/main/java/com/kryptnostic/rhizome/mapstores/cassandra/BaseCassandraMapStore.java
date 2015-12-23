@@ -12,13 +12,13 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 /**
  * Base cassandra-backed mapstore. This class should not execute any queries directly
- * 
+ *
  * @author Drew Bailey drew@kryptnostic.com
  * @author Matthew Tamayo-Rios matthew@kryptnostic.com
  *
@@ -32,8 +32,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     static final String            DEFAULT_VALUE_COLUMN_NAME = "data";
 
     protected final String          mapName;
-    protected final ValueMapper<V>  valueMapper;
-    protected final KeyMapper<K>       keyMapper;
+    protected final SelfRegisteringValueMapper<V> valueMapper;
+    protected final SelfRegisteringKeyMapper<K>   keyMapper;
     protected final Session         session;
     protected final String          table;
     final String                    keyspace;
@@ -43,8 +43,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     public BaseCassandraMapStore(
             String table,
             String mapName,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper,
+            SelfRegisteringKeyMapper<K> keyMapper,
+            SelfRegisteringValueMapper<V> mapper,
             CassandraConfiguration config,
             Session globalSession ) {
         this.table = table;

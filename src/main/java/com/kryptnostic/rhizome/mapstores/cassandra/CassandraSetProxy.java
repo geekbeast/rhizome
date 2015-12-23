@@ -14,15 +14,14 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
-    private static final Logger     logger                   = LoggerFactory.getLogger( CassandraSetProxy.class );
+    private static final Logger               logger                 = LoggerFactory.getLogger( CassandraSetProxy.class );
 
     private final Session           session;
-    final ValueMapper<T>            typeMapper;
+    final SelfRegisteringValueMapper<T> typeMapper;
 
     private final PreparedStatement CONTAINS_STATEMENT;
     private final PreparedStatement ADD_STATEMENT;
@@ -35,17 +34,25 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     private static final String     UNSTABLE_API_EXCEPTION   = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
 
+    private final String            keyspace;
+    private final String            table;
+    private final String                setId;
+    private final Class<T>              innerClass;
+
     public CassandraSetProxy(
             Session session,
             String keyspace,
             String table,
-            K setId,
-            KeyMapper<K> keyMapper,
-            ValueMapper<T> typeMapper ) {
+            String mappedSetId,
+            Class<T> innerClass,
+            SelfRegisteringValueMapper<T> typeMapper ) {
         // use cluster.newSession() here to avoid having to connect to cassandra on object creation
         this.session = session;
+        this.keyspace = keyspace;
+        this.table = table;
+        this.setId = mappedSetId;
+        this.innerClass = innerClass;
         this.typeMapper = typeMapper;
-        String mappedSetId = keyMapper.fromKey( setId );
 
         this.ADD_STATEMENT = session.prepare(
                 QueryBuilder
@@ -64,7 +71,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         this.CONTAINS_STATEMENT = session.prepare(
                 QueryBuilder.select().countAll().from( keyspace, table )
                         .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
-                        .and( QueryBuilder.in( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+                        .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
         // Calls with no variables
         this.SIZE_STATEMENT = QueryBuilder.select().countAll()
@@ -96,7 +103,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     public boolean containsValue( T value ) {
         ResultSet execute;
         try {
-            execute = session.execute( CONTAINS_STATEMENT.bind( typeMapper.toBytes( value ) ) );
+            execute = session.execute( CONTAINS_STATEMENT.bind( toBytes( value ) ) );
             int results = getCountResult( execute );
             return results == 1;
         } catch ( MappingException e ) {
@@ -107,7 +114,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     private static int getCountResult( ResultSet resultSet ) {
         Row one = resultSet.one();
-        return one.getInt( CassandraQueryConstants.COUNT_RESULT_COLUMN_NAME );
+        long num = one.getLong( CassandraQueryConstants.COUNT_RESULT_COLUMN_NAME );
+        return Math.toIntExact( num );
     }
 
     @Override
@@ -136,7 +144,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         }
 
         private T getObjectFromRow( Row row ) {
-            ByteBuffer bytes = row.getBytes( CassandraQueryConstants.VALUE_RESULT_COLUMN_NAME );
+            ByteBuffer bytes = row.getBytes( VALUE_COLUMN_NAME );
             byte[] array = bytes.array();
             try {
                 T fromBytes = typeMapper.fromBytes( array );
@@ -165,9 +173,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
             return false;
         }
         try {
-            byte[] bytes = typeMapper.toBytes( e );
             // add to the set as a new row
-            session.execute( ADD_STATEMENT.bind( bytes ) );
+            session.execute( ADD_STATEMENT.bind( toBytes( e ) ) );
             return true;
         } catch ( MappingException e1 ) {
             logger.error( MAPPING_ERROR, e1 );
@@ -178,8 +185,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     @Override
     public boolean remove( Object o ) {
         try {
-            byte[] bytes = typeMapper.toBytes( (T) o );
-            session.execute( DELETE_STATEMENT.bind( bytes ) );
+            session.execute( DELETE_STATEMENT.bind( toBytes( (T) o ) ) );
             return true;
         } catch ( MappingException e ) {
             logger.error( MAPPING_ERROR, e );
@@ -218,6 +224,50 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     @Override
     public void clear() {
         throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
+    }
+
+    private ByteBuffer toBytes( T value ) throws MappingException {
+        return ByteBuffer.wrap( typeMapper.toBytes( value ) );
+    }
+
+    /**
+     * @return the session
+     */
+    public Session getSession() {
+        return session;
+    }
+
+
+    /**
+     * @return the typeMapper
+     */
+    public SelfRegisteringValueMapper<T> getTypeMapper() {
+        return typeMapper;
+    }
+
+    /**
+     * @return the keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
+    }
+
+
+    /**
+     * @return the table
+     */
+    public String getTable() {
+        return table;
+    }
+
+
+    public String getSetId() {
+        return setId;
+    }
+
+    @Override
+    public Class<T> getTypeClazz() {
+        return innerClass;
     }
 
 }

@@ -5,8 +5,8 @@ import java.util.Set;
 import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
@@ -39,8 +39,8 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
-        KeyMapper<K> keyMapper = (KeyMapper<K>) mappers.getKeyMapper( keyType );
-        ValueMapper<V> valueMapper = (ValueMapper<V>) mappers.getValueMapper( valType );
+        SelfRegisteringKeyMapper<K> keyMapper = (SelfRegisteringKeyMapper<K>) mappers.getKeyMapper( keyType );
+        SelfRegisteringValueMapper<V> valueMapper = (SelfRegisteringValueMapper<V>) mappers.getValueMapper( valType );
         if ( valueMapper == null ) {
             throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
         }
@@ -57,8 +57,8 @@ public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
         public HyperdexMapStoreBuilder(
                 HyperdexClientPool pool,
                 String dbName,
-                KeyMapper<K> keyMapper,
-                ValueMapper<V> valueMapper ) {
+                SelfRegisteringKeyMapper<K> keyMapper,
+                SelfRegisteringValueMapper<V> valueMapper ) {
             super( keyMapper, valueMapper );
             this.dbName = dbName;
             this.pool = pool;

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants.HZ;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
@@ -45,6 +46,11 @@ public class CassandraPod {
     public static PoolingOptions getPoolingOptions() {
         PoolingOptions poolingOptions = new PoolingOptions();
         return poolingOptions;
+    }
+
+    @Bean
+    public static Session sess() {
+        return getCluster().newSession();
     }
 
     @Bean
