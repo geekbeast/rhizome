@@ -15,7 +15,7 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
 
     protected final Iterable<T>           newObjects;
 
-    protected AbstractMerger( Collection<T> objects ) {
+    protected AbstractMerger( Iterable<T> objects ) {
         this.newObjects = objects;
     }
 
