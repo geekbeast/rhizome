@@ -343,11 +343,8 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         for ( Future<Long> f : tasks ) {
             try {
                 affected += f.get();
-            } catch ( InterruptedException e ) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch ( ExecutionException e ) {
-                // TODO Auto-generated catch block
+            } catch ( InterruptedException | ExecutionException e ) {
+                // TODO log here instead?
                 e.printStackTrace();
             }
         }

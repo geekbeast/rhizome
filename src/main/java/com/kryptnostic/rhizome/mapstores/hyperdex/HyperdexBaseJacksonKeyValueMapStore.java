@@ -24,6 +24,7 @@ import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 import jersey.repackaged.com.google.common.collect.Maps;
 
+@Deprecated
 public abstract class HyperdexBaseJacksonKeyValueMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     protected final Logger             logger = LoggerFactory.getLogger( getClass() );
 

@@ -16,28 +16,30 @@ import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 
 public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 
     private static final String     KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
     private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
 
-    private final ValueMapper<T>   innerTypeValueMapper;
+    private final SelfRegisteringValueMapper<T> innerTypeValueMapper;
     private final PreparedStatement LOAD_ALL_KEYS;
     private final PreparedStatement DELETE_KEY;
+    private final Class<T>                      innerType;
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
             String mapName,
-            KeyMapper<K> keyMapper,
-            ValueMapper<T> valueMapper,
+            SelfRegisteringKeyMapper<K> keyMapper,
+            SelfRegisteringValueMapper<T> valueMapper,
             CassandraConfiguration config,
             Session session,
             Class<T> innerType ) {
         super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
+        this.innerType = innerType;
 
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
@@ -73,7 +75,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Nonnull
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
+        return (V) new CassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
     }
 
     /*
@@ -85,7 +87,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
         CassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, mapName, table, key, keyMapper, innerTypeValueMapper );
+            value = new CassandraSetProxy<>( session, mapName, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
@@ -112,7 +114,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void store( K key, V value ) {
-        SetProxy<K, T> proxy = new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
+        SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+                session,
+                keyspace,
+                table,
+                keyMapper.fromKey( key ),
+                innerType,
+                innerTypeValueMapper );
         proxy.addAll( value );
     }
 
@@ -123,7 +131,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public void storeAll( Map<K, V> map ) {
         map.forEach( ( K key, V setValue ) -> {
-            SetProxy<K, T> proxy = new CassandraSetProxy<K, T>( session, keyspace, table, key, keyMapper, innerTypeValueMapper );
+            SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+                    session,
+                    keyspace,
+                    table,
+                    keyMapper.fromKey( key ),
+                    innerType,
+                    innerTypeValueMapper );
             proxy.addAll( setValue );
         } );
     }

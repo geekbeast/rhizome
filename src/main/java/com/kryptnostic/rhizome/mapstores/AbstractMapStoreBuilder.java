@@ -1,18 +1,18 @@
 package com.kryptnostic.rhizome.mapstores;
 
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 
 public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K, V> {
-    protected ValueMapper<V> valueMapper;
-    protected KeyMapper<K>   keyMapper;
+    protected SelfRegisteringValueMapper<V> valueMapper;
+    protected SelfRegisteringKeyMapper<K>   keyMapper;
     protected String               mapName;
     protected String               tableName;
     public boolean           objectFormat;
 
     public AbstractMapStoreBuilder(
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> valueMapper ) {
+            SelfRegisteringKeyMapper<K> keyMapper,
+            SelfRegisteringValueMapper<V> valueMapper ) {
         this.keyMapper = keyMapper;
         this.valueMapper = valueMapper;
 
@@ -44,13 +44,13 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     }
 
     @Override
-    public MapStoreBuilder<K, V> withCustomKeyMapper( KeyMapper<K> mapper ) {
+    public MapStoreBuilder<K, V> withCustomKeyMapper( SelfRegisteringKeyMapper<K> mapper ) {
         this.keyMapper = mapper;
         return this;
     }
 
     @Override
-    public MapStoreBuilder<K, V> withCustomValueMapper( ValueMapper<V> mapper ) {
+    public MapStoreBuilder<K, V> withCustomValueMapper( SelfRegisteringValueMapper<V> mapper ) {
         this.valueMapper = mapper;
         return this;
     }

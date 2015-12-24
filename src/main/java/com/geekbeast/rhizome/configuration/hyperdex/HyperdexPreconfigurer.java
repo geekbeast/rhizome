@@ -28,24 +28,13 @@ public final class HyperdexPreconfigurer {
             fsp = ClassLoader.class.getDeclaredField( "sys_paths" );
             fsp.setAccessible( true );
             fsp.set( null, null );
-        } catch ( NoSuchFieldException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch ( SecurityException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch ( IllegalArgumentException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch ( IllegalAccessException e ) {
-            // TODO Auto-generated catch block
+        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
+            // TODO maybe log here instead?
             e.printStackTrace();
         }
     }
 
     private HyperdexPreconfigurer() {}
 
-    public static void configure() {
-
-    }
+    public static void configure() { /* No-Op */ }
 }

@@ -14,8 +14,8 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 import jersey.repackaged.com.google.common.collect.Iterables;
@@ -35,8 +35,8 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     public DefaultCassandraMapStore(
             String table,
             String mapName,
-            KeyMapper<K> keyMapper,
-            ValueMapper<V> mapper,
+            SelfRegisteringKeyMapper<K> keyMapper,
+            SelfRegisteringValueMapper<V> mapper,
             CassandraConfiguration config,
             Session globalSession ) {
         super( table, mapName, keyMapper, mapper, config, globalSession );

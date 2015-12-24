@@ -34,7 +34,7 @@ public class JettyLoam implements Loam {
     private final JettyConfiguration config;
     private final Server             server;
 
-    protected JettyLoam() throws InterruptedException, JsonParseException, JsonMappingException, IOException {
+    protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
 
@@ -76,7 +76,6 @@ public class JettyLoam implements Loam {
         Handler handler = context;
         Optional<GzipConfiguration> gzipConfig = config.getGzipConfiguration();
         if ( gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled() ) {
-            // TODO: GzipFilter is deprecated
             GzipHandler gzipHandler = new GzipHandler();
             DefaultHandler defaultHandler = new DefaultHandler();
             HandlerList handlerList = new HandlerList();
@@ -131,7 +130,6 @@ public class JettyLoam implements Loam {
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
 
-            // TODO: Get rid of magic values.
             HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );
 
@@ -152,7 +150,7 @@ public class JettyLoam implements Loam {
     }
 
     void initializeSslContextFactory() {
-
+        /* No-Op */
     }
 
     public Server getServer() {

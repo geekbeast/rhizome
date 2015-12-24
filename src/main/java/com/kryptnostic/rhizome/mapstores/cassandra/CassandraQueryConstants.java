@@ -12,8 +12,8 @@ public class CassandraQueryConstants {
 
     static String cassandraValueType( Class type ) {
         // Currently using valuemappers that write everything as binary
-        // We should probably think about that more with the
-        // new cassandra stuff since it's way way way way better
+        // We should probably think about cassandras built in datatypes
+        // and whether we even need valuemappers
         return BLOB_TYPE;
     }
 }

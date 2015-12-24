@@ -4,7 +4,7 @@ import java.util.Set;
 
 /**
  *
- * @author Drew Bailey
+ * @author Drew Bailey drew@kryptnostic.com
  *
  */
 public interface KryptnosticMapStoreFactory {
