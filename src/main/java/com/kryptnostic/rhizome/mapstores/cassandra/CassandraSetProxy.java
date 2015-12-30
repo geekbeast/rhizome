@@ -97,7 +97,10 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean contains( Object o ) {
-        return containsValue( (T) o );
+        if( innerClass.isAssignableFrom( o.getClass() ) ) {
+            return containsValue( innerClass.cast( o ) );
+        } 
+        return false;
     }
 
     public boolean containsValue( T value ) {
