@@ -16,9 +16,8 @@ public class RegistryBasedMappersPod {
     private static final ConcurrentMap<Class<?>, SelfRegisteringKeyMapper<?>>   keyMapperRegistry   = Maps.newConcurrentMap();
     private static final ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMapperRegistry = Maps.newConcurrentMap();
 
-    @Bean(
-        name = "valueMappers" )
-    public static ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> getVMs() {
+    @Bean
+    public ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMappers() {
         return valueMapperRegistry;
     }
 

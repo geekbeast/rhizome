@@ -73,7 +73,9 @@ public class Rhizome implements WebApplicationInitializer {
             Class<?>... pods ) {
         this.context = context;
         intercrop( pods );
-        intercrop( loamPodClass );
+        if ( loamPodClass != null ) {
+            intercrop( loamPodClass );
+        }
         intercrop( getDefaultServicePods() );
     }
 
@@ -210,7 +212,9 @@ public class Rhizome implements WebApplicationInitializer {
             rhizomeContext = context;
             context.refresh();
             for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
-                loam.start();
+                if ( loam != null ) {
+                    loam.start();
+                }
             }
         } finally {
             rhizomeContext = null;
