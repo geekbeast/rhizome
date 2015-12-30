@@ -81,6 +81,7 @@ public class HyperdexResizingClientPool implements HyperdexClientPool {
         logger.info( "Health check of client pool took {} ms ", w.elapsed( TimeUnit.MILLISECONDS ) );
     }
 
+    @Override
     public int available() {
         return clients.size();
     }
@@ -90,15 +91,14 @@ public class HyperdexResizingClientPool implements HyperdexClientPool {
             Map<String, Object> result = c.get( hyperdexConfiguration.getHealthCheckKeyspace().get(), HEALTH_CHECK_KEY );
             if ( result != null && result.containsKey( HEALTH_CHECK_DATA_FIELD ) ) {
                 return result.get( HEALTH_CHECK_DATA_FIELD ).toString().equals( HEALTH_CHECK_VALUE );
-            } else {
-                // Attempt to save value
-                c.put(
-                        hyperdexConfiguration.getHealthCheckKeyspace().get(),
-                        HEALTH_CHECK_KEY,
-                        ImmutableMap.of( HEALTH_CHECK_DATA_FIELD, HEALTH_CHECK_VALUE ) );
-                release( c );
-                return true;
             }
+            // Attempt to save value
+            c.put(
+                    hyperdexConfiguration.getHealthCheckKeyspace().get(),
+                    HEALTH_CHECK_KEY,
+                    ImmutableMap.of( HEALTH_CHECK_DATA_FIELD, HEALTH_CHECK_VALUE ) );
+            release( c );
+            return true;
         } catch ( HyperDexClientException e ) {
             logger.info( "Health check failed for client." );
             return false;

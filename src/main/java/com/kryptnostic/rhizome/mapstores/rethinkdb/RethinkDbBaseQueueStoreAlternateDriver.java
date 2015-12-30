@@ -13,9 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Maps;
-
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +31,9 @@ import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
+
+import jersey.repackaged.com.google.common.collect.Lists;
+import jersey.repackaged.com.google.common.collect.Maps;
 
 public class RethinkDbBaseQueueStoreAlternateDriver<T> implements SelfRegisteringQueueStore<T> {
     private static final Base64                        codec          = new Base64();
@@ -352,11 +352,8 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements SelfRegisterin
         for ( Future<Long> f : tasks ) {
             try {
                 affected += f.get();
-            } catch ( InterruptedException e ) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch ( ExecutionException e ) {
-                // TODO Auto-generated catch block
+            } catch ( InterruptedException | ExecutionException e ) {
+                // TODO: logging here instead?
                 e.printStackTrace();
             }
         }

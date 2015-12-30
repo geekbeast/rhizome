@@ -21,7 +21,7 @@ import com.google.common.eventbus.AsyncEventBus;
 /**
  * Abstract class for loading YAML format configuration classes that handles low level resource reading, validation, and
  * update publishing.
- * 
+ *
  * @author Matthew Tamayo-Rios
  */
 // TODO: Add hibernate validation
@@ -39,7 +39,7 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
     public <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException {
         Preconditions.checkNotNull( clazz, "Requested configuration class cannot be null." );
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
-        Preconditions.checkState( key != null && StringUtils.isBlank( key.getUri() ), "Configuration id for class "
+        Preconditions.checkState( key != null && StringUtils.isNotBlank( key.getUri() ), "Configuration id for class "
                 + clazz.getName() + " cannot be blank or null" );
 
         try {
@@ -47,7 +47,7 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
                     Preconditions.checkNotNull( fetchConfiguration( key ), "Configuration cannot be null" ),
                     clazz );
         } catch ( JsonParseException | JsonMappingException e ) {
-            logger.error( "Invalid YAML configuration file for class " + clazz.getName() );
+            logger.error( "Invalid YAML configuration file for class {}", clazz.getName(), e );
             return null;
         }
     }
@@ -58,14 +58,14 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
             persistConfiguration( configuration.getKey(), mapper.writeValueAsString( configuration ) );
             post( configuration );
         } catch ( IOException e ) {
-            logger.error( "Failed to persist configuration {}", configuration );
+            logger.error( "Failed to persist configuration {}", configuration, e );
         }
     }
 
     protected synchronized void setObjectMapper( ObjectMapper mapper ) {
         this.mapper = mapper;
     }
-    
+
     @Override
     public void registerModule( Module module ) {
         mapper.registerModule( module );

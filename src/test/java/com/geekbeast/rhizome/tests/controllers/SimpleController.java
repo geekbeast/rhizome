@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import retrofit.client.Response;
-
 import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.tests.bootstrap.RhizomeTests;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
+
+import retrofit.client.Response;
 
 @Controller( SimpleControllerAPI.CONTROLLER )
 public class SimpleController implements SimpleControllerAPI {
@@ -71,8 +71,8 @@ public class SimpleController implements SimpleControllerAPI {
     public @ResponseBody TestConfiguration getTestConfiguration() {
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
-        } catch ( IOException e ) {
-            logger.error( "Failed to rest test configuration.", e );
+        } catch ( Exception e ) {
+            logger.error( "Failed to get test configuration.", e );
             return null;
         }
     }
@@ -117,7 +117,7 @@ public class SimpleController implements SimpleControllerAPI {
         method = RequestMethod.GET )
     public ResponseEntity<String> teapot( HttpServletResponse response ) {
         teapot();
-        return new ResponseEntity<String>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
+        return new ResponseEntity<>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
     }
 
     @Override

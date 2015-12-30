@@ -28,8 +28,8 @@ public class ConnectorConfiguration {
     protected static final boolean   USE_SSL_DEFAULT            = false;
     protected static final boolean   REQUIRE_SSL_DEFAULT        = false;
 
-    protected final int              httpPort;
-    protected final int              httpsPort;
+    protected int                    httpPort;
+    protected int                    httpsPort;
     protected final boolean          needClientAuth;
     protected final boolean          wantClientAuth;
     protected final boolean          useSSL;
@@ -52,7 +52,7 @@ public class ConnectorConfiguration {
             @JsonProperty( REQUIRE_SSL_PROPERTY ) Optional<Boolean> requireSSL,
             @JsonProperty( NEED_CLIENT_AUTH_PROPERTY ) Optional<Boolean> needClientAuth,
             @JsonProperty( WANT_CLIENT_AUTH_PROPERTY ) Optional<Boolean> wantClientAuth,
-            @JsonProperty( CERTIFICATE_ALIAS_PROPERTY ) Optional<String> certificateAlias ) {
+            @JsonProperty( CERTIFICATE_ALIAS_PROPERTY ) Optional<String> certificateAlias) {
         final Random r = new Random( System.currentTimeMillis() );
 
         if ( httpPort.isPresent() && httpPort.get() == 0 ) {
@@ -109,4 +109,11 @@ public class ConnectorConfiguration {
         return certificateAlias;
     }
 
+    public void setHttpPort( int httpPort ) {
+        this.httpPort = httpPort;
+    }
+
+    public void setHttpsPort( int httpsPort ) {
+        this.httpsPort = httpsPort;
+    }
 }

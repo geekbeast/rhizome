@@ -13,9 +13,9 @@ import java.util.Map.Entry;
 public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
     private static final long serialVersionUID = 4022386342619821133L;
 
-    protected final V           newObjects;
+    protected final Iterable<T>           newObjects;
 
-    protected AbstractMerger( V objects ) {
+    protected AbstractMerger( Iterable<T> objects ) {
         this.newObjects = objects;
     }
 
@@ -25,12 +25,14 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
         if ( currentObjects == null ) {
             currentObjects = newEmptyCollection();
         }
-        currentObjects.addAll( newObjects );
+        for( T newObject : newObjects ) {
+            currentObjects.add( newObject );
+        }
         entry.setValue( currentObjects );
         return null;
     }
 
-    public V getBackingCollection() {
+    public Iterable<T> getBackingCollection() {
         return newObjects;
     }
 

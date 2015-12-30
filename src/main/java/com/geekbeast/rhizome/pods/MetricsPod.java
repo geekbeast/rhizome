@@ -50,7 +50,7 @@ public class MetricsPod implements MetricsConfigurer {
 
     @Override
     public void configureReporters( MetricRegistry registry ) {
-
+        /* No-Op */
     }
 
     @Override

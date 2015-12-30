@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.mappers.keys;
 
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
-import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class StringKeyMapper implements SelfRegisteringKeyMapper<String> {
     @Override
@@ -10,7 +9,7 @@ public class StringKeyMapper implements SelfRegisteringKeyMapper<String> {
     }
 
     @Override
-    public String toKey( String value ) throws MappingException {
+    public String toKey( String value ) {
         return value;
     }
 

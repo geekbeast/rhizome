@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.mapstores.rethinkdb;
+package com.kryptnostic.rhizome.mapstores.hyperdex;
 
 import java.util.Set;
 
@@ -11,20 +11,20 @@ import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
+import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 /**
  *
  * @author Drew Bailey
  *
  */
-public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
-    final RegistryBasedMappersPod            mappers;
+public class HyperdexMapStoreFactory implements KryptnosticMapStoreFactory {
 
-    final RethinkDbAlternateDriverClientPool pool;
-    final String                             dbName;
+    private final HyperdexClientPool pool;
+    private final String             dbName;
+    private final RegistryBasedMappersPod mappers;
 
-    RethinkDbMapStoreFactory( Builder builder ) {
+    public HyperdexMapStoreFactory( Builder builder ) {
         super();
         this.pool = builder.getPool();
         this.dbName = builder.getDbName();
@@ -47,15 +47,15 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
         if ( keyMapper == null ) {
             throw new RuntimeException( "There is no KeyMapper registered for type " + keyType );
         }
-        return new RethinkdbMapStoreBuilder<>( pool, dbName, keyMapper, valueMapper );
+        return new HyperdexMapStoreBuilder<>( pool, dbName, keyMapper, valueMapper );
     }
 
-    public static class RethinkdbMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
-        private final RethinkDbAlternateDriverClientPool pool;
-        private final String                             dbName;
+    public static class HyperdexMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
+        private final HyperdexClientPool pool;
+        private final String             dbName;
 
-        public RethinkdbMapStoreBuilder(
-                RethinkDbAlternateDriverClientPool pool,
+        public HyperdexMapStoreBuilder(
+                HyperdexClientPool pool,
                 String dbName,
                 SelfRegisteringKeyMapper<K> keyMapper,
                 SelfRegisteringValueMapper<V> valueMapper ) {
@@ -66,11 +66,10 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
 
         @Override
         public TestableSelfRegisteringMapStore<K, V> build() {
-            RethinkDbBaseMapStoreAlternateDriver<K, V> rethinkDbBaseMapStoreAlternateDriver = new RethinkDbBaseMapStoreAlternateDriver<K, V>(
-                    pool,
+            HyperdexBaseJacksonKeyValueMapStore<K, V> rethinkDbBaseMapStoreAlternateDriver = new HyperdexBaseJacksonKeyValueMapStore<K, V>(
                     mapName,
-                    dbName,
                     tableName,
+                    pool,
                     keyMapper,
                     valueMapper) {
 
@@ -101,18 +100,18 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
     }
 
     public static class Builder {
-        private RethinkDbAlternateDriverClientPool pool;
-        private String                             dbName;
-        private RegistryBasedMappersPod            mappers;
+        private HyperdexClientPool      pool;
+        private String                  dbName;
+        private RegistryBasedMappersPod mappers;
 
         public Builder() {}
 
-        public Builder withPool( RethinkDbAlternateDriverClientPool pool ) {
+        public Builder withPool( HyperdexClientPool pool ) {
             this.pool = pool;
             return this;
         }
 
-        public Builder withMapper( RegistryBasedMappersPod mappers ) {
+        public Builder withPool( RegistryBasedMappersPod mappers ) {
             this.mappers = mappers;
             return this;
         }
@@ -125,12 +124,8 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
         /**
          * @return the pool
          */
-        public RethinkDbAlternateDriverClientPool getPool() {
+        public HyperdexClientPool getPool() {
             return pool;
-        }
-
-        public RegistryBasedMappersPod getMappers() {
-            return mappers;
         }
 
         /**
@@ -140,8 +135,12 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
             return dbName;
         }
 
-        public RethinkDbMapStoreFactory build() {
-            return new RethinkDbMapStoreFactory( this );
+        public RegistryBasedMappersPod getMappers() {
+            return mappers;
+        }
+
+        public HyperdexMapStoreFactory build() {
+            return new HyperdexMapStoreFactory( this );
         }
 
     }

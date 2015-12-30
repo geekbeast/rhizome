@@ -1,44 +1,27 @@
 package com.geekbeast.rhizome.pods.hazelcast;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
-import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
-import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
-import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.config.MulticastConfig;
-import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.QueueConfig;
-import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
-import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 
 @Configuration
-public class RegistryBasedHazelcastInstanceConfigurationPod {
+public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcastInstanceConfigurationPod {
     private static final Logger                                               logger             = LoggerFactory
                                                                                                          .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps
@@ -47,231 +30,80 @@ public class RegistryBasedHazelcastInstanceConfigurationPod {
                                                                                                          .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
                                                                                                          .newConcurrentMap();
-    @Inject
-    protected RhizomeConfiguration                                            configuration;
 
-    @Bean
-    public HazelcastConfigurationContainer getHazelcastConfiguration() {
-        return new HazelcastConfigurationContainer(
-                getHazelcastServerConfiguration(),
-                getHazelcastClientConfiguration() );
-    }
-
-    public Config getHazelcastServerConfiguration() {
-        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
-        Preconditions.checkArgument(
-                maybeConfiguration.isPresent(),
-                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
-        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        if ( !hzConfiguration.isServer() ) {
-            return null;
-        }
-        Config config = new Config( hzConfiguration.getInstanceName() )
-                .setProperty( "hazelcast.logging.type", "slf4j" )
-                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( getSerializationConfig() )
-                .setMapConfigs( getMapConfigs() )
-                .setNetworkConfig( getNetworkConfig( hzConfiguration ) )
-                .setQueueConfigs( getQueueConfigs() );
-        return config;
-    }
-
-    public ClientConfig getHazelcastClientConfiguration() {
-        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
-        Preconditions.checkArgument(
-                maybeConfiguration.isPresent(),
-                "Hazelcast Configuration must be present to build hazelcast instance configuration." );
-        HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        if ( hzConfiguration.isServer() ) {
-            return null;
-        }
-        ClientConfig clientConfig = new ClientConfig()
-                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
-                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( getSerializationConfig() )
-                .setProperty( "hazelcast.logging.type", "slf4j" );
-
-        return clientConfig;
-    }
-
-    @Bean
-    public static SerializationConfig getSerializationConfig() {
-        SerializationConfig config = new SerializationConfig()
-                .setSerializerConfigs( getSerializerConfigs() )
-                .setAllowUnsafe( true )
-                .setUseNativeByteOrder( true );
-        return config;
-    }
-
-    private static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
-        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
-    }
-
-    protected NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {
-        return new NetworkConfig().setPort( hzConfiguration.getPort() ).setJoin(
-                getJoinConfig( hzConfiguration.getHazelcastSeedNodes() ) );
-    }
-
-    protected JoinConfig getJoinConfig( List<String> nodes ) {
-        return new JoinConfig().setMulticastConfig( new MulticastConfig().setEnabled( false ).setLoopbackModeEnabled(
-                false ) ).setTcpIpConfig( getTcpIpConfig( nodes ) );
-    }
-
-    protected TcpIpConfig getTcpIpConfig( List<String> nodes ) {
-        return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
-    }
-
-    protected static Collection<SerializerConfig> getSerializerConfigs() {
+    @Override
+    protected Collection<SerializerConfig> getSerializerConfigs() {
         return Collections2.transform( serializerRegistry.entrySet(), e -> {
             return new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() );
         } );
     }
 
+    @Override
     protected Map<String, MapConfig> getMapConfigs() {
         return Maps.transformEntries( mapRegistry, ( k, v ) -> {
             return v.getMapConfig();
         } );
     }
 
+    @Override
     protected Map<String, QueueConfig> getQueueConfigs() {
         return Maps.transformEntries( queueRegistry, ( k, v ) -> {
             return v.getQueueConfig();
         } );
     }
 
-    @Inject
+    /*
+     * The following three methods use @Autowired instead of @Inject, since that functionality is not provided by the
+     * spec :-/
+     */
+
+    @Autowired(
+        required = false )
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
+        if ( mapStores.isEmpty() ) {
+            logger.warn( "No map stores were configured." );
+        }
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
-            if ( s != null ) {
-                mapRegistry.put( s.getMapConfig().getName(), s );
-            } else {
-                logger.warn( "Encountered null entry when registering map stores." );
-            }
+
+            register( s.getMapConfig().getName(), s );
         }
     }
 
-    @Inject
+    @Autowired(
+        required = false )
     public void registerQueueStores( Set<SelfRegisteringQueueStore<?>> queueStores ) {
+        if ( queueStores.isEmpty() ) {
+            logger.warn( "No queue stores were configured." );
+        }
         for ( SelfRegisteringQueueStore<?> s : queueStores ) {
             queueRegistry.put( s.getQueueConfig().getName(), s );
         }
     }
 
-    @Inject
+    @Autowired(
+        required = false )
     public void register( Set<SelfRegisteringStreamSerializer<?>> serializers ) {
+        if ( serializers.isEmpty() ) {
+            logger.warn( "No serializers were configured." );
+        }
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
+        Preconditions.checkNotNull( queueStore, "Cannot register null queue-store." );
         queueRegistry.put( queueName, queueStore );
     }
 
     public static void register( String mapName, SelfRegisteringMapStore<?, ?> mapStore ) {
+        Preconditions.checkNotNull( mapStore, "Cannot register null map-store." );
         mapRegistry.put( mapName, mapStore );
     }
 
     public static void register( Class<?> hzSerializableClass, Serializer serializer ) {
+        Preconditions.checkNotNull( serializer, "Cannot register null serializer." );
         serializerRegistry.put( hzSerializableClass, serializer );
-    }
-
-    // TODO: Make map and serializer beans as startup will fail if there is not at least one bean of that type.
-    @Bean
-    public SelfRegisteringQueueStore<?> noopQ() {
-        return new SelfRegisteringQueueStore<Void>() {
-
-            @Override
-            public void store( Long key, Void value ) {
-
-            }
-
-            @Override
-            public void storeAll( Map<Long, Void> map ) {
-
-            }
-
-            @Override
-            public void delete( Long key ) {
-
-            }
-
-            @Override
-            public void deleteAll( Collection<Long> keys ) {
-
-            }
-
-            @Override
-            public Void load( Long key ) {
-                return null;
-            }
-
-            @Override
-            public Map<Long, Void> loadAll( Collection<Long> keys ) {
-                return null;
-            }
-
-            @Override
-            public Set<Long> loadAllKeys() {
-                return null;
-            }
-
-            @Override
-            public QueueConfig getQueueConfig() {
-                return new QueueConfig( "noop" );
-            }
-        };
-    }
-
-    @Bean
-    public SelfRegisteringMapStore<?, ?> noopM() {
-        return new SelfRegisteringMapStore<Void, Void>() {
-
-            @Override
-            public void store( Void key, Void value ) {
-
-            }
-
-            @Override
-            public void storeAll( Map<Void, Void> map ) {
-
-            }
-
-            @Override
-            public void delete( Void key ) {
-
-            }
-
-            @Override
-            public void deleteAll( Collection<Void> keys ) {
-
-            }
-
-            @Override
-            public Void load( Void key ) {
-                return null;
-            }
-
-            @Override
-            public Map<Void, Void> loadAll( Collection<Void> keys ) {
-                return null;
-            }
-
-            @Override
-            public Iterable<Void> loadAllKeys() {
-                return null;
-            }
-
-            @Override
-            public MapConfig getMapConfig() {
-                return new MapConfig( "blah" ).setMapStoreConfig( getMapStoreConfig() );
-            }
-
-            @Override
-            public MapStoreConfig getMapStoreConfig() {
-                return new MapStoreConfig();
-            }
-        };
     }
 
 }

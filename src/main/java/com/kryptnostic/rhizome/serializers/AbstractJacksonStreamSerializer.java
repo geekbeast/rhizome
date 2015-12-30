@@ -19,7 +19,7 @@ public abstract class AbstractJacksonStreamSerializer<T> implements SelfRegister
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {/* No-Op */}
 
     @Override
     public void write( ObjectDataOutput out, T object ) throws IOException {
@@ -34,7 +34,8 @@ public abstract class AbstractJacksonStreamSerializer<T> implements SelfRegister
         in.readFully( bytes );
         return mapper.readValue( bytes, clazz );
     }
-    
+
+    @Override
     public Class<T> getClazz() {
         return clazz;
     }

@@ -1,7 +1,7 @@
 package com.kryptnostic.rhizome.mapstores;
 
-import com.kryptnostic.rhizome.mappers.KeyMapper;
-import com.kryptnostic.rhizome.mappers.ValueMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
+import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 
 public interface MapStoreBuilder<K, V> {
 
@@ -13,9 +13,9 @@ public interface MapStoreBuilder<K, V> {
 
     MapStoreBuilder<K, V> withTableAndMapName( String name );
 
-    MapStoreBuilder<K, V> withCustomKeyMapper( KeyMapper<K> mapper );
+    MapStoreBuilder<K, V> withCustomKeyMapper( SelfRegisteringKeyMapper<K> mapper );
 
-    MapStoreBuilder<K, V> withCustomValueMapper( ValueMapper<V> mapper );
+    MapStoreBuilder<K, V> withCustomValueMapper( SelfRegisteringValueMapper<V> mapper );
 
     MapStoreBuilder<K, V> setObjectInMemoryFormat();
 }
