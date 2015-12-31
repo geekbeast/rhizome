@@ -36,19 +36,20 @@ import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConf
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private static final Base64                        codec                  = new Base64();
-    private static final Logger                        logger                 = LoggerFactory
-                                                                                      .getLogger( RethinkDbBaseMapStoreAlternateDriver.class );
-    protected static final String                      DATA_FIELD             = "data";
-    protected static final String                      ID_FIELD               = "id";
+    private static final Base64                        codec          = new Base64();
+    private static final Logger                        logger         = LoggerFactory
+                                                                              .getLogger(
+                                                                                      RethinkDbBaseMapStoreAlternateDriver.class );
+    protected static final String                      DATA_FIELD     = "data";
+    protected static final String                      ID_FIELD       = "id";
 
-    protected static final int                         MAX_THREADS            = Runtime.getRuntime()
-                                                                                      .availableProcessors();
-    protected static final int                         STORAGE_BATCH          = 3000;
-    protected static final int                         LOAD_BATCH             = 3000;
+    protected static final int                         MAX_THREADS    = Runtime.getRuntime()
+                                                                              .availableProcessors();
+    protected static final int                         STORAGE_BATCH  = 3000;
+    protected static final int                         LOAD_BATCH     = 3000;
 
-    protected static final ExecutorService             exec                   = Executors
-                                                                                      .newFixedThreadPool( MAX_THREADS );
+    protected static final ExecutorService             exec           = Executors
+                                                                              .newFixedThreadPool( MAX_THREADS );
 
     protected final RethinkDbAlternateDriverClientPool pool;
     protected final Table                              tbl;
@@ -57,11 +58,11 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
     protected final String                             table;
     protected final String                             mapName;
 
-    public static final HashMap<String, Object>        INSERT_OPTIONS         = new HashMap<String, Object>() {
-                                                                                  {
-                                                                                      put( "conflict", "replace" );
-                                                                                  }
-                                                                              };
+    public static final HashMap<String, Object>        INSERT_OPTIONS = new HashMap<String, Object>() {
+                                                                          {
+                                                                              put( "conflict", "replace" );
+                                                                          }
+                                                                      };
 
     public RethinkDbBaseMapStoreAlternateDriver(
             RethinkDbAlternateDriverClientPool pool,
@@ -286,7 +287,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         // insert in 100000 chunks
         int sz = data.size();
         int step = STORAGE_BATCH;
-        List<Future<Long>> tasks = Lists.newArrayList();
+        List<Future<Double>> tasks = Lists.newArrayList();
         for ( int i = 0; i < sz; i += step ) {
             int max = i + step;
             if ( max > sz ) {
@@ -294,13 +295,13 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
             }
             final int finalIndex = i;
             final int finalMax = max;
-            Future<Long> t = exec.submit( new Callable<Long>() {
+            Future<Double> t = exec.submit( new Callable<Double>() {
 
                 @Override
-                public Long call() {
+                public Double call() {
                     Stopwatch watch = Stopwatch.createStarted();
                     RqlConnection conn = pool.acquire();
-                    long affected = 0;
+                    double affected = 0;
                     try {
                         List<Map<String, Object>> toInsert = Lists.newArrayList();
                         final List<Map.Entry<K, V>> list = data.subList( finalIndex, finalMax );
@@ -321,7 +322,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                         while ( cursor != null && cursor.hasNext() ) {
                             RqlObject obj = cursor.next();
                             Map m = obj.getMap();
-                            affected += (long) m.get( "inserted" );
+                            affected += (double) m.get( "inserted" );
                         }
 
                     } catch ( RqlDriverException e ) {
@@ -340,7 +341,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
             tasks.add( t );
         }
 
-        for ( Future<Long> f : tasks ) {
+        for ( Future<Double> f : tasks ) {
             try {
                 affected += f.get();
             } catch ( InterruptedException | ExecutionException e ) {
@@ -372,8 +373,8 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         try {
             List<Object> stringKeys = Lists.newArrayList();
             for ( K k : keys ) {
-                    String keyString = keyMapper.fromKey( k );
-                    stringKeys.add( keyString );
+                String keyString = keyMapper.fromKey( k );
+                stringKeys.add( keyString );
             }
             conn.run( tbl.get_all( stringKeys.toArray() ).delete() );
 
