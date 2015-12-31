@@ -3,15 +3,15 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.util.Set;
 
 import com.datastax.driver.core.Session;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.google.common.base.Preconditions;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.pods.RegistryBasedMappersPod;
 
 public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 

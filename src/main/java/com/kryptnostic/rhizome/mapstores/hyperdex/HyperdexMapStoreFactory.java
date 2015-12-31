@@ -2,7 +2,6 @@ package com.kryptnostic.rhizome.mapstores.hyperdex;
 
 import java.util.Set;
 
-import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
@@ -11,6 +10,7 @@ import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.pods.RegistryBasedMappersPod;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 /**

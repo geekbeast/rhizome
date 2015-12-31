@@ -15,11 +15,11 @@ import org.hyperdex.client.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.QueueStoreConfig;
+import com.kryptnostic.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;

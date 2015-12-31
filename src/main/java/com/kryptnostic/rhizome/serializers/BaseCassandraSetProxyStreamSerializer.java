@@ -5,11 +5,11 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import com.datastax.driver.core.Session;
-import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.cassandra.CassandraSetProxy;
+import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
 public abstract class BaseCassandraSetProxyStreamSerializer<K, T, P extends CassandraSetProxy<K, T>>
         implements SelfRegisteringStreamSerializer<P> {

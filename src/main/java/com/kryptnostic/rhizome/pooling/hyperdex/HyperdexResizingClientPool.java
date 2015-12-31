@@ -10,11 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Queues;
+import com.kryptnostic.rhizome.configuration.hyperdex.HyperdexConfiguration;
 
 public class HyperdexResizingClientPool implements HyperdexClientPool {
     private static final Logger           logger                  = LoggerFactory

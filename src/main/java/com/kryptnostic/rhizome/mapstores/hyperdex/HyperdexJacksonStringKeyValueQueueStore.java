@@ -1,6 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.hyperdex;
 
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
+import com.kryptnostic.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 

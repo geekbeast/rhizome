@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
-import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
-import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.tests.bootstrap.RhizomeTests;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
+import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 import retrofit.client.Response;
 

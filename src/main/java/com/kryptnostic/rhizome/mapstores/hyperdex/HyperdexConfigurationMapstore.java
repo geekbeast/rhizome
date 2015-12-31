@@ -2,8 +2,8 @@ package com.kryptnostic.rhizome.mapstores.hyperdex;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-import com.geekbeast.rhizome.configuration.ConfigurationKey;
-import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
+import com.kryptnostic.rhizome.configuration.ConfigurationKey;
+import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 import com.kryptnostic.rhizome.mappers.Mappers;
 import com.kryptnostic.rhizome.mappers.keys.ConfigurationKeyMapper;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
