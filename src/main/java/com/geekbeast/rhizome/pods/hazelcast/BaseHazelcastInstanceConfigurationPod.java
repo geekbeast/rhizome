@@ -3,6 +3,8 @@ package com.geekbeast.rhizome.pods.hazelcast;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
@@ -41,12 +43,14 @@ import com.hazelcast.config.TcpIpConfig;
 @Configuration
 @Import(HazelcastPod.class)
 public class BaseHazelcastInstanceConfigurationPod {
+    private static final Lock startupLock = new ReentrantLock();
 
     @Inject
     protected RhizomeConfiguration configuration;
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
+        startupLock.lock();
         return new HazelcastConfigurationContainer(
                 getHazelcastServerConfiguration(),
                 getHazelcastClientConfiguration() );
@@ -91,6 +95,11 @@ public class BaseHazelcastInstanceConfigurationPod {
         return config;
     }
 
+    @Bean
+    public static Lock hazelcastStartupLock() {
+        return startupLock;
+    }
+    
     protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
         return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
