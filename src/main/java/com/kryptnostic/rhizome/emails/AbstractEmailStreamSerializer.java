@@ -11,9 +11,9 @@ import jodd.mail.MailAddress;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
 public abstract class AbstractEmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
 

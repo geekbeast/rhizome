@@ -25,14 +25,14 @@ import retrofit.client.Header;
 import retrofit.client.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.geekbeast.rhizome.core.Rhizome;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.geekbeast.rhizome.tests.configurations.JacksonConverter;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
+import com.kryptnostic.rhizome.core.Rhizome;
+import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 
 public class RhizomeTests {
     private final static Logger logger        = LoggerFactory.getLogger( RhizomeTests.class );

@@ -12,14 +12,14 @@ import org.hyperdex.client.HyperDexClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.geekbeast.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.kryptnostic.rhizome.configuration.hyperdex.HyperdexPreconfigurer;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.pooling.hyperdex.HyperdexClientPool;
 
 import jersey.repackaged.com.google.common.collect.Maps;

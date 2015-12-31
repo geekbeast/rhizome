@@ -5,10 +5,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 

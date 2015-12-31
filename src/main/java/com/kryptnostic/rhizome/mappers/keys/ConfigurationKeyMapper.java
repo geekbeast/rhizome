@@ -1,7 +1,7 @@
 package com.kryptnostic.rhizome.mappers.keys;
 
-import com.geekbeast.rhizome.configuration.ConfigurationKey;
-import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
+import com.kryptnostic.rhizome.configuration.ConfigurationKey;
+import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 
 public class ConfigurationKeyMapper implements SelfRegisteringKeyMapper<ConfigurationKey> {

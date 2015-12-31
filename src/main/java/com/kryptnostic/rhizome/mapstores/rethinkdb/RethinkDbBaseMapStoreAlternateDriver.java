@@ -22,17 +22,17 @@ import com.dkhenry.RethinkDB.RqlCursor;
 import com.dkhenry.RethinkDB.RqlObject;
 import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
-import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
-import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.kryptnostic.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.kryptnostic.rhizome.mappers.KeyMapper;
 import com.kryptnostic.rhizome.mappers.ValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements TestableSelfRegisteringMapStore<K, V> {

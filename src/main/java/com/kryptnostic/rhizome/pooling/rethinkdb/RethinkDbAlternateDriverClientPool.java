@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import com.dkhenry.RethinkDB.RqlConnection;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
-import com.geekbeast.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.Queues;
+import com.kryptnostic.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 
 public class RethinkDbAlternateDriverClientPool {
     private static final Logger          logger  = LoggerFactory.getLogger( RethinkDbAlternateDriverClientPool.class );

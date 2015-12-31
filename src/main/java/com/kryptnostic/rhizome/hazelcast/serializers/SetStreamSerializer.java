@@ -3,9 +3,9 @@ package com.kryptnostic.rhizome.hazelcast.serializers;
 import java.io.IOException;
 import java.util.Set;
 
-import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
+import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
 public abstract class SetStreamSerializer<T extends Set<E>, E> implements SelfRegisteringStreamSerializer<T> {
     private Class<T> clazz;

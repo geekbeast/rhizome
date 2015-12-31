@@ -3,20 +3,20 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.util.Set;
 
 import com.datastax.driver.core.Session;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.geekbeast.rhizome.pods.RegistryBasedMappersPod;
 import com.google.common.base.Preconditions;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.pods.RegistryBasedMappersPod;
 
 public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
-    final Session                session;
-    final CassandraConfiguration config;
+    final Session                 session;
+    final CassandraConfiguration  config;
     final RegistryBasedMappersPod mappers;
 
     CassandraMapStoreFactory( Builder builder ) {
@@ -47,7 +47,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
     public class ProxiedCassandraMapStoreBuilder<K, C extends Set<V>, V> extends CassandraMapStoreBuilder<K, C> {
 
         private final SelfRegisteringValueMapper<V> innerValueMapper;
-        private final Class<V>       valueType;
+        private final Class<V>                      valueType;
 
         public ProxiedCassandraMapStoreBuilder(
                 SelfRegisteringKeyMapper<K> keyMapper,
@@ -106,12 +106,11 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
     public static class Builder {
 
-        private CassandraConfiguration config;
-        private Session                session;
+        private CassandraConfiguration  config;
+        private Session                 session;
         private RegistryBasedMappersPod mappers;
 
         public Builder() {}
-
 
         public Builder withConfiguration( CassandraConfiguration config ) {
             this.config = config;
@@ -123,11 +122,10 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
             return this;
         }
 
-        public Builder withMappers( RegistryBasedMappersPod mappers) {
+        public Builder withMappers( RegistryBasedMappersPod mappers ) {
             this.mappers = mappers;
             return this;
         }
-
 
         public CassandraMapStoreFactory build() {
             return new CassandraMapStoreFactory( this );
