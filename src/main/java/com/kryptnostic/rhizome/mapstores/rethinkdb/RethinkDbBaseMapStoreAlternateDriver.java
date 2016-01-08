@@ -23,6 +23,7 @@ import com.dkhenry.RethinkDB.RqlObject;
 import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
@@ -162,13 +163,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         AtomicInteger errors = new AtomicInteger();
         AtomicInteger keyCount = new AtomicInteger();
         List<Future> tasks = Lists.newArrayList();
-        for ( int i = 0; i < sz; i += step ) {
-            int max = i + step;
-            if ( max > sz ) {
-                max = sz;
-            }
-            final int fIndex = i;
-            final int fMax = max;
+        for ( List<Object> subListOfData : Iterables.partition( data, step ) ) {
             Future<Map<K, V>> t = exec.submit( new Callable<Map<K, V>>() {
 
                 @Override
@@ -178,7 +173,6 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
                     RqlConnection conn = pool.acquire();
                     RqlCursor cursor = null;
-                    List<Object> subListOfData = data.subList( fIndex, fMax );
                     try {
                         cursor = conn.run( tbl.get_all( subListOfData.toArray() ) );
                     } catch ( RqlDriverException e1 ) {
@@ -201,7 +195,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                     logger.info(
                             "{} Retrieval of {} elements took {} ms",
                             table,
-                            fMax - fIndex,
+                            subListOfData.size(),
                             watch.elapsed( TimeUnit.MILLISECONDS ) );
                     return results;
                 }
