@@ -25,7 +25,6 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -242,13 +241,14 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         public K next() {
             try {
                 RqlObject obj = cursor.next();
-                if (!cursor.hasNext()) {
-                    pool.release( conn );
-                }
                 Map<String, Object> d = obj.getMap();
                 return keyMapper.toKey( (String) d.get( ID_FIELD ) );
             } catch ( RqlDriverException e ) {
                 throw Throwables.propagate( e );
+            } finally {
+                if (!cursor.hasNext()) {
+                    pool.release( conn );
+                }
             }
         }
 
@@ -262,7 +262,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                 RqlConnection conn = pool.acquire();
                 RqlCursor cursor = null;
                 try {
-                    cursor = conn.run( tbl.filter( ImmutableMap.of() ) );
+                    cursor = conn.run( tbl.pluck( ID_FIELD ) );
                 } catch ( RqlDriverException e1 ) {
                     throw Throwables.propagate( e1 );
                 }
