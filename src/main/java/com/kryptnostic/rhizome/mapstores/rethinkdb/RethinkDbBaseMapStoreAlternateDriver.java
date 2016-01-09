@@ -25,6 +25,7 @@ import com.dkhenry.RethinkDB.errors.RqlDriverException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -261,9 +262,9 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                 RqlConnection conn = pool.acquire();
                 RqlCursor cursor = null;
                 try {
-                    cursor = conn.run( tbl.filter( Maps.newHashMap() ) );
+                    cursor = conn.run( tbl.filter( ImmutableMap.of() ) );
                 } catch ( RqlDriverException e1 ) {
-                    logger.error( "{}", e1 );
+                    throw Throwables.propagate( e1 );
                 }
                 return new RqlKeyIterator(conn, cursor);
             }
