@@ -2,9 +2,9 @@ package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -22,7 +22,10 @@ import com.dkhenry.RethinkDB.RqlCursor;
 import com.dkhenry.RethinkDB.RqlObject;
 import com.dkhenry.RethinkDB.RqlQuery.Table;
 import com.dkhenry.RethinkDB.errors.RqlDriverException;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hazelcast.config.MapConfig;
@@ -162,13 +165,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         AtomicInteger errors = new AtomicInteger();
         AtomicInteger keyCount = new AtomicInteger();
         List<Future> tasks = Lists.newArrayList();
-        for ( int i = 0; i < sz; i += step ) {
-            int max = i + step;
-            if ( max > sz ) {
-                max = sz;
-            }
-            final int fIndex = i;
-            final int fMax = max;
+        for ( List<Object> subListOfData : Iterables.partition( data, step ) ) {
             Future<Map<K, V>> t = exec.submit( new Callable<Map<K, V>>() {
 
                 @Override
@@ -178,7 +175,6 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
 
                     RqlConnection conn = pool.acquire();
                     RqlCursor cursor = null;
-                    List<Object> subListOfData = data.subList( fIndex, fMax );
                     try {
                         cursor = conn.run( tbl.get_all( subListOfData.toArray() ) );
                     } catch ( RqlDriverException e1 ) {
@@ -201,7 +197,7 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
                     logger.info(
                             "{} Retrieval of {} elements took {} ms",
                             table,
-                            fMax - fIndex,
+                            subListOfData.size(),
                             watch.elapsed( TimeUnit.MILLISECONDS ) );
                     return results;
                 }
@@ -226,9 +222,53 @@ public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements Test
         return results;
     }
 
+    private class RqlKeyIterator implements Iterator<K> {
+
+        private final RqlConnection conn;
+        private final RqlCursor cursor;
+
+        public RqlKeyIterator( RqlConnection conn, RqlCursor cursor ) {
+            this.conn = Preconditions.checkNotNull( conn );
+            this.cursor = Preconditions.checkNotNull( cursor );
+        }
+
+        @Override
+        public boolean hasNext() {
+            return cursor.hasNext();
+        }
+
+        @Override
+        public K next() {
+            try {
+                RqlObject obj = cursor.next();
+                Map<String, Object> d = obj.getMap();
+                return keyMapper.toKey( (String) d.get( ID_FIELD ) );
+            } catch ( RqlDriverException e ) {
+                throw Throwables.propagate( e );
+            } finally {
+                if (!cursor.hasNext()) {
+                    pool.release( conn );
+                }
+            }
+        }
+
+    }
+
     @Override
-    public Set<K> loadAllKeys() {
-        return null;
+    public Iterable<K> loadAllKeys() {
+        return new Iterable<K>() {
+            @Override
+            public Iterator<K> iterator() {
+                RqlConnection conn = pool.acquire();
+                RqlCursor cursor = null;
+                try {
+                    cursor = conn.run( tbl.pluck( ID_FIELD ) );
+                } catch ( RqlDriverException e1 ) {
+                    throw Throwables.propagate( e1 );
+                }
+                return new RqlKeyIterator(conn, cursor);
+            }
+        };
     }
 
     private V getValueFromCursorObject( RqlObject obj ) throws MappingException, RqlDriverException {
