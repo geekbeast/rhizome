@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nonnull;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.common.base.Preconditions;
@@ -19,6 +20,12 @@ public class RegistryBasedMappersPod {
                                                                                                             .newConcurrentMap();
     private static final ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> valueMapperRegistry = Maps
                                                                                                             .newConcurrentMap();
+
+    @Bean(
+        name = "valueMappers" )
+    public static ConcurrentMap<Class<?>, SelfRegisteringValueMapper<?>> getVMs() {
+        return valueMapperRegistry;
+    }
 
     @Nonnull
     public <T> SelfRegisteringKeyMapper<T> getKeyMapper( @Nonnull Class<T> clazz ) {
