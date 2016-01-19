@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.configuration.websockets;
 import org.eclipse.jetty.websocket.api.WebSocketBehavior;
 import org.eclipse.jetty.websocket.api.WebSocketPolicy;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -58,7 +57,6 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Bean
     public WebSocketStompClient client() {
-        LoggerFactory.getLogger( WebSocketConfig.class ).info( "IN STOMP CLIENT CREATION" );
         WebSocketClient transport = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient( transport );
         stompClient.setMessageConverter( new StringMessageConverter() );
