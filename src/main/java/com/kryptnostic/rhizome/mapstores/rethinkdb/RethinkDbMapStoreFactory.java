@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.mapstores.rethinkdb;
 
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
@@ -10,17 +11,17 @@ import com.kryptnostic.rhizome.mapstores.AbstractMapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.KryptnosticMapStoreFactory;
 import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import com.kryptnostic.rhizome.mapstores.cassandra.SetProxyAwareValueMapper;
 import com.kryptnostic.rhizome.pods.RegistryBasedMappersPod;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
 /**
- *
  * @author Drew Bailey
  *
  */
 public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
-    final RegistryBasedMappersPod            mappers;
 
+    final RegistryBasedMappersPod            mappers;
     final RethinkDbAlternateDriverClientPool pool;
     final String                             dbName;
 
@@ -33,35 +34,78 @@ public class RethinkDbMapStoreFactory implements KryptnosticMapStoreFactory {
 
     @Override
     public <K, C extends Set<V>, V> MapStoreBuilder<K, C> buildSetProxy( Class<K> keyType, Class<V> valType ) {
-        throw new UnsupportedOperationException(
-                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        SelfRegisteringKeyMapper<K> keyMapper = (SelfRegisteringKeyMapper<K>) mappers.getKeyMapper( keyType );
+        SelfRegisteringValueMapper<V> valueMapper = (SelfRegisteringValueMapper<V>) mappers.getValueMapper( valType );
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
+        return new ProxiedRethinkdbMapStoreBuilder<>( keyMapper, valueMapper, valType );
     }
 
     @Override
     public <K, V> MapStoreBuilder<K, V> build( Class<K> keyType, Class<V> valType ) {
         SelfRegisteringKeyMapper<K> keyMapper = (SelfRegisteringKeyMapper<K>) mappers.getKeyMapper( keyType );
         SelfRegisteringValueMapper<V> valueMapper = (SelfRegisteringValueMapper<V>) mappers.getValueMapper( valType );
-        if ( valueMapper == null ) {
-            throw new RuntimeException( "There is no ValueMapper registered for type " + valType );
-        }
-        if ( keyMapper == null ) {
-            throw new RuntimeException( "There is no KeyMapper registered for type " + keyType );
-        }
-        return new RethinkdbMapStoreBuilder<>( pool, dbName, keyMapper, valueMapper );
+        Preconditions.checkNotNull( keyMapper, "No keymapper found for type %s ", keyType );
+        Preconditions.checkNotNull( valueMapper, "No valuemapper found for type %s ", valType );
+        return new RethinkdbMapStoreBuilder<>( keyMapper, valueMapper );
     }
 
-    public static class RethinkdbMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
-        private final RethinkDbAlternateDriverClientPool pool;
-        private final String                             dbName;
+    public class ProxiedRethinkdbMapStoreBuilder<K, C extends Set<V>, V> extends RethinkdbMapStoreBuilder<K, C> {
+
+        private final SelfRegisteringValueMapper<V> innerValueMapper;
+        private final Class<V>                      valueType;
+
+        public ProxiedRethinkdbMapStoreBuilder(
+                SelfRegisteringKeyMapper<K> keyMapper,
+                SelfRegisteringValueMapper<V> valueMapper,
+                Class<V> valueType ) {
+            super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
+            this.innerValueMapper = valueMapper;
+            this.valueType = valueType;
+        }
+
+        @Override
+        public TestableSelfRegisteringMapStore<K, C> build() {
+            RethinkDbBaseMapStoreAlternateDriver<K, C> rethinkDbBaseMapStoreAlternateDriver = new RethinkDbBaseMapStoreAlternateDriver<K, C>(
+                    pool,
+                    mapName,
+                    dbName,
+                    tableName,
+                    keyMapper,
+                    valueMapper) {
+
+                @Override
+                public MapConfig getMapConfig() {
+                    MapConfig mapConfig = super.getMapConfig();
+                    if ( objectFormat ) {
+                        mapConfig.setInMemoryFormat( InMemoryFormat.OBJECT );
+                    }
+                    return mapConfig;
+                }
+
+                @Override
+                public K generateTestKey() {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                }
+
+                @Override
+                public C generateTestValue() throws Exception {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                }
+            };
+            return rethinkDbBaseMapStoreAlternateDriver;
+        }
+
+    }
+
+    public class RethinkdbMapStoreBuilder<K, V> extends AbstractMapStoreBuilder<K, V> {
 
         public RethinkdbMapStoreBuilder(
-                RethinkDbAlternateDriverClientPool pool,
-                String dbName,
                 SelfRegisteringKeyMapper<K> keyMapper,
                 SelfRegisteringValueMapper<V> valueMapper ) {
             super( keyMapper, valueMapper );
-            this.dbName = dbName;
-            this.pool = pool;
         }
 
         @Override
