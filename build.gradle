@@ -75,7 +75,7 @@ ext.hazelcast_version='3.5.4'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.4.1'
 ext.retrofit_version='1.9.0'
-ext.cassandra_driver_version='2.1.8'
+ext.cassandra_driver_version='2.1.9'
 ext.immutables_version='2.1.0'
 
 dependencies {
@@ -145,7 +145,6 @@ dependencies {
      */
      compile 'joda-time:joda-time:2.9.1'
 
-     compile 'com.datastax.cassandra:cassandra-driver-core:2.1.7.1'
     /*
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
@@ -226,7 +225,6 @@ dependencies {
      compile "com.dkhenry:rethinkjava:0.9"
      // snapshot official rethink driver
      // compile "com.rethinkdb:rethinkdb-driver:${rethinkdb_snapshot_version}"
-     
      
      /**
       * Cassandra
