@@ -22,54 +22,51 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.kryptnostic.helper.services.v1.HandshakeInterceptor;
 
-
 @Configuration
 @EnableWebSocketMessageBroker
 @Import( { HandshakeInterceptor.class } )
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
-	
-	
-	@Override
-	public void configureMessageBroker(MessageBrokerRegistry config) {
-		config.enableSimpleBroker("/topic");
-		config.setApplicationDestinationPrefixes("/proxy");
-	}
-	
-	@Override 
-	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/")
-			.setHandshakeHandler(new DefaultHandshakeHandler(upgradeStrategy()))
-			.addInterceptors(new HandshakeInterceptor())
-			.setAllowedOrigins("*")
-			.withSockJS();
-	}
 
-	@Bean
-	public RequestUpgradeStrategy upgradeStrategy() {
-		WebSocketPolicy policy = new WebSocketPolicy(WebSocketBehavior.SERVER);
-		policy.setInputBufferSize(8192);
-		policy.setIdleTimeout(600000);
-		return new JettyRequestUpgradeStrategy(new WebSocketServerFactory(
-				policy));
-	}
+    @Override
+    public void configureMessageBroker( MessageBrokerRegistry config ) {
+        config.enableSimpleBroker( "/topic" );
+        config.setApplicationDestinationPrefixes( "/proxy" );
+    }
 
-	@Bean
-	public DefaultHandshakeHandler handshakeHandler() {
-		return new DefaultHandshakeHandler(upgradeStrategy());
-	}
-	
-	@Bean
-	public WebSocketStompClient client() {
-		LoggerFactory.getLogger( WebSocketConfig.class ).info("IN STOMP CLIENT CREATION");
-		WebSocketClient transport = new StandardWebSocketClient();
-		WebSocketStompClient stompClient = new WebSocketStompClient(transport);
-		stompClient.setMessageConverter(new StringMessageConverter());
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+    @Override
+    public void registerStompEndpoints( StompEndpointRegistry registry ) {
+        registry.addEndpoint( "/" )
+                .setHandshakeHandler( new DefaultHandshakeHandler( upgradeStrategy() ) )
+                .addInterceptors( new HandshakeInterceptor() )
+                .setAllowedOrigins( "*" )
+                .withSockJS();
+    }
+
+    @Bean
+    public RequestUpgradeStrategy upgradeStrategy() {
+        WebSocketPolicy policy = new WebSocketPolicy( WebSocketBehavior.SERVER );
+        policy.setInputBufferSize( 8192 );
+        policy.setIdleTimeout( 600000 );
+        return new JettyRequestUpgradeStrategy( new WebSocketServerFactory(
+                policy ) );
+    }
+
+    @Bean
+    public DefaultHandshakeHandler handshakeHandler() {
+        return new DefaultHandshakeHandler( upgradeStrategy() );
+    }
+
+    @Bean
+    public WebSocketStompClient client() {
+        LoggerFactory.getLogger( WebSocketConfig.class ).info( "IN STOMP CLIENT CREATION" );
+        WebSocketClient transport = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient( transport );
+        stompClient.setMessageConverter( new StringMessageConverter() );
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.afterPropertiesSet();
-        stompClient.setTaskScheduler(taskScheduler);
-        stompClient.setReceiptTimeLimit(5000);
+        stompClient.setTaskScheduler( taskScheduler );
+        stompClient.setReceiptTimeLimit( 5000 );
         return stompClient;
-	}
-
+    }
 
 }
