@@ -87,7 +87,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
         CassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, mapName, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+            value = new CassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
