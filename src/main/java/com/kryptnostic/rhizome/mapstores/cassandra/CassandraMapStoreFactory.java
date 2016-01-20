@@ -13,6 +13,10 @@ import com.kryptnostic.rhizome.mapstores.MapStoreBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pods.RegistryBasedMappersPod;
 
+/**
+ * @author Drew Bailey
+ *
+ */
 public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
     final Session                 session;
