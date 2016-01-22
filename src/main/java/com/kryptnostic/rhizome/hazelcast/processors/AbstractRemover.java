@@ -3,12 +3,14 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 import java.util.Collection;
 import java.util.Map.Entry;
 
+import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+
 public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
     private static final long serialVersionUID = 1500519104651067092L;
 
-    protected final V         objectsToRemove;
+    protected final Iterable<T>         objectsToRemove;
 
-    protected AbstractRemover( V objectsToRemove ) {
+    protected AbstractRemover( Iterable<T> objectsToRemove ) {
         this.objectsToRemove = objectsToRemove;
     }
 
@@ -16,14 +18,20 @@ public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhiz
     public Object process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
         if ( currentObjects != null ) {
-            currentObjects.removeAll( objectsToRemove );
+            for( T objectToRemove : objectsToRemove ) {
+                currentObjects.remove( objectToRemove );
+            }
         }
 
-        entry.setValue( currentObjects );
+        //Don't trigger re-serialization if handled by SetProxy.
+        if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
+            entry.setValue( currentObjects );
+        }
+
         return null;
     }
 
-    public V getBackingCollection() {
+    public Iterable<T> getBackingCollection() {
         return objectsToRemove;
     }
 

@@ -12,9 +12,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Delete.Where;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
@@ -87,7 +87,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
         CassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, mapName, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+            value = new CassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
@@ -102,7 +102,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         List<Row> execute = session.execute( LOAD_ALL_KEYS.bind() ).all();
         Set<K> set = Sets.newHashSetWithExpectedSize( execute.size() );
         for ( Row row : execute ) {
-            K key = keyMapper.toKey( row.getString( CassandraQueryConstants.VALUE_RESULT_COLUMN_NAME ) );
+            K key = keyMapper.toKey( row.getString( SetProxy.KEY_COLUMN_NAME ) );
             set.add( key );
         }
         return set;

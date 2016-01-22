@@ -3,6 +3,8 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 import java.util.Collection;
 import java.util.Map.Entry;
 
+import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
@@ -11,9 +13,9 @@ import java.util.Map.Entry;
  * @param <T> The type for the values in container {@code V extends Collection<T>}
  */
 public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
-    private static final long serialVersionUID = 4022386342619821133L;
+    private static final long   serialVersionUID = 4022386342619821133L;
 
-    protected final Iterable<T>           newObjects;
+    protected final Iterable<T> newObjects;
 
     protected AbstractMerger( Iterable<T> objects ) {
         this.newObjects = objects;
@@ -25,10 +27,15 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
         if ( currentObjects == null ) {
             currentObjects = newEmptyCollection();
         }
-        for( T newObject : newObjects ) {
+
+        for ( T newObject : newObjects ) {
             currentObjects.add( newObject );
         }
-        entry.setValue( currentObjects );
+        
+        //Don't trigger re-serialization if handled by SetProxy.
+        if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
+            entry.setValue( currentObjects );
+        }
         return null;
     }
 
@@ -68,6 +75,5 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
         }
         return true;
     }
-
 
 }

@@ -12,8 +12,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.geekbeast.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.google.common.collect.Sets;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
@@ -89,7 +89,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         ResultSet s;
         s = session.execute( LOAD_ALL_QUERY.bind() );
         return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
-            return (K) r.getString( "id" );
+            return (K) keyMapper.toKey( r.getString( "id" ) );
         } ) );
     }
 

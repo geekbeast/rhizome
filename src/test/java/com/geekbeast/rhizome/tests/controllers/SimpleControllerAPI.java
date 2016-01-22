@@ -3,9 +3,9 @@ package com.geekbeast.rhizome.tests.controllers;
 import retrofit.client.Response;
 import retrofit.http.Body;
 
-import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
-import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 
 public interface SimpleControllerAPI {
     String CONTROLLER = "/simple";

@@ -23,8 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
-import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.google.common.eventbus.Subscribe;
+import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 import com.kryptnostic.rhizome.emails.configuration.MailServiceConfiguration;
 
 /**

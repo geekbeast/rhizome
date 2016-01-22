@@ -3,9 +3,9 @@ package com.kryptnostic.rhizome.emails.configuration;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.geekbeast.rhizome.configuration.Configuration;
-import com.geekbeast.rhizome.configuration.ConfigurationKey;
-import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
+import com.kryptnostic.rhizome.configuration.Configuration;
+import com.kryptnostic.rhizome.configuration.ConfigurationKey;
+import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 
 public final class MailServiceConfiguration implements Configuration {
     private static final long         serialVersionUID     = 2393163076245402143L;

@@ -27,18 +27,18 @@ import retrofit.client.Header;
 import retrofit.client.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.geekbeast.rhizome.configuration.jetty.ConnectorConfiguration;
-import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
-import com.geekbeast.rhizome.core.JettyLoam;
-import com.geekbeast.rhizome.core.Loam;
-import com.geekbeast.rhizome.core.Rhizome;
-import com.geekbeast.rhizome.pods.InMemoryConfigurationServicePod;
 import com.geekbeast.rhizome.tests.configurations.JacksonConverter;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
+import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
+import com.kryptnostic.rhizome.core.JettyLoam;
+import com.kryptnostic.rhizome.core.Loam;
+import com.kryptnostic.rhizome.core.Rhizome;
+import com.kryptnostic.rhizome.pods.InMemoryConfigurationServicePod;
 
 public class RhizomeTestsWithoutHazelcast {
     private final static Logger logger        = LoggerFactory.getLogger( RhizomeTestsWithoutHazelcast.class );
