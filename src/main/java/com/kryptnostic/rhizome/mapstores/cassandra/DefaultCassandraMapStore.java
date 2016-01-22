@@ -89,7 +89,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         ResultSet s;
         s = session.execute( LOAD_ALL_QUERY.bind() );
         return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
-            return (K) r.getString( "id" );
+            return (K) keyMapper.toKey( r.getString( "id" ) );
         } ) );
     }
 
