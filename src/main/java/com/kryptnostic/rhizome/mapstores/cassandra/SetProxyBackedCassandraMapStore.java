@@ -102,7 +102,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         List<Row> execute = session.execute( LOAD_ALL_KEYS.bind() ).all();
         Set<K> set = Sets.newHashSetWithExpectedSize( execute.size() );
         for ( Row row : execute ) {
-            K key = keyMapper.toKey( row.getString( CassandraQueryConstants.VALUE_RESULT_COLUMN_NAME ) );
+            K key = keyMapper.toKey( row.getString( SetProxy.KEY_COLUMN_NAME ) );
             set.add( key );
         }
         return set;
