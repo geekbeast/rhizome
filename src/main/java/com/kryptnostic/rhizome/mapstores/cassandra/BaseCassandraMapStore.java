@@ -60,9 +60,15 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        return Maps.toMap( keys, ( K key ) -> {
-            return load( key );
-        } );
+        // Naive implementation for now :(
+        Map<K, V> result = Maps.newHashMap();
+        for (K key : keys) {
+            V value = load( key );
+            if (value != null) {
+                result.put( key, value );
+            }
+        }
+        return result;
     }
 
     @Override
