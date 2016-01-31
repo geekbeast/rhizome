@@ -4,6 +4,8 @@ import java.util.Set;
 
 import com.datastax.driver.core.Session;
 import com.google.common.base.Preconditions;
+import com.hazelcast.config.InMemoryFormat;
+import com.hazelcast.config.MapConfig;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
@@ -92,6 +94,16 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     valueMapper,
                     config,
                     session) {
+
+                @Override
+                public MapConfig getMapConfig() {
+                    MapConfig mapConfig = super.getMapConfig();
+                    if ( objectFormat ) {
+                        mapConfig.setInMemoryFormat( InMemoryFormat.OBJECT );
+                    }
+                    return mapConfig;
+                }
+
                 @Override
                 public K generateTestKey() {
                     // TODO Auto-generated method stub
