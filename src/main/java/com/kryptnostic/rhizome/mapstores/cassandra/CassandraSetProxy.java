@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +14,22 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select.Where;
+import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private static final Logger               logger                 = LoggerFactory.getLogger( CassandraSetProxy.class );
+
+    private static final Cache<ProxyKey, PreparedStatement> CONTAINS_STATEMENTS =
+            CacheBuilder.newBuilder().build();
+    private static final Cache<ProxyKey, PreparedStatement> ADD_STATEMENTS =
+            CacheBuilder.newBuilder().build();
+    private static final Cache<ProxyKey, PreparedStatement> DELETE_STATEMENTS =
+            CacheBuilder.newBuilder().build();
 
     private final Session           session;
     final SelfRegisteringValueMapper<T> typeMapper;
@@ -39,6 +50,48 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     private final String                setId;
     private final Class<T>              innerClass;
 
+    private static class ProxyKey {
+
+        private final String keyspace;
+        private final String table;
+        private final String mappedSetId;
+
+        public ProxyKey( String keyspace, String table, String mappedSetId ) {
+            this.keyspace = keyspace;
+            this.table = table;
+            this.mappedSetId = mappedSetId;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ( ( keyspace == null ) ? 0 : keyspace.hashCode() );
+            result = prime * result + ( ( mappedSetId == null ) ? 0 : mappedSetId.hashCode() );
+            result = prime * result + ( ( table == null ) ? 0 : table.hashCode() );
+            return result;
+        }
+
+        @Override
+        public boolean equals( Object obj ) {
+            if ( this == obj ) return true;
+            if ( obj == null ) return false;
+            if ( getClass() != obj.getClass() ) return false;
+            ProxyKey other = (ProxyKey) obj;
+            if ( keyspace == null ) {
+                if ( other.keyspace != null ) return false;
+            } else if ( !keyspace.equals( other.keyspace ) ) return false;
+            if ( mappedSetId == null ) {
+                if ( other.mappedSetId != null ) return false;
+            } else if ( !mappedSetId.equals( other.mappedSetId ) ) return false;
+            if ( table == null ) {
+                if ( other.table != null ) return false;
+            } else if ( !table.equals( other.table ) ) return false;
+            return true;
+        }
+
+    }
+
     public CassandraSetProxy(
             Session session,
             String keyspace,
@@ -54,24 +107,28 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         this.innerClass = innerClass;
         this.typeMapper = typeMapper;
 
-        this.ADD_STATEMENT = session.prepare(
-                QueryBuilder
-                        .insertInto( keyspace, table )
-                        .value( KEY_COLUMN_NAME, mappedSetId )
-                        .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) );
+        ProxyKey key = new ProxyKey( keyspace, table, mappedSetId );
 
-        this.DELETE_STATEMENT = session.prepare(
-                QueryBuilder
-                        .delete()
-                        .from( keyspace, table )
-                        .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
-                        .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
-
-        // Read-only calls
-        this.CONTAINS_STATEMENT = session.prepare(
-                QueryBuilder.select().countAll().from( keyspace, table )
-                        .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
-                        .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+        try {
+            this.ADD_STATEMENT = ADD_STATEMENTS.get( key, () -> session.prepare(
+                    QueryBuilder
+                            .insertInto( keyspace, table )
+                            .value( KEY_COLUMN_NAME, mappedSetId )
+                            .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+            this.DELETE_STATEMENT = DELETE_STATEMENTS.get( key, () -> session.prepare(
+                    QueryBuilder
+                            .delete()
+                            .from( keyspace, table )
+                            .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
+                            .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) ) );
+            // Read-only calls
+            this.CONTAINS_STATEMENT = CONTAINS_STATEMENTS.get( key, () -> session.prepare(
+                    QueryBuilder.select().countAll().from( keyspace, table )
+                            .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
+                            .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) ) );
+        } catch ( ExecutionException e ) {
+            throw Throwables.propagate( e );
+        }
 
         // Calls with no variables
         this.SIZE_STATEMENT = QueryBuilder.select().countAll()
@@ -99,7 +156,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     public boolean contains( Object o ) {
         if( innerClass.isAssignableFrom( o.getClass() ) ) {
             return containsValue( innerClass.cast( o ) );
-        } 
+        }
         return false;
     }
 
