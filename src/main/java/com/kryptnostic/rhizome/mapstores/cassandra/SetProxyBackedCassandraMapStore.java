@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,6 @@ import javax.annotation.Nonnull;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.Delete.Where;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -25,8 +25,9 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
 
     private final SelfRegisteringValueMapper<T> innerTypeValueMapper;
-    private final PreparedStatement LOAD_ALL_KEYS;
-    private final PreparedStatement DELETE_KEY;
+    private final PreparedStatement             LOAD_ALL_KEYS;
+    private final PreparedStatement             DELETE_KEY;
+    private final PreparedStatement             DELETE_ALL_QUERY;
     private final Class<T>                      innerType;
     private K                                   testKey;
     private V                                   testValue;
@@ -72,6 +73,10 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                         .delete()
                         .from( keyspace, table )
                         .where( QueryBuilder.eq( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
+        this.DELETE_ALL_QUERY = session.prepare(
+                QueryBuilder.delete().from( keyspace, table )
+                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
     }
 
     /*
@@ -154,8 +159,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void delete( K key ) {
-        String keyString = keyMapper.toString();
-        session.execute( DELETE_KEY.bind( keyString ) );
+        String mapped = keyMapper.fromKey( key );
+        session.execute( DELETE_KEY.bind( mapped ) );
     }
 
     /*
@@ -164,10 +169,11 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void deleteAll( Collection<K> keys ) {
-        Where deleteAll = QueryBuilder.delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
-                .from( keyspace, table )
-                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, keys ) );
-        session.execute( deleteAll );
+        List<String> mappedKeys = new ArrayList<>( keys.size() );
+        for ( K key : keys ) {
+            mappedKeys.add( keyMapper.fromKey( key ) );
+        }
+        session.execute( DELETE_ALL_QUERY.bind( mappedKeys ) );
     }
 
     @Override
