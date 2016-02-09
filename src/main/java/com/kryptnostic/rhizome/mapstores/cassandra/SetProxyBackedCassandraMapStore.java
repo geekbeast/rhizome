@@ -182,7 +182,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     }
 
     @Override
-    public V generateTestValue() throws Exception {
+    public V generateTestValue() {
         return testValue;
     }
 

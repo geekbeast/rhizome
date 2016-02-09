@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +26,31 @@ public class RhizomeUtils {
 
     public static class Serializers {
 
+        public static <T extends Enum<T>> void serializeEnumSet( ObjectDataOutput out, Class<T> clazz, Set<T> set )
+                throws IOException {
+            T[] enumConstants = clazz.getEnumConstants();
+            if ( enumConstants == null ) {
+                throw new IllegalArgumentException( "This method may only be called for Enum classes" );
+            }
+            for ( T t : enumConstants ) {
+                out.writeBoolean( set.contains( t ) );
+            }
+        }
+
+        public static <T extends Enum<T>> EnumSet<T> deSerializeEnumSet( ObjectDataInput in, Class<T> clazz )
+                throws IOException {
+            T[] enumConstants = clazz.getEnumConstants();
+            if ( enumConstants == null ) {
+                throw new IllegalArgumentException( "This method may only be called for Enum classes" );
+            }
+            EnumSet<T> elements = EnumSet.<T> noneOf( clazz );
+            for ( T t : enumConstants ) {
+                if ( in.readBoolean() ) {
+                    elements.add( t );
+                }
+            }
+            return elements;
+        }
     }
 
     public static class Sets {
@@ -101,7 +127,8 @@ public class RhizomeUtils {
 
         public static String loadResourceToString( final String path ) {
             String resource = null;
-            try ( final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream( path ) ) {
+            try ( final InputStream stream = Thread.currentThread().getContextClassLoader()
+                    .getResourceAsStream( path ) ) {
                 resource = IOUtils.toString( stream );
             } catch ( final IOException | NullPointerException e ) {
                 logger.error( "Failed to load resource from " + path, e );

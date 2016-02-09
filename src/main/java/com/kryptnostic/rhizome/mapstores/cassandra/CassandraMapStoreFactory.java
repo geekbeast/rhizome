@@ -112,7 +112,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                 }
 
                 @Override
-                public C generateTestValue() throws Exception {
+                public C generateTestValue( ) {
                     return testValue;
                 }
             };
