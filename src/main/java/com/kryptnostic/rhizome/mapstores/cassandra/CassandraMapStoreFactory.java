@@ -73,7 +73,9 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     innerValueMapper,
                     config,
                     session,
-                    valueType );
+                    valueType,
+                    testKey,
+                    testValue );
         }
     }
 
@@ -106,14 +108,12 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
 
                 @Override
                 public K generateTestKey() {
-                    // TODO Auto-generated method stub
-                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                    return testKey;
                 }
 
                 @Override
                 public C generateTestValue() throws Exception {
-                    // TODO Auto-generated method stub
-                    throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME drew" );
+                    return testValue;
                 }
             };
         }

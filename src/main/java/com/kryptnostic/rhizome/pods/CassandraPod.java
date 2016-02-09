@@ -55,4 +55,8 @@ public class CassandraPod {
         PoolingOptions poolingOptions = new PoolingOptions();
         return poolingOptions;
     }
+
+    public void setRhizomeConfig( RhizomeConfiguration config ) {
+        this.configuration = config;
+    }
 }

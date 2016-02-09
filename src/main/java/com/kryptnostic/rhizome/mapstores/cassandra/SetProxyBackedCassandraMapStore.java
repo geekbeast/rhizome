@@ -28,6 +28,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     private final PreparedStatement LOAD_ALL_KEYS;
     private final PreparedStatement DELETE_KEY;
     private final Class<T>                      innerType;
+    private K                                   testKey;
+    private V                                   testValue;
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
@@ -36,10 +38,14 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
             SelfRegisteringValueMapper<T> valueMapper,
             CassandraConfiguration config,
             Session session,
-            Class<T> innerType ) {
+            Class<T> innerType,
+            K testKey,
+            V testValue ) {
         super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
         this.innerType = innerType;
+        this.testKey = testKey;
+        this.testValue = testValue;
 
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
@@ -166,12 +172,12 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
 
     @Override
     public K generateTestKey() {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        return testKey;
     }
 
     @Override
     public V generateTestValue() throws Exception {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        return testValue;
     }
 
 }
