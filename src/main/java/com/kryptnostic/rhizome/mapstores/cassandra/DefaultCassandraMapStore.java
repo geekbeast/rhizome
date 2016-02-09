@@ -118,18 +118,4 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         session.execute( DELETE_ALL_QUERY.bind( mappedKeys ) );
     }
 
-    @Override
-    public K generateTestKey() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException(
-                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
-    }
-
-    @Override
-    public V generateTestValue() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException(
-                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
-    }
-
 }
