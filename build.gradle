@@ -75,7 +75,7 @@ ext.hazelcast_version='3.5.4'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.4.1'
 ext.retrofit_version='1.9.0'
-ext.cassandra_driver_version='2.1.9'
+ext.cassandra_driver_version='3.0.0'
 ext.immutables_version='2.1.0'
 
 dependencies {
