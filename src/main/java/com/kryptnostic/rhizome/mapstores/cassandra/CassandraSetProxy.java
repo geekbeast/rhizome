@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,52 +13,41 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select.Where;
-import com.google.common.base.Throwables;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.google.common.base.Preconditions;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
-    private static final Logger               logger                 = LoggerFactory.getLogger( CassandraSetProxy.class );
+    private static final Logger                             logger  = LoggerFactory.getLogger( CassandraSetProxy.class );
 
-    private static final Cache<ProxyKey, PreparedStatement> CONTAINS_STATEMENTS =
-            CacheBuilder.newBuilder().build();
-    private static final Cache<ProxyKey, PreparedStatement> ADD_STATEMENTS =
-            CacheBuilder.newBuilder().build();
-    private static final Cache<ProxyKey, PreparedStatement> DELETE_STATEMENTS =
-            CacheBuilder.newBuilder().build();
+    private final Session                                   session;
+    final SelfRegisteringValueMapper<T>                     typeMapper;
 
-    private final Session           session;
-    final SelfRegisteringValueMapper<T> typeMapper;
+    final Where                                             GET_PAGE_STATEMENT;
+    private final Where                                     SIZE_STATEMENT;
 
-    private final PreparedStatement CONTAINS_STATEMENT;
-    private final PreparedStatement ADD_STATEMENT;
-    private final PreparedStatement DELETE_STATEMENT;
+    private static final String                             MAPPING_ERROR          = "Exception while mapping";
 
-    final Where                     GET_PAGE_STATEMENT;
-    private final Where             SIZE_STATEMENT;
+    private static final String                             UNSTABLE_API_EXCEPTION = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
 
-    private static final String     MAPPING_ERROR            = "Exception while mapping";
+    private final PreparedStatement     CONTAINS_STATEMENT;
+    private final PreparedStatement     ADD_STATEMENT;
+    private final PreparedStatement     DELETE_STATEMENT;
 
-    private static final String     UNSTABLE_API_EXCEPTION   = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
+    private final String                                    keyspace;
+    private final String                                    table;
+    private final String                                    setId;
+    private final Class<T>                                  innerClass;
 
-    private final String            keyspace;
-    private final String            table;
-    private final String                setId;
-    private final Class<T>              innerClass;
-
-    private static class ProxyKey {
+    static class ProxyKey {
 
         private final String keyspace;
         private final String table;
-        private final String mappedSetId;
 
-        public ProxyKey( String keyspace, String table, String mappedSetId ) {
+        ProxyKey( String keyspace, String table ) {
             this.keyspace = keyspace;
             this.table = table;
-            this.mappedSetId = mappedSetId;
         }
 
         @Override
@@ -67,7 +55,6 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
             final int prime = 31;
             int result = 1;
             result = prime * result + ( ( keyspace == null ) ? 0 : keyspace.hashCode() );
-            result = prime * result + ( ( mappedSetId == null ) ? 0 : mappedSetId.hashCode() );
             result = prime * result + ( ( table == null ) ? 0 : table.hashCode() );
             return result;
         }
@@ -81,15 +68,11 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
             if ( keyspace == null ) {
                 if ( other.keyspace != null ) return false;
             } else if ( !keyspace.equals( other.keyspace ) ) return false;
-            if ( mappedSetId == null ) {
-                if ( other.mappedSetId != null ) return false;
-            } else if ( !mappedSetId.equals( other.mappedSetId ) ) return false;
             if ( table == null ) {
                 if ( other.table != null ) return false;
             } else if ( !table.equals( other.table ) ) return false;
             return true;
         }
-
     }
 
     public CassandraSetProxy(
@@ -107,28 +90,17 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         this.innerClass = innerClass;
         this.typeMapper = typeMapper;
 
-        ProxyKey key = new ProxyKey( keyspace, table, mappedSetId );
+        ProxyKey key = new ProxyKey( keyspace, table );
 
-        try {
-            this.ADD_STATEMENT = ADD_STATEMENTS.get( key, () -> session.prepare(
-                    QueryBuilder
-                            .insertInto( keyspace, table )
-                            .value( KEY_COLUMN_NAME, mappedSetId )
-                            .value( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
-            this.DELETE_STATEMENT = DELETE_STATEMENTS.get( key, () -> session.prepare(
-                    QueryBuilder
-                            .delete()
-                            .from( keyspace, table )
-                            .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
-                            .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) ) );
-            // Read-only calls
-            this.CONTAINS_STATEMENT = CONTAINS_STATEMENTS.get( key, () -> session.prepare(
-                    QueryBuilder.select().countAll().from( keyspace, table )
-                            .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) )
-                            .and( QueryBuilder.eq( VALUE_COLUMN_NAME, QueryBuilder.bindMarker() ) ) ) );
-        } catch ( ExecutionException e ) {
-            throw Throwables.propagate( e );
-        }
+        ADD_STATEMENT = SetProxyBackedCassandraMapStore.SP_ADD_STATEMENTS.getIfPresent( key );
+        DELETE_STATEMENT = SetProxyBackedCassandraMapStore.SP_DELETE_STATEMENTS.getIfPresent( key );
+        CONTAINS_STATEMENT = SetProxyBackedCassandraMapStore.SP_CONTAINS_STATEMENTS.getIfPresent( key );
+        Preconditions.checkNotNull( ADD_STATEMENT,
+                "something terribly terribly wrong happenend to the SetProxy add statement" );
+        Preconditions.checkNotNull( DELETE_STATEMENT,
+                "something terribly terribly wrong happenend to the SetProxy delete statement" );
+        Preconditions.checkNotNull( CONTAINS_STATEMENT,
+                "something terribly terribly wrong happenend to the SetProxy contains statement" );
 
         // Calls with no variables
         this.SIZE_STATEMENT = QueryBuilder.select().countAll()
@@ -183,7 +155,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         return new SetProxyIterator( session );
     }
 
-    public class SetProxyIterator implements Iterator<T> {
+    private class SetProxyIterator implements Iterator<T> {
 
         private final Iterator<Row> internalIterator;
 
