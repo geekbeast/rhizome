@@ -6,9 +6,11 @@ import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K, V> {
     protected SelfRegisteringValueMapper<V> valueMapper;
     protected SelfRegisteringKeyMapper<K>   keyMapper;
-    protected String               mapName;
-    protected String               tableName;
-    public boolean           objectFormat;
+    protected String                        mapName;
+    protected String                        tableName;
+    public K                                testKey;
+    public V                                testValue;
+    public boolean                          objectFormat;
 
     public AbstractMapStoreBuilder(
             SelfRegisteringKeyMapper<K> keyMapper,
@@ -52,6 +54,18 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     @Override
     public MapStoreBuilder<K, V> withCustomValueMapper( SelfRegisteringValueMapper<V> mapper ) {
         this.valueMapper = mapper;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> withTestValue( V value ) {
+        this.testValue = value;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> withTestKey( K key ) {
+        this.testKey = key;
         return this;
     }
 

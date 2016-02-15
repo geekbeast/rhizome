@@ -97,4 +97,18 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     public String getTable() {
         return table;
     }
+
+    @Override
+    public K generateTestKey() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException(
+                "THIS METHOD HAS NOT BEEN IMPLEMENTED. Override this method in your subclass!" );
+    }
+
+    @Override
+    public V generateTestValue() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException(
+                "THIS METHOD HAS NOT BEEN IMPLEMENTED. Override this method in your subclass!" );
+    }
 }

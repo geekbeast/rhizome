@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.mappers;
 
 public interface KeyMapper<K> {
-    public static final String ID_ATTRIBUTE = "id";
     public static final String DEFAULT_SEPARATOR = ":";
 
     /**

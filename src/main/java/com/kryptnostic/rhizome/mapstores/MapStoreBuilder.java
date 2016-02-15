@@ -18,4 +18,8 @@ public interface MapStoreBuilder<K, V> {
     MapStoreBuilder<K, V> withCustomValueMapper( SelfRegisteringValueMapper<V> mapper );
 
     MapStoreBuilder<K, V> setObjectInMemoryFormat();
+
+    MapStoreBuilder<K, V> withTestValue( V value );
+
+    MapStoreBuilder<K, V> withTestKey( K key );
 }

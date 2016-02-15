@@ -12,6 +12,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
+import com.google.common.annotations.VisibleForTesting;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 
@@ -54,5 +55,10 @@ public class CassandraPod {
     private static PoolingOptions getPoolingOptions() {
         PoolingOptions poolingOptions = new PoolingOptions();
         return poolingOptions;
+    }
+
+    @VisibleForTesting
+    public void setRhizomeConfig( RhizomeConfiguration config ) {
+        this.configuration = config;
     }
 }
