@@ -99,7 +99,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     public boolean contains( Object o ) {
         if( innerClass.isAssignableFrom( o.getClass() ) ) {
             return containsValue( innerClass.cast( o ) );
-        } 
+        }
         return false;
     }
 
@@ -198,7 +198,12 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean containsAll( Collection<?> c ) {
-        throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
+        for ( Object x : c ) {
+            if ( !contains( x ) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
