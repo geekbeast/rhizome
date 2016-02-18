@@ -5,7 +5,7 @@ import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 public class ByteArrayValueMapper implements SelfRegisteringValueMapper<byte[]> {
 
     @Override
-    public byte[] toBytes( byte[] value ) {
+    public byte[] toBytes( byte[] value, int bufferSize ) {
         return value;
     }
 

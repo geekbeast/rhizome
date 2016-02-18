@@ -36,9 +36,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     protected final SelfRegisteringKeyMapper<K>   keyMapper;
     protected final Session         session;
     protected final String          table;
-    final String                    keyspace;
-
-    final int                      replicationFactor;
+    protected final String                        keyspace;
+    protected final int                           replicationFactor;
 
     public BaseCassandraMapStore(
             String table,
@@ -46,11 +45,11 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
             SelfRegisteringKeyMapper<K> keyMapper,
             SelfRegisteringValueMapper<V> mapper,
             CassandraConfiguration config,
-            Session globalSession ) {
+            Session session ) {
         this.table = table;
         this.keyMapper = keyMapper;
         this.valueMapper = mapper;
-        this.session = globalSession;
+        this.session = session;
         this.mapName = mapName;
         this.replicationFactor = config.getReplicationFactor();
 

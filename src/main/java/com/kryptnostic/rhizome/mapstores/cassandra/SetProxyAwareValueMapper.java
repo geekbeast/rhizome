@@ -12,7 +12,7 @@ public class SetProxyAwareValueMapper<C, V> implements SelfRegisteringValueMappe
     }
 
     @Override
-    public byte[] toBytes( C value ) throws MappingException {
+    public byte[] toBytes( C value, int bufferSize ) throws MappingException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
     }

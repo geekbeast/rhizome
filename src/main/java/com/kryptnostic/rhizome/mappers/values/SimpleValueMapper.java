@@ -27,7 +27,7 @@ public class SimpleValueMapper<V> extends JacksonValueMapper<V> {
     }
 
     @Override
-    public byte[] toBytes( V value ) throws MappingException {
+    public byte[] toBytes( V value, int bufferSize ) throws MappingException {
         try {
             return mapper.writeValueAsBytes( value );
         } catch ( JsonProcessingException e ) {

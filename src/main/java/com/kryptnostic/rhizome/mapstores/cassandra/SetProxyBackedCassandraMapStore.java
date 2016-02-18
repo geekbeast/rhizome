@@ -43,6 +43,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                                                                                            .build();
     static final Cache<ProxyKey, PreparedStatement> SP_DELETE_STATEMENTS   = CacheBuilder.newBuilder()
                                                                                            .build();
+
     public SetProxyBackedCassandraMapStore(
             String tableName,
             String mapName,
