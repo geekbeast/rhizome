@@ -1,17 +1,22 @@
 package com.kryptnostic.rhizome.pods;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.TypeCodec;
 import com.google.common.annotations.VisibleForTesting;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
@@ -23,6 +28,10 @@ public class CassandraPod {
 
     @Inject
     private RhizomeConfiguration configuration;
+
+    @Autowired(
+        required = false )
+    private Set<TypeCodec<?>>    codecs;
 
     @Bean
     public CassandraConfiguration cassandraConfiguration() {
@@ -44,11 +53,17 @@ public class CassandraPod {
     }
 
     @Bean
+    public CodecRegistry getCodecRegistry() {
+        return new CodecRegistry().register( codecs );
+    }
+
+    @Bean
     public Cluster getCluster() {
         return new Cluster.Builder()
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.V3 )
                 .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
+                .withCodecRegistry( getCodecRegistry() )
                 .build();
     }
 
@@ -60,5 +75,10 @@ public class CassandraPod {
     @VisibleForTesting
     public void setRhizomeConfig( RhizomeConfiguration config ) {
         this.configuration = config;
+    }
+
+    @VisibleForTesting
+    public void setCodecs( Set<TypeCodec<?>> codecs ) {
+        this.codecs = codecs;
     }
 }
