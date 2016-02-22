@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.hazelcast.nio.ObjectDataInput;
@@ -51,6 +52,28 @@ public class RhizomeUtils {
             }
             return elements;
         }
+
+        public static <T> void serializeOptional(
+                ObjectDataOutput out,
+                Optional<T> object,
+                IoPerformingBiConsumer<ObjectDataOutput, T> serializer ) throws IOException {
+            out.writeBoolean( object.isPresent() );
+            if ( object.isPresent() ) {
+                T value = object.get();
+                serializer.accept( out, value );
+            }
+        }
+
+        public static <T> Optional<T> deserializeToOptional(
+                ObjectDataInput in,
+                IoPerformingFunction<ObjectDataInput, T> deserializer ) throws IOException {
+            Optional<T> object = Optional.absent();
+            if ( in.readBoolean() ) {
+                object = Optional.of( deserializer.apply( in ) );
+            }
+            return object;
+        }
+
     }
 
     public static class Sets {
@@ -78,7 +101,8 @@ public class RhizomeUtils {
 
     public static class Streams {
 
-        public static void writeStringStringMap( ObjectDataOutput out, Map<String, String> object ) throws IOException {
+        public static void writeStringStringMap( ObjectDataOutput out, Map<String, String> object )
+                throws IOException {
             int size = object.size();
             Set<String> keys = object.keySet();
             Collection<String> vals = object.values();
