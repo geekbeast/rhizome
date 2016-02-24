@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -15,28 +16,29 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.base.Preconditions;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
+import com.kryptnostic.rhizome.mapstores.MappingException;
 
 public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
-    private static final Logger         logger                 = LoggerFactory.getLogger( CassandraSetProxy.class );
+    private static final Logger                             logger  = LoggerFactory.getLogger( CassandraSetProxy.class );
 
-    private final Session               session;
-    final SelfRegisteringValueMapper<T> typeMapper;
+    private final Session                                   session;
+    final SelfRegisteringValueMapper<T>                     typeMapper;
 
-    final Where                         GET_PAGE_STATEMENT;
-    private final Where                 SIZE_STATEMENT;
+    final Where                                             GET_PAGE_STATEMENT;
+    private final Where                                     SIZE_STATEMENT;
 
-    private static final String         MAPPING_ERROR          = "Exception while mapping";
+    private static final String                             MAPPING_ERROR          = "Exception while mapping";
 
-    private static final String         UNSTABLE_API_EXCEPTION = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
+    private static final String                             UNSTABLE_API_EXCEPTION = "Unstable API, this call not supported yet, ping Drew Bailey, drew@kryptnostic.com";
 
     private final PreparedStatement     CONTAINS_STATEMENT;
     private final PreparedStatement     ADD_STATEMENT;
     private final PreparedStatement     DELETE_STATEMENT;
 
-    private final String                keyspace;
-    private final String                table;
-    private final String                setId;
-    final Class<T>                      innerClass;
+    private final String                                    keyspace;
+    private final String                                    table;
+    private final String                                    setId;
+    private final Class<T>                                  innerClass;
 
     static class ProxyKey {
 
@@ -106,8 +108,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
                 .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) );
 
         this.GET_PAGE_STATEMENT = QueryBuilder
-                .select( VALUE_COLUMN_NAME )
-                .from( keyspace, table )
+                        .select( VALUE_COLUMN_NAME )
+                        .from( keyspace, table )
                 .where( QueryBuilder.eq( KEY_COLUMN_NAME, mappedSetId ) );
     }
 
@@ -124,7 +126,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean contains( Object o ) {
-        if ( innerClass.isAssignableFrom( o.getClass() ) ) {
+        if( innerClass.isAssignableFrom( o.getClass() ) ) {
             return containsValue( innerClass.cast( o ) );
         }
         return false;
@@ -132,9 +134,14 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     public boolean containsValue( T value ) {
         ResultSet execute;
-        execute = session.execute( CONTAINS_STATEMENT.bind( setId, value ) );
-        int results = getCountResult( execute );
-        return results == 1;
+        try {
+            execute = session.execute( CONTAINS_STATEMENT.bind( toBytes( value ) ) );
+            int results = getCountResult( execute );
+            return results == 1;
+        } catch ( MappingException e ) {
+            logger.error( MAPPING_ERROR, e );
+        }
+        return false;
     }
 
     private static int getCountResult( ResultSet resultSet ) {
@@ -169,7 +176,15 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         }
 
         private T getObjectFromRow( Row row ) {
-            return row.get( VALUE_COLUMN_NAME, innerClass );
+            ByteBuffer bytes = row.getBytes( VALUE_COLUMN_NAME );
+            byte[] array = bytes.array();
+            try {
+                T fromBytes = typeMapper.fromBytes( array );
+                return fromBytes;
+            } catch ( MappingException e ) {
+                logger.error( MAPPING_ERROR, e );
+            }
+            return null;
         }
 
     }
@@ -186,24 +201,34 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean add( T e ) {
-        if ( e == null || contains( e ) ) {
+        if ( contains( e ) ) {
             return false;
         }
-        // add to the set as a new row
-        session.execute( ADD_STATEMENT.bind( setId, e ) );
-        return true;
+        try {
+            // add to the set as a new row
+            session.execute( ADD_STATEMENT.bind( toBytes( e ) ) );
+            return true;
+        } catch ( MappingException e1 ) {
+            logger.error( MAPPING_ERROR, e1 );
+        }
+        return false;
     }
 
     @Override
     public boolean remove( Object o ) {
-        session.execute( DELETE_STATEMENT.bind( setId, o ) );
-        return true;
+        try {
+            session.execute( DELETE_STATEMENT.bind( toBytes( (T) o ) ) );
+            return true;
+        } catch ( MappingException e ) {
+            logger.error( MAPPING_ERROR, e );
+        }
+        return false;
     }
 
     @Override
     public boolean containsAll( Collection<?> c ) {
-        for ( Object x : c ) {
-            if ( !contains( x ) ) {
+        for (Object x : c) {
+            if (!contains(x)) {
                 return false;
             }
         }
@@ -238,12 +263,17 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         throw new UnsupportedOperationException( UNSTABLE_API_EXCEPTION );
     }
 
+    private ByteBuffer toBytes( T value ) throws MappingException {
+        return ByteBuffer.wrap( typeMapper.toBytes( value ) );
+    }
+
     /**
      * @return the session
      */
     public Session getSession() {
         return session;
     }
+
 
     /**
      * @return the typeMapper
@@ -259,12 +289,14 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         return keyspace;
     }
 
+
     /**
      * @return the table
      */
     public String getTable() {
         return table;
     }
+
 
     public String getSetId() {
         return setId;
