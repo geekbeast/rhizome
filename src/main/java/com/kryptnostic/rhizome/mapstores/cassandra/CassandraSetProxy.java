@@ -227,8 +227,8 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
 
     @Override
     public boolean containsAll( Collection<?> c ) {
-        for (Object x : c) {
-            if (!contains(x)) {
+        for ( Object x : c ) {
+            if ( !contains( x ) ) {
                 return false;
             }
         }
