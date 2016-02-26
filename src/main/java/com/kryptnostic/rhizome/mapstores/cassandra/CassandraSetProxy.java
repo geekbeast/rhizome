@@ -135,7 +135,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     public boolean containsValue( T value ) {
         ResultSet execute;
         try {
-            execute = session.execute( CONTAINS_STATEMENT.bind( toBytes( value ) ) );
+            execute = session.execute( CONTAINS_STATEMENT.bind( setId, toBytes( value ) ) );
             int results = getCountResult( execute );
             return results == 1;
         } catch ( MappingException e ) {
@@ -206,7 +206,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
         }
         try {
             // add to the set as a new row
-            session.execute( ADD_STATEMENT.bind( toBytes( e ) ) );
+            session.execute( ADD_STATEMENT.bind( setId, toBytes( e ) ) );
             return true;
         } catch ( MappingException e1 ) {
             logger.error( MAPPING_ERROR, e1 );
@@ -217,7 +217,7 @@ public class CassandraSetProxy<K, T> implements SetProxy<K, T> {
     @Override
     public boolean remove( Object o ) {
         try {
-            session.execute( DELETE_STATEMENT.bind( toBytes( (T) o ) ) );
+            session.execute( DELETE_STATEMENT.bind( setId, toBytes( (T) o ) ) );
             return true;
         } catch ( MappingException e ) {
             logger.error( MAPPING_ERROR, e );
