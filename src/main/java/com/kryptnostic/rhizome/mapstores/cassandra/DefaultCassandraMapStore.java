@@ -88,6 +88,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     @Override
     public Set<K> loadAllKeys() {
         ResultSet s;
+        // TODO: make this return an Iterable<K> that lazily loads values (one page at a time)
         s = session.execute( LOAD_ALL_QUERY.bind() );
         return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
             return keyMapper.toKey( r.getString( "id" ) );
