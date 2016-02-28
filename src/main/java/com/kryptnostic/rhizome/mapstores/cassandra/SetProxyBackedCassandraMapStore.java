@@ -22,7 +22,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
-import com.kryptnostic.rhizome.mapstores.cassandra.DefaultCassandraSetProxy.ProxyKey;
+import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraSetProxy.ProxyKey;
 
 public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 

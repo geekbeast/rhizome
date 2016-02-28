@@ -10,7 +10,7 @@ import com.datastax.driver.core.Statement;
 
 public class PagingCassandraIterator<T> implements Iterator<T> {
 
-    private final Iterator<Row> internalIterator;
+    private final Iterator<Row>    internalIterator;
     private final Function<Row, T> rowMappingFunction;
 
     public PagingCassandraIterator( Session session, Statement getPageStatement, Function<Row, T> rowMappingFunction ) {
@@ -29,4 +29,30 @@ public class PagingCassandraIterator<T> implements Iterator<T> {
         Row next = internalIterator.next();
         return rowMappingFunction.apply( next );
     }
+
+    public static <V> Iterable<V> asIterable(
+            Session session,
+            Statement statement,
+            Function<Row, V> rowMappingFunction ) {
+        return new IterableImplementation<V>( session, statement, rowMappingFunction );
+    }
+
+    private static final class IterableImplementation<K> implements Iterable<K> {
+
+        private Session          session;
+        private Statement        statement;
+        private Function<Row, K> rowMappingFunction;
+
+        public IterableImplementation( Session session, Statement statement, Function<Row, K> rowMapper ) {
+            this.session = session;
+            this.statement = statement;
+            this.rowMappingFunction = rowMapper;
+        }
+
+        @Override
+        public Iterator<K> iterator() {
+            return new PagingCassandraIterator<K>( session, statement, rowMappingFunction );
+        }
+    }
+
 }

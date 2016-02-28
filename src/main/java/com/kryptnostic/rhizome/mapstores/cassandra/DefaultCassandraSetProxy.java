@@ -30,40 +30,7 @@ public class DefaultCassandraSetProxy<K, T> extends BaseCassandraSetProxy<K, T> 
     private final String                                    setId;
     private final Class<T>                                  innerClass;
 
-    static class ProxyKey {
 
-        private final String keyspace;
-        private final String table;
-
-        ProxyKey( String keyspace, String table ) {
-            this.keyspace = keyspace;
-            this.table = table;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ( ( keyspace == null ) ? 0 : keyspace.hashCode() );
-            result = prime * result + ( ( table == null ) ? 0 : table.hashCode() );
-            return result;
-        }
-
-        @Override
-        public boolean equals( Object obj ) {
-            if ( this == obj ) return true;
-            if ( obj == null ) return false;
-            if ( getClass() != obj.getClass() ) return false;
-            ProxyKey other = (ProxyKey) obj;
-            if ( keyspace == null ) {
-                if ( other.keyspace != null ) return false;
-            } else if ( !keyspace.equals( other.keyspace ) ) return false;
-            if ( table == null ) {
-                if ( other.table != null ) return false;
-            } else if ( !table.equals( other.table ) ) return false;
-            return true;
-        }
-    }
 
     public DefaultCassandraSetProxy(
             Session session,
