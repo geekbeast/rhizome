@@ -22,7 +22,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
-import com.kryptnostic.rhizome.mapstores.cassandra.CassandraSetProxy.ProxyKey;
+import com.kryptnostic.rhizome.mapstores.cassandra.DefaultCassandraSetProxy.ProxyKey;
 
 public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 
@@ -90,7 +90,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                 QueryBuilder.delete().from( keyspace, table )
                 .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
-        CassandraSetProxy.ProxyKey key = new CassandraSetProxy.ProxyKey( keyspace, table );
+        DefaultCassandraSetProxy.ProxyKey key = new DefaultCassandraSetProxy.ProxyKey( keyspace, table );
 
         try {
             SP_ADD_STATEMENTS.get( key, () -> session.prepare(
@@ -121,7 +121,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Nonnull
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+        return (V) new DefaultCassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
     }
 
     /*
@@ -131,9 +131,9 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
-        CassandraSetProxy<K, T> value;
+        DefaultCassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+            value = new DefaultCassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
@@ -160,7 +160,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void store( K key, V value ) {
-        SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+        SetProxy<K, T> proxy = new DefaultCassandraSetProxy<K, T>(
                 session,
                 keyspace,
                 table,
@@ -177,7 +177,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public void storeAll( Map<K, V> map ) {
         map.forEach( ( K key, V setValue ) -> {
-            SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+            SetProxy<K, T> proxy = new DefaultCassandraSetProxy<K, T>(
                     session,
                     keyspace,
                     table,

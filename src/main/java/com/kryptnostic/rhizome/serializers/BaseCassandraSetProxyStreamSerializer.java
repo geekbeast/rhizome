@@ -8,10 +8,11 @@ import com.datastax.driver.core.Session;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
-import com.kryptnostic.rhizome.mapstores.cassandra.CassandraSetProxy;
+import com.kryptnostic.rhizome.mapstores.cassandra.DefaultCassandraSetProxy;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
-public abstract class BaseCassandraSetProxyStreamSerializer<K, T, P extends CassandraSetProxy<K, T>>
+// Unused
+public abstract class BaseCassandraSetProxyStreamSerializer<K, T, P extends DefaultCassandraSetProxy<K, T>>
         implements SelfRegisteringStreamSerializer<P> {
 
     private final Session                 session;
