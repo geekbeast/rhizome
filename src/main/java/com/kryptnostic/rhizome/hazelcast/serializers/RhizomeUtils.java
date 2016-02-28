@@ -1,20 +1,21 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
 import com.google.common.primitives.Ints;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -150,16 +151,13 @@ public class RhizomeUtils {
         }
 
         public static String loadResourceToString( final String path ) {
-            String resource = null;
-            try ( final InputStream stream = Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream( path ) ) {
-                resource = IOUtils.toString( stream );
-            } catch ( final IOException | NullPointerException e ) {
+            URL resource = Resources.getResource( path );
+            try {
+                return Resources.toString( resource, StandardCharsets.UTF_8 );
+            } catch ( final IOException e ) {
                 logger.error( "Failed to load resource from " + path, e );
                 return null;
             }
-
-            return resource;
         }
     }
 }
