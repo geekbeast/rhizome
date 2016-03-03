@@ -19,16 +19,6 @@ public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValue
     }
 
     @Override
-    public byte[] toBytes( T value ) throws MappingException {
-        try ( BufferObjectDataOutput objOs = serializationService.createObjectDataOutput( 1 ) ) {
-            serializer.write( objOs, value );
-            return objOs.toByteArray();
-        } catch ( IOException e ) {
-            throw new MappingException( e );
-        }
-    }
-
-    @Override
     public T fromBytes( byte[] data ) throws MappingException {
         try ( BufferObjectDataInput in = serializationService.createObjectDataInput( data ) ) {
             return serializer.read( in );
@@ -40,6 +30,16 @@ public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValue
     @Override
     public Class<T> getClazz() {
         return serializer.getClazz();
+    }
+
+    @Override
+    public byte[] toBytes( T value, int bufferSize ) throws MappingException {
+        try ( BufferObjectDataOutput objOs = serializationService.createObjectDataOutput( bufferSize ) ) {
+            serializer.write( objOs, value );
+            return objOs.toByteArray();
+        } catch ( IOException e ) {
+            throw new MappingException( e );
+        }
     }
 
 }

@@ -5,7 +5,7 @@ import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 public class StringValueMapper implements SelfRegisteringValueMapper<String> {
 
     @Override
-    public byte[] toBytes( String value ) {
+    public byte[] toBytes( String value, int bufferSize ) {
         return value.getBytes();
     }
 

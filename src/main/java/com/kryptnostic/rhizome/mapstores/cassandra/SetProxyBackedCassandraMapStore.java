@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,6 @@ import javax.annotation.Nonnull;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.Delete.Where;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
@@ -22,17 +22,20 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
-import com.kryptnostic.rhizome.mapstores.cassandra.CassandraSetProxy.ProxyKey;
+import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraSetProxy.ProxyKey;
 
 public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends BaseCassandraMapStore<K, V> {
 
-    private static final String                             KEYSPACE_QUERY         = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
-    private static final String                             TABLE_QUERY            = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
+    private static final String                     KEYSPACE_QUERY         = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
+    private static final String                     TABLE_QUERY            = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
 
-    private final SelfRegisteringValueMapper<T>             innerTypeValueMapper;
-    private final PreparedStatement                         LOAD_ALL_KEYS;
-    private final PreparedStatement                         DELETE_KEY;
-    private final Class<T>                                  innerType;
+    private final SelfRegisteringValueMapper<T>     innerTypeValueMapper;
+    private final PreparedStatement                 LOAD_ALL_KEYS;
+    private final PreparedStatement                 DELETE_KEY;
+    private final Class<T>                          innerType;
+    private final PreparedStatement                 DELETE_ALL_QUERY;
+    private K                                       testKey;
+    private V                                       testValue;
 
     static final Cache<ProxyKey, PreparedStatement> SP_CONTAINS_STATEMENTS = CacheBuilder.newBuilder()
                                                                                            .build();
@@ -48,10 +51,14 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
             SelfRegisteringValueMapper<T> valueMapper,
             CassandraConfiguration config,
             Session session,
-            Class<T> innerType ) {
+            Class<T> innerType,
+            K testKey,
+            V testValue ) {
         super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
         this.innerTypeValueMapper = valueMapper;
         this.innerType = innerType;
+        this.testKey = testKey;
+        this.testValue = testValue;
 
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
@@ -79,7 +86,11 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                         .from( keyspace, table )
                         .where( QueryBuilder.eq( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
-        CassandraSetProxy.ProxyKey key = new CassandraSetProxy.ProxyKey( keyspace, table );
+        this.DELETE_ALL_QUERY = session.prepare(
+                QueryBuilder.delete().from( keyspace, table )
+                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+
+        DefaultCassandraSetProxy.ProxyKey key = new DefaultCassandraSetProxy.ProxyKey( keyspace, table );
 
         try {
             SP_ADD_STATEMENTS.get( key, () -> session.prepare(
@@ -101,7 +112,6 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         } catch ( ExecutionException e ) {
             throw Throwables.propagate( e );
         }
-
     }
 
     /*
@@ -111,7 +121,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Nonnull
     @Override
     public V load( K key ) {
-        return (V) new CassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+        return (V) new DefaultCassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
     }
 
     /*
@@ -121,9 +131,9 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
-        CassandraSetProxy<K, T> value;
+        DefaultCassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new CassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+            value = new DefaultCassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
@@ -150,7 +160,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void store( K key, V value ) {
-        SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+        SetProxy<K, T> proxy = new DefaultCassandraSetProxy<K, T>(
                 session,
                 keyspace,
                 table,
@@ -167,7 +177,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public void storeAll( Map<K, V> map ) {
         map.forEach( ( K key, V setValue ) -> {
-            SetProxy<K, T> proxy = new CassandraSetProxy<K, T>(
+            SetProxy<K, T> proxy = new DefaultCassandraSetProxy<K, T>(
                     session,
                     keyspace,
                     table,
@@ -184,8 +194,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void delete( K key ) {
-        String keyString = keyMapper.toString();
-        session.execute( DELETE_KEY.bind( keyString ) );
+        String mapped = keyMapper.fromKey( key );
+        session.execute( DELETE_KEY.bind( mapped ) );
     }
 
     /*
@@ -194,20 +204,21 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public void deleteAll( Collection<K> keys ) {
-        Where deleteAll = QueryBuilder.delete( SetProxy.KEY_COLUMN_NAME, SetProxy.VALUE_COLUMN_NAME )
-                .from( keyspace, table )
-                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, keys ) );
-        session.execute( deleteAll );
+        List<String> mappedKeys = new ArrayList<>( keys.size() );
+        for ( K key : keys ) {
+            mappedKeys.add( keyMapper.fromKey( key ) );
+        }
+        session.execute( DELETE_ALL_QUERY.bind( mappedKeys ) );
     }
 
     @Override
     public K generateTestKey() {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        return testKey;
     }
 
     @Override
-    public V generateTestValue() throws Exception {
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+    public V generateTestValue() {
+        return testValue;
     }
 
 }

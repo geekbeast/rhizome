@@ -1,7 +1,9 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -23,8 +25,8 @@ import jersey.repackaged.com.google.common.collect.Iterables;
 public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> {
     private static final Logger     logger         = LoggerFactory.getLogger( DefaultCassandraMapStore.class );
 
-    private static final String KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
-    private static final String TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data blob);";
+    private static final String     KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':%d};";
+    private static final String     TABLE_QUERY    = "CREATE TABLE IF NOT EXISTS %s.%s (id text PRIMARY KEY, data blob);";
 
     private final PreparedStatement LOAD_QUERY;
     private final PreparedStatement STORE_QUERY;
@@ -83,20 +85,21 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         return null;
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public Set<K> loadAllKeys() {
         ResultSet s;
+        // TODO: make this return an Iterable<K> that lazily loads values (one page at a time)
         s = session.execute( LOAD_ALL_QUERY.bind() );
         return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
-            return (K) keyMapper.toKey( r.getString( "id" ) );
+            return keyMapper.toKey( r.getString( "id" ) );
         } ) );
     }
 
     @Override
     public void store( K key, V value ) {
         try {
-            session.execute( STORE_QUERY.bind( keyMapper.fromKey( key ), ByteBuffer.wrap( valueMapper.toBytes( value ) ) ) );
+            session.execute(
+                    STORE_QUERY.bind( keyMapper.fromKey( key ), ByteBuffer.wrap( valueMapper.toBytes( value ) ) ) );
         } catch ( MappingException e ) {
             logger.error( "Unable to store key {} : value {} ", key, value, e );
         }
@@ -109,19 +112,11 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
 
     @Override
     public void deleteAll( Collection<K> keys ) {
-        session.execute( DELETE_ALL_QUERY.bind( keys ) );
-    }
-
-    @Override
-    public K generateTestKey() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
-    }
-
-    @Override
-    public V generateTestValue() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException( "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+        List<String> mappedKeys = new ArrayList<>( keys.size() );
+        for ( K key : keys ) {
+            mappedKeys.add( keyMapper.fromKey( key ) );
+        }
+        session.execute( DELETE_ALL_QUERY.bind( mappedKeys ) );
     }
 
 }

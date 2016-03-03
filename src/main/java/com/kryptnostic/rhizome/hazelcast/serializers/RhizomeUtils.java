@@ -1,18 +1,21 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
 import com.google.common.primitives.Ints;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -24,6 +27,53 @@ public class RhizomeUtils {
     static final Logger logger = LoggerFactory.getLogger( RhizomeUtils.class );
 
     public static class Serializers {
+
+        public static <T extends Enum<T>> void serializeEnumSet( ObjectDataOutput out, Class<T> clazz, Set<T> set )
+                throws IOException {
+            T[] enumConstants = clazz.getEnumConstants();
+            if ( enumConstants == null ) {
+                throw new IllegalArgumentException( "This method may only be called for Enum classes" );
+            }
+            for ( T t : enumConstants ) {
+                out.writeBoolean( set.contains( t ) );
+            }
+        }
+
+        public static <T extends Enum<T>> EnumSet<T> deSerializeEnumSet( ObjectDataInput in, Class<T> clazz )
+                throws IOException {
+            T[] enumConstants = clazz.getEnumConstants();
+            if ( enumConstants == null ) {
+                throw new IllegalArgumentException( "This method may only be called for Enum classes" );
+            }
+            EnumSet<T> elements = EnumSet.<T> noneOf( clazz );
+            for ( T t : enumConstants ) {
+                if ( in.readBoolean() ) {
+                    elements.add( t );
+                }
+            }
+            return elements;
+        }
+
+        public static <T> void serializeOptional(
+                ObjectDataOutput out,
+                Optional<T> object,
+                IoPerformingBiConsumer<ObjectDataOutput, T> serializer ) throws IOException {
+            out.writeBoolean( object.isPresent() );
+            if ( object.isPresent() ) {
+                T value = object.get();
+                serializer.accept( out, value );
+            }
+        }
+
+        public static <T> Optional<T> deserializeToOptional(
+                ObjectDataInput in,
+                IoPerformingFunction<ObjectDataInput, T> deserializer ) throws IOException {
+            Optional<T> object = Optional.absent();
+            if ( in.readBoolean() ) {
+                object = Optional.of( deserializer.apply( in ) );
+            }
+            return object;
+        }
 
     }
 
@@ -52,7 +102,8 @@ public class RhizomeUtils {
 
     public static class Streams {
 
-        public static void writeStringStringMap( ObjectDataOutput out, Map<String, String> object ) throws IOException {
+        public static void writeStringStringMap( ObjectDataOutput out, Map<String, String> object )
+                throws IOException {
             int size = object.size();
             Set<String> keys = object.keySet();
             Collection<String> vals = object.values();
@@ -100,15 +151,13 @@ public class RhizomeUtils {
         }
 
         public static String loadResourceToString( final String path ) {
-            String resource = null;
-            try ( final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream( path ) ) {
-                resource = IOUtils.toString( stream );
-            } catch ( final IOException | NullPointerException e ) {
+            URL resource = Resources.getResource( path );
+            try {
+                return Resources.toString( resource, StandardCharsets.UTF_8 );
+            } catch ( final IOException e ) {
                 logger.error( "Failed to load resource from " + path, e );
                 return null;
             }
-
-            return resource;
         }
     }
 }

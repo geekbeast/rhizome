@@ -9,7 +9,7 @@ import com.kryptnostic.rhizome.mapstores.MappingException;
 public class UUIDValueMapper implements ValueMapper<UUID> {
 
     @Override
-    public byte[] toBytes( UUID value ) throws MappingException {
+    public byte[] toBytes( UUID value, int bufferSize ) throws MappingException {
         ByteBuffer out = ByteBuffer.allocate( 2 * Long.BYTES );
         out.putLong( value.getLeastSignificantBits() );
         out.putLong( value.getMostSignificantBits() );

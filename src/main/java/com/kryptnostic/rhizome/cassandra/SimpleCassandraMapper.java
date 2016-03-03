@@ -54,7 +54,7 @@ public class SimpleCassandraMapper<V> implements CassandraMapper<V> {
     }
 
     @Override
-    public byte[] toBytes( V value ) throws MappingException {
+    public byte[] toBytes( V value, int bufferSize ) throws MappingException {
         String asString = asString( value );
         return asString.getBytes();
     }
