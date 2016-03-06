@@ -46,6 +46,7 @@ public class CassandraPod {
     @Bean
     public Cluster getCluster() {
         return new Cluster.Builder()
+                .withCompression( cassandraConfiguration().getCompression() )
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.V3 )
                 .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )

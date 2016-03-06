@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.ProtocolOptions.Compression;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -14,6 +15,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
 public class CassandraConfiguration {
+    private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
     private static final String       CASSANDRA_EMBEDDED_PROPERTY   = "embedded";
     private static final String       CASSANDRA_KEYSPACE_PROPERTY   = "keyspace";
     private static final String       CASSANDRA_REPLICATION_FACTOR  = "replication-factor";
@@ -23,9 +25,11 @@ public class CassandraConfiguration {
     private static final String       KEYSPACE_DEFAULT              = "rhizome";
     private static final int          REPLICATION_FACTOR_DEFAULT    = 2;
     private static final boolean      EMBEDDED_DEFAULT              = true;
+    private static final String       COMPRESSION_DEFAULT            = "NONE";
 
     private final boolean             embedded;
 
+    private final Compression         compression;
     private final List<InetAddress>   cassandraSeedNodes;
     private final String              keyspace;
     private final int                 replicationFactor;
@@ -35,6 +39,7 @@ public class CassandraConfiguration {
 
     @JsonCreator
     public CassandraConfiguration(
+            @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY ) Optional<String> compression,
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
@@ -43,6 +48,17 @@ public class CassandraConfiguration {
         this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
+        switch ( compression.or( COMPRESSION_DEFAULT ).toLowerCase() ) {
+            case "lz4":
+                this.compression = Compression.LZ4;
+                break;
+            case "snappy":
+                this.compression = Compression.SNAPPY;
+                break;
+            default:
+                this.compression = Compression.NONE;
+                break;
+        }
     }
 
     private static List<InetAddress> transformToInetAddresses( List<String> addresses ) {
@@ -59,6 +75,11 @@ public class CassandraConfiguration {
             return ImmutableList.<InetAddress> of( InetAddress.getLoopbackAddress() );
         }
         return list;
+    }
+
+    @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY )
+    public Compression getCompression() {
+        return compression;
     }
 
     @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY )
