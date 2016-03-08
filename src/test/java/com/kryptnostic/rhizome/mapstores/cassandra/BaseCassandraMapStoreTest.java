@@ -21,6 +21,7 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
+                        Optional.absent(),
                         Optional.of( false ),
                         Optional.of( ImmutableList.of( "localhost" ) ),
                         Optional.of( "test" ),

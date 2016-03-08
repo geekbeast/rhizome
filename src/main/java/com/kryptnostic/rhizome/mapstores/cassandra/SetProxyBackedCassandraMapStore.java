@@ -121,6 +121,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Nonnull
     @Override
     public V load( K key ) {
+        // consider having this run a check to see if there are no entries and return null instead if so
+        // --this way containsKey on this IMap will actually be worth doing
         return (V) new DefaultCassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
     }
 

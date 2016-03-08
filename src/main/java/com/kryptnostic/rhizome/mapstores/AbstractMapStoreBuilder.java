@@ -11,6 +11,7 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     public K                                testKey;
     public V                                testValue;
     public boolean                          objectFormat;
+    public boolean                          eagerLoading;
 
     public AbstractMapStoreBuilder(
             SelfRegisteringKeyMapper<K> keyMapper,
@@ -23,6 +24,12 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     @Override
     public MapStoreBuilder<K, V> setObjectInMemoryFormat() {
         this.objectFormat = true;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> enableEagerLoading() {
+        this.eagerLoading = true;
         return this;
     }
 

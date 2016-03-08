@@ -30,8 +30,6 @@ public class DefaultCassandraSetProxy<K, T> extends BaseCassandraSetProxy<K, T> 
     private final String                                    setId;
     private final Class<T>                                  innerClass;
 
-
-
     public DefaultCassandraSetProxy(
             Session session,
             String keyspace,

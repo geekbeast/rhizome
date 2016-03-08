@@ -22,4 +22,6 @@ public interface MapStoreBuilder<K, V> {
     MapStoreBuilder<K, V> withTestValue( V value );
 
     MapStoreBuilder<K, V> withTestKey( K key );
+
+    MapStoreBuilder<K, V> enableEagerLoading();
 }

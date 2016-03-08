@@ -6,6 +6,8 @@ import com.datastax.driver.core.Session;
 import com.google.common.base.Preconditions;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
@@ -104,6 +106,15 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                         mapConfig.setInMemoryFormat( InMemoryFormat.OBJECT );
                     }
                     return mapConfig;
+                }
+
+                @Override
+                public MapStoreConfig getMapStoreConfig() {
+                    MapStoreConfig mapStoreConfig = super.getMapStoreConfig();
+                    if ( eagerLoading ) {
+                        mapStoreConfig.setInitialLoadMode( InitialLoadMode.EAGER );
+                    }
+                    return mapStoreConfig;
                 }
 
                 @Override
