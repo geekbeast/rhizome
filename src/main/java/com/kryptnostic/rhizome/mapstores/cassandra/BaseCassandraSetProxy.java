@@ -22,12 +22,12 @@ public abstract class BaseCassandraSetProxy<K, T> implements SetProxy<K, T> {
     protected final Statement     GET_STATEMENT;
     protected final Where         SIZE_STATEMENT;
 
-    static class ProxyKey {
+    public static class ProxyKey {
 
         private final String keyspace;
         private final String table;
 
-        ProxyKey( String keyspace, String table ) {
+        public ProxyKey( String keyspace, String table ) {
             this.keyspace = keyspace;
             this.table = table;
         }
