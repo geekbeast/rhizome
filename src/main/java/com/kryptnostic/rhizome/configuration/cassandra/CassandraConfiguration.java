@@ -20,10 +20,12 @@ public class CassandraConfiguration {
     private static final String       CASSANDRA_KEYSPACE_PROPERTY   = "keyspace";
     private static final String       CASSANDRA_REPLICATION_FACTOR  = "replication-factor";
     private static final String       CASSANDRA_SEED_NODES_PROPERTY = "seed-nodes";
+    private static final String       HAZELCAST_WRITE_DELAY_FIELD    = "write-delay";
 
     private static final List<String> CASSANDRA_SEED_DEFAULT        = ImmutableList.of( "127.0.0.1" );
     private static final String       KEYSPACE_DEFAULT              = "rhizome";
     private static final int          REPLICATION_FACTOR_DEFAULT    = 2;
+    private static final int          WRITE_BACK_DELAY_DEFAULT       = 1;
     private static final boolean      EMBEDDED_DEFAULT              = true;
     private static final String       COMPRESSION_DEFAULT            = "NONE";
 
@@ -33,6 +35,7 @@ public class CassandraConfiguration {
     private final List<InetAddress>   cassandraSeedNodes;
     private final String              keyspace;
     private final int                 replicationFactor;
+    private int                       writeBackDelay;
 
     private static final Logger       logger                        = LoggerFactory
                                                                             .getLogger( CassandraConfiguration.class );
@@ -43,11 +46,13 @@ public class CassandraConfiguration {
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
-            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
+            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
+            @JsonProperty( HAZELCAST_WRITE_DELAY_FIELD ) Optional<Integer> defaultWriteDelay) {
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
         this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
+        this.writeBackDelay = defaultWriteDelay.or( WRITE_BACK_DELAY_DEFAULT );
         switch ( compression.or( COMPRESSION_DEFAULT ).toLowerCase() ) {
             case "lz4":
                 this.compression = Compression.LZ4;
@@ -100,6 +105,11 @@ public class CassandraConfiguration {
     @JsonProperty( CASSANDRA_REPLICATION_FACTOR )
     public int getReplicationFactor() {
         return replicationFactor;
+    }
+
+    @JsonProperty( HAZELCAST_WRITE_DELAY_FIELD )
+    public int getDefaultWriteBackDelay() {
+        return writeBackDelay;
     }
 
 }

@@ -38,6 +38,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     protected final String          table;
     protected final String                        keyspace;
     protected final int                           replicationFactor;
+    protected final int                           defaultWriteBackDelay;
 
     public BaseCassandraMapStore(
             String table,
@@ -53,6 +54,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
         this.mapName = mapName;
         this.replicationFactor = config.getReplicationFactor();
 
+        defaultWriteBackDelay = config.getDefaultWriteBackDelay();
         keyspace = config.getKeyspace();
 
     }
@@ -79,7 +81,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     @Override
     public MapStoreConfig getMapStoreConfig() {
-        return new MapStoreConfig().setImplementation( this ).setEnabled( true ).setWriteDelaySeconds( 0 );
+        return new MapStoreConfig().setImplementation( this ).setEnabled( true )
+                .setWriteDelaySeconds( defaultWriteBackDelay );
     }
 
     @Override
