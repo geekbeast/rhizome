@@ -114,9 +114,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                     if ( eagerLoading ) {
                         mapStoreConfig.setInitialLoadMode( InitialLoadMode.EAGER );
                     }
-                    if ( writeThrough ) {
-                        mapStoreConfig.setWriteDelaySeconds( 0 );
-                    }
+                    mapStoreConfig.setWriteDelaySeconds( writeBehind );
                     return mapStoreConfig;
                 }
 

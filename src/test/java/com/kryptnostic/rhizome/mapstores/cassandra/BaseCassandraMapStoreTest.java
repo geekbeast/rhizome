@@ -25,8 +25,7 @@ public class BaseCassandraMapStoreTest {
                         Optional.of( false ),
                         Optional.of( ImmutableList.of( "localhost" ) ),
                         Optional.of( "test" ),
-                        Optional.of( 3 ),
-                        Optional.absent() );
+            Optional.of( 3 ) );
 
     @Test
     public void testCassandraMapstore() {
