@@ -12,14 +12,14 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     public V                                testValue;
     public boolean                          objectFormat;
     public boolean                          eagerLoading;
-    public boolean                          writeThrough;
+    public int                              writeBehind;
 
     public AbstractMapStoreBuilder(
             SelfRegisteringKeyMapper<K> keyMapper,
             SelfRegisteringValueMapper<V> valueMapper ) {
         this.keyMapper = keyMapper;
         this.valueMapper = valueMapper;
-
+        this.writeBehind = 0;
     }
 
     @Override
@@ -35,8 +35,8 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     }
 
     @Override
-    public MapStoreBuilder<K, V> enableWriteThroughMode() {
-        this.writeThrough = true;
+    public MapStoreBuilder<K, V> enableWriteBehindMode( int writeBehindTime ) {
+        this.writeBehind = writeBehindTime;
         return this;
     }
 
