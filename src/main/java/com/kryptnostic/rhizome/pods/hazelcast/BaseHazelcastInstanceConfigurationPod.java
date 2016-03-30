@@ -64,6 +64,7 @@ public class BaseHazelcastInstanceConfigurationPod {
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
         return hzConfiguration.isServer() ? new Config( hzConfiguration.getInstanceName() )
                 .setProperty( "hazelcast.logging.type", "slf4j" )
+                .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( getSerializationConfig() )
                 .setMapConfigs( getMapConfigs() )
@@ -99,7 +100,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     public static Lock hazelcastStartupLock() {
         return startupLock;
     }
-    
+
     protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
         return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
