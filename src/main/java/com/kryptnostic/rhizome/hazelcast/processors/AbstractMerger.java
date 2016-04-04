@@ -24,14 +24,14 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
     @Override
     public Object process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
-        if ( currentObjects == null ) {
+        if ( !( currentObjects instanceof SetProxy<?, ?> ) && currentObjects == null ) {
             currentObjects = newEmptyCollection();
         }
 
         for ( T newObject : newObjects ) {
             currentObjects.add( newObject );
         }
-        
+
         //Don't trigger re-serialization if handled by SetProxy.
         if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
             entry.setValue( currentObjects );
