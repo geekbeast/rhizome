@@ -1,18 +1,20 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import java.util.UUID;
+
+import com.datastax.driver.core.DataType;
+
 public class CassandraQueryConstants {
 
     static final String COUNT_RESULT_COLUMN_NAME = "count";
 
-    private static final String TEXT_TYPE                = "text";
-    private static final String BLOB_TYPE                = "blob";
-    private static final String UUID_TYPE                = "uuid";
-    private static final String BOOLEAN_TYPE             = "boolean";
-
-    static String cassandraValueType( Class type ) {
+    static <T> String cassandraValueType( Class<T> type ) {
         // Currently using valuemappers that write everything as binary
         // We should probably think about cassandras built in datatypes
         // and whether we even need valuemappers
-        return BLOB_TYPE;
+        if ( type.isAssignableFrom( UUID.class ) ) {
+            return DataType.uuid().asFunctionParameterString();
+        }
+        return DataType.blob().asFunctionParameterString();
     }
 }

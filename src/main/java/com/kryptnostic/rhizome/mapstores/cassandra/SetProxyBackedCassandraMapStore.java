@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nonnull;
 
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -63,7 +64,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
 
-        String cassValType = CassandraQueryConstants.cassandraValueType( innerType );
+        String cassValType = DataType.blob().asFunctionParameterString();
         // create table
         session.execute( String.format( TABLE_QUERY,
                 keyspace,
