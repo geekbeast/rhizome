@@ -397,4 +397,11 @@ public class RethinkDbBaseQueueStoreAlternateDriver<T> implements SelfRegisterin
                 .setQueueStoreConfig( new QueueStoreConfig().setStoreImplementation( this ) ).setName( queueName );
     }
 
+    @Override
+    public QueueStoreConfig getQueueStoreConfig() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException(
+                "THIS METHOD HAS NOT BEEN IMPLEMENTED, BLAME Drew Bailey drew@kryptnostic.com" );
+    }
+
 }
