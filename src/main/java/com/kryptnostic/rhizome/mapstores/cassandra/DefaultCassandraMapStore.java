@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +13,11 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.common.collect.Sets;
+import com.datastax.driver.core.querybuilder.Select;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
-
-import jersey.repackaged.com.google.common.collect.Iterables;
 
 public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> {
     private static final Logger     logger         = LoggerFactory.getLogger( DefaultCassandraMapStore.class );
@@ -31,7 +28,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     private final PreparedStatement LOAD_QUERY;
     private final PreparedStatement STORE_QUERY;
     private final PreparedStatement DELETE_QUERY;
-    private final PreparedStatement LOAD_ALL_QUERY;
+    private final Select            LOAD_ALL_QUERY;
     private final PreparedStatement DELETE_ALL_QUERY;
 
     public DefaultCassandraMapStore(
@@ -59,8 +56,8 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
                 .delete().from( keyspace, table )
                 .where( QueryBuilder.eq( DEFAULT_KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
-        LOAD_ALL_QUERY = session.prepare( QueryBuilder
-                .select( DEFAULT_KEY_COLUMN_NAME ).from( keyspace, table ) );
+        LOAD_ALL_QUERY = QueryBuilder
+                .select( DEFAULT_KEY_COLUMN_NAME ).from( keyspace, table );
 
         DELETE_ALL_QUERY = session.prepare( QueryBuilder
                 .delete().from( keyspace, table )
@@ -86,13 +83,12 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     }
 
     @Override
-    public Set<K> loadAllKeys() {
-        ResultSet s;
-        // TODO: make this return an Iterable<K> that lazily loads values (one page at a time)
-        s = session.execute( LOAD_ALL_QUERY.bind() );
-        return Sets.newHashSet( Iterables.transform( s.all(), ( Row r ) -> {
-            return keyMapper.toKey( r.getString( "id" ) );
-        } ) );
+    public Iterable<K> loadAllKeys() {
+        return PagingCassandraIterator.asIterable( session, LOAD_ALL_QUERY, this::mapToKey );
+    }
+
+    public K mapToKey( Row row ) {
+        return keyMapper.toKey( row.getString( "id" ) );
     }
 
     @Override
