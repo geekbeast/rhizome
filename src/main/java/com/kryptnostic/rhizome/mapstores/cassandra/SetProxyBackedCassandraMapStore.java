@@ -14,11 +14,11 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
@@ -31,12 +31,12 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     private static final String                     TABLE_QUERY            = "CREATE TABLE IF NOT EXISTS %s.%s (%s text, %s %s, PRIMARY KEY( %s, %s ) );";
 
     private final SelfRegisteringValueMapper<T>     innerTypeValueMapper;
-    private final PreparedStatement                 LOAD_ALL_KEYS;
     private final PreparedStatement                 DELETE_KEY;
     private final Class<T>                          innerType;
     private final PreparedStatement                 DELETE_ALL_QUERY;
     private K                                       testKey;
     private V                                       testValue;
+    private final Select                            LOAD_ALL_KEYS_PAGED;
 
     static final Cache<ProxyKey, PreparedStatement> SP_CONTAINS_STATEMENTS = CacheBuilder.newBuilder()
                                                                                            .build();
@@ -75,11 +75,10 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
                 SetProxy.KEY_COLUMN_NAME,
                 SetProxy.VALUE_COLUMN_NAME ) );
 
-        this.LOAD_ALL_KEYS = session.prepare(
-                QueryBuilder
-                        .select( SetProxy.KEY_COLUMN_NAME )
-                        .distinct()
-                        .from( keyspace, table ) );
+        this.LOAD_ALL_KEYS_PAGED = QueryBuilder
+                .select( SetProxy.KEY_COLUMN_NAME )
+                .distinct()
+                .from( keyspace, table );
 
         this.DELETE_KEY = session.prepare(
                 QueryBuilder
@@ -147,14 +146,12 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      * @see com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraMapStore#loadAllKeys()
      */
     @Override
-    public Set<K> loadAllKeys() {
-        List<Row> execute = session.execute( LOAD_ALL_KEYS.bind() ).all();
-        Set<K> set = Sets.newHashSetWithExpectedSize( execute.size() );
-        for ( Row row : execute ) {
-            K key = keyMapper.toKey( row.getString( SetProxy.KEY_COLUMN_NAME ) );
-            set.add( key );
-        }
-        return set;
+    public Iterable<K> loadAllKeys() {
+        return PagingCassandraIterator.<K> asIterable( session, LOAD_ALL_KEYS_PAGED, this::mapRowToKey );
+    }
+
+    public K mapRowToKey( Row row ) {
+        return keyMapper.toKey( row.getString( SetProxy.KEY_COLUMN_NAME ) );
     }
 
     /*
