@@ -26,4 +26,6 @@ public interface MapStoreBuilder<K, V> {
     MapStoreBuilder<K, V> enableEagerLoading();
 
     MapStoreBuilder<K, V> enableWriteBehindMode( int writeBehindTime );
+
+    MapStoreBuilder<K, V> disableLoadAllKeys();
 }

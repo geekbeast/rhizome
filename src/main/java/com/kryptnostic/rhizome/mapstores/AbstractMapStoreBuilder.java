@@ -13,6 +13,7 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     public boolean                          objectFormat;
     public boolean                          eagerLoading;
     public int                              writeBehind;
+    public boolean                          loadAllKeysDisabled;
 
     public AbstractMapStoreBuilder(
             SelfRegisteringKeyMapper<K> keyMapper,
@@ -31,6 +32,12 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
     @Override
     public MapStoreBuilder<K, V> enableEagerLoading() {
         this.eagerLoading = true;
+        return this;
+    }
+
+    @Override
+    public MapStoreBuilder<K, V> disableLoadAllKeys() {
+        this.loadAllKeysDisabled = true;
         return this;
     }
 
@@ -85,4 +92,5 @@ public abstract class AbstractMapStoreBuilder<K, V> implements MapStoreBuilder<K
 
     @Override
     public abstract TestableSelfRegisteringMapStore<K, V> build();
+
 }
