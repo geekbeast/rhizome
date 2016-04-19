@@ -19,6 +19,7 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
@@ -39,11 +40,11 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     private final Select                            LOAD_ALL_KEYS_PAGED;
 
     static final Cache<ProxyKey, PreparedStatement> SP_CONTAINS_STATEMENTS = CacheBuilder.newBuilder()
-                                                                                           .build();
+                                                                                   .build();
     static final Cache<ProxyKey, PreparedStatement> SP_ADD_STATEMENTS      = CacheBuilder.newBuilder()
-                                                                                           .build();
+                                                                                   .build();
     static final Cache<ProxyKey, PreparedStatement> SP_DELETE_STATEMENTS   = CacheBuilder.newBuilder()
-                                                                                           .build();
+                                                                                   .build();
 
     public SetProxyBackedCassandraMapStore(
             String tableName,
@@ -77,7 +78,6 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
 
         this.LOAD_ALL_KEYS_PAGED = QueryBuilder
                 .select( SetProxy.KEY_COLUMN_NAME )
-                .distinct()
                 .from( keyspace, table );
 
         this.DELETE_KEY = session.prepare(
@@ -88,7 +88,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
 
         this.DELETE_ALL_QUERY = session.prepare(
                 QueryBuilder.delete().from( keyspace, table )
-                .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
+                        .where( QueryBuilder.in( SetProxy.KEY_COLUMN_NAME, QueryBuilder.bindMarker() ) ) );
 
         DefaultCassandraSetProxy.ProxyKey key = new DefaultCassandraSetProxy.ProxyKey( keyspace, table );
 
@@ -123,7 +123,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     public V load( K key ) {
         // consider having this run a check to see if there are no entries and return null instead if so
         // --this way containsKey on this IMap will actually be worth doing
-        return (V) new DefaultCassandraSetProxy<K, T>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+        return (V) new DefaultCassandraSetProxy<K, T>(
+                session,
+                keyspace,
+                table,
+                keyMapper.fromKey( key ),
+                innerType,
+                innerTypeValueMapper );
     }
 
     /*
@@ -135,7 +141,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         Map<K, V> results = Maps.newHashMapWithExpectedSize( keys.size() );
         DefaultCassandraSetProxy<K, T> value;
         for ( K key : keys ) {
-            value = new DefaultCassandraSetProxy<>( session, keyspace, table, keyMapper.fromKey( key ), innerType, innerTypeValueMapper );
+            value = new DefaultCassandraSetProxy<>(
+                    session,
+                    keyspace,
+                    table,
+                    keyMapper.fromKey( key ),
+                    innerType,
+                    innerTypeValueMapper );
             results.put( key, (V) value );
         }
         return results;
@@ -147,7 +159,11 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public Iterable<K> loadAllKeys() {
-        return PagingCassandraIterator.<K> asIterable( session, LOAD_ALL_KEYS_PAGED, this::mapRowToKey );
+        Set<K> results = Sets.newHashSet();
+        for ( Row row : session.execute( LOAD_ALL_KEYS_PAGED ).all() ) {
+            results.add( mapRowToKey( row ) );
+        }
+        return results;
     }
 
     public K mapRowToKey( Row row ) {
