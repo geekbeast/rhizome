@@ -30,6 +30,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     static final String            DEFAULT_KEY_COLUMN_NAME   = "id";
     static final String            DEFAULT_VALUE_COLUMN_NAME = "data";
+    protected static final int                    DEFAULT_QUERY_LIMIT       = 10_000;
 
     protected final String          mapName;
     protected final SelfRegisteringValueMapper<V> valueMapper;
