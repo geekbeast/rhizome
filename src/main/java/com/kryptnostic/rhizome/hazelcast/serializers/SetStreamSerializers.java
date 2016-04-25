@@ -82,4 +82,21 @@ public class SetStreamSerializers {
         }
         return set;
     }
+
+    public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
+        int size = Iterables.size( object );
+        out.writeInt( size );
+        for( String item : object ) {
+            out.writeUTF( item );
+        }    
+    }
+
+    public static Set<String> fastStringSetDeserialize( ObjectDataInput in ) throws IOException {
+        int size = in.readInt();
+        Set<String> items = Sets.newHashSetWithExpectedSize( size );
+        for( int i = 0; i < size; i++ ){
+            items.add( in.readUTF() );
+        }
+        return items;
+    }
 }
