@@ -62,7 +62,7 @@ public class CassandraPod {
         return new Cluster.Builder()
                 .withCompression( cassandraConfiguration().getCompression() )
                 .withPoolingOptions( getPoolingOptions() )
-                .withProtocolVersion( ProtocolVersion.V3 )
+                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
                 .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
                 .withCodecRegistry( getCodecRegistry() )
                 .build();
