@@ -1,8 +1,6 @@
 package com.kryptnostic.rhizome.hazelcast.objects;
 
 import com.datastax.driver.core.PagingState;
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
 
 public class PagedResponse<T> {
 
@@ -20,14 +18,6 @@ public class PagedResponse<T> {
 
     public T getResults() {
         return results;
-    }
-
-    public T serialize( ObjectDataOutput out ) {
-        return results;
-    }
-
-    public void deserialize( ObjectDataInput input ) {
-
     }
 
 }
