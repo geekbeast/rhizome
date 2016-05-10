@@ -34,20 +34,23 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  * @param <V>
  */
 public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private static final Logger        logger         = LoggerFactory.getLogger( BaseCassandraMapStore.class );
+    private static final Logger                   logger                    = LoggerFactory
+                                                                                    .getLogger(
+                                                                                            BaseCassandraMapStore.class );
 
-    static final String            DEFAULT_KEY_COLUMN_NAME   = "id";
-    static final String            DEFAULT_VALUE_COLUMN_NAME = "data";
+    static final String                           DEFAULT_KEY_COLUMN_NAME   = "id";
+    static final String                           DEFAULT_VALUE_COLUMN_NAME = "data";
     protected static final int                    DEFAULT_QUERY_LIMIT       = 10_000;
 
-    protected final String          mapName;
+    protected final String                        mapName;
     protected final SelfRegisteringValueMapper<V> valueMapper;
     protected final SelfRegisteringKeyMapper<K>   keyMapper;
-    protected final Session         session;
-    protected final String          table;
+    protected final Session                       session;
+    protected final String                        table;
     protected final String                        keyspace;
     protected final int                           replicationFactor;
     protected boolean                             SUPPORTS_ASYNC_LOADS      = true;
+    private static boolean                        PREFER_BULK               = true;
 
     public BaseCassandraMapStore(
             String table,
@@ -67,10 +70,10 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        if ( !SUPPORTS_ASYNC_LOADS ) {
-            return defaultLoadAll( keys );
+        if ( SUPPORTS_ASYNC_LOADS ) {
+            return asyncLoadAll( keys );
         }
-        return asyncLoadAll( keys );
+        return defaultLoadAll( keys );
     }
 
     private Map<K, V> asyncLoadAll( Collection<K> keys ) {
@@ -96,7 +99,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
                     t.printStackTrace();
                     latch.countDown();
                 }
-            });
+            } );
         }
 
         try {
@@ -112,9 +115,9 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     private Map<K, V> defaultLoadAll( Collection<K> keys ) {
         // Naive implementation for now :(
         Map<K, V> result = Maps.newHashMap();
-        for (K key : keys) {
+        for ( K key : keys ) {
             V value = load( key );
-            if (value != null) {
+            if ( value != null ) {
                 result.put( key, value );
             }
         }
@@ -142,7 +145,8 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig( mapName ).setBackupCount( this.replicationFactor ).setMapStoreConfig( getMapStoreConfig() );
+        return new MapConfig( mapName ).setBackupCount( this.replicationFactor )
+                .setMapStoreConfig( getMapStoreConfig() );
     }
 
     @Override
