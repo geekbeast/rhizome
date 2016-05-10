@@ -50,7 +50,6 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     protected final String                        keyspace;
     protected final int                           replicationFactor;
     protected boolean                             SUPPORTS_ASYNC_LOADS      = true;
-    private static boolean                        PREFER_BULK               = true;
 
     public BaseCassandraMapStore(
             String table,
