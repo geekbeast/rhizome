@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -68,18 +69,12 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     @Override
     public V load( K key ) {
         ResultSet s;
-        try {
-            s = session.execute( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
-            Row result = s.one();
-            if ( result == null ) {
-                return null;
-            }
-            ByteBuffer bytes = result.getBytes( "data" );
-            return valueMapper.fromBytes( bytes.array() );
-        } catch ( MappingException e ) {
-            logger.error( "Unable to map key to cassandra key.", e );
+        s = session.execute( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
+        Row result = s.one();
+        if ( result == null ) {
+            return null;
         }
-        return null;
+        return mapToValue( result );
     }
 
     @Override
@@ -87,6 +82,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         return PagingCassandraIterator.asIterable( session, LOAD_ALL_QUERY, this::mapToKey );
     }
 
+    @Override
     public K mapToKey( Row row ) {
         return keyMapper.toKey( row.getString( "id" ) );
     }
@@ -113,6 +109,22 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
             mappedKeys.add( keyMapper.fromKey( key ) );
         }
         session.execute( DELETE_ALL_QUERY.bind( mappedKeys ) );
+    }
+
+    @Override
+    protected ResultSetFuture asyncLoad( K key ) {
+        return session.executeAsync( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
+    }
+
+    @Override
+    protected V mapToValue( Row row ) {
+        ByteBuffer bytes = row.getBytes( "data" );
+        try {
+            return valueMapper.fromBytes( bytes.array() );
+        } catch ( MappingException e ) {
+            logger.error( "cant wait to kill these valuemappers" );
+        }
+        return null;
     }
 
 }

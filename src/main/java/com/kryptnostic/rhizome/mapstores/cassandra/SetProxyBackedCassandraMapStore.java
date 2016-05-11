@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -61,6 +62,8 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         this.innerType = innerType;
         this.testKey = testKey;
         this.testValue = testValue;
+
+        this.SUPPORTS_ASYNC_LOADS = false;
 
         // create keyspace
         session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
@@ -161,12 +164,13 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     public Iterable<K> loadAllKeys() {
         Set<K> results = Sets.newHashSet();
         for ( Row row : session.execute( LOAD_ALL_KEYS_PAGED ).all() ) {
-            results.add( mapRowToKey( row ) );
+            results.add( mapToKey( row ) );
         }
         return results;
     }
 
-    public K mapRowToKey( Row row ) {
+    @Override
+    public K mapToKey( Row row ) {
         return keyMapper.toKey( row.getString( SetProxy.KEY_COLUMN_NAME ) );
     }
 
@@ -235,6 +239,16 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
     @Override
     public V generateTestValue() {
         return testValue;
+    }
+
+    @Override
+    protected ResultSetFuture asyncLoad( K key ) {
+        throw new UnsupportedOperationException( "SetProxy does not support async loads" );
+    }
+
+    @Override
+    protected V mapToValue( Row row ) {
+        throw new UnsupportedOperationException( "SetProxy does not support mapping values" );
     }
 
 }
