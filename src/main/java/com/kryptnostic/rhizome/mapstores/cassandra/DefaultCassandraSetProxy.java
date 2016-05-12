@@ -96,11 +96,8 @@ public class DefaultCassandraSetProxy<K, T> extends BaseCassandraSetProxy<K, T> 
 
     @Override
     public boolean add( T e ) {
-        if ( contains( e ) ) {
-            return false;
-        }
         try {
-            // add to the set as a new row
+            // append to the set as a new row
             session.execute( ADD_STATEMENT.bind( setId, valueToBytes( e ) ) );
             return true;
         } catch ( MappingException e1 ) {
