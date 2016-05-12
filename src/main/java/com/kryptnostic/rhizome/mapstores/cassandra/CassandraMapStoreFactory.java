@@ -4,7 +4,6 @@ import java.util.Set;
 
 import com.datastax.driver.core.Session;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;

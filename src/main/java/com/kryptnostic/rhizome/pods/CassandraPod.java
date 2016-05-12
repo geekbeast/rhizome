@@ -20,6 +20,11 @@ import com.datastax.driver.core.TypeCodec;
 import com.google.common.annotations.VisibleForTesting;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
+import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
+import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
+
+import jersey.repackaged.com.google.common.collect.Maps;
 
 @Configuration
 @Profile( "cassandra" )
@@ -48,24 +53,41 @@ public class CassandraPod {
     }
 
     @Bean
-    public Session sess() {
-        return getCluster().newSession();
+    public Session session() {
+        return cluster().newSession();
     }
 
     @Bean
-    public CodecRegistry getCodecRegistry() {
+    public CodecRegistry codecRegistry() {
         return new CodecRegistry().register( codecs );
     }
 
     @Bean
-    public Cluster getCluster() {
+    public Cluster cluster() {
         return new Cluster.Builder()
                 .withCompression( cassandraConfiguration().getCompression() )
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
                 .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
-                .withCodecRegistry( getCodecRegistry() )
+                .withCodecRegistry( codecRegistry() )
                 .build();
+    }
+
+    @Bean
+    public Clusters clusters() {
+        return new Clusters( Maps.transformValues( getConfigurations(),
+                cassandraConfiguration -> new Cluster.Builder()
+                        .withCompression( cassandraConfiguration.getCompression() )
+                        .withPoolingOptions( getPoolingOptions() )
+                        .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
+                        .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() )
+                        .withCodecRegistry( codecRegistry() )
+                        .build() ) );
+    }
+
+    @Bean
+    public Sessions sessions() {
+        return new Sessions( Maps.transformValues( clusters(), cluster -> cluster.newSession() ) );
     }
 
     private static PoolingOptions getPoolingOptions() {
@@ -81,5 +103,9 @@ public class CassandraPod {
     @VisibleForTesting
     public void setCodecs( Set<TypeCodec<?>> codecs ) {
         this.codecs = codecs;
+    }
+
+    private CassandraConfigurations getConfigurations() {
+        return configuration.getCassandraConfigurations().or( new CassandraConfigurations() );
     }
 }
