@@ -12,12 +12,12 @@ public class Clusters extends HashMap<String, Cluster> {
         super();
     }
 
-    public Clusters( Map<String, Cluster> clusters ) {
-        super( clusters );
-    }
-
     public Clusters( int initialSize ) {
         super( initialSize );
+    }
+    
+    public Clusters( Map<String, Cluster> clusters ) {
+        super( clusters );
     }
 
 }
