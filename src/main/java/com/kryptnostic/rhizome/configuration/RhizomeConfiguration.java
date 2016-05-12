@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
@@ -26,6 +27,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String                                 PERSISTENCE_ENABLED_PROPERTY                    = "enable-persistence";
     protected static final String                                 SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String                                 CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
+    protected static final String                                 CASSANDRA_CONFIGURATIONS_PROPERTY                = "cassandras";
     protected static final String                                 HYPERDEX_CONFIGURATION_PROPERTY                 = "hyperdex";
     protected static final String                                 GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String                                 HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
@@ -40,7 +42,9 @@ public class RhizomeConfiguration implements Configuration {
     protected final boolean                                       sessionClusteringEnabled;
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
     protected final Optional<GraphiteConfiguration>               graphiteConfiguration;
+    @Deprecated
     protected final Optional<CassandraConfiguration>              cassandraConfiguration;
+    protected final Optional<CassandraConfigurations>             cassandraConfigurations;
     protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<HyperdexConfiguration>               hyperdexConfiguration;
     protected final Optional<RethinkDbConfiguration>              rethinkDbConfiguration;
@@ -50,7 +54,9 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
             @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY ) Optional<RethinkDbConfiguration> rethinkDbConfiguration,
+            @Deprecated
             @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration,
+            @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfigurations> cassandraConfigurations,
             @JsonProperty( HYPERDEX_CONFIGURATION_PROPERTY ) Optional<HyperdexConfiguration> hyperdexConfiguration,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration,
             @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY ) Optional<HazelcastConfiguration> hazelcastConfiguration,
@@ -59,6 +65,7 @@ public class RhizomeConfiguration implements Configuration {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.cassandraConfiguration = cassandraConfiguration;
+        this.cassandraConfigurations = cassandraConfigurations;
         this.rethinkDbConfiguration = rethinkDbConfiguration;
         this.hyperdexConfiguration = hyperdexConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
@@ -71,6 +78,7 @@ public class RhizomeConfiguration implements Configuration {
         return "RhizomeConfiguration [persistData=" + persistData
                 + ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration
                 + ", graphiteConfiguration=" + graphiteConfiguration
+                + ", cassandraConfigurations=" + cassandraConfigurations
                 + ", cassandraConfiguration=" + cassandraConfiguration
                 + ", rethinkDbConfiguration=" + rethinkDbConfiguration + "]";
 
@@ -86,11 +94,17 @@ public class RhizomeConfiguration implements Configuration {
         return sessionClusteringEnabled;
     }
 
+    @Deprecated
     @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
     public Optional<CassandraConfiguration> getCassandraConfiguration() {
         return cassandraConfiguration;
     }
 
+    @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY )
+    public Optional<CassandraConfigurations> getCassandraConfigurations() {
+        return cassandraConfigurations;
+    }
+    
     @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY )
     public Optional<RethinkDbConfiguration> getRethinkDbConfiguration() {
         return rethinkDbConfiguration;

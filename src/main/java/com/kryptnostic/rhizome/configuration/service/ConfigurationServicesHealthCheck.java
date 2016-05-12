@@ -2,12 +2,9 @@ package com.kryptnostic.rhizome.configuration.service;
 
 import javax.inject.Inject;
 
-import org.springframework.stereotype.Component;
-
 import com.codahale.metrics.health.HealthCheck;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 
-@Component
 public class ConfigurationServicesHealthCheck extends HealthCheck {
     @Inject
     private ConfigurationService service;
