@@ -7,10 +7,14 @@ import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
+import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 
 /**
  * @author Matthew Tamayo-Rios
  */
+@ReloadableConfiguration(
+    file = "jetty.yaml",
+    key = "jetty" )
 public class JettyConfiguration implements Configuration {
     private static final long                        serialVersionUID                        = 129440984814569272L;
 
@@ -52,7 +56,7 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration,
             @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration,
             @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration,
-            @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled ) {
+            @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled) {
 
         this.webConnectorConfiguration = webConnectorConfiguration;
         this.serviceConnectorConfiguration = serviceConnectorConfiguration;
