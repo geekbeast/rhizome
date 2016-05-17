@@ -151,15 +151,15 @@ dependencies {
     /*
      JODA TIME - A better datetime class.
      */
-     compile 'joda-time:joda-time:2.9.1'
+     compile "joda-time:joda-time:2.9.1"
 
     /*
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
      */
-     compile 'commons-io:commons-io:2.4'
-     compile 'org.apache.commons:commons-lang3:3.4'
-     compile 'commons-codec:commons-codec:1.9'
+     compile "commons-io:commons-io:2.4"
+     compile "org.apache.commons:commons-lang3:3.4"
+     compile "commons-codec:commons-codec:1.9"
 
     /*
      * JACKSON SERIALIZATION
@@ -180,9 +180,6 @@ dependencies {
     compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
     compile 'org.yaml:snakeyaml:1.13'
-
-    ext.uuid_gen_version='3.1.4'
-    compile "com.fasterxml.uuid:java-uuid-generator:${uuid_gen_version}"
 
     /*
      * @Inject and @Nullable support
