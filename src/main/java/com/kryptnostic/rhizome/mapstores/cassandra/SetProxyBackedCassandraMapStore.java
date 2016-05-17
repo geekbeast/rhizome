@@ -84,6 +84,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
         this.LOAD_ALL_KEYS_PAGED = QueryBuilder
                 .select()
                 .distinct().column( SetProxy.KEY_COLUMN_NAME )
+
                 .from( keyspace, table );
 
         this.DELETE_KEY = session.prepare(
@@ -165,7 +166,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public Iterable<K> loadAllKeys() {
-        return Iterables.Iterables.transform( session.execute( LOAD_ALL_KEYS_PAGED ), r -> mapToKey( r ) );
+        return Iterables.transform( session.execute( LOAD_ALL_KEYS_PAGED ), r -> mapToKey( r ) );
     }
 
     @Override
