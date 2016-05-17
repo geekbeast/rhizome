@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -19,6 +20,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
@@ -162,11 +164,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
      */
     @Override
     public Iterable<K> loadAllKeys() {
-        Set<K> results = Sets.newHashSet();
-        for ( Row row : session.execute( LOAD_ALL_KEYS_PAGED ).all() ) {
-            results.add( mapToKey( row ) );
-        }
-        return results;
+        return Iterables.transform( session.execute( LOAD_ALL_KEYS_PAGED ), r -> mapToKey( r ) );
     }
 
     @Override
