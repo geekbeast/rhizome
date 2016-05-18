@@ -17,6 +17,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 
 @Configuration
 @EnableScheduling
@@ -52,6 +54,11 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
         return executor;
     }
 
+    @Bean
+    public ListeningExecutorService listeningExecutorService() {
+        return MoreExecutors.listeningDecorator( getAsyncExecutor().getThreadPoolExecutor() );
+    }
+    
     @Bean
     public AsyncEventBus localConfigurationUpdates() {
         return new AsyncEventBus( getAsyncExecutor() );
