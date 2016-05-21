@@ -81,13 +81,8 @@ ext.snappy_version='1.1.2.1'
 ext.lz4_version='1.3'
 ext.netty_epoll_version='4.0.36.Final'
 ext.netty_os_arch='linux-x86_64'
-ext.cassandra_client_utils_version='3.5'
-ext.codehaus_version='1.9.13'
 
 dependencies {
-    //compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: "${codehaus_version}"
-    //compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: "${codehaus_version}"
-    compile group: 'org.apache.cassandra', name: 'cassandra-all', version: "${cassandra_client_utils_version}"
 
     /*
      * Immutables library for immutable objects
@@ -241,8 +236,6 @@ dependencies {
     compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: "${cassandra_driver_version}"
     compile group: 'com.datastax.cassandra', name: 'cassandra-driver-extras', version: "${cassandra_driver_version}"
     compile group: 'com.datastax.cassandra', name: 'cassandra-driver-mapping', version: "${cassandra_driver_version}"
-    compile group: 'org.apache.cassandra', name: 'cassandra-clientutil', version: "${cassandra_client_utils_version}"
-
     compile "org.xerial.snappy:snappy-java:${snappy_version}"
     compile "net.jpountz.lz4:lz4:${lz4_version}"
 
