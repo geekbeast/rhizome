@@ -87,7 +87,7 @@ public class MetricsPod implements MetricsConfigurer {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch ( UnknownHostException e ) {
-            logger.warn( "Unable to determine hostname, default to Hazelcast UUID" );
+            logger.warn( "Unable to determine hostname, default to Hazelcast UUID", e );
             return null;
         }
     }

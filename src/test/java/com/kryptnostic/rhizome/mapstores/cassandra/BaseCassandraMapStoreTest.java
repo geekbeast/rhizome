@@ -21,11 +21,11 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
-                        Optional.absent(),
-                        Optional.of( false ),
-                        Optional.of( ImmutableList.of( "localhost" ) ),
-                        Optional.of( "test" ),
-            Optional.of( 3 ) );
+            Optional.absent(),
+            Optional.of( Boolean.FALSE ),
+            Optional.of( ImmutableList.of( "localhost" ) ),
+            Optional.of( "test" ),
+            Optional.of( Integer.valueOf( 3 ) ) );
 
     @Test
     public void testCassandraMapstore() {

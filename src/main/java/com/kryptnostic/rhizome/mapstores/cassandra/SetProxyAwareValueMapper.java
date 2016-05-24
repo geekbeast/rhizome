@@ -3,12 +3,9 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 
-public class SetProxyAwareValueMapper<C, V> implements SelfRegisteringValueMapper<C> {
+public class SetProxyAwareValueMapper<C> implements SelfRegisteringValueMapper<C> {
 
-    private final SelfRegisteringValueMapper<V> valueMapper;
-
-    public SetProxyAwareValueMapper( SelfRegisteringValueMapper<V> valueMapper ) {
-        this.valueMapper = valueMapper;
+    public SetProxyAwareValueMapper() {
     }
 
     @Override

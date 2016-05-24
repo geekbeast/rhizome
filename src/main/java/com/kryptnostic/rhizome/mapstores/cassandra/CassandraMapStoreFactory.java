@@ -61,7 +61,7 @@ public class CassandraMapStoreFactory implements KryptnosticMapStoreFactory {
                 SelfRegisteringKeyMapper<K> keyMapper,
                 SelfRegisteringValueMapper<V> valueMapper,
                 Class<V> valueType ) {
-            super( keyMapper, new SetProxyAwareValueMapper<C, V>( valueMapper ) );
+            super( keyMapper, new SetProxyAwareValueMapper<C>() );
             this.innerValueMapper = valueMapper;
             this.valueType = valueType;
         }
