@@ -38,6 +38,7 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientPool;
 
+@Deprecated
 public abstract class RethinkDbBaseMapStoreAlternateDriver<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private static final Base64                        codec          = new Base64();
     private static final Logger                        logger         = LoggerFactory
