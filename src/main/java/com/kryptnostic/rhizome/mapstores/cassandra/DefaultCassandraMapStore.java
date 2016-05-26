@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.CheckForNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,9 +73,6 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         ResultSet s;
         s = session.execute( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
         Row result = s.one();
-        if ( result == null ) {
-            return null;
-        }
         return mapToValue( result );
     }
 
@@ -117,7 +116,10 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     }
 
     @Override
-    protected V mapToValue( Row row ) {
+    protected V mapToValue( @CheckForNull Row row ) {
+        if ( row == null ) {
+            return null;
+        }
         ByteBuffer bytes = row.getBytes( "data" );
         try {
             return valueMapper.fromBytes( bytes.array() );
