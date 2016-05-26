@@ -41,7 +41,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
             Session globalSession ) {
         super( table, mapName, keyMapper, mapper, config, globalSession );
 
-        session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
+        session.execute( String.format( KEYSPACE_QUERY, keyspace, Long.valueOf( replicationFactor ) ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
         LOAD_QUERY = session.prepare( QueryBuilder
@@ -122,7 +122,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         try {
             return valueMapper.fromBytes( bytes.array() );
         } catch ( MappingException e ) {
-            logger.error( "cant wait to kill these valuemappers" );
+            logger.error( "cant wait to kill these valuemappers", e );
         }
         return null;
     }
