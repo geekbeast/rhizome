@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 
-public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
+public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V, Void> {
     private static final long serialVersionUID = 1500519104651067092L;
 
     protected final Iterable<T>         objectsToRemove;
@@ -15,7 +15,7 @@ public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhiz
     }
 
     @Override
-    public Object process( Entry<K, V> entry ) {
+    public Void process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
         if ( currentObjects != null ) {
             for( T objectToRemove : objectsToRemove ) {

@@ -1,11 +1,13 @@
 package com.kryptnostic.rhizome.hazelcast.processors;
 
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.hazelcast.map.EntryBackupProcessor;
 import com.hazelcast.map.EntryProcessor;
 
-public abstract class AbstractRhizomeEntryProcessor<K, V> implements EntryProcessor<K, V>, EntryBackupProcessor< K, V> {
+public abstract class AbstractRhizomeEntryProcessor<K, V, R>
+        implements EntryProcessor<K, V>, EntryBackupProcessor<K, V> {
     private static final long                serialVersionUID = 5060655249179605949L;
     private final boolean applyOnBackup;
 
@@ -15,6 +17,9 @@ public abstract class AbstractRhizomeEntryProcessor<K, V> implements EntryProces
     public AbstractRhizomeEntryProcessor() {
         this( true );
     }
+
+    @Override
+    public abstract R process( Map.Entry<K, V> entry );
 
     public AbstractRhizomeEntryProcessor( boolean applyOnBackup ) {
         this.applyOnBackup = applyOnBackup;
