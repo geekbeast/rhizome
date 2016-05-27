@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils;
+
 /**
  * This class extends LinkedHashSet because it is used for consistently returning results
  *      in their original insertion order
@@ -22,7 +24,7 @@ public class OrderedUUIDSet extends LinkedHashSet<UUID> {
     }
 
     public OrderedUUIDSet( int initialCapactity ) {
-        super( initialCapactity );
+        super( RhizomeUtils.Sets.expectedSize( initialCapactity ) );
     }
 
     public static OrderedUUIDSet of( UUID uuid ) {

@@ -19,10 +19,10 @@ public class SetStreamSerializers {
             c.accept( elem );
         }
     }
-    
+
     public static <T> void serialize( ObjectDataOutput out, Iterable<T> elements, IoPerformingConsumer<T> c ) throws IOException {
         //Iterables correctly does collections efficiently.
-        out.writeInt( Iterables.size( elements ) ); 
+        out.writeInt( Iterables.size( elements ) );
         for( T elem :  elements ) {
             c.accept( elem );
         }
@@ -44,13 +44,13 @@ public class SetStreamSerializers {
 
     public static OrderedUUIDSet fastOrderedUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        OrderedUUIDSet set = com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Sets.newOrderedUUIDSetWithExpectedSize( size );
+        OrderedUUIDSet set = new OrderedUUIDSet( size );
         return (OrderedUUIDSet) processEntries( set, size, in );
     }
 
     public static UUIDSet fastUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        UUIDSet set = com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Sets.newUUIDSetWithExpectedSize( size );
+        UUIDSet set = new UUIDSet( size );
         return (UUIDSet) processEntries( set, size, in );
     }
 
@@ -88,7 +88,7 @@ public class SetStreamSerializers {
         out.writeInt( size );
         for( String item : object ) {
             out.writeUTF( item );
-        }    
+        }
     }
 
     public static Set<String> fastStringSetDeserialize( ObjectDataInput in ) throws IOException {
