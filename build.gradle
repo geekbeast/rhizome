@@ -71,7 +71,7 @@ ext.spring_security_version='4.1.0.RELEASE'
 ext.spring_framework_version='4.3.0.RELEASE'
 ext.jackson_version='2.7.5'
 ext.jetty_version='9.3.10.v20160621'
-ext.hazelcast_version='3.5.4'
+ext.hazelcast_version='3.5.5'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.5'
 ext.retrofit_version='2.1.0'
@@ -249,8 +249,8 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
-     compile 'com.squareup.retrofit2:retrofit:1.9.0'
-     compile 'com.squareup.retrofit2:retrofit-converters:1.9.0'
+     compile 'com.squareup.retrofit:retrofit:1.9.0'
+     compile 'com.squareup.retrofit:retrofit-converters:1.9.0'
 
     /*
      * WEBSOCKET DEPENDENCIES
