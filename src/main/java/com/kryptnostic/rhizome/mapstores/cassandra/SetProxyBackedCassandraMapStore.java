@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -22,7 +21,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
@@ -59,7 +57,7 @@ public class SetProxyBackedCassandraMapStore<K, V extends Set<T>, T> extends Bas
             Class<T> innerType,
             K testKey,
             V testValue ) {
-        super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V, T>( valueMapper ), config, session );
+        super( tableName, mapName, keyMapper, new SetProxyAwareValueMapper<V>(), config, session );
         this.innerTypeValueMapper = valueMapper;
         this.innerType = innerType;
         this.testKey = testKey;

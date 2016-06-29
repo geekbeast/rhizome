@@ -6,7 +6,8 @@ import java.util.function.BiFunction;
 
 import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
 
-public abstract class AbstractUpdater<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
+public abstract class AbstractUpdater<K, V extends Collection<T>, T>
+        extends AbstractRhizomeEntryProcessor<K, V, Void> {
 
     private static final long                  serialVersionUID = -5387091209847658668L;
 
@@ -18,7 +19,7 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T> extends Abs
         ADD,
         REMOVE,
         APPLY;
-    };
+    }
 
     protected AbstractUpdater( Iterable<T> objects, SetEntryProcessorOperation operation ) {
         this.objectsToUpdate = objects;
@@ -44,7 +45,7 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T> extends Abs
     }
 
     @Override
-    public Object process( Entry<K, V> entry ) {
+    public Void process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
         if ( !( currentObjects instanceof SetProxy<?, ?> ) && currentObjects == null ) {
             currentObjects = newEmptyCollection();
@@ -61,10 +62,11 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T> extends Abs
                 break;
             case APPLY:
                 addOrRemoveFunction = applyFunction();
+                break;
             default:
                 addOrRemoveFunction = null;
                 System.err.println( "Impossible, no operation specified in AbstractUpdater" );
-                break;
+                return null;
         }
 
         for ( T object : objectsToUpdate ) {

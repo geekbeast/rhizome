@@ -38,7 +38,7 @@ public class SimpleCassandraMapper<V> implements CassandraMapper<V> {
         try {
             return mapper.readValue( data, valueType );
         } catch ( IOException e ) {
-            logger.error( "Unable to map value from bytes." );
+            logger.error( "Unable to map value from bytes.", e );
             return null;
         }
     }

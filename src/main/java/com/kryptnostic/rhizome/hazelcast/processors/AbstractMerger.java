@@ -12,7 +12,8 @@ import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
  * @param <V> The container type for the value in the underlying hazelcast map.
  * @param <T> The type for the values in container {@code V extends Collection<T>}
  */
-public abstract class AbstractMerger<K, V extends Collection<T>, T> extends AbstractRhizomeEntryProcessor<K, V> {
+public abstract class AbstractMerger<K, V extends Collection<T>, T>
+        extends AbstractRhizomeEntryProcessor<K, V, Void> {
     private static final long   serialVersionUID = 4022386342619821133L;
 
     protected final Iterable<T> newObjects;
@@ -22,7 +23,7 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T> extends Abst
     }
 
     @Override
-    public Object process( Entry<K, V> entry ) {
+    public Void process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
         if ( !( currentObjects instanceof SetProxy<?, ?> ) && currentObjects == null ) {
             currentObjects = newEmptyCollection();

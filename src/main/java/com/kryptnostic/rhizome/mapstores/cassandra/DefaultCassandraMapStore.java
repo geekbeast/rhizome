@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.CheckForNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,7 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
             Session globalSession ) {
         super( table, mapName, keyMapper, mapper, config, globalSession );
 
-        session.execute( String.format( KEYSPACE_QUERY, keyspace, replicationFactor ) );
+        session.execute( String.format( KEYSPACE_QUERY, keyspace, Long.valueOf( replicationFactor ) ) );
         session.execute( String.format( TABLE_QUERY, keyspace, table ) );
 
         LOAD_QUERY = session.prepare( QueryBuilder
@@ -71,9 +73,6 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
         ResultSet s;
         s = session.execute( LOAD_QUERY.bind( keyMapper.fromKey( key ) ) );
         Row result = s.one();
-        if ( result == null ) {
-            return null;
-        }
         return mapToValue( result );
     }
 
@@ -117,12 +116,15 @@ public class DefaultCassandraMapStore<K, V> extends BaseCassandraMapStore<K, V> 
     }
 
     @Override
-    protected V mapToValue( Row row ) {
+    protected V mapToValue( @CheckForNull Row row ) {
+        if ( row == null ) {
+            return null;
+        }
         ByteBuffer bytes = row.getBytes( "data" );
         try {
             return valueMapper.fromBytes( bytes.array() );
         } catch ( MappingException e ) {
-            logger.error( "cant wait to kill these valuemappers" );
+            logger.error( "cant wait to kill these valuemappers", e );
         }
         return null;
     }

@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -76,10 +74,7 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
     }
 
     private Map<K, V> asyncLoadAll( Collection<K> keys ) {
-        ConcurrentMap<K, V> resultMap = new MapMaker()
-                .initialCapacity( keys.size() )
-                .concurrencyLevel( 8 )
-                .<K, V> makeMap();
+        Map<K, V> resultMap = Maps.newHashMapWithExpectedSize( keys.size() );
 
         CountDownLatch latch = new CountDownLatch( keys.size() );
         for ( K key : keys ) {
@@ -87,7 +82,14 @@ public abstract class BaseCassandraMapStore<K, V> implements TestableSelfRegiste
                 @Override
                 public void onSuccess( ResultSet results ) {
                     for ( Row row : results ) {
-                        resultMap.put( key, mapToValue( row ) );
+                        V mapToValue = mapToValue( row );
+                        resultMap.put( key, mapToValue );
+                        if ( mapToValue == null ) {
+                            String error = "Found null value for key " + key + " in map " + mapName + ", table "
+                                    + table;
+                            System.err.println( error );
+                            logger.error( error );
+                        }
                     }
                     latch.countDown();
                 }
