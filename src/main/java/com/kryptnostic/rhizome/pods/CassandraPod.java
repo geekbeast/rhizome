@@ -59,7 +59,11 @@ public class CassandraPod {
 
     @Bean
     public CodecRegistry codecRegistry() {
-        return new CodecRegistry().register( codecs );
+        CodecRegistry registry = new CodecRegistry();
+        if ( codecs != null ) {
+            registry.register( codecs );
+        }
+        return registry;
     }
 
     @Bean
