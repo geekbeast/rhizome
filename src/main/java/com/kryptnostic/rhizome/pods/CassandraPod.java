@@ -59,7 +59,8 @@ public class CassandraPod {
 
     @Bean
     public CodecRegistry codecRegistry() {
-        CodecRegistry registry = new CodecRegistry();
+        //TODO: Explicitly construct default instance codecs so that not all sessions end up having all codecs. P2
+        CodecRegistry registry = CodecRegistry.DEFAULT_INSTANCE;
         if ( codecs != null ) {
             registry.register( codecs );
         }
