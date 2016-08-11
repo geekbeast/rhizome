@@ -59,7 +59,12 @@ public class CassandraPod {
 
     @Bean
     public CodecRegistry codecRegistry() {
-        CodecRegistry registry = new CodecRegistry();
+        /*
+         * We require all type codecs to be registered up front for automatic configuration. TypeCodec can be configured
+         * at a later time by inject the CodecRegistry being and calling CodecRegistry.register(...) If we don't use the
+         * 
+         */
+        CodecRegistry registry = cluster().getConfiguration().getCodecRegistry();
         if ( codecs != null ) {
             registry.register( codecs );
         }
@@ -73,7 +78,6 @@ public class CassandraPod {
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
                 .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
-                .withCodecRegistry( codecRegistry() )
                 .build();
     }
 
