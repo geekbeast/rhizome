@@ -71,7 +71,8 @@ ext.spring_security_version='4.1.0.RELEASE'
 ext.spring_framework_version='4.3.0.RELEASE'
 ext.jackson_version='2.7.5'
 ext.jetty_version='9.3.10.v20160621'
-ext.hazelcast_version='3.5.5'
+ext.hazelcast_version='3.7-SNAPSHOT'
+ext.hazelcast_wm_version='3.7'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.5'
 ext.retrofit_version='2.1.0'
@@ -198,9 +199,14 @@ dependencies {
      * Transparent http clustering, distributed java.util collections
      */
      compile "com.hazelcast:hazelcast:${hazelcast_version}"
-     compile "com.hazelcast:hazelcast-client-new:${hazelcast_version}"
-     compile "com.hazelcast:hazelcast-wm:${hazelcast_version}"
+     compile "com.hazelcast:hazelcast-client:${hazelcast_version}"
+     compile "com.hazelcast:hazelcast-wm:${hazelcast_wm_version}"
      compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
+
+     //Work around for https://github.com/hazelcast/hazelcast/issues/8352
+     //Remove once 3.7 goes RC
+     compile "javax.cache:cache-api:1.0.0"
+
 
     /*
      * EMBEDDED JETTY FOR LOCAL TESTING
