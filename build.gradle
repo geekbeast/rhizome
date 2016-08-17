@@ -69,9 +69,9 @@ repositories {
 
 ext.spring_security_version='4.1.0.RELEASE'
 ext.spring_framework_version='4.3.0.RELEASE'
-ext.jackson_version='2.6.5'
+ext.jackson_version='2.4.4'
 ext.jetty_version='9.3.10.v20160621'
-ext.hazelcast_version='3.7-SNAPSHOT'
+ext.hazelcast_version='3.7'
 ext.hazelcast_wm_version='3.7'
 ext.slf4j_version='1.7.12'
 ext.log4j_version='2.5'
