@@ -2,18 +2,18 @@ package com.kryptnostic.rhizome.mappers;
 
 import java.io.IOException;
 
+import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.nio.BufferObjectDataInput;
 import com.hazelcast.nio.BufferObjectDataOutput;
-import com.hazelcast.nio.serialization.SerializationService;
 import com.kryptnostic.rhizome.mapstores.MappingException;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
 public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValueMapper<T> {
 
     private final SelfRegisteringStreamSerializer<T> serializer;
-    private final SerializationService                      serializationService;
+    private final InternalSerializationService                      serializationService;
 
-    public StreamSerializerBasedValueMapper( SelfRegisteringStreamSerializer<T> serializer, SerializationService serializationService ) {
+    public StreamSerializerBasedValueMapper( SelfRegisteringStreamSerializer<T> serializer, InternalSerializationService serializationService ) {
         this.serializer = serializer;
         this.serializationService = serializationService;
     }

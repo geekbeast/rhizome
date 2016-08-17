@@ -5,10 +5,10 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.hazelcast.internal.serialization.InternalSerializationService;
+import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.hazelcast.nio.serialization.DefaultSerializationServiceBuilder;
-import com.hazelcast.nio.serialization.SerializationService;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
 public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
@@ -25,6 +25,7 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
 
     /**
      * Override this class when deserializer is expected to deal with encrypted data.
+     * 
      * @return
      */
     protected T createDeserializer() {
@@ -35,9 +36,10 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
 
     @Test
     public void testSerializeDeserialize() throws SecurityException, IOException {
-        D inputObject = createInput();
 
-        SerializationService ss = ( new DefaultSerializationServiceBuilder() ).build();
+        D inputObject = createInput();
+        InternalSerializationService ss = ( new DefaultSerializationServiceBuilder() ).build();
+
         ObjectDataOutput dataOut = ss.createObjectDataOutput( 1 );
 
         serializer.write( dataOut, inputObject );
