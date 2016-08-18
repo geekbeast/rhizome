@@ -16,16 +16,17 @@ import com.google.common.collect.ImmutableList.Builder;
 
 public class CassandraConfiguration {
     private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
-    private static final String       CASSANDRA_EMBEDDED_PROPERTY   = "embedded";
-    private static final String       CASSANDRA_KEYSPACE_PROPERTY   = "keyspace";
-    private static final String       CASSANDRA_REPLICATION_FACTOR  = "replication-factor";
-    private static final String       CASSANDRA_SEED_NODES_PROPERTY = "seed-nodes";
+    private static final String       CASSANDRA_EMBEDDED_PROPERTY    = "embedded";
+    private static final String       CASSANDRA_KEYSPACE_PROPERTY    = "keyspace";
+    private static final String       CASSANDRA_REPLICATION_FACTOR   = "replication-factor";
+    private static final String       CASSANDRA_SEED_NODES_PROPERTY  = "seed-nodes";
     private static final String       HAZELCAST_WRITE_DELAY_FIELD    = "write-delay";
+    private static final String       CASSANDRA_PORT                 = "port";
 
-    private static final List<String> CASSANDRA_SEED_DEFAULT        = ImmutableList.of( "127.0.0.1" );
-    private static final String       KEYSPACE_DEFAULT              = "rhizome";
-    private static final int          REPLICATION_FACTOR_DEFAULT    = 2;
-    private static final boolean      EMBEDDED_DEFAULT              = true;
+    private static final List<String> CASSANDRA_SEED_DEFAULT         = ImmutableList.of( "127.0.0.1" );
+    private static final String       KEYSPACE_DEFAULT               = "rhizome";
+    private static final int          REPLICATION_FACTOR_DEFAULT     = 2;
+    private static final boolean      EMBEDDED_DEFAULT               = true;
     private static final String       COMPRESSION_DEFAULT            = "NONE";
 
     private final boolean             embedded;
@@ -36,8 +37,8 @@ public class CassandraConfiguration {
     private final int                 replicationFactor;
     private int                       writeBackDelay;
 
-    private static final Logger       logger                        = LoggerFactory
-                                                                            .getLogger( CassandraConfiguration.class );
+    private static final Logger       logger                         = LoggerFactory
+            .getLogger( CassandraConfiguration.class );
 
     @JsonCreator
     public CassandraConfiguration(
@@ -45,11 +46,12 @@ public class CassandraConfiguration {
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
-            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor) {
+            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
         this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
+        // TODO: I don't think this switch statement is required as Jackson will correctly ser/des the enum.
         switch ( compression.or( COMPRESSION_DEFAULT ).toLowerCase() ) {
             case "lz4":
                 this.compression = Compression.LZ4;
