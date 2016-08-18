@@ -85,6 +85,13 @@ ext.netty_os_arch='linux-x86_64'
 
 dependencies {
 
+  /*
+   * Docker java client deps
+   */
+    compile ('com.github.docker-java:docker-java:3.0.0') {
+      exclude group: 'com.fasterxml.jackson.jaxrs', module: 'jackson-jaxrs-json-provider'
+    }
+
     /*
      * Immutables library for immutable objects
      */
