@@ -151,10 +151,10 @@ public class RhizomeUtils {
         }
 
         public static String loadResourceToString( final String path ) {
-            URL resource = Resources.getResource( path );
             try {
+                URL resource = Resources.getResource( path );
                 return Resources.toString( resource, StandardCharsets.UTF_8 );
-            } catch ( final IOException e ) {
+            } catch ( IOException | IllegalArgumentException e ) {
                 logger.error( "Failed to load resource from " + path, e );
                 return null;
             }
