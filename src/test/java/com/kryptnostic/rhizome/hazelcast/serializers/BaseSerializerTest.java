@@ -13,8 +13,8 @@ import com.hazelcast.nio.serialization.StreamSerializer;
 
 public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
 
-    private final T serializer;
-    private final T deserializer;
+    private final transient T serializer;
+    private final transient T deserializer;
 
     public BaseSerializerTest() {
         serializer = createSerializer();

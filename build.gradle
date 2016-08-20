@@ -28,7 +28,6 @@ apply plugin: "java"
 apply plugin: "maven"
 apply plugin: "eclipse"
 apply plugin: "idea"
-//apply plugin: "war"
 apply from: "publish.gradle"
 apply plugin: "signing"
 apply plugin: "jacoco"
@@ -154,7 +153,7 @@ dependencies {
      * GUAVA 
      * EventBus, FluentIterables, ListenableFutures and more
      */
-     ext.guava_version='18.0'
+     ext.guava_version='19.0'
      compile "com.google.guava:guava:${guava_version}"
 
     /*
@@ -262,6 +261,11 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
+     //compile 'org.apache.cassandra:cassandra-all:3.7'
+     testCompile ('org.cassandraunit:cassandra-unit:3.0.0.1') {
+        //exclude module : 'cassandra-all'
+        //exclude module : 'hamcrest-core'
+     }
      compile 'com.squareup.retrofit:retrofit:1.9.0'
      compile 'com.squareup.retrofit:retrofit-converters:1.9.0'
 
