@@ -45,6 +45,8 @@ public abstract class BaseJacksonSerializationTest<T> {
         private byte[] jsonBytes;
         private byte[] smileBytes;
 
+        public SerializationResult() {}
+
         public String getJsonString() {
             return jsonString;
         }
