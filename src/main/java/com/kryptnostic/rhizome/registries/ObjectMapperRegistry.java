@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.registries;
 
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
@@ -10,28 +11,35 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.collect.Maps;
 
+/**
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ *
+ */
 public final class ObjectMapperRegistry {
+    public enum Mapper {
+        YAML,
+        SMILE,
+        JSON
+    }
+    
+    //TODO: Add options that for configuring serialization types supported.
 
-    private static final ConcurrentMap<String, ObjectMapper> mappers = Maps.newConcurrentMap();
-
-    private static final String YAML_MAPPER  = "yaml-mapper";
-    private static final String SMILE_MAPPER = "smile-mapper";
-    private static final String JSON_MAPPER = "json-mapper";
+    private static final Map<Mapper, ObjectMapper> mappers = Maps.newEnumMap( Mapper.class );
 
     static {
-        mappers.put( YAML_MAPPER, createYamlMapper() );
-        mappers.put( SMILE_MAPPER, createSmileMapper() );
-        mappers.put(JSON_MAPPER, createJsonMapper() );
+        mappers.put( Mapper.YAML, createYamlMapper() );
+        mappers.put( Mapper.SMILE, createSmileMapper() );
+        mappers.put( Mapper.JSON, createJsonMapper() );
     }
 
     private ObjectMapperRegistry() {}
 
-    public static ObjectMapper register( String name, ObjectMapper mapper ) {
-        return mappers.putIfAbsent( name, mapper );
+    public static ObjectMapper registerIfAbsent( Mapper type, ObjectMapper mapper ) {
+        return mappers.putIfAbsent( type, mapper );
     }
 
-    public static ObjectMapper getMapper( String name ) {
-        return mappers.get( name );
+    public static ObjectMapper getMapper( Mapper type ) {
+        return mappers.get( type );
     }
 
     protected static ObjectMapper createYamlMapper() {
@@ -60,15 +68,18 @@ public final class ObjectMapperRegistry {
     }
 
     public static ObjectMapper getYamlMapper() {
-        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.YAML_MAPPER );
+        return ObjectMapperRegistry.getMapper( Mapper.YAML );
     }
 
     public static ObjectMapper getSmileMapper() {
-        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.SMILE_MAPPER );
+        return ObjectMapperRegistry.getMapper( Mapper.SMILE );
     }
 
     public static ObjectMapper getJsonMapper() {
-        return ObjectMapperRegistry.getMapper( ObjectMapperRegistry.JSON_MAPPER);
+        return ObjectMapperRegistry.getMapper( Mapper.JSON );
     }
 
+    public static void foreach( Consumer<ObjectMapper> c ) {
+        mappers.values().forEach( c );
+    }
 }
