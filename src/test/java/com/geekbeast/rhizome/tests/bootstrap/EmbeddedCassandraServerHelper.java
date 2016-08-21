@@ -41,7 +41,7 @@ public class EmbeddedCassandraServerHelper {
     private static Logger          log                                     = LoggerFactory
             .getLogger( EmbeddedCassandraServerHelper.class );
 
-    public static final long       DEFAULT_STARTUP_TIMEOUT                 = 10000;
+    public static final long       DEFAULT_STARTUP_TIMEOUT                 = 100000;
     public static final String     DEFAULT_TMP_DIR                         = "target/embeddedCassandra";
     /** Default configuration file. Starts embedded cassandra under the well known ports */
     public static final String     DEFAULT_CASSANDRA_YML_FILE              = "cu-cassandra.yaml";
