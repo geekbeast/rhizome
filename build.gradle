@@ -241,6 +241,7 @@ dependencies {
      /*
       * RethinkDB
       */
+     //TODO: Replace with official version
      compile "com.dkhenry:rethinkjava:0.9"
 
      /**
