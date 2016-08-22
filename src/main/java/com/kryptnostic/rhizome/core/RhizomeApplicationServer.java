@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.core;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import com.hazelcast.core.HazelcastInstance;
 import com.kryptnostic.rhizome.pods.AsyncPod;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
@@ -31,9 +32,13 @@ public class RhizomeApplicationServer {
     }
 
     public void plowUnder() {
+        HazelcastInstance hazelcast = context.getBean( HazelcastInstance.class );
+        if ( hazelcast != null ) {
+            hazelcast.shutdown();
+        }
         context.close();
     }
-    
+
     public AnnotationConfigApplicationContext getContext() {
         return context;
     }
