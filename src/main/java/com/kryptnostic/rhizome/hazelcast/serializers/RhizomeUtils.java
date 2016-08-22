@@ -164,9 +164,9 @@ public class RhizomeUtils {
     }
 
     public static class Pods {
-        public static Class<?>[] concatenate( Class<?>[] podSet1, Class<?>[] podSet2 ) {
-            Iterable<Class<?>> concatenatedPods = Iterables.<Class<?>> concat( Arrays.<Class<?>> asList( podSet1 ),
-                    Arrays.asList( podSet2 ) );
+        public static Class<?>[] concatenate( Class<?>[]... podSets ) {
+            Iterable<Class<?>> concatenatedPods = Iterables.<Class<?>> concat(
+                    Iterables.transform( Arrays.<Class<?>[]> asList( podSets ), podSet -> Arrays.asList( podSet ) ) );
             return Iterables.toArray( concatenatedPods, Class.class );
         }
     }
