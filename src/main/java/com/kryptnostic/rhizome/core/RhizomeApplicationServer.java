@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.core;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Pods;
 import com.kryptnostic.rhizome.pods.AsyncPod;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;

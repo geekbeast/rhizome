@@ -35,7 +35,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
 
 @Configuration
-@Profile( CassandraTestPod.PROFILE )
+// @Profile( CassandraTestPod.PROFILE )
 public class CassandraTestPod {
     public static final String   PROFILE = "cassandra-test";
     private static final Logger  logger  = LoggerFactory.getLogger( CassandraTestPod.class );
@@ -47,15 +47,23 @@ public class CassandraTestPod {
         required = false )
     private Set<TypeCodec<?>>    codecs;
 
-    @Bean
-    public CassandraConfiguration cassandraConfiguration()
-            throws ConfigurationException, TTransportException, IOException, URISyntaxException {
+    public static void startCassandra() {
         try {
             EmbeddedCassandraServerHelper
                     .startEmbeddedCassandra();
-        } catch ( InterruptedException e ) {
+        } catch ( InterruptedException | ConfigurationException | TTransportException | IOException e ) {
             logger.error( "Something strange in the neighborhood. ", e );
         }
+    }
+
+    public static void stopCassandra() {
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+        ;
+    }
+
+    @Bean
+    public CassandraConfiguration cassandraConfiguration()
+            throws ConfigurationException, TTransportException, IOException, URISyntaxException {
         return new CassandraConfiguration(
                 Optional.absent(),
                 Optional.absent(),
