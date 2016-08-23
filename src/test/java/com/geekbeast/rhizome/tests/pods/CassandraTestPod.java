@@ -35,7 +35,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
 
 @Configuration
-// @Profile( CassandraTestPod.PROFILE )
+@Profile( CassandraTestPod.PROFILE )
 public class CassandraTestPod {
     public static final String   PROFILE = "cassandra-test";
     private static final Logger  logger  = LoggerFactory.getLogger( CassandraTestPod.class );

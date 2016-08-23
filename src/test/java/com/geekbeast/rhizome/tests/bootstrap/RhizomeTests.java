@@ -27,6 +27,7 @@ import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.CassandraTestPod;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.net.HttpHeaders;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
@@ -50,11 +51,14 @@ public class RhizomeTests {
 
     @BeforeClass
     public static void plant() throws Exception {
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         rhizome = new Rhizome(
                 DispatcherServletsPod.class,
                 RegistryBasedHazelcastInstanceConfigurationPod.class,
                 CassandraTestPod.class );
         rhizome.sprout( "cassandra-test" );
+        Preconditions.checkNotNull( rhizome.getContext().getBean( Session.class ),
+                "Cassandra session should not be null." );
         logger.info( "Successfully started Rhizome microservice." );
         adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
                 .setConverter( new JacksonConverter() ).build();
