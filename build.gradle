@@ -48,11 +48,9 @@ repositories {
     maven {
         url "https://raw.github.com/dkhenry/rethinkjava/mvn-repo"
     }
-
 }
 
 dependencies {
-
   /*
    * Docker java client deps
    */
@@ -236,8 +234,8 @@ dependencies {
         //exclude module : 'cassandra-all'
         //exclude module : 'hamcrest-core'
      }
-     compile 'com.squareup.retrofit:retrofit:1.9.0'
-     compile 'com.squareup.retrofit:retrofit-converters:1.9.0'
+     compile "com.squareup.retrofit:retrofit:${retrofit_version}"
+     compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
 
     /*
      * WEBSOCKET DEPENDENCIES
