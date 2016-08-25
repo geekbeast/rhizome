@@ -105,9 +105,9 @@ dependencies {
      * Metrics
      * Awesome reporting-- defaults to Graphite
      */
-    compile "com.codahale.metrics:metrics-core:${codahale_metrics_version}"
-    compile "com.codahale.metrics:metrics-servlets:${codahale_metrics_version}"
-    compile "com.codahale.metrics:metrics-graphite:${codahale_metrics_version}"
+    compile "io.dropwizard.metrics:metrics-core:${dropwizard_metrics_version}"
+    compile "io.dropwizard.metrics:metrics-servlets:${dropwizard_metrics_version}"
+    compile "io.dropwizard.metrics:metrics-graphite:${dropwizard_metrics_version}"
     compile "com.ryantenney.metrics:metrics-spring:${ryantenney_metrics_version}"
 
     /*
