@@ -6,14 +6,12 @@ plugins {
     id 'maven'
     id 'eclipse'
     id 'idea'
+    id 'jacoco'
 }
 
 description = "Java Framework for building clustered RESTful web applications"
 group = "com.kryptnostic"
 
-apply from: "publish.gradle"
-apply plugin: "signing"
-apply plugin: "jacoco"
 
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
 
