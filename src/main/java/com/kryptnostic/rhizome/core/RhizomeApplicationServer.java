@@ -9,7 +9,7 @@ import com.kryptnostic.rhizome.pods.HazelcastPod;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 
 public class RhizomeApplicationServer {
-    private final AnnotationConfigApplicationContext context;
+    private final AnnotationConfigApplicationContext context     = new AnnotationConfigApplicationContext();;
     public static final Class<?>[]                   defaultPods = new Class<?>[] {
             RegistryBasedHazelcastInstanceConfigurationPod.class, HazelcastPod.class,
             AsyncPod.class, ConfigurationPod.class };
@@ -19,7 +19,6 @@ public class RhizomeApplicationServer {
     }
 
     public RhizomeApplicationServer( Class<?>... pods ) {
-        this.context = new AnnotationConfigApplicationContext();
         this.context.register( pods );
     }
 
@@ -32,6 +31,7 @@ public class RhizomeApplicationServer {
             context.getEnvironment().addActiveProfile( activeProfile );
         }
         context.refresh();
+        context.start();
     }
 
     public void plowUnder() {
