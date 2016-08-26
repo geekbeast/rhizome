@@ -10,3 +10,4 @@ artifacts/
 .factorypath
 /generated_src/
 *.iml
+target/

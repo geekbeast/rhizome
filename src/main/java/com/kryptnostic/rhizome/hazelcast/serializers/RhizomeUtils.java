@@ -5,6 +5,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Ints;
@@ -158,6 +160,14 @@ public class RhizomeUtils {
                 logger.error( "Failed to load resource from " + path, e );
                 return null;
             }
+        }
+    }
+
+    public static class Pods {
+        public static Class<?>[] concatenate( Class<?>[]... podSets ) {
+            Iterable<Class<?>> concatenatedPods = Iterables.<Class<?>> concat(
+                    Iterables.transform( Arrays.<Class<?>[]> asList( podSets ), podSet -> Arrays.asList( podSet ) ) );
+            return Iterables.toArray( concatenatedPods, Class.class );
         }
     }
 }

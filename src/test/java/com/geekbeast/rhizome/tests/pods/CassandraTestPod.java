@@ -1,6 +1,5 @@
 package com.geekbeast.rhizome.tests.pods;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URISyntaxException;
@@ -29,7 +28,6 @@ import com.geekbeast.rhizome.tests.bootstrap.EmbeddedCassandraServerHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
@@ -37,9 +35,10 @@ import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
 
 @Configuration
-@Profile( "cassandra-test" )
+@Profile( CassandraTestPod.PROFILE )
 public class CassandraTestPod {
-    private static final Logger  logger = LoggerFactory.getLogger( CassandraTestPod.class );
+    public static final String   PROFILE = "cassandra-test";
+    private static final Logger  logger  = LoggerFactory.getLogger( CassandraTestPod.class );
 
     @Inject
     private RhizomeConfiguration configuration;
@@ -48,15 +47,23 @@ public class CassandraTestPod {
         required = false )
     private Set<TypeCodec<?>>    codecs;
 
-    @Bean
-    public CassandraConfiguration cassandraConfiguration()
-            throws ConfigurationException, TTransportException, IOException, URISyntaxException {
+    public static void startCassandra() {
         try {
             EmbeddedCassandraServerHelper
                     .startEmbeddedCassandra();
-        } catch ( InterruptedException e ) {
+        } catch ( InterruptedException | ConfigurationException | TTransportException | IOException e ) {
             logger.error( "Something strange in the neighborhood. ", e );
         }
+    }
+
+    public static void stopCassandra() {
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+        ;
+    }
+
+    @Bean
+    public CassandraConfiguration cassandraConfiguration()
+            throws ConfigurationException, TTransportException, IOException, URISyntaxException {
         return new CassandraConfiguration(
                 Optional.absent(),
                 Optional.absent(),
