@@ -52,7 +52,7 @@ public class RhizomeTests {
         rhizome = new Rhizome(
                 DispatcherServletsPod.class,
                 RegistryBasedHazelcastInstanceConfigurationPod.class );
-
+        rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
         adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
                 .setConverter( new JacksonConverter() ).build();
@@ -117,12 +117,6 @@ public class RhizomeTests {
         ObjectMapper mapper = new ObjectMapper();
         logger.info( "Context configuration: {}", mapper.writeValueAsString( api.getContextConfiguration() ) );
         logger.info( "Jetty configuration: {}", mapper.writeValueAsString( api.getJettyConfiguration() ) );
-    }
-
-    @Test
-    public void testExecutingQuery() {
-        Session session = rhizome.getContext().getBean( Session.class );
-        session.execute( "select * from system.paxos" ).all().size();
     }
 
     @AfterClass

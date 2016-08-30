@@ -158,8 +158,13 @@ dependencies {
     /*
      * Jersey Spring Integration
      */
-     compile "org.glassfish.jersey.ext:jersey-spring3:2.11"
+     compile ("org.glassfish.jersey.ext:jersey-spring3:2.23.2") {
+        exclude module: 'spring-core'
+        exclude module: 'spring-beans'
+        exclude module: 'spring-web'
+     }
 
+    //compile 'org.hibernate:hibernate-validator:5.2.4.Final'
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
      * Transparent http clustering, distributed java.util collections
@@ -168,10 +173,6 @@ dependencies {
      compile "com.hazelcast:hazelcast-client:${hazelcast_version}"
      compile "com.hazelcast:hazelcast-wm:${hazelcast_wm_version}"
      compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
-
-     //Work around for https://github.com/hazelcast/hazelcast/issues/8352
-     //Remove once 3.7 goes RC
-     compile "javax.cache:cache-api:1.0.0"
 
 
     /*
@@ -226,7 +227,7 @@ dependencies {
      */
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-      compile "org.springframework.integration:spring-integration-websocket:4.2.3.RELEASE"
+      compile "org.springframework.integration:spring-integration-websocket:4.3.1.RELEASE"
 
      /*
      * TESTING
