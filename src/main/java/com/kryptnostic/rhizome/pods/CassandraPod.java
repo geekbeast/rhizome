@@ -27,9 +27,10 @@ import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 @Configuration
-@Profile( "cassandra" )
+@Profile( CassandraPod.CASSANDRA_PROFILE )
 public class CassandraPod {
-    private static final Logger  logger = LoggerFactory.getLogger( CassandraPod.class );
+    public static final String   CASSANDRA_PROFILE = "cassandra";
+    private static final Logger  logger            = LoggerFactory.getLogger( CassandraPod.class );
 
     @Inject
     private RhizomeConfiguration configuration;
@@ -59,7 +60,7 @@ public class CassandraPod {
 
     @Bean
     public CodecRegistry codecRegistry() {
-        //TODO: Explicitly construct default instance codecs so that not all sessions end up having all codecs. P2
+        // TODO: Explicitly construct default instance codecs so that not all sessions end up having all codecs. P2
         CodecRegistry registry = CodecRegistry.DEFAULT_INSTANCE;
         if ( codecs != null ) {
             registry.register( codecs );

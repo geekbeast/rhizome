@@ -216,17 +216,8 @@ dependencies {
     /*
      * Jars in lib folder, generally Hyperdex
      */
-     compile fileTree( dir: "lib/", include: "*.jar")
-
-    /*
-     * TESTING
-     */
-     testCompile 'junit:junit:4.12'
-     //compile 'org.apache.cassandra:cassandra-all:3.7'
-     testCompile ('org.cassandraunit:cassandra-unit:3.0.0.1') {
-        //exclude module : 'cassandra-all'
-        //exclude module : 'hamcrest-core'
-     }
+     compile fileTree( dir: "lib/", include: "*.jar") 
+     
      compile "com.squareup.retrofit:retrofit:${retrofit_version}"
      compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
 
@@ -236,6 +227,11 @@ dependencies {
       compile "org.springframework:spring-websocket:${project.spring_framework_version}"
       compile "org.springframework:spring-messaging:${project.spring_framework_version}"
       compile "org.springframework.integration:spring-integration-websocket:4.2.3.RELEASE"
+
+     /*
+     * TESTING
+     */
+     testCompile 'junit:junit:4.12'
  }
 
 eclipse {
