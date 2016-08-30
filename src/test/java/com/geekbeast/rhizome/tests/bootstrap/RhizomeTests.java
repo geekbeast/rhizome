@@ -49,7 +49,6 @@ public class RhizomeTests {
 
     @BeforeClass
     public static void plant() throws Exception {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         rhizome = new Rhizome(
                 DispatcherServletsPod.class,
                 RegistryBasedHazelcastInstanceConfigurationPod.class );
