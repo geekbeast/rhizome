@@ -126,12 +126,3 @@ public class RhizomeTests {
         logger.info( "Successfully shutdown Jetty, exiting main thread" );
     }
 }
-
-// @Test
-// public void testHarvestFromRootContext() throws Exception {
-// Rhizome.sprout();
-// ConfigurationService controller = Rhizome.harvest( ConfigurationService.class );
-// Assert.assertNotNull( controller );
-// Rhizome.wilt();
-// }
-// }

@@ -1,20 +1,24 @@
 package com.kryptnostic.rhizome.pods;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
@@ -42,10 +46,34 @@ public class MetricsPod implements MetricsConfigurer {
 
     @Bean
     @Timed
-    GraphiteReporter serverGraphiteReporter() {
+    public GraphiteReporter serverGraphiteReporter() {
+        Graphite graphite = serverGraphite();
+
+        if ( graphite == null ) {
+            return null;
+        }
+
+        try {
+            graphite.connect();
+        } catch ( IOException e ) {
+            return null;
+        }
         return GraphiteReporter.forRegistry( metricRegistry ).prefixedWith( getHostName() )
                 .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS )
-                .build( serverGraphite() );
+                .build( graphite );
+    }
+
+    @Bean
+    public ConsoleReporter consoleGraphiteReporter() {
+        if ( config.getGraphiteConfiguration().isPresent() ) {
+            GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
+            if ( graphiteConfig.isEnableConsole() ) {
+                return ConsoleReporter.forRegistry( metricRegistry )
+                        .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS )
+                        .build();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -78,9 +106,14 @@ public class MetricsPod implements MetricsConfigurer {
         return null;
     }
 
-    @PostConstruct
-    protected void startGraphite() {
-        serverGraphiteReporter().start( 10, TimeUnit.SECONDS );
+    @Autowired(
+        required = false )
+    public void startGraphite( Set<ScheduledReporter> reporters ) {
+        reporters.forEach( reporter -> {
+            if ( reporter != null ) {
+                reporter.start( 10, TimeUnit.SECONDS );
+            }
+        } );
     }
 
     protected String getHostName() {

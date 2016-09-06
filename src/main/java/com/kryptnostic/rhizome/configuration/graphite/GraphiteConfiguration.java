@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
 /**
- * @author Matthew Tamayo-Rios
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ *
  */
 public class GraphiteConfiguration {
     protected static final String GRAPHITE_HOST_PROPERTY            = "host";
