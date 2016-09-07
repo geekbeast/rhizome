@@ -33,8 +33,10 @@ public class SparkPod {
         sparkMasterUrlBuilder.append( sparkMastersAsString );
         return new SparkConf()
                 .setMaster( sparkMasterUrlBuilder.toString() )
+                .setAppName( sparkConfiguration.getAppName() )
                 .set( "spark.cassandra.connection.host", cassandraConfiguration.getCassandraSeedNodes().stream()
                         .map( host -> host.getHostAddress() ).collect( Collectors.joining( "," ) ) )
-                .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) );
+                .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
+                .setJars( sparkConfiguration.getJarLocations() );
     }
 }
