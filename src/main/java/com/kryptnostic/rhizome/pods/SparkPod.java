@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,4 +40,10 @@ public class SparkPod {
                 .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
                 .setJars( sparkConfiguration.getJarLocations() );
     }
+
+    @Bean
+    public JavaSparkContext javaSparkContext() {
+        return new JavaSparkContext( sparkConf() );
+    }
+
 }
