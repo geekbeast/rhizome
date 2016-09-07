@@ -1,0 +1,27 @@
+##
+# Rhizome Bootstrap Configuration
+##
+
+# Set to false to disable persistence
+enable-persistence:  false
+session-clustering-enabled: false
+
+hazelcast:
+    server: true
+    instance-name: "hazelcast-server"
+    group: "localv2"
+    password: "paynoattentiontothemanbehindthecurtain"
+    port: 5701
+    seed-nodes:
+        - "hazelcast-server"
+
+cassandra:
+    keyspace: "kryptnostic"
+    replication-factor: 2
+    seed-nodes:
+        - "cassandra"
+
+spark:
+    port: 7077
+    master:
+        - "spark"

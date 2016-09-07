@@ -14,6 +14,7 @@ import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.kryptnostic.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
+import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -30,6 +31,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String                                 PERSISTENCE_ENABLED_PROPERTY                    = "enable-persistence";
     protected static final String                                 SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String                                 CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
+    protected static final String                                 SPARK_CONFIGURATION_PROPERTY                    = "spark";
     protected static final String                                 CASSANDRA_CONFIGURATIONS_PROPERTY               = "cassandras";
     protected static final String                                 GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String                                 HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
@@ -50,6 +52,7 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<CassandraConfigurations>             cassandraConfigurations;
     protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<RethinkDbConfiguration>              rethinkDbConfiguration;
+    protected final Optional<SparkConfiguration>                  sparkConfiguration;
 
     @JsonCreator
     public RhizomeConfiguration(
@@ -60,8 +63,8 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY ) Optional<CassandraConfigurations> cassandraConfigurations,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration,
             @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY ) Optional<HazelcastConfiguration> hazelcastConfiguration,
-            @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY ) Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration) {
-
+            @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY ) Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration,
+            @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig) {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.cassandraConfiguration = cassandraConfiguration;
@@ -70,6 +73,7 @@ public class RhizomeConfiguration implements Configuration {
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
+        this.sparkConfiguration = sparkConfig;
     }
 
     @Override
@@ -121,6 +125,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY )
     public Optional<HazelcastConfiguration> getHazelcastConfiguration() {
         return hazelcastConfiguration;
+    }
+
+    @JsonProperty( SPARK_CONFIGURATION_PROPERTY )
+    public Optional<SparkConfiguration> getSparkConfiguration() {
+        return sparkConfiguration;
     }
 
     public static ConfigurationKey key() {
