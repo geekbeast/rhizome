@@ -22,7 +22,7 @@ cassandra:
         - "cassandra"
 
 spark:
-    appName: "Test
+    appName: "Test"
     port: 7077
     jars:
         - "./jars"
