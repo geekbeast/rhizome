@@ -214,6 +214,11 @@ dependencies {
     compile "org.xerial.snappy:snappy-java:${snappy_version}"
     compile "net.jpountz.lz4:lz4:${lz4_version}"
 
+	/**
+	 * SPARK
+	 */
+    compile "org.apache.spark:spark-core_2.10:${spark_version}"
+    
     /*
      * Jars in lib folder, generally Hyperdex
      */
