@@ -38,6 +38,7 @@ public class SparkPod {
             } else {
                 sparkMasterUrlBuilder = new StringBuilder( "spark://" );
                 String sparkMastersAsString = sparkConfiguration.getSparkMasters().stream()
+                        .map( master -> master + ":" + Integer.toString( sparkConfiguration.getSparkPort() ) )
                         .collect( Collectors.joining( "," ) );
                 sparkMasterUrlBuilder.append( sparkMastersAsString );
             }

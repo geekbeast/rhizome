@@ -16,7 +16,7 @@ public class SparkConfiguration {
     private static final String       LOCAL_PROPERTY          = "local";
 
     private static final int          PORT_DEFAULT            = 7077;
-    private static final boolean          LOCAL_DEFAULT           = true;
+    private static final boolean      LOCAL_DEFAULT           = true;
     private static final String       APP_NAME_DEFAULT        = "Test Rhizome App";
     private static final List<String> MASTER_DEFAULT          = ImmutableList.of( "127.0.0.1" );
     private static final List<String> JAR_LOCATIONS_DEFAULT   = ImmutableList.of( "" );
