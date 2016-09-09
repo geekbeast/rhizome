@@ -32,10 +32,16 @@ public class SparkPod {
         if ( maybeSparkConfiguration.isPresent() && maybeCassandraConfiguration.isPresent() ) {
             SparkConfiguration sparkConfiguration = maybeSparkConfiguration.get();
             CassandraConfiguration cassandraConfiguration = maybeCassandraConfiguration.get();
-            StringBuilder sparkMasterUrlBuilder = new StringBuilder( "spark://" );
-            String sparkMastersAsString = sparkConfiguration.getSparkMasters().stream()
-                    .collect( Collectors.joining( "," ) );
-            sparkMasterUrlBuilder.append( sparkMastersAsString );
+            StringBuilder sparkMasterUrlBuilder;
+            if ( sparkConfiguration.isLocal() ) {
+                sparkMasterUrlBuilder = new StringBuilder( sparkConfiguration.getSparkMasters().iterator().next() );
+            } else {
+                sparkMasterUrlBuilder = new StringBuilder( "spark://" );
+                String sparkMastersAsString = sparkConfiguration.getSparkMasters().stream()
+                        .collect( Collectors.joining( "," ) );
+                sparkMasterUrlBuilder.append( sparkMastersAsString );
+            }
+
             return new SparkConf()
                     .setMaster( sparkMasterUrlBuilder.toString() )
                     .setAppName( sparkConfiguration.getAppName() )
@@ -45,6 +51,7 @@ public class SparkPod {
                     .setJars( sparkConfiguration.getJarLocations() );
         }
         return null;
+
     }
 
     @Bean
