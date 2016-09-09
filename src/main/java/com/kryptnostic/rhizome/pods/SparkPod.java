@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
+import com.google.common.base.Optional;
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 
@@ -18,32 +20,37 @@ import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 @Profile( SparkPod.SPARK_PROFILE )
 @Import( CassandraPod.class )
 public class SparkPod {
-    public static final String     SPARK_PROFILE = "spark";
+    public static final String   SPARK_PROFILE = "spark";
 
     @Inject
-    private SparkConfiguration     sparkConfiguration;
-
-    @Inject
-    private CassandraConfiguration cassandraConfiguration;
+    private RhizomeConfiguration rhizomeConfiguration;
 
     @Bean
     public SparkConf sparkConf() {
-        StringBuilder sparkMasterUrlBuilder = new StringBuilder( "spark://" );
-        String sparkMastersAsString = sparkConfiguration.getSparkMasters().stream()
-                .collect( Collectors.joining( "," ) );
-        sparkMasterUrlBuilder.append( sparkMastersAsString );
-        return new SparkConf()
-                .setMaster( sparkMasterUrlBuilder.toString() )
-                .setAppName( sparkConfiguration.getAppName() )
-                .set( "spark.cassandra.connection.host", cassandraConfiguration.getCassandraSeedNodes().stream()
-                        .map( host -> host.getHostAddress() ).collect( Collectors.joining( "," ) ) )
-                .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
-                .setJars( sparkConfiguration.getJarLocations() );
+        Optional<SparkConfiguration> maybeSparkConfiguration = rhizomeConfiguration.getSparkConfiguration();
+        Optional<CassandraConfiguration> maybeCassandraConfiguration = rhizomeConfiguration.getCassandraConfiguration();
+        if ( maybeSparkConfiguration.isPresent() && maybeCassandraConfiguration.isPresent() ) {
+            SparkConfiguration sparkConfiguration = maybeSparkConfiguration.get();
+            CassandraConfiguration cassandraConfiguration = maybeCassandraConfiguration.get();
+            StringBuilder sparkMasterUrlBuilder = new StringBuilder( "spark://" );
+            String sparkMastersAsString = sparkConfiguration.getSparkMasters().stream()
+                    .collect( Collectors.joining( "," ) );
+            sparkMasterUrlBuilder.append( sparkMastersAsString );
+            return new SparkConf()
+                    .setMaster( sparkMasterUrlBuilder.toString() )
+                    .setAppName( sparkConfiguration.getAppName() )
+                    .set( "spark.cassandra.connection.host", cassandraConfiguration.getCassandraSeedNodes().stream()
+                            .map( host -> host.getHostAddress() ).collect( Collectors.joining( "," ) ) )
+                    .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
+                    .setJars( sparkConfiguration.getJarLocations() );
+        }
+        return null;
     }
 
     @Bean
     public JavaSparkContext javaSparkContext() {
-        return new JavaSparkContext( sparkConf() );
+        SparkConf sc = sparkConf();
+        return sc == null ? null : new JavaSparkContext( sc );
     }
 
 }
