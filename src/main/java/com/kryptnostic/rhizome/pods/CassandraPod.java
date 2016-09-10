@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
@@ -28,6 +29,7 @@ import jersey.repackaged.com.google.common.collect.Maps;
 
 @Configuration
 @Profile( CassandraPod.CASSANDRA_PROFILE )
+@Import( ConfigurationPod.class )
 public class CassandraPod {
     public static final String   CASSANDRA_PROFILE = "cassandra";
     private static final Logger  logger            = LoggerFactory.getLogger( CassandraPod.class );
