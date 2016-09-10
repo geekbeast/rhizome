@@ -11,7 +11,7 @@ public class SparkConfiguration {
 
     private static final String       SPARK_PORT_PROPERTY     = "port";
     private static final String       SPARK_MASTERS_PROPERTY  = "master";
-    private static final String       SPARK_APP_NAME_PROPERTY = "appName";
+    private static final String       SPARK_APP_NAME_PROPERTY = "appname";
     private static final String       JAR_LOCATIONS_PROPERTY  = "jars";
     private static final String       LOCAL_PROPERTY          = "local";
 
