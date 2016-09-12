@@ -24,6 +24,7 @@ cassandra:
 spark:
     appName: "Test"
     port: 7077
+    local: true
     jars:
         - "./jars"
     master:
