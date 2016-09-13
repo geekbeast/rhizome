@@ -217,7 +217,7 @@ dependencies {
 	/**
 	 * SPARK
 	 */
-    compile "org.apache.spark:spark-core_2.10:${spark_version}"
+    compile "org.apache.spark:spark-core_2.11:${spark_version}"
     
     /*
      * Jars in lib folder, generally Hyperdex
