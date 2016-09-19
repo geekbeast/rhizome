@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.SparkSession;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -56,9 +56,9 @@ public class SparkPod {
     }
 
     @Bean
-    public JavaSparkContext javaSparkContext() {
+    public SparkSession sparkSession() {
         SparkConf sc = sparkConf();
-        return sc == null ? null : new JavaSparkContext( sc );
+        return sc == null ? null : SparkSession.builder().config( sc ).getOrCreate();
     }
 
 }
