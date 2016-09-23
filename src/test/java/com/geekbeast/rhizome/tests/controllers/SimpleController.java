@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.geekbeast.rhizome.tests.bootstrap.RhizomeTests;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
@@ -90,13 +93,18 @@ public class SimpleController implements SimpleControllerAPI {
         produces = MediaType.APPLICATION_JSON,
         consumes = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration setTestConfiguration( @RequestBody TestConfiguration configuration ) {
+        if( configuration == null ) {
+            return null;
+        }
+        
         try {
             configurationService.setConfiguration( configuration );
         } catch ( IOException e ) {
             return null;
         }
+        
         try {
-            return configurationService.getConfiguration( TestConfiguration.class );
+            return Preconditions.checkNotNull( configurationService.getConfiguration( TestConfiguration.class ) );
         } catch ( IOException e ) {
             return null;
         }

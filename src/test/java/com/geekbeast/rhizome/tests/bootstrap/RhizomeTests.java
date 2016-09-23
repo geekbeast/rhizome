@@ -29,32 +29,43 @@ import com.google.common.net.HttpHeaders;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 
+import digital.loom.rhizome.authentication.Auth0SecurityPod;
+import digital.loom.rhizome.authentication.AuthenticationTest;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.RestAdapter.LogLevel;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 import retrofit.client.Response;
 
 public class RhizomeTests {
-    private final static Logger logger        = LoggerFactory.getLogger( RhizomeTests.class );
+    private final static Logger logger     = LoggerFactory.getLogger( RhizomeTests.class );
     private static RestAdapter  adapter;
-    private static Lock         testWriteLock = new ReentrantLock();
-    public static final byte[]  TEST_BYTES    = RandomUtils.nextBytes( 4096 );
+    public static final byte[]  TEST_BYTES = RandomUtils.nextBytes( 4096 );
 
-    private static Rhizome      rhizome       = null;
-
-    static {
-        testWriteLock.lock();
-    }
+    private static Rhizome      rhizome    = null;
 
     @BeforeClass
     public static void plant() throws Exception {
+        final String jwtToken = AuthenticationTest.authenticate().getIdToken();
         rhizome = new Rhizome(
+                // Auth0SecurityPod.class,
                 DispatcherServletsPod.class,
                 RegistryBasedHazelcastInstanceConfigurationPod.class );
         rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
         adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
-                .setConverter( new JacksonConverter() ).build();
+                .setRequestInterceptor(
+                        (RequestInterceptor) facade -> facade.addHeader( HttpHeaders.AUTHORIZATION, jwtToken ) )
+                .setConverter( new JacksonConverter() )
+                .setLogLevel( LogLevel.FULL )
+                .setLog( new RestAdapter.Log() {
+                    @Override
+                    public void log( String msg ) {
+                        logger.debug( msg.replaceAll( "%", "[percent]" ) );
+                    }
+                } )
+                .build();
     }
 
     @Test
@@ -68,9 +79,10 @@ public class RhizomeTests {
         TestConfiguration expected = new TestConfiguration(
                 RandomStringUtils.random( 10 ),
                 Optional.<String> absent() );
-        Assert.assertEquals( expected, api.setTestConfiguration( expected ) );
-        TestConfiguration actual = api.getTestConfiguration();
-        Assert.assertEquals( expected, actual );
+        TestConfiguration actual1 = api.setTestConfiguration( expected );
+        Assert.assertEquals( expected, actual1 );
+        TestConfiguration actual2 = api.getTestConfiguration();
+        Assert.assertEquals( expected, actual2 );
 
     }
 

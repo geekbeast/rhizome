@@ -7,12 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 @Configuration
 @ComponentScan(
@@ -26,10 +23,8 @@ public class RestfulServletPod extends WebMvcConfigurationSupport {
         super.addDefaultHttpMessageConverters( converters );
         for ( HttpMessageConverter<?> converter : converters ) {
             if ( converter instanceof MappingJackson2HttpMessageConverter ) {
-                MappingJackson2HttpMessageConverter jacksonConverter = (MappingJackson2HttpMessageConverter) converter;
-                ObjectMapper springMapper = jacksonConverter.getObjectMapper();
-                springMapper.registerModule( new AfterburnerModule() );
-                springMapper.registerModule( new GuavaModule() );
+                ( (MappingJackson2HttpMessageConverter) converter )
+                        .setObjectMapper( ObjectMapperRegistry.getJsonMapper() );
             }
         }
     }

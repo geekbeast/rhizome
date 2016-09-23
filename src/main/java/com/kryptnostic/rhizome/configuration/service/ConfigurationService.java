@@ -3,6 +3,8 @@ package com.kryptnostic.rhizome.configuration.service;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nullable;
 
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils;
@@ -99,17 +102,25 @@ public interface ConfigurationService {
             }
         }
 
-        static @Nullable <T extends Configuration> T loadConfigurationFromResource( ConfigurationKey key, Class<T> clazz ) {
+        static @Nullable <T extends Configuration> T loadConfigurationFromResource(
+                ConfigurationKey key,
+                Class<T> clazz ) {
             T s = null;
 
+            String yamlString = null;
             try {
-                String yamlString = RhizomeUtils.Streams.loadResourceToString( key.getUri() );
+                try {
+                    URL resource = Resources.getResource( key.getUri() );
+                    yamlString = Resources.toString( resource, StandardCharsets.UTF_8 );
+                } catch ( IOException | IllegalArgumentException e ) {
+                    logger.trace( "Failed to load resource from " + key.getUri(), e );
+                }
                 if ( StringUtils.isBlank( yamlString ) ) {
                     throw new IOException( "Unable to read configuration from classpath." );
                 }
                 s = mapper.readValue( yamlString, clazz );
             } catch ( IOException e ) {
-                logger.error( "Failed to load default configuration for " + key.getUri(), e );
+                logger.trace( "Failed to load default configuration for " + key.getUri(), e );
             }
 
             return s;

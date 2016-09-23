@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 
+import org.apache.commons.io.IOUtils;
+
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.mime.TypedByteArray;
@@ -17,6 +19,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 /**
  * A {@link Converter} which uses Jackson for reading and writing entities.
@@ -29,7 +32,7 @@ public class JacksonConverter implements Converter {
     private final ObjectMapper  objectMapper;
 
     public JacksonConverter() {
-        this( new ObjectMapper() );
+        this( ObjectMapperRegistry.getJsonMapper() );
     }
 
     public JacksonConverter( ObjectMapper objectMapper ) {
@@ -45,7 +48,9 @@ public class JacksonConverter implements Converter {
             if ( in.available() == 0 ) {
                 return null;
             }
-            return objectMapper.readValue( body.in(), javaType );
+            String s = IOUtils.toString( in );
+            System.out.println( s );
+            return objectMapper.readValue( s, javaType );
         } catch ( JsonParseException e ) {
             throw new ConversionException( e );
         } catch ( JsonMappingException e ) {

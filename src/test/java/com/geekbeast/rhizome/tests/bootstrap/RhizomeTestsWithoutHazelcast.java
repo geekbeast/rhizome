@@ -2,8 +2,6 @@ package com.geekbeast.rhizome.tests.bootstrap;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
@@ -21,11 +19,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Header;
-import retrofit.client.Response;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.JacksonConverter;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
@@ -40,18 +33,19 @@ import com.kryptnostic.rhizome.core.Loam;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.InMemoryConfigurationServicePod;
 
+import digital.loom.rhizome.authentication.AuthenticationTest;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Header;
+import retrofit.client.Response;
+
 public class RhizomeTestsWithoutHazelcast {
-    private final static Logger logger        = LoggerFactory.getLogger( RhizomeTestsWithoutHazelcast.class );
-    private final static int    HTTP_PORT     = 8082;
-    private final static int    HTTPS_PORT    = 8444;
+    private final static Logger logger     = LoggerFactory.getLogger( RhizomeTestsWithoutHazelcast.class );
+    private final static int    HTTP_PORT  = 8082;
+    private final static int    HTTPS_PORT = 8444;
     private static RestAdapter  adapter;
-    private static Lock         testWriteLock = new ReentrantLock();
 
-    private static Rhizome      rhizome       = null;
-
-    static {
-        testWriteLock.lock();
-    }
+    private static Rhizome      rhizome    = null;
 
     @Configuration
     static class RhizomeTestWithoutHazelcast {
@@ -89,6 +83,7 @@ public class RhizomeTestsWithoutHazelcast {
 
     @BeforeClass
     public static void plant() throws Exception {
+        final String jwtToken = AuthenticationTest.authenticate().getIdToken();
         rhizome = new Rhizome(
                 RhizomeTestWithoutHazelcast.class,
                 DispatcherServletsPod.class,
@@ -107,7 +102,9 @@ public class RhizomeTestsWithoutHazelcast {
         TestConfiguration configuration = api.getTestConfiguration();
         Assert.assertNull( configuration );
 
-        TestConfiguration expected = new TestConfiguration( RandomStringUtils.random( 10 ), Optional.<String> absent() );
+        TestConfiguration expected = new TestConfiguration(
+                RandomStringUtils.random( 10 ),
+                Optional.<String> absent() );
         Assert.assertEquals( expected, api.setTestConfiguration( expected ) );
         TestConfiguration actual = api.getTestConfiguration();
         Assert.assertEquals( expected, actual );
