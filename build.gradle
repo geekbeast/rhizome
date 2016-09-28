@@ -49,12 +49,10 @@ repositories {
 }
 
 dependencies {
-  /*
-   * Docker java client deps
-   */
-    //compile ('com.github.docker-java:docker-java:3.0.0') {
-    //  exclude group: 'com.fasterxml.jackson.jaxrs', module: 'jackson-jaxrs-json-provider'
-    //}
+    /*
+     * AWS
+     */
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.36'
 
     /*
      * Immutables library for immutable objects

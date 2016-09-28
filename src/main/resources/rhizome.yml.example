@@ -16,6 +16,10 @@ hazelcast:
         - "hazelcast-server"
 
 cassandra:
+    provider: "aws"
+    region: "us-west-2"
+    node-tag-key: "cassandra-node-type"
+    node-tag-value: "seed"
     keyspace: "kryptnostic"
     replication-factor: 2
     seed-nodes:
