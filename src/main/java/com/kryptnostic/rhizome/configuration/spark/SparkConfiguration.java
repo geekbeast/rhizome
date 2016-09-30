@@ -2,10 +2,15 @@ package com.kryptnostic.rhizome.configuration.spark;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 
 public class SparkConfiguration {
 
@@ -26,6 +31,11 @@ public class SparkConfiguration {
     private final String              appName;
     private final List<String>        sparkMasters;
     private final List<String>        jarLocations;
+    private String                    provider;
+    private String                    region;
+
+    private static final Logger       logger                      = LoggerFactory
+                                                                          .getLogger( SparkConfiguration.class );
 
     @JsonCreator
     public SparkConfiguration(
@@ -33,12 +43,38 @@ public class SparkConfiguration {
             @JsonProperty( JAR_LOCATIONS_PROPERTY ) Optional<List<String>> jars,
             @JsonProperty( SPARK_APP_NAME_PROPERTY ) Optional<String> app,
             @JsonProperty( SPARK_PORT_PROPERTY ) Optional<Integer> port,
-            @JsonProperty( LOCAL_PROPERTY ) Optional<Boolean> local ) {
+            @JsonProperty( LOCAL_PROPERTY ) Optional<Boolean> local,
+            @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
+            @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue) {
         this.sparkPort = port.or( PORT_DEFAULT );
-        this.sparkMasters = masters.or( MASTER_DEFAULT );
         this.appName = app.or( APP_NAME_DEFAULT );
         this.jarLocations = jars.or( JAR_LOCATIONS_DEFAULT );
         this.local = local.or( LOCAL_DEFAULT );
+
+        this.provider = provider.orNull();
+        if ( "aws".equals( provider ) ) {
+            this.sparkMasters = Lists.transform(
+                    AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
+                    tagKey,
+                    tagValue,
+                            logger ),
+                    ( input ) -> input.toString() );
+            this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
+        } else {
+            this.sparkMasters = masters.or( MASTER_DEFAULT );
+        }
+    }
+
+    @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY )
+    public String getProvider() {
+        return provider;
+    }
+
+    @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY )
+    public String getAwsRegion() {
+        return region;
     }
 
     @JsonProperty( SPARK_PORT_PROPERTY )

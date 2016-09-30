@@ -2,25 +2,18 @@ package com.kryptnostic.rhizome.configuration.cassandra;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.ec2.AmazonEC2Async;
-import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Reservation;
 import com.datastax.driver.core.ProtocolOptions.Compression;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 
 public class CassandraConfiguration {
     private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
@@ -31,17 +24,11 @@ public class CassandraConfiguration {
     private static final String       HAZELCAST_WRITE_DELAY_FIELD    = "write-delay";
     private static final String       CASSANDRA_PORT                 = "port";
 
-    private static final String       CASSANDRA_PROVIDER_PROPERTY    = "provider";
-    private static final String       AWS_REGION_PROPERTY            = "region";
-    private static final String       AWS_NODE_TAG_KEY_PROPERTY      = "node-tag-key";
-    private static final String       AWS_NODE_TAG_VALUE_PROPERTY    = "node-tag-value";
-
     private static final List<String> CASSANDRA_SEED_DEFAULT         = ImmutableList.of( "127.0.0.1" );
     private static final String       KEYSPACE_DEFAULT               = "rhizome";
     private static final int          REPLICATION_FACTOR_DEFAULT     = 2;
     private static final boolean      EMBEDDED_DEFAULT               = true;
     private static final String       COMPRESSION_DEFAULT            = "NONE";
-    private static final String       REGION_DEFAULT                 = "us-west-1";
 
     private final boolean             embedded;
 
@@ -52,8 +39,6 @@ public class CassandraConfiguration {
     private int                       writeBackDelay;
 
     private final String              provider;
-    private final String              nodeTagKey;
-    private final String              nodeTagValue;
     private String                    region;
 
     private static final Logger       logger                         = LoggerFactory
@@ -66,10 +51,10 @@ public class CassandraConfiguration {
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
             @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
-            @JsonProperty( CASSANDRA_PROVIDER_PROPERTY ) Optional<String> provider,
-            @JsonProperty( AWS_REGION_PROPERTY ) Optional<String> region,
-            @JsonProperty( AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
-            @JsonProperty( AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue) {
+            @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
+            @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue) {
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
@@ -87,44 +72,15 @@ public class CassandraConfiguration {
         }
 
         this.provider = provider.orNull();
-        this.nodeTagKey = tagKey.orNull();
-        this.nodeTagValue = tagValue.orNull();
         if ( "aws".equals( provider ) ) {
-            this.cassandraSeedNodes = getSeeds();
-            this.region = region.or( REGION_DEFAULT );
+            this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
+            this.cassandraSeedNodes = AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
+                    tagKey,
+                    tagValue,
+                    logger );
         } else {
             this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         }
-    }
-
-    public List<InetAddress> getSeeds() {
-        AmazonEC2Async ec2 = AmazonEC2AsyncClientBuilder.standard()
-                .withRegion( this.region )
-                .build();
-        Filter tagValue = new Filter()
-                .withName( "tag-value" )
-                .withValues( nodeTagValue );
-        Filter tagKey = new Filter()
-                .withName( "tag-key" )
-                .withValues( nodeTagKey );
-        DescribeInstancesRequest req = new DescribeInstancesRequest().withFilters( tagKey, tagValue );
-
-        DescribeInstancesResult describeInstances = ec2.describeInstances( req );
-
-        List<Reservation> reservations = describeInstances.getReservations();
-        ArrayList<InetAddress> addresses = new ArrayList<>();
-        for ( Reservation res : reservations ) {
-            for ( Instance instance : res.getInstances() ) {
-                try {
-                    if ( instance.getState().getCode() < 17 ) {
-                        addresses.add( InetAddress.getByName( instance.getPrivateIpAddress() ) );
-                    }
-                } catch ( UnknownHostException e ) {
-                    logger.error( "Couldn't identify host {}", instance.getPrivateIpAddress(), e );
-                }
-            }
-        }
-        return addresses;
     }
 
     private static List<InetAddress> transformToInetAddresses( List<String> addresses ) {
@@ -143,24 +99,14 @@ public class CassandraConfiguration {
         return list;
     }
 
-    @JsonProperty( CASSANDRA_PROVIDER_PROPERTY )
+    @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY )
     public String getProvider() {
         return provider;
     }
 
-    @JsonProperty( AWS_REGION_PROPERTY )
+    @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY )
     public String getAwsRegion() {
         return region;
-    }
-
-    @JsonProperty( AWS_NODE_TAG_KEY_PROPERTY )
-    public String getNodeTagKey() {
-        return nodeTagKey;
-    }
-
-    @JsonProperty( AWS_NODE_TAG_VALUE_PROPERTY )
-    public String getNodeTagValue() {
-        return nodeTagValue;
     }
 
     @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY )
