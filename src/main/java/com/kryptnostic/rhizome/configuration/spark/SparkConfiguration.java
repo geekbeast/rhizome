@@ -54,13 +54,13 @@ public class SparkConfiguration {
         this.local = local.or( LOCAL_DEFAULT );
 
         this.provider = provider.orNull();
-        if ( "aws".equals( provider ) ) {
+        if ( "aws".equalsIgnoreCase( provider.get() ) ) {
             this.sparkMasters = Lists.transform(
                     AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
                     tagKey,
                     tagValue,
                             logger ),
-                    ( input ) -> input.toString() );
+                    ( input ) -> input.getHostAddress() );
             this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
         } else {
             this.sparkMasters = masters.or( MASTER_DEFAULT );
