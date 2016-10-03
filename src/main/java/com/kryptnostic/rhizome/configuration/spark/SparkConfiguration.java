@@ -19,14 +19,14 @@ public class SparkConfiguration {
     private static final String       SPARK_APP_NAME_PROPERTY = "appname";
     private static final String       JAR_LOCATIONS_PROPERTY  = "jars";
     private static final String       LOCAL_PROPERTY          = "local";
-    private static final String       WORKING_DIR_PROPERTY    = "";
+    private static final String       WORKING_DIR_PROPERTY    = "workingDir";
 
     private static final int          PORT_DEFAULT            = 7077;
     private static final boolean      LOCAL_DEFAULT           = true;
     private static final String       APP_NAME_DEFAULT        = "Test Rhizome App";
     private static final List<String> MASTER_DEFAULT          = ImmutableList.of( "127.0.0.1" );
     private static final List<String> JAR_LOCATIONS_DEFAULT   = ImmutableList.of( "" );
-    private static final String       WORKING_DIR_DEFAULT     = "/workingDir";
+    private static final String       WORKING_DIR_DEFAULT     = "/sparkWorkingDir";
 
     private final boolean             local;
     private final int                 sparkPort;
