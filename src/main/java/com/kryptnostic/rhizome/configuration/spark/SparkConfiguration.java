@@ -19,12 +19,14 @@ public class SparkConfiguration {
     private static final String       SPARK_APP_NAME_PROPERTY = "appname";
     private static final String       JAR_LOCATIONS_PROPERTY  = "jars";
     private static final String       LOCAL_PROPERTY          = "local";
+    private static final String       WORKING_DIR_PROPERTY    = "";
 
     private static final int          PORT_DEFAULT            = 7077;
     private static final boolean      LOCAL_DEFAULT           = true;
     private static final String       APP_NAME_DEFAULT        = "Test Rhizome App";
     private static final List<String> MASTER_DEFAULT          = ImmutableList.of( "127.0.0.1" );
     private static final List<String> JAR_LOCATIONS_DEFAULT   = ImmutableList.of( "" );
+    private static final String       WORKING_DIR_DEFAULT     = "/workingDir";
 
     private final boolean             local;
     private final int                 sparkPort;
@@ -33,9 +35,10 @@ public class SparkConfiguration {
     private final List<String>        jarLocations;
     private String                    provider;
     private String                    region;
+    private String                    sparkWorkingDirectory;
 
-    private static final Logger       logger                      = LoggerFactory
-                                                                          .getLogger( SparkConfiguration.class );
+    private static final Logger       logger                  = LoggerFactory
+                                                                      .getLogger( SparkConfiguration.class );
 
     @JsonCreator
     public SparkConfiguration(
@@ -44,6 +47,7 @@ public class SparkConfiguration {
             @JsonProperty( SPARK_APP_NAME_PROPERTY ) Optional<String> app,
             @JsonProperty( SPARK_PORT_PROPERTY ) Optional<Integer> port,
             @JsonProperty( LOCAL_PROPERTY ) Optional<Boolean> local,
+            @JsonProperty( WORKING_DIR_PROPERTY ) Optional<String> workingDir,
             @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
             @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
@@ -52,13 +56,14 @@ public class SparkConfiguration {
         this.appName = app.or( APP_NAME_DEFAULT );
         this.jarLocations = jars.or( JAR_LOCATIONS_DEFAULT );
         this.local = local.or( LOCAL_DEFAULT );
+        this.sparkWorkingDirectory = workingDir.or( WORKING_DIR_DEFAULT );
 
         this.provider = provider.orNull();
         if ( "aws".equalsIgnoreCase( provider.get() ) ) {
             this.sparkMasters = Lists.transform(
                     AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
-                    tagKey,
-                    tagValue,
+                            tagKey,
+                            tagValue,
                             logger ),
                     ( input ) -> input.getHostAddress() );
             this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
@@ -100,5 +105,10 @@ public class SparkConfiguration {
     @JsonProperty( LOCAL_PROPERTY )
     public boolean isLocal() {
         return local;
+    }
+
+    @JsonProperty( WORKING_DIR_PROPERTY )
+    public String getWorkingDirectory() {
+        return sparkWorkingDirectory;
     }
 }

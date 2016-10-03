@@ -46,6 +46,7 @@ public class SparkPod {
             return new SparkConf()
                     .setMaster( sparkMasterUrlBuilder.toString() )
                     .setAppName( sparkConfiguration.getAppName() )
+                    .set( "spark.sql.warehouse.dir", "file:///" + sparkConfiguration.getWorkingDirectory() )
                     .set( "spark.cassandra.connection.host", cassandraConfiguration.getCassandraSeedNodes().stream()
                             .map( host -> host.getHostAddress() ).collect( Collectors.joining( "," ) ) )
                     .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
