@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 
 public class CassandraConfiguration {
     private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
@@ -32,13 +33,16 @@ public class CassandraConfiguration {
     private final boolean             embedded;
 
     private final Compression         compression;
-    private final List<InetAddress>   cassandraSeedNodes;
+    private List<InetAddress>         cassandraSeedNodes;
     private final String              keyspace;
     private final int                 replicationFactor;
     private int                       writeBackDelay;
 
+    private final String              provider;
+    private String                    region;
+
     private static final Logger       logger                         = LoggerFactory
-            .getLogger( CassandraConfiguration.class );
+                                                                             .getLogger( CassandraConfiguration.class );
 
     @JsonCreator
     public CassandraConfiguration(
@@ -46,9 +50,12 @@ public class CassandraConfiguration {
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
-            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor ) {
+            @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
+            @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
+            @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue) {
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
-        this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
         // TODO: I don't think this switch statement is required as Jackson will correctly ser/des the enum.
@@ -62,6 +69,17 @@ public class CassandraConfiguration {
             default:
                 this.compression = Compression.NONE;
                 break;
+        }
+
+        this.provider = provider.orNull();
+        if ( "aws".equalsIgnoreCase( provider.get() ) ) {
+            this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
+            this.cassandraSeedNodes = AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
+                    tagKey,
+                    tagValue,
+                    logger );
+        } else {
+            this.cassandraSeedNodes = transformToInetAddresses( cassandraSeedNodes.or( CASSANDRA_SEED_DEFAULT ) );
         }
     }
 
@@ -79,6 +97,16 @@ public class CassandraConfiguration {
             return ImmutableList.<InetAddress> of( InetAddress.getLoopbackAddress() );
         }
         return list;
+    }
+
+    @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY )
+    public String getProvider() {
+        return provider;
+    }
+
+    @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY )
+    public String getAwsRegion() {
+        return region;
     }
 
     @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY )
