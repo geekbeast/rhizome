@@ -72,7 +72,7 @@ public class CassandraConfiguration {
         }
 
         this.provider = provider.orNull();
-        if ( "aws".equalsIgnoreCase( provider.get() ) ) {
+        if ( "aws".equalsIgnoreCase( this.provider ) ) {
             this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
             this.cassandraSeedNodes = AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
                     tagKey,
