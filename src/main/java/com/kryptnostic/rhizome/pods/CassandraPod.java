@@ -43,7 +43,7 @@ public class CassandraPod {
 
     @Bean
     public CassandraConfiguration cassandraConfiguration() {
-        if ( !configuration.getCassandraConfiguration().isPresent() ) {
+        if ( configuration == null || !configuration.getCassandraConfiguration().isPresent() ) {
             throw new RuntimeException(
                     "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
         }
