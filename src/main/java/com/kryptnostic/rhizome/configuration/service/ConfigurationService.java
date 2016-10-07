@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
-import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils;
 import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 /**
