@@ -61,7 +61,7 @@ public class SparkConfiguration {
         this.sparkWorkingDirectory = workingDir.or( WORKING_DIR_DEFAULT );
 
         this.provider = provider.orNull();
-        if ( "aws".equalsIgnoreCase( provider.get() ) ) {
+        if ( "aws".equalsIgnoreCase( this.provider ) ) {
             this.sparkMasters = Lists.transform(
                     AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
                             tagKey,
