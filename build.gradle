@@ -171,7 +171,7 @@ dependencies {
      * Java email client.
      */
      compile "javax.mail:javax.mail-api:1.5.2"
-     compile "javax.mail:mail:1.5.6"
+     //compile "javax.mail:mail:1.5.6"
      compile "org.jodd:jodd-mail:3.7.1"
 
      /*
