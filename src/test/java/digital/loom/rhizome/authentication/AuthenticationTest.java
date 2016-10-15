@@ -8,10 +8,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.auth0.Auth0;
 import com.auth0.authentication.AuthenticationAPIClient;
@@ -73,34 +73,16 @@ public class AuthenticationTest {
         Auth0UserDetails userDetails = new Auth0UserDetails(
                 d2,
                 Auth0AuthorityStrategy.valueOf( authorityStrategy ).getStrategy() );
+        Assert.assertTrue( "Return roles must contain user",
+                userDetails.getAuthorities().contains( new SimpleGrantedAuthority( "user" ) ) );
         logger.info( "Roles: {}", userDetails.getAuthorities() );
-        // // First check the authority strategy configured for the API
-        // if ( !Auth0AuthorityStrategy.contains( configuration.getAuthorityStrategy() ) ) {
-        // throw new IllegalStateException( "Configuration error, illegal authority strategy" );
-        // }
-        // final Auth0AuthorityStrategy authorityStrategy = Auth0AuthorityStrategy
-        // .valueOf( configuration.getAuthorityStrategy() );
-        // final Auth0AuthenticationProvider authenticationProvider = new Auth0AuthenticationProvider();
-        // authenticationProvider.setDomain( configuration.getDomain() );
-        // authenticationProvider.setIssuer( configuration.getIssuer() );
-        // authenticationProvider.setClientId( configuration.getClientId() );
-        // authenticationProvider.setClientSecret( configuration.getClientSecret() );
-        // authenticationProvider.setSecuredRoute( configuration.getSecuredRoute() );
-        // authenticationProvider.setAuthorityStrategy( authorityStrategy );
-        // authenticationProvider.setBase64EncodedSecret( configuration.isBase64EncodedSecret() );
-        //
-        // authenticationProvider.afterPropertiesSet();
-        // Auth0JWTToken authentication = (Auth0JWTToken) authenticationProvider
-        // .authenticate( );
-        // System.out.println( authentication.getAuthorities().toString() );
-
     }
 
     @Test
     public void testLogin() throws JsonParseException, JsonMappingException, IOException {
         Credentials creds = authenticate().getLeft();
         UserProfile profile = client.tokenInfo( creds.getIdToken() ).execute();
-        
+
         @SuppressWarnings( "unchecked" )
         List<String> roles = (List<String>) profile.getAppMetadata().getOrDefault( "roles", ImmutableList.of() );
         Assert.assertTrue( "Return roles must contain user", roles.contains( "user" ) );
