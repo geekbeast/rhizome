@@ -40,10 +40,6 @@ import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
     prePostEnabled = true )
 @EnableWebSecurity(
     debug = false )
-// @Order( SecurityProperties.ACCESS_OVERRIDE_ORDER )
-// @ConditionalOnProperty(
-// prefix = "auth0",
-// name = "defaultAuth0ApiSecurityEnabled" )
 public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
     @Inject
@@ -79,12 +75,6 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     @Bean(
         name = "auth0AuthenticationProvider" )
     public Auth0AuthenticationProvider auth0AuthenticationProvider() {
-        // First check the authority strategy configured for the API
-        if ( !Auth0AuthorityStrategy.contains( configuration.getAuthorityStrategy() ) ) {
-            throw new IllegalStateException( "Configuration error, illegal authority strategy" );
-        }
-        final Auth0AuthorityStrategy authorityStrategy = Auth0AuthorityStrategy
-                .valueOf( configuration.getAuthorityStrategy() );
         final ConfigurableAuth0AuthenticationProvider authenticationProvider = new ConfigurableAuth0AuthenticationProvider(
                 auth0.newAuthenticationAPIClient() );
 
@@ -113,24 +103,6 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         filter.setEntryPoint( entryPoint );
         return filter;
     }
-
-    /**
-     * We do this to ensure our Filter is only loaded once into Application Context
-     *
-     * If using Spring Boot, any GenericFilterBean in the context will be automatically added to the filter chain. Since
-     * we want to support Servlet 2.x and 3.x we should not extend OncePerRequestFilter therefore instead we explicitly
-     * define FilterRegistrationBean and disable.
-     *
-     */
-    // @Bean(
-    // name = "auth0AuthenticationFilterRegistration" )
-    // public FilterRegistrationBean auth0AuthenticationFilterRegistration( final Auth0AuthenticationFilter filter ) {
-    // final FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-    // filterRegistrationBean.setFilter( filter );
-    // filterRegistrationBean.setEnabled( false );
-    //
-    // return filterRegistrationBean;
-    // }
 
     @Override
     protected void configure( final AuthenticationManagerBuilder auth ) throws Exception {
@@ -172,8 +144,8 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
      * endpoints
      */
     protected void authorizeRequests( HttpSecurity http ) throws Exception {
-        //http.authorizeRequests()
-          //      .antMatchers( "/**" ).authenticated();
+        http.authorizeRequests()
+                .antMatchers( "/**" ).authenticated();
     }
 
 }
