@@ -155,7 +155,7 @@ dependencies {
      * @Inject and @Nullable support
      */
      compile "javax.inject:javax.inject:1"
-     compile "com.google.code.findbugs:jsr305:1.3.9"
+     
 
     /*
      * Jersey Spring Integration
