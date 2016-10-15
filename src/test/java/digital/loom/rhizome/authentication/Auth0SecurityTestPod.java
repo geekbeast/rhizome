@@ -12,11 +12,9 @@ public class Auth0SecurityTestPod extends Auth0SecurityPod {
     @Override
     protected void authorizeRequests( HttpSecurity http ) throws Exception {
         http.authorizeRequests()
-                .antMatchers( "/api/**" ).hasAnyRole( "user", "User" )
-//                .antMatchers( "/api/**" ).denyAll()
-                ;
-        
-        // .antMatchers( "/rhizome/simple/secured/admin" ).hasAnyRole( "ADMIN" );
-        // .antMatchers( "/rhizome/simple/secured/user" ).hasAnyRole( "user" )
+                .antMatchers( "/api/unsecured/**" ).authenticated()
+                .antMatchers( "/api/secured/admin").hasAnyRole( "admin","ADMIN" )
+                .antMatchers( "/api/secured/admin").hasAnyRole( "user","USER" )
+        ;
     }
 }

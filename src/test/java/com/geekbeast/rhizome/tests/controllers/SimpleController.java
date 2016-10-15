@@ -28,7 +28,7 @@ import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 import retrofit.client.Response;
 
-@Controller( SimpleControllerAPI.CONTROLLER )
+@Controller
 public class SimpleController implements SimpleControllerAPI {
     private static Logger        logger = LoggerFactory.getLogger( SimpleController.class );
     @Inject
