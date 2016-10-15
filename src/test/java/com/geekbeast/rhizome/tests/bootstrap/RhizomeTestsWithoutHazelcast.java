@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.geekbeast.rhizome.tests.configurations.JacksonConverter;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;

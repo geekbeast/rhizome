@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.core;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
@@ -48,12 +47,13 @@ import com.kryptnostic.rhizome.pods.MetricsPod;
 public class Rhizome implements WebApplicationInitializer {
     private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     protected static final Class<?>[]                      DEFAULT_SERVICE_PODS          = new Class<?>[] {
-                                                                                                 ConfigurationPod.class,
-                                                                                                 MetricsPod.class,
-                                                                                                 AsyncPod.class };
+            ConfigurationPod.class,
+            MetricsPod.class,
+            AsyncPod.class };
     protected static final Lock                            startupLock                   = new ReentrantLock();
     protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
     protected final AnnotationConfigWebApplicationContext  context;
+    private JettyLoam                                      jetty;
 
     public Rhizome() {
         this( new Class<?>[] {} );
@@ -211,25 +211,21 @@ public class Rhizome implements WebApplicationInitializer {
                     "Rhizome context should be null before startup of startup." );
             rhizomeContext = context;
             context.refresh();
-            for ( Loam loam : rhizomeContext.getBeansOfType( Loam.class ).values() ) {
-                if ( loam != null ) {
-                    loam.start();
-                }
-            }
+            startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
         } finally {
             rhizomeContext = null;
             startupLock.unlock();
         }
     }
 
+    protected void startJetty( JettyConfiguration configuration ) throws Exception {
+        this.jetty = new JettyLoam( configuration );
+        jetty.start();
+    }
+
     public void wilt() throws BeansException, Exception {
-        Collection<Loam> loams = context.getBeansOfType( Loam.class ).values();
-        for ( Loam loam : loams ) {
-            loam.stop();
-        }
-        for ( Loam loam : loams ) {
-            loam.join();
-        }
+        jetty.stop();
+        context.close();
     }
 
     // This method is not static so it can be sub-classed and overridden.

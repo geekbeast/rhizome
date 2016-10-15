@@ -99,7 +99,9 @@ dependencies {
      compile "org.springframework.security:spring-security-ldap:${project.spring_security_version}"
      compile "org.springframework.security:spring-security-config:${project.spring_security_version}"
 
-     compile "com.auth0:auth0-spring-security-api:${project.auth0_spring_version}"
+     compile ("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
+        exclude group: "org.springframework.boot"
+     }
 
     /*
      * Metrics

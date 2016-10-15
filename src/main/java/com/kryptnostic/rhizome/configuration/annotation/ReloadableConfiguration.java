@@ -1,6 +1,9 @@
 package com.kryptnostic.rhizome.configuration.annotation;
 
-import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotation based way of specifying configuration keys and files.
@@ -8,14 +11,11 @@ import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ReloadableConfiguration {
     /**
      * @return The file where the configuration should be loaded from if not locatable by key.
      */
-    public String file();
-
-    /**
-     * @return The key used by the {@link ConfigurationService} to locate the configuration. 
-     */
-    public String key();
+    public String uri() default "";
 }

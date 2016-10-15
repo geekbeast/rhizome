@@ -16,6 +16,8 @@ public interface SimpleControllerAPI {
         String JETTY_CONFIGURATION   = "/jetty";
         String TEST_CONFIGURATION    = "/test";
         String TEAPOT                = "/teapot";
+        String SECURED_ADMIN         = "/secured/admin";
+        String SECURED_USER          = "/secured/user";
     }
 
     interface PUT {
@@ -33,6 +35,12 @@ public interface SimpleControllerAPI {
 
     @retrofit.http.GET( GET.TEST_CONFIGURATION )
     TestConfiguration getTestConfiguration();
+
+    @retrofit.http.GET( GET.SECURED_ADMIN )
+    TestConfiguration getTestConfigurationSecuredAdmin();
+
+    @retrofit.http.GET( GET.SECURED_USER )
+    TestConfiguration getTestConfigurationSecuredUser();
 
     @retrofit.http.PUT( PUT.TEST_CONFIGURATION )
     TestConfiguration setTestConfiguration( @Body TestConfiguration configuration );

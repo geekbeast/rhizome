@@ -72,7 +72,7 @@ public class HazelcastPod {
     }
 
     @Bean
-    public ITopic<com.kryptnostic.rhizome.configuration.Configuration> configTopic() {
+    public ITopic<Object> configTopic() {
         return hazelcastInstance().getTopic( CONFIGURATION_UPDATE_TOPIC );
     }
 

@@ -1,8 +1,11 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
 import javax.activity.InvalidActivityException;
+import javax.security.sasl.AuthenticationException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+
+import org.springframework.security.access.AccessDeniedException;
 
 import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
@@ -14,6 +17,9 @@ public class DefaultErrorHandler implements ErrorHandler {
         Response r = cause.getResponse();
         if ( r != null && r.getStatus() == 401 ) {
             return new NotAuthorizedException( cause );
+        }
+        if ( r != null && r.getStatus() == 403 ) {
+            return new AccessDeniedException( r.getReason(), cause );
         }
         if ( r != null && r.getStatus() == 404 ) {
             return new NotFoundException( cause );

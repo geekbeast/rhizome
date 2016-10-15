@@ -19,9 +19,7 @@ import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 /**
  * @author Matthew Tamayo-Rios
  */
-@ReloadableConfiguration(
-    file = "rhizome.yaml",
-    key =  "rhizome" )
+@ReloadableConfiguration(uri="rhizome.yaml")
 public class RhizomeConfiguration implements Configuration {
     private static final long                                     serialVersionUID                                = -8444209890618166001L;
 
