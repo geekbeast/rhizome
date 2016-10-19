@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AsyncEventBus;
-import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
@@ -26,17 +25,17 @@ import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
  */
 // TODO: Add hibernate validation
 public abstract class AbstractYamlConfigurationService implements ConfigurationService {
-    protected  ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
+    protected ObjectMapper        mapper = ObjectMapperRegistry.getYamlMapper();
 
-    protected final Logger              logger = LoggerFactory.getLogger( getClass() );
-    protected final AsyncEventBus       configurationEvents;
+    protected final Logger        logger = LoggerFactory.getLogger( getClass() );
+    protected final AsyncEventBus configurationEvents;
 
     public AbstractYamlConfigurationService( AsyncEventBus configurationEvents ) {
         this.configurationEvents = configurationEvents;
     }
 
     @Override
-    public <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException {
+    public <T> T getConfiguration( Class<T> clazz ) throws IOException {
         Preconditions.checkNotNull( clazz, "Requested configuration class cannot be null." );
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
         Preconditions.checkState( key != null && StringUtils.isNotBlank( key.getUri() ), "Configuration id for class "
@@ -53,9 +52,10 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
     }
 
     @Override
-    public <T extends Configuration> void setConfiguration( T configuration ) {
+    public <T> void setConfiguration( T configuration ) {
+        ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( configuration.getClass() );
         try {
-            persistConfiguration( configuration.getKey(), mapper.writeValueAsString( configuration ) );
+            persistConfiguration( key, mapper.writeValueAsString( configuration ) );
             post( configuration );
         } catch ( IOException e ) {
             logger.error( "Failed to persist configuration {}", configuration, e );
@@ -76,7 +76,7 @@ public abstract class AbstractYamlConfigurationService implements ConfigurationS
         configurationEvents.register( subscriber );
     }
 
-    protected void post( Configuration configuration ) {
+    protected void post( Object configuration ) {
         configurationEvents.post( configuration );
     }
 

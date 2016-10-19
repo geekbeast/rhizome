@@ -3,6 +3,8 @@ package com.kryptnostic.rhizome.configuration.service;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nullable;
 
@@ -13,9 +15,10 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.kryptnostic.rhizome.configuration.Configuration;
+import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
-import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils;
+import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
+import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 /**
@@ -34,7 +37,7 @@ public interface ConfigurationService {
      * @return The configuration if it can be found, null otherwise.
      * @throws IOException
      */
-    public abstract @Nullable <T extends Configuration> T getConfiguration( Class<T> clazz ) throws IOException;
+    public abstract @Nullable <T> T getConfiguration( Class<T> clazz ) throws IOException;
 
     /**
      * Creates or updates a configuration and fires a configuration update event to all subscribers.
@@ -42,7 +45,7 @@ public interface ConfigurationService {
      * @param configuration The configuration to be updated or created
      * @throws IOException
      */
-    public abstract <T extends Configuration> void setConfiguration( T configuration ) throws IOException;
+    public abstract <T> void setConfiguration( T configuration ) throws IOException;
 
     /**
      * Registers a subscriber that will receive updated configuration events at methods annotated with guava's
@@ -69,7 +72,7 @@ public interface ConfigurationService {
          * @param clazz - The configuration class to load.
          * @return The configuration if it can successfully loaded, null otherwise.
          */
-        public static @Nullable <T extends Configuration> T loadConfiguration( Class<T> clazz ) {
+        public static @Nullable <T> T loadConfiguration( Class<T> clazz ) {
             ConfigurationKey key = getConfigurationKey( Preconditions.checkNotNull(
                     clazz,
                     "Cannot load configuration for null class." ) );
@@ -83,6 +86,18 @@ public interface ConfigurationService {
         }
 
         public static @Nullable ConfigurationKey getConfigurationKey( Class<?> clazz ) {
+            ReloadableConfiguration config = clazz.getAnnotation( ReloadableConfiguration.class );
+            if( config != null ) {
+                String uri;
+                if( StringUtils.isBlank( config.uri() ) ) {
+                    uri = clazz.getCanonicalName();
+                } else {
+                    uri = config.uri();
+                }
+                
+                return new SimpleConfigurationKey( uri );
+            } 
+            
             /*
              * This requires a static method called key on the class. Unfortunately, in Java 7 it cannot be enforced.
              */
@@ -99,17 +114,25 @@ public interface ConfigurationService {
             }
         }
 
-        static @Nullable <T extends Configuration> T loadConfigurationFromResource( ConfigurationKey key, Class<T> clazz ) {
+        static @Nullable <T> T loadConfigurationFromResource(
+                ConfigurationKey key,
+                Class<T> clazz ) {
             T s = null;
 
+            String yamlString = null;
             try {
-                String yamlString = RhizomeUtils.Streams.loadResourceToString( key.getUri() );
+                try {
+                    URL resource = Resources.getResource( key.getUri() );
+                    yamlString = Resources.toString( resource, StandardCharsets.UTF_8 );
+                } catch ( IOException | IllegalArgumentException e ) {
+                    logger.trace( "Failed to load resource from " + key.getUri(), e );
+                }
                 if ( StringUtils.isBlank( yamlString ) ) {
                     throw new IOException( "Unable to read configuration from classpath." );
                 }
                 s = mapper.readValue( yamlString, clazz );
             } catch ( IOException e ) {
-                logger.error( "Failed to load default configuration for " + key.getUri(), e );
+                logger.trace( "Failed to load default configuration for " + key.getUri(), e );
             }
 
             return s;

@@ -17,19 +17,19 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
-import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 
 public class RhizomeConfigurationService extends AbstractYamlConfigurationService implements
-        MessageListener<Configuration> {
-    private static final Logger                    logger = LoggerFactory.getLogger( RhizomeConfigurationService.class );
+        MessageListener<Object> {
+    private static final Logger                    logger = LoggerFactory
+            .getLogger( RhizomeConfigurationService.class );
 
     protected final IMap<ConfigurationKey, String> configurations;
-    protected final ITopic<Configuration>          configurationsTopic;
+    protected final ITopic<Object>                 configurationsTopic;
 
     public RhizomeConfigurationService(
             IMap<ConfigurationKey, String> configurations,
-            ITopic<Configuration> configurationsTopic,
+            ITopic<Object> configurationsTopic,
             AsyncEventBus configurationUpdates ) {
         super( configurationUpdates );
         this.configurationsTopic = configurationsTopic;
@@ -38,7 +38,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
     }
 
     @Override
-    public @Nullable <T extends Configuration> T getConfiguration( Class<T> clazz ) {
+    public @Nullable <T> T getConfiguration( Class<T> clazz ) {
         ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( clazz );
 
         // If we end up with a null key log an error
@@ -94,26 +94,34 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
     }
 
     @Override
-    public <T extends Configuration> void setConfiguration( T configuration ) {
+    public <T> void setConfiguration( T configuration ) {
+        ConfigurationKey key = ConfigurationService.StaticLoader.getConfigurationKey( configuration.getClass() );
         try {
-            persistConfiguration( configuration.getKey(), mapper.writeValueAsString( configuration ) );
+            persistConfiguration( key, mapper.writeValueAsString( configuration ) );
             configurationsTopic.publish( configuration );
         } catch ( JsonProcessingException e ) {
-            logger.error( "Unable to set configuration {} = {}", configuration.getKey(), configuration, e );
+            logger.error( "Unable to set configuration {} = {}", key, configuration, e );
         }
     }
 
     @Override
-    public void onMessage( Message<Configuration> message ) {
+    public void onMessage( Message<Object> message ) {
         /*
          * This is a light weight operation, that hands off to the async event bus thread pool. It will trigger a post
          * that asynchronously notifies all subscribers that the configuration has been updated. It will not trigger a
          * re-persist of information.
          */
         if ( message.getMessageObject() != null ) {
-            logger.debug( "Updating Configuration {}", message.getMessageObject().getKey().getUri() );
+            String uri = "";
+            
+            if ( logger.isDebugEnabled() ) {
+                uri = ConfigurationService.StaticLoader.getConfigurationKey( message.getMessageObject().getClass() )
+                        .getUri();
+            }
+            
+            logger.debug( "Updating Configuration {}", uri );
             post( message.getMessageObject() );
-            logger.debug( "Successfully updated Configuration {}", message.getMessageObject().getKey().getUri() );
+            logger.debug( "Successfully updated Configuration {}", uri );
         }
     }
 

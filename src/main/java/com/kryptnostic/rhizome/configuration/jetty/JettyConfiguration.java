@@ -12,14 +12,12 @@ import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 /**
  * @author Matthew Tamayo-Rios
  */
-@ReloadableConfiguration(
-    file = "jetty.yaml",
-    key = "jetty" )
+@ReloadableConfiguration(uri="jetty.yaml")
 public class JettyConfiguration implements Configuration {
     private static final long                        serialVersionUID                        = 129440984814569272L;
 
     protected static ConfigurationKey                key                                     = new SimpleConfigurationKey(
-                                                                                                     "jetty.yaml" );
+            "jetty.yaml" );
 
     protected static final String                    KEYMANAGER_PASSWORD_PROPERTY            = "keymanager-password";
     protected static final String                    MAX_THREADS_PROPERTY                    = "max-threads";
@@ -56,7 +54,7 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration,
             @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration,
             @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration,
-            @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled) {
+            @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled ) {
 
         this.webConnectorConfiguration = webConnectorConfiguration;
         this.serviceConnectorConfiguration = serviceConnectorConfiguration;

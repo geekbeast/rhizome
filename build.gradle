@@ -14,39 +14,12 @@ group = "com.kryptnostic"
 
 
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
+apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
 
 mainClassName = "com.geekbeast.rhizome.core.Rhizome"
 
 ext.sourceCompatibility=JavaVersion.VERSION_1_8
 ext.targetCompatibility=JavaVersion.VERSION_1_8
-
-repositories {
-    mavenCentral()
-    maven {
-      url 'http://artifactory.krypt.int/artifactory/libs-snapshot/'
-    }
-    maven {
-      url 'http://artifactory.krypt.int/artifactory/remote-repos/'
-    }
-    maven {
-        url "https://build.shibboleth.net/nexus/content/groups/public/"
-    }
-    maven {
-        url "http://maven.springframework.org/snapshot"
-    }
-    maven {
-        url "http://maven.springframework.org/milestone"
-    }
-    maven {
-        url "http://repo.maven.apache.org/maven2"
-    }
-    maven {
-        url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
-    maven {
-        url "https://raw.github.com/dkhenry/rethinkjava/mvn-repo"
-    }
-}
 
 dependencies {
     /*
@@ -98,6 +71,10 @@ dependencies {
      compile "org.springframework.security:spring-security-web:${project.spring_security_version}"
      compile "org.springframework.security:spring-security-ldap:${project.spring_security_version}"
      compile "org.springframework.security:spring-security-config:${project.spring_security_version}"
+
+     compile ("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
+        exclude group: "org.springframework.boot"
+     }
 
     /*
      * Metrics
@@ -151,7 +128,7 @@ dependencies {
      * @Inject and @Nullable support
      */
      compile "javax.inject:javax.inject:1"
-     compile "com.google.code.findbugs:jsr305:1.3.9"
+     
 
     /*
      * Jersey Spring Integration
@@ -194,8 +171,8 @@ dependencies {
      * Java email client.
      */
      compile "javax.mail:javax.mail-api:1.5.2"
-     compile "javax.mail:mail:1.5.0-b01"
-     compile "org.jodd:jodd-mail:3.6.6"
+     //compile "javax.mail:mail:1.5.6"
+     compile "org.jodd:jodd-mail:3.7.1"
 
      /*
       * RethinkDB
@@ -237,6 +214,7 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
+     testCompile 'com.auth0:auth0:0.4.0'
  }
 
 eclipse {
