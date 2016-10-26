@@ -17,7 +17,7 @@ import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
  *
  */
 //TODO: Implement data serializable or identified data serializable
-@ReloadableConfiguration
+@ReloadableConfiguration(uri = "auth0.yaml")
 public class Auth0Configuration implements Serializable {
     private static final long serialVersionUID = 3802624515206194125L;
     public static final String     DOMAIN_FIELD                = "domain";
