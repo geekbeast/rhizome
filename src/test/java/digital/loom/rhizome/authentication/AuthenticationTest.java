@@ -92,7 +92,8 @@ public class AuthenticationTest {
     public static Pair<Credentials, Authentication> authenticate() {
 
         AuthenticationRequest request = client.login( "support@kryptnostic.com", "abracadabra" )
-                .setConnection( "Tests" );
+                .setConnection( "Tests" )
+                .setScope( "openid email nickname roles" );
 
         return Pair.of( request.execute(), client.getProfileAfter( request ).execute() );
     }
