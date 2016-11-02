@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.auth0.jwt.internal.org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -86,18 +88,11 @@ public interface ConfigurationService {
         }
 
         public static @Nullable ConfigurationKey getConfigurationKey( Class<?> clazz ) {
-            ReloadableConfiguration config = clazz.getAnnotation( ReloadableConfiguration.class );
-            if( config != null ) {
-                String uri;
-                if( StringUtils.isBlank( config.uri() ) ) {
-                    uri = clazz.getCanonicalName();
-                } else {
-                    uri = config.uri();
-                }
-                
+            String uri = getReloadableConfigurationUri( clazz );
+            if ( StringUtils.isNotBlank( uri ) ) {
                 return new SimpleConfigurationKey( uri );
-            } 
-            
+            }
+
             /*
              * This requires a static method called key on the class. Unfortunately, in Java 7 it cannot be enforced.
              */
@@ -114,12 +109,25 @@ public interface ConfigurationService {
             }
         }
 
+        static String getReloadableConfigurationUri( Class<?> clazz ) {
+            ReloadableConfiguration config = clazz.getAnnotation( ReloadableConfiguration.class );
+            if ( config != null ) {
+                if ( StringUtils.isBlank( config.uri() ) ) {
+                    return clazz.getCanonicalName();
+                } else {
+                    return config.uri();
+                }
+            } else {
+                return null;
+            }
+        }
+
         static @Nullable <T> T loadConfigurationFromResource(
                 ConfigurationKey key,
                 Class<T> clazz ) {
             T s = null;
-
             String yamlString = null;
+
             try {
                 try {
                     URL resource = Resources.getResource( key.getUri() );
@@ -133,6 +141,31 @@ public interface ConfigurationService {
                 s = mapper.readValue( yamlString, clazz );
             } catch ( IOException e ) {
                 logger.trace( "Failed to load default configuration for " + key.getUri(), e );
+            }
+
+            return s;
+        }
+
+        public static @Nullable <T> T loadConfigurationFromS3(
+                AmazonS3 s3,
+                String bucket,
+                String folder,
+                Class<T> clazz ) {
+            T s = null;
+            String key = getReloadableConfigurationUri( clazz );
+            String yamlString = null;
+            try {
+                try {
+                    yamlString = IOUtils.toString( s3.getObject( bucket, folder + key ).getObjectContent() );
+                } catch ( IOException | IllegalArgumentException e ) {
+                    logger.debug( "Failed to load resource from " + key, e );
+                }
+                if ( StringUtils.isBlank( yamlString ) ) {
+                    throw new IOException( "Unable to read configuration from classpath." );
+                }
+                s = mapper.readValue( yamlString, clazz );
+            } catch ( IOException e ) {
+                logger.debug( "Failed to load default configuration for " + key, e );
             }
 
             return s;

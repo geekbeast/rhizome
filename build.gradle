@@ -18,6 +18,10 @@ apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenR
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
+if(System.getProperty("exec.args") != null) {
+    args System.getProperty("exec.args").split()
+}
+
 ext.sourceCompatibility=JavaVersion.VERSION_1_8
 ext.targetCompatibility=JavaVersion.VERSION_1_8
 

@@ -1,5 +1,7 @@
 package com.kryptnostic.rhizome.pods;
 
+import javax.inject.Inject;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +25,9 @@ import com.kryptnostic.rhizome.pooling.rethinkdb.RethinkDbAlternateDriverClientP
 @Configuration
 @Profile( "rethinkdb" )
 public class RethinkDbPod {
-    private static final Logger               logger        = LoggerFactory.getLogger( RethinkDbPod.class );
-    private static final RhizomeConfiguration configuration = ConfigurationPod.getRhizomeConfiguration();
+    private static final Logger  logger = LoggerFactory.getLogger( RethinkDbPod.class );
+    @Inject
+    private RhizomeConfiguration configuration;
 
     @Bean
     public RethinkDbConfiguration rethinkDbConfiguration() {
