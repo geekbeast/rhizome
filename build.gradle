@@ -16,7 +16,7 @@ group = "com.kryptnostic"
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
 
-mainClassName = "com.geekbeast.rhizome.core.Rhizome"
+mainClassName = "com.geekbeast.rhizome.core.RhizomeAws"
 
 ext.sourceCompatibility=JavaVersion.VERSION_1_8
 ext.targetCompatibility=JavaVersion.VERSION_1_8
