@@ -14,6 +14,10 @@ import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
+/**
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
+ * Used for bootstrapping configuration from a (secure) S3 bucket.
+ */
 @Profile( Profiles.AWS_CONFIGURATION_PROFILE )
 @Configuration
 public class AwsConfigurationPod {
