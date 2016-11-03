@@ -16,7 +16,13 @@ group = "com.kryptnostic"
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
 
-mainClassName = "com.geekbeast.rhizome.core.Rhizome"
+mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
+
+run {
+    if(System.getProperty("exec.args") != null) {
+        args System.getProperty("exec.args").split()
+    }
+}
 
 ext.sourceCompatibility=JavaVersion.VERSION_1_8
 ext.targetCompatibility=JavaVersion.VERSION_1_8
@@ -25,7 +31,10 @@ dependencies {
     /*
      * AWS
      */
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.36'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.50'
+    compile 'com.amazonaws:aws-java-sdk-s3:1.11.50'
+    //compile 'com.amazonaws:aws-java-sdk:1.11.50'
+
 
     /*
      * Immutables library for immutable objects

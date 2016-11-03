@@ -11,6 +11,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
@@ -30,7 +31,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.hazelcast.web.SessionListener;
 import com.hazelcast.web.WebFilter;
+import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.servlets.DispatcherServletConfiguration;
 import com.kryptnostic.rhizome.pods.AsyncPod;
@@ -196,8 +199,17 @@ public class Rhizome implements WebApplicationInitializer {
     }
 
     public void sprout( String... activeProfiles ) throws Exception {
+        boolean localProfileNeeded = true;
         for ( String profile : activeProfiles ) {
+            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile )
+                    || StringUtils.equals( Profiles.LOCAL_CONFIGURATION_PROFILE, profile ) ) {
+                localProfileNeeded = false;
+            }
             context.getEnvironment().addActiveProfile( profile );
+        }
+
+        if ( localProfileNeeded ) {
+            context.getEnvironment().addActiveProfile( Profiles.LOCAL_CONFIGURATION_PROFILE );
         }
 
         /*
@@ -211,7 +223,13 @@ public class Rhizome implements WebApplicationInitializer {
                     "Rhizome context should be null before startup of startup." );
             rhizomeContext = context;
             context.refresh();
-            startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
+            if ( localProfileNeeded ) {
+                startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
+            } else {
+                // For now we assume just AWS as an alternate to a local profile.
+                startJettyAws( rhizomeContext.getBean( JettyConfiguration.class ),
+                        rhizomeContext.getBean( AmazonLaunchConfiguration.class ) );
+            }
         } finally {
             rhizomeContext = null;
             startupLock.unlock();
@@ -220,6 +238,12 @@ public class Rhizome implements WebApplicationInitializer {
 
     protected void startJetty( JettyConfiguration configuration ) throws Exception {
         this.jetty = new JettyLoam( configuration );
+        jetty.start();
+    }
+
+    protected void startJettyAws( JettyConfiguration configuration, AmazonLaunchConfiguration awsConfig )
+            throws Exception {
+        this.jetty = new AwsJettyLoam( configuration, awsConfig );
         jetty.start();
     }
 

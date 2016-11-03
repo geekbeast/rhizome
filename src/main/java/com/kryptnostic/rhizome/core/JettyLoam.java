@@ -31,14 +31,14 @@ import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {
     private static final Logger      logger = LoggerFactory.getLogger( JettyLoam.class );
-    private final JettyConfiguration config;
+    protected final JettyConfiguration config;
     private final Server             server;
 
     protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
 
-    public <T extends JettyConfiguration> JettyLoam( T config ) throws IOException {
+    public JettyLoam( JettyConfiguration config ) throws IOException {
         this.config = config;
 
         WebAppContext context = new WebAppContext();
@@ -120,12 +120,6 @@ public class JettyLoam implements Loam {
                 contextFactory.setCertAlias( certAlias );
             }
 
-            contextFactory.setTrustStorePath( getFromClasspath( config.getTruststoreConfiguration().get()
-                    .getStorePath() ) );
-            contextFactory.setTrustStorePassword( config.getTruststoreConfiguration().get().getStorePassword() );
-
-            contextFactory.setKeyStorePath( getFromClasspath( config.getKeystoreConfiguration().get().getStorePath() ) );
-            contextFactory.setKeyStorePassword( config.getKeystoreConfiguration().get().getStorePassword() );
             contextFactory.setKeyManagerPassword( config.getKeyManagerPassword().get() );
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
@@ -140,9 +134,20 @@ public class JettyLoam implements Loam {
             ssl.setPort( configuration.getHttpsPort() );
             server.addConnector( ssl );
         } else if ( ( configuration.requireSSL() || configuration.useSSL() )
-                && ( !config.getTruststoreConfiguration().isPresent() || !config.getKeystoreConfiguration().isPresent() ) ) {
+                && ( !config.getTruststoreConfiguration().isPresent()
+                        || !config.getKeystoreConfiguration().isPresent() ) ) {
             logger.warn( "SSL Configuration is incomplete." );
         }
+    }
+
+    protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
+        contextFactory.setTrustStorePath( getFromClasspath( config.getTruststoreConfiguration().get()
+                .getStorePath() ) );
+        contextFactory.setTrustStorePassword( config.getTruststoreConfiguration().get().getStorePassword() );
+
+        contextFactory
+                .setKeyStorePath( getFromClasspath( config.getKeystoreConfiguration().get().getStorePath() ) );
+        contextFactory.setKeyStorePassword( config.getKeystoreConfiguration().get().getStorePassword() );
     }
 
     private String getFromClasspath( String path ) throws IOException {
