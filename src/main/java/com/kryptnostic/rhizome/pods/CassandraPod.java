@@ -54,7 +54,7 @@ public class CassandraPod {
             logger.error(
                     "Seed nodes not found in cassandra configuration. Please add seed nodes to cassandra configuration block in rhizome.yaml" );
         } else {
-            logger.info( "Using the following seeds for cassandra: ",
+            logger.info( "Using the following seeds for cassandra: {}",
                     cassandraConfiguration.getCassandraSeedNodes().stream().map( s -> s.getHostAddress() )
                             .collect( Collectors.toList() ) );
         }
