@@ -18,6 +18,7 @@ import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 public class CassandraConfiguration {
     private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
     private static final String       CASSANDRA_EMBEDDED_PROPERTY    = "embedded";
+    private static final String       CASSANDRA_SSL_ENABLED          = "ssl-enabled";
     private static final String       CASSANDRA_KEYSPACE_PROPERTY    = "keyspace";
     private static final String       CASSANDRA_REPLICATION_FACTOR   = "replication-factor";
     private static final String       CASSANDRA_SEED_NODES_PROPERTY  = "seed-nodes";
@@ -28,9 +29,11 @@ public class CassandraConfiguration {
     private static final String       KEYSPACE_DEFAULT               = "rhizome";
     private static final int          REPLICATION_FACTOR_DEFAULT     = 2;
     private static final boolean      EMBEDDED_DEFAULT               = true;
+    private static final boolean      SSL_ENABLED_DEFAULT            = false;
     private static final String       COMPRESSION_DEFAULT            = "NONE";
 
     private final boolean             embedded;
+    private final boolean             sslEnabled;
 
     private final Compression         compression;
     private List<InetAddress>         cassandraSeedNodes;
@@ -42,20 +45,22 @@ public class CassandraConfiguration {
     private String                    region;
 
     private static final Logger       logger                         = LoggerFactory
-                                                                             .getLogger( CassandraConfiguration.class );
+            .getLogger( CassandraConfiguration.class );
 
     @JsonCreator
     public CassandraConfiguration(
             @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY ) Optional<String> compression,
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
+            @JsonProperty( CASSANDRA_SSL_ENABLED ) Optional<Boolean> sslEnabled,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
             @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
             @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
             @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
-            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue) {
+            @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue ) {
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
+        this.sslEnabled = sslEnabled.or( SSL_ENABLED_DEFAULT );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
         // TODO: I don't think this switch statement is required as Jackson will correctly ser/des the enum.
@@ -117,6 +122,11 @@ public class CassandraConfiguration {
     @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY )
     public boolean isEmbedded() {
         return embedded;
+    }
+
+    @JsonProperty( CASSANDRA_SSL_ENABLED )
+    public boolean isSslEnabled() {
+        return sslEnabled;
     }
 
     @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY )

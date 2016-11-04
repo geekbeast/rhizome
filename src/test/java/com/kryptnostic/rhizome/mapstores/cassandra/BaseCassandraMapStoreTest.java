@@ -11,17 +11,17 @@ import com.google.common.collect.ImmutableSet;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
-
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
- * This test requires a cassandra instance to be locally available in order to run thest.
+ *         This test requires a cassandra instance to be locally available in order to run thest.
  */
 @Ignore
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
             Optional.absent(),
+            Optional.of( Boolean.FALSE ),
             Optional.of( Boolean.FALSE ),
             Optional.of( ImmutableList.of( "localhost" ) ),
             Optional.of( "test" ),
@@ -35,8 +35,8 @@ public class BaseCassandraMapStoreTest {
     public void testCassandraMapstore() {
 
         Cluster clust = new Cluster.Builder()
-            .addContactPoints( config.getCassandraSeedNodes() )
-            .build();
+                .addContactPoints( config.getCassandraSeedNodes() )
+                .build();
 
         CassandraMapStoreFactory.Builder builder = new CassandraMapStoreFactory.Builder().withConfiguration( config )
                 .withSession( clust.newSession() );

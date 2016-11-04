@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.CodecRegistry;
+import com.datastax.driver.core.JdkSSLOptions;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
@@ -24,6 +27,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
+import com.kryptnostic.rhizome.core.RhizomeSslContextHolder;
 
 import jersey.repackaged.com.google.common.collect.Maps;
 
@@ -72,11 +76,7 @@ public class CassandraPod {
 
     @Bean
     public Cluster cluster() {
-        return new Cluster.Builder()
-                .withCompression( cassandraConfiguration().getCompression() )
-                .withPoolingOptions( getPoolingOptions() )
-                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
-                .addContactPoints( cassandraConfiguration().getCassandraSeedNodes() )
+        return clusterBuilder( cassandraConfiguration() )
                 .withCodecRegistry( codecRegistry() )
                 .build();
     }
@@ -84,11 +84,7 @@ public class CassandraPod {
     @Bean
     public Clusters clusters() {
         return new Clusters( Maps.transformValues( getConfigurations(),
-                cassandraConfiguration -> new Cluster.Builder()
-                        .withCompression( cassandraConfiguration.getCompression() )
-                        .withPoolingOptions( getPoolingOptions() )
-                        .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
-                        .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() )
+                cassandraConfiguration -> clusterBuilder( cassandraConfiguration )
                         .withCodecRegistry( codecRegistry() )
                         .build() ) );
     }
@@ -115,5 +111,17 @@ public class CassandraPod {
 
     private CassandraConfigurations getConfigurations() {
         return configuration.getCassandraConfigurations().or( new CassandraConfigurations() );
+    }
+
+    private static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
+        Builder builder = new Cluster.Builder();
+        builder.withCompression( cassandraConfiguration.getCompression() )
+                .withPoolingOptions( getPoolingOptions() )
+                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
+                .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );
+        if ( cassandraConfiguration.isSslEnabled() ) {
+            builder.withSSL();
+        }
+        return builder;
     }
 }
