@@ -4,7 +4,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Profile;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.CodecRegistry;
-import com.datastax.driver.core.JdkSSLOptions;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
@@ -27,7 +25,6 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
-import com.kryptnostic.rhizome.core.RhizomeSslContextHolder;
 
 import jersey.repackaged.com.google.common.collect.Maps;
 
