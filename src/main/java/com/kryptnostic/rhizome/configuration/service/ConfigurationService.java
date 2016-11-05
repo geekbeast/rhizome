@@ -132,15 +132,15 @@ public interface ConfigurationService {
                 try {
                     URL resource = Resources.getResource( key.getUri() );
                     yamlString = Resources.toString( resource, StandardCharsets.UTF_8 );
+                    if ( StringUtils.isBlank( yamlString ) ) {
+                        throw new IOException( "Unable to read configuration from classpath." );
+                    }
                 } catch ( IOException | IllegalArgumentException e ) {
-                    logger.trace( "Failed to load resource from " + key.getUri(), e );
-                }
-                if ( StringUtils.isBlank( yamlString ) ) {
-                    throw new IOException( "Unable to read configuration from classpath." );
+                    logger.warn( "Failed to load resource from " + key.getUri(), e );
                 }
                 s = mapper.readValue( yamlString, clazz );
             } catch ( IOException e ) {
-                logger.trace( "Failed to load default configuration for " + key.getUri(), e );
+                logger.error( "Failed to load default configuration for " + key.getUri(), e );
             }
 
             return s;

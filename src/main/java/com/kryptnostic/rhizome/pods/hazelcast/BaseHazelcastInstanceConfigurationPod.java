@@ -31,6 +31,7 @@ import com.hazelcast.config.TcpIpConfig;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
+import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
 
 /**
@@ -41,12 +42,12 @@ import com.kryptnostic.rhizome.pods.HazelcastPod;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 @Configuration
-@Import(HazelcastPod.class)
+@Import( { HazelcastPod.class, ConfigurationPod.class } )
 public class BaseHazelcastInstanceConfigurationPod {
-    private static final Lock startupLock = new ReentrantLock();
+    private static final Lock      startupLock = new ReentrantLock();
 
     @Inject
-    protected RhizomeConfiguration configuration;
+    protected RhizomeConfiguration rhizomeConfiguration;
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
@@ -57,7 +58,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     public Config getHazelcastServerConfiguration() {
-        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Optional<HazelcastConfiguration> maybeConfiguration = rhizomeConfiguration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
@@ -73,17 +74,16 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     public ClientConfig getHazelcastClientConfiguration() {
-        Optional<HazelcastConfiguration> maybeConfiguration = configuration.getHazelcastConfiguration();
+        Optional<HazelcastConfiguration> maybeConfiguration = rhizomeConfiguration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        return hzConfiguration.isServer() ? null :
-                new ClientConfig()
-                        .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
-                        .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                        .setSerializationConfig( getSerializationConfig() )
-                        .setProperty( "hazelcast.logging.type", "slf4j" );
+        return hzConfiguration.isServer() ? null : new ClientConfig()
+                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
+                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                .setSerializationConfig( getSerializationConfig() )
+                .setProperty( "hazelcast.logging.type", "slf4j" );
 
     }
 
