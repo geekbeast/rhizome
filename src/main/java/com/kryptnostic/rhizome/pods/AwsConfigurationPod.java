@@ -30,7 +30,7 @@ public class AwsConfigurationPod {
     static {
         try {
             awsConfig = ConfigurationService.StaticLoader.loadConfiguration( AmazonLaunchConfiguration.class );
-
+            
             rhizomeConfiguration = ConfigurationService.StaticLoader.loadConfigurationFromS3( s3,
                     awsConfig.getBucket(),
                     awsConfig.getFolder(),
@@ -57,6 +57,7 @@ public class AwsConfigurationPod {
 
     @Bean
     public AmazonLaunchConfiguration awsConfig() {
+        logger.info( "Using aws configuration: {}" , awsConfig );
         return awsConfig;
     }
 

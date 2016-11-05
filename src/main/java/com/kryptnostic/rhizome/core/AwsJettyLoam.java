@@ -7,6 +7,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spark_project.guava.base.Preconditions;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -16,12 +19,13 @@ import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.keystores.Keystores;
 
 public class AwsJettyLoam extends JettyLoam {
+    private static final Logger             logger = LoggerFactory.getLogger( AwsJettyLoam.class );
     private final AmazonLaunchConfiguration awsConfig;
-    private final AmazonS3                  s3 = new AmazonS3Client();
+    private final AmazonS3                  s3     = new AmazonS3Client();
 
     public AwsJettyLoam( JettyConfiguration config, AmazonLaunchConfiguration awsConfig ) throws IOException {
         super( config );
-        this.awsConfig = awsConfig;
+        this.awsConfig = Preconditions.checkNotNull( awsConfig, "AwsConfig cannot be null." );
     }
 
     @Override
@@ -29,6 +33,8 @@ public class AwsJettyLoam extends JettyLoam {
         String truststoreKey = awsConfig.getFolder() + config.getTruststoreConfiguration().get().getStorePath();
         String keystoreKey = awsConfig.getFolder() + config.getKeystoreConfiguration().get().getStorePath();
 
+        logger.info( "Trust store key: {}", truststoreKey );
+        logger.info( "Keystore key: {}", keystoreKey );
         String truststorePassword = config.getTruststoreConfiguration().get().getStorePassword();
         String keystorePassword = config.getKeystoreConfiguration().get().getStorePassword();
         S3Object truststoreObj = s3.getObject( awsConfig.getBucket(), truststoreKey );
@@ -46,6 +52,5 @@ public class AwsJettyLoam extends JettyLoam {
 
         contextFactory.setTrustStorePassword( truststorePassword );
         contextFactory.setKeyStorePassword( keystorePassword );
-
     }
 }
