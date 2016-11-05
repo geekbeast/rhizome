@@ -199,16 +199,21 @@ public class Rhizome implements WebApplicationInitializer {
     }
 
     public void sprout( String... activeProfiles ) throws Exception {
-        boolean localProfileNeeded = true;
+        boolean awsProfile = false;
+        boolean localProfile = false;
         for ( String profile : activeProfiles ) {
-            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile )
-                    || StringUtils.equals( Profiles.LOCAL_CONFIGURATION_PROFILE, profile ) ) {
-                localProfileNeeded = false;
+            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile ) ) {
+                awsProfile = true;
             }
+
+            if ( StringUtils.equals( Profiles.LOCAL_CONFIGURATION_PROFILE, profile ) ) {
+                localProfile = true;
+            }
+
             context.getEnvironment().addActiveProfile( profile );
         }
 
-        if ( localProfileNeeded ) {
+        if ( !awsProfile && !localProfile ) {
             context.getEnvironment().addActiveProfile( Profiles.LOCAL_CONFIGURATION_PROFILE );
         }
 
@@ -223,12 +228,12 @@ public class Rhizome implements WebApplicationInitializer {
                     "Rhizome context should be null before startup of startup." );
             rhizomeContext = context;
             context.refresh();
-            if ( localProfileNeeded ) {
-                startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
-            } else {
-                // For now we assume just AWS as an alternate to a local profile.
+            if ( awsProfile ) {
                 startJettyAws( rhizomeContext.getBean( JettyConfiguration.class ),
                         rhizomeContext.getBean( AmazonLaunchConfiguration.class ) );
+            } else {
+                // For now we assume just AWS as an alternate to a local profile.
+                startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
             }
         } finally {
             rhizomeContext = null;

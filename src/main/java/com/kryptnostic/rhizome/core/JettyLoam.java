@@ -30,9 +30,9 @@ import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {
-    private static final Logger      logger = LoggerFactory.getLogger( JettyLoam.class );
+    private static final Logger        logger = LoggerFactory.getLogger( JettyLoam.class );
     protected final JettyConfiguration config;
-    private final Server             server;
+    private final Server               server;
 
     protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
@@ -115,14 +115,16 @@ public class JettyLoam implements Loam {
 
             SslContextFactory contextFactory = new SslContextFactory();
 
-            String certAlias = configuration.getCertificateAlias().orNull();
+            configureSslStores( contextFactory );
+            String certAlias = configuration.getCertificateAlias().or( "" );
             if ( StringUtils.isNotBlank( certAlias ) ) {
                 contextFactory.setCertAlias( certAlias );
             }
-
             contextFactory.setKeyManagerPassword( config.getKeyManagerPassword().get() );
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
+            contextFactory.setExcludeCipherSuites();
+            contextFactory.setExcludeProtocols();
 
             HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );

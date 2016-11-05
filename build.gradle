@@ -148,7 +148,7 @@ dependencies {
         exclude module: 'spring-web'
      }
 
-    //compile 'org.hibernate:hibernate-validator:5.2.4.Final'
+    compile 'org.hibernate:hibernate-validator:5.2.4.Final'
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
      * Transparent http clustering, distributed java.util collections
@@ -164,7 +164,7 @@ dependencies {
      * TODO: Add support for Tomcat
      * TODO: Integrate with application plugin for standalone deployment
      */ 
-     compile "asm:asm:3.3.1"
+     compile "org.ow2.asm:asm:4.1"
      compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
      //TODO: Once GA version of jetty-jsp is released update version.
      //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1" 
