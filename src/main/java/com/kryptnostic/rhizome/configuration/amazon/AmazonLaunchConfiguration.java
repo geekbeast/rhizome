@@ -30,7 +30,7 @@ public class AmazonLaunchConfiguration {
         while ( StringUtils.endsWith( rawFolder, "/" ) ) {
             StringUtils.removeEnd( rawFolder, "/" );
         }
-        //We shouldn't prefix 
+        // We shouldn't prefix
         if ( StringUtils.isNotBlank( rawFolder ) ) {
             this.folder = rawFolder + "/";
         } else {
@@ -47,6 +47,11 @@ public class AmazonLaunchConfiguration {
     @JsonProperty( FOLDER_FIELD )
     public String getFolder() {
         return folder;
+    }
+
+    @Override
+    public String toString() {
+        return "AmazonLaunchConfiguration [bucket=" + bucket + ", folder=" + folder + "]";
     }
 
 }

@@ -248,7 +248,9 @@ public class Rhizome implements WebApplicationInitializer {
 
     protected void startJettyAws( JettyConfiguration configuration, AmazonLaunchConfiguration awsConfig )
             throws Exception {
-        this.jetty = new AwsJettyLoam( configuration, awsConfig );
+        this.jetty = new AwsJettyLoam(
+                Preconditions.checkNotNull( configuration, "Jetty configuration cannot be null" ),
+                Preconditions.checkNotNull( awsConfig, "AwsConfig cannot be null" ) );
         jetty.start();
     }
 
