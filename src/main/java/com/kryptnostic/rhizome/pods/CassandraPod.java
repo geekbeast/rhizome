@@ -1,10 +1,18 @@
 package com.kryptnostic.rhizome.pods;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.net.ssl.SSLContext;
 
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +24,7 @@ import org.springframework.context.annotation.Profile;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.CodecRegistry;
+import com.datastax.driver.core.JdkSSLOptions;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
@@ -122,7 +131,13 @@ public class CassandraPod {
                 .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
                 .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );
         if ( cassandraConfiguration.isSslEnabled() ) {
-            builder.withSSL();
+            SSLContext context = null;
+            try {
+                context = SSLContextBuilder.create().loadTrustMaterial( new TrustSelfSignedStrategy() ).build();
+            } catch ( NoSuchAlgorithmException | KeyStoreException | KeyManagementException e ) {
+                logger.error( "Unable to configure SSL for Cassanda Java Driver" );
+            }
+            builder.withSSL( JdkSSLOptions.builder().withSSLContext( context ).build() );
         }
         return builder;
     }
