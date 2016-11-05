@@ -24,14 +24,21 @@ public class AwsJettyLoam extends JettyLoam {
     private final AmazonS3                  s3     = new AmazonS3Client();
 
     public AwsJettyLoam( JettyConfiguration config, AmazonLaunchConfiguration awsConfig ) throws IOException {
-        super( config );
+        super( Preconditions.checkNotNull( config, "Jetty configuration cannot be null" ) );
         this.awsConfig = Preconditions.checkNotNull( awsConfig, "AwsConfig cannot be null." );
     }
 
     @Override
     protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
-        String truststoreKey = awsConfig.getFolder() + config.getTruststoreConfiguration().get().getStorePath();
-        String keystoreKey = awsConfig.getFolder() + config.getKeystoreConfiguration().get().getStorePath();
+
+        String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
+                + Preconditions
+                        .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )
+                        .get().getStorePath();
+        String keystoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
+                + Preconditions
+                        .checkNotNull( config.getKeystoreConfiguration(), "keystore configuration cannot be null" )
+                        .get().getStorePath();
 
         logger.info( "Trust store key: {}", truststoreKey );
         logger.info( "Keystore key: {}", keystoreKey );
