@@ -123,8 +123,6 @@ public class JettyLoam implements Loam {
             contextFactory.setKeyManagerPassword( config.getKeyManagerPassword().get() );
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
-            contextFactory.setExcludeCipherSuites();
-            contextFactory.setExcludeProtocols();
 
             HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );
