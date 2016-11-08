@@ -1,11 +1,16 @@
 package digital.loom.rhizome.authentication;
 
+import java.util.Map;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 import com.auth0.authentication.AuthenticationAPIClient;
+import com.auth0.authentication.result.UserProfile;
 import com.auth0.jwt.Algorithm;
 import com.auth0.spring.security.api.Auth0AuthenticationProvider;
+import com.auth0.spring.security.api.Auth0JWTToken;
+import com.auth0.spring.security.api.Auth0UserDetails;
 import com.auth0.spring.security.api.authority.AuthorityStrategy;
 
 public class ConfigurableAuth0AuthenticationProvider extends Auth0AuthenticationProvider {
@@ -18,15 +23,19 @@ public class ConfigurableAuth0AuthenticationProvider extends Auth0Authentication
 
     @Override
     public Authentication authenticate( Authentication authentication ) throws AuthenticationException {
-        return super.authenticate( authentication );
-        // TODO: Pretty sure we can skip below, now the we are correctly configuring scope options
-        /*
-         * final Auth0JWTToken tokenAuth = ( (Auth0JWTToken) authentication ); UserProfile profile =
-         * auth0Client.tokenInfo( tokenAuth.getJwt() ).execute();
-         * @SuppressWarnings( "unchecked" ) Map<String, Object> decoded = (Map<String, Object>) tokenAuth.getDetails();
-         * decoded.putAll( profile.getAppMetadata() ); tokenAuth.setPrincipal( new Auth0UserDetails( decoded,
-         * getAuthorityStrategy() ) ); tokenAuth.setDetails( decoded ); return authentication;
-         */
+        super.authenticate( authentication );
+        //TODO: Pretty sure we can skip below, now the we are correctly configuring scope options
+        //Need to verify that front-end code is correctly passing roles before removing this.
+        final Auth0JWTToken tokenAuth = ( (Auth0JWTToken) authentication );
+        UserProfile profile = auth0Client.tokenInfo( tokenAuth.getJwt() ).execute();
+        @SuppressWarnings( "unchecked" )
+        Map<String, Object> decoded = (Map<String, Object>) tokenAuth.getDetails();
+        
+        decoded.putAll( profile.getAppMetadata() );
+        tokenAuth.setPrincipal( new Auth0UserDetails( decoded, getAuthorityStrategy() ) );
+        tokenAuth.setDetails( decoded );
+        
+        return authentication;
     }
 
     @Override
