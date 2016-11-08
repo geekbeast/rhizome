@@ -23,6 +23,7 @@ import org.springframework.core.io.ClassPathResource;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.base.Optional;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.GzipConfiguration;
@@ -33,14 +34,20 @@ public class JettyLoam implements Loam {
     private static final Logger        logger = LoggerFactory.getLogger( JettyLoam.class );
     protected final JettyConfiguration config;
     private final Server               server;
-
+    protected final Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration;
+    
     protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
 
     public JettyLoam( JettyConfiguration config ) throws IOException {
+        this( config, Optional.absent() );
+    }
+    
+    protected JettyLoam( JettyConfiguration config , Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration ) throws IOException {
         this.config = config;
-
+        this.maybeAmazonLaunchConfiguration = maybeAmazonLaunchConfiguration;
+        
         WebAppContext context = new WebAppContext();
         if ( config.getContextConfiguration().isPresent() ) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();

@@ -14,23 +14,22 @@ import org.spark_project.guava.base.Preconditions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.S3Object;
+import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.keystores.Keystores;
 
 public class AwsJettyLoam extends JettyLoam {
-    private static final Logger             logger = LoggerFactory.getLogger( AwsJettyLoam.class );
-    private final AmazonLaunchConfiguration awsConfig;
-    private final AmazonS3                  s3     = new AmazonS3Client();
+    private static final Logger logger = LoggerFactory.getLogger( AwsJettyLoam.class );
+    private final AmazonS3      s3     = new AmazonS3Client();
 
     public AwsJettyLoam( JettyConfiguration config, AmazonLaunchConfiguration awsConfig ) throws IOException {
-        super( Preconditions.checkNotNull( config, "Jetty configuration cannot be null" ) );
-        this.awsConfig = Preconditions.checkNotNull( awsConfig, "AwsConfig cannot be null." );
+        super( Preconditions.checkNotNull( config, "Jetty configuration cannot be null" ), Optional.of( awsConfig ) );
     }
 
     @Override
     protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
-
+        AmazonLaunchConfiguration awsConfig = maybeAmazonLaunchConfiguration.get();
         String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
                         .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )
