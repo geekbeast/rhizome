@@ -21,7 +21,6 @@ import com.kryptnostic.rhizome.keystores.Keystores;
 
 public class AwsJettyLoam extends JettyLoam {
     private static final Logger logger = LoggerFactory.getLogger( AwsJettyLoam.class );
-    private final AmazonS3      s3     = new AmazonS3Client();
 
     public AwsJettyLoam( JettyConfiguration config, AmazonLaunchConfiguration awsConfig ) throws IOException {
         super( Preconditions.checkNotNull( config, "Jetty configuration cannot be null" ), Optional.of( awsConfig ) );
@@ -30,6 +29,7 @@ public class AwsJettyLoam extends JettyLoam {
     @Override
     protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
         AmazonLaunchConfiguration awsConfig = maybeAmazonLaunchConfiguration.get();
+        AmazonS3 s3 = new AmazonS3Client();
         String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
                         .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )
@@ -38,7 +38,7 @@ public class AwsJettyLoam extends JettyLoam {
                 + Preconditions
                         .checkNotNull( config.getKeystoreConfiguration(), "keystore configuration cannot be null" )
                         .get().getStorePath();
-        logger.info( "AwsConfig: {}" , awsConfig );
+        logger.info( "AwsConfig: {}", awsConfig );
         logger.info( "Trust store key: {}", truststoreKey );
         logger.info( "Keystore key: {}", keystoreKey );
         String truststorePassword = config.getTruststoreConfiguration().get().getStorePassword();
