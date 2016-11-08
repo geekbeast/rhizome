@@ -38,7 +38,7 @@ public class AwsJettyLoam extends JettyLoam {
                 + Preconditions
                         .checkNotNull( config.getKeystoreConfiguration(), "keystore configuration cannot be null" )
                         .get().getStorePath();
-
+        logger.info( "AwsConfig: {}" , awsConfig );
         logger.info( "Trust store key: {}", truststoreKey );
         logger.info( "Keystore key: {}", keystoreKey );
         String truststorePassword = config.getTruststoreConfiguration().get().getStorePassword();
