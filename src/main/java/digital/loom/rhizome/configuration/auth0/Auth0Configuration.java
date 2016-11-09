@@ -26,9 +26,10 @@ public class Auth0Configuration implements Serializable {
     public static final String     CLIENT_SECRET_FIELD         = "clientSecret";
     public static final String     SECURED_ROUTE_FIELD         = "securedRoute";
     public static final String     AUTHORITY_STRATEGY_FIELD    = "authorityStrategy";
-    public static final String     SIGNING_ALGORITHM_FIELD           = "signingAlgorithm";
+    public static final String     SIGNING_ALGORITHM_FIELD     = "signingAlgorithm";
     public static final String     BASE64_ENCODED_SECRET_FIELD = "base64EncodedSecret";
     public static final String     PUBLIC_KEY_PATH_FIELD       = "publicKeyPath";
+    public static final String     TOKEN_FIELD                 = "token";
 
     private final String           authorityStrategy;
     private final String           clientId;
@@ -38,6 +39,7 @@ public class Auth0Configuration implements Serializable {
     private final String           securedRoute;
     private final String           signingAlgorithm;
     private final boolean          base64EncodedSecret;
+    private final String           token;
     private final Optional<String> publicKeyPath;
 
     public Auth0Configuration(
@@ -48,7 +50,8 @@ public class Auth0Configuration implements Serializable {
             String securedRoute,
             String authorityStrategy,
             String signingAlgorithm,
-            boolean base64EncodedSecret ) {
+            boolean base64EncodedSecret,
+            String token ) {
         this(
                 domain,
                 issuer,
@@ -58,6 +61,7 @@ public class Auth0Configuration implements Serializable {
                 authorityStrategy,
                 base64EncodedSecret,
                 signingAlgorithm,
+                token,
                 Optional.absent() );
     }
 
@@ -71,6 +75,7 @@ public class Auth0Configuration implements Serializable {
             @JsonProperty( AUTHORITY_STRATEGY_FIELD ) String authorityStrategy,
             @JsonProperty( BASE64_ENCODED_SECRET_FIELD ) boolean base64EncodedSecret,
             @JsonProperty( SIGNING_ALGORITHM_FIELD ) String signingAlgorithm,
+            @JsonProperty( TOKEN_FIELD ) String token,
             @JsonProperty( PUBLIC_KEY_PATH_FIELD ) Optional<String> publicKeyPath ) {
         Preconditions.checkArgument( StringUtils.isNotBlank( domain ), "Domain cannot be blank" );
         Preconditions.checkArgument( StringUtils.isNotBlank( issuer ), "Domain cannot be blank" );
@@ -80,6 +85,7 @@ public class Auth0Configuration implements Serializable {
         Preconditions.checkArgument( StringUtils.isNotBlank( authorityStrategy ),
                 "Authority strategyic cannot be blank" );
         Preconditions.checkArgument( StringUtils.isNotBlank( signingAlgorithm ), "Signing algorithm cannot be blank" );
+        Preconditions.checkArgument( StringUtils.isNoneBlank( token ), "Token cannot be blank." );
         this.domain = domain;
         this.issuer = issuer;
         this.clientId = clientId;
@@ -88,6 +94,7 @@ public class Auth0Configuration implements Serializable {
         this.authorityStrategy = authorityStrategy;
         this.base64EncodedSecret = base64EncodedSecret;
         this.signingAlgorithm = signingAlgorithm;
+        this.token = token;
         this.publicKeyPath = Preconditions.checkNotNull( publicKeyPath, "Public key path cannot be null." );
     }
 
@@ -121,7 +128,6 @@ public class Auth0Configuration implements Serializable {
         return authorityStrategy;
     }
 
-
     @JsonProperty( SIGNING_ALGORITHM_FIELD )
     public String getSigningAlgorithm() {
         return signingAlgorithm;
@@ -135,5 +141,10 @@ public class Auth0Configuration implements Serializable {
     @JsonProperty( PUBLIC_KEY_PATH_FIELD )
     public Optional<String> getPublicKeyPath() {
         return publicKeyPath;
+    }
+
+    @JsonProperty( TOKEN_FIELD )
+    public String getToken() {
+        return token;
     }
 }
