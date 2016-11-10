@@ -7,6 +7,8 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -24,6 +26,7 @@ import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 @Import( CassandraPod.class )
 public class SparkPod {
     public static final String   SPARK_PROFILE                         = "spark";
+    private static final Logger  logger                                = LoggerFactory.getLogger( SparkPod.class );
     private static final String  CASSANDRA_CONNECTION_FACTORY_PROPERTY = "spark.cassandra.connection.factory";
     private static Cluster       CLUSTER                               = null;
 
@@ -70,6 +73,7 @@ public class SparkPod {
     public SparkSession sparkSession() {
         SparkConf sc = sparkConf();
         if ( StringUtils.isNotBlank( CASSANDRA_CONNECTION_FACTORY_CLASS ) ) {
+            logger.info( "Cassandra connector factory class: {}", CASSANDRA_CONNECTION_FACTORY_CLASS );
             sc.set( CASSANDRA_CONNECTION_FACTORY_PROPERTY, CASSANDRA_CONNECTION_FACTORY_CLASS );
         }
         return sc == null ? null : SparkSession.builder().config( sc ).getOrCreate();
