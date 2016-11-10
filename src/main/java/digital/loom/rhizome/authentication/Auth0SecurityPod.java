@@ -123,7 +123,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         // Add Auth0 Authentication Filter
         http.addFilterAfter( auth0AuthenticationFilter( auth0AuthenticationEntryPoint() ),
                 SecurityContextPersistenceFilter.class )
-                .addFilterBefore( simpleCORSFilter(), Auth0AuthenticationFilter.class );
+                .addFilterBefore( simpleCORSFilter(), CookieReadingAuth0AuthenticationFilter.class );
 
         // Apply the Authentication and Authorization Strategies your application endpoints require
         authorizeRequests( http );
