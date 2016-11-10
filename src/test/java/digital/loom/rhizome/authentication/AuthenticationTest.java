@@ -37,19 +37,20 @@ import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
  *
  */
 public class AuthenticationTest {
-    private static final Logger                  logger              = LoggerFactory
+    private static final Logger                      logger              = LoggerFactory
             .getLogger( AuthenticationTest.class );
-    private static final String                  domain              = "loom.auth0.com";
-    private static final String                  issuer              = "https://loom.auth0.com/";
-    private static final String                  clientId            = "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8";
-    private static final String                  clientSecret        = "VmzAkSSsYQe7DGe5Fz8IHZnKsZF8Ul3UA6tMtikZQC1wLxoA-Krve0bdMN2UH1jb";
-    private static final String                  securedRoute        = "NOT_USED";
-    private static final String                  authorityStrategy   = "ROLES";
-    private static final String                  signingAlgorithm    = "HS256";
+    private static final String                      domain              = "loom.auth0.com";
+    private static final String                      issuer              = "https://loom.auth0.com/";
+    private static final String                      clientId            = "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8";
+    private static final String                      clientSecret        = "VmzAkSSsYQe7DGe5Fz8IHZnKsZF8Ul3UA6tMtikZQC1wLxoA-Krve0bdMN2UH1jb";
+    private static final String                      securedRoute        = "NOT_USED";
+    private static final String                      authorityStrategy   = "ROLES";
+    private static final String                      signingAlgorithm    = "HS256";
     // private static final String defaultAuth0ApiSecurityEnabled = "false";
     // private static final String signingAlgorithm = "HS256";
-    private static final boolean                 base64EncodedSecret = true;
-    public static final Auth0Configuration       configuration       = new Auth0Configuration(
+    private static final boolean                     base64EncodedSecret = true;
+    private static Pair<Credentials, Authentication> cache               = authenticate();
+    public static final Auth0Configuration           configuration       = new Auth0Configuration(
             domain,
             issuer,
             clientId,
@@ -58,10 +59,10 @@ public class AuthenticationTest {
             authorityStrategy,
             signingAlgorithm,
             base64EncodedSecret );
-    private static final Auth0                   auth0               = new Auth0(
+    private static final Auth0                       auth0               = new Auth0(
             "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8",
             "loom.auth0.com" );
-    private static final AuthenticationAPIClient client              = auth0.newAuthenticationAPIClient();
+    private static final AuthenticationAPIClient     client              = auth0.newAuthenticationAPIClient();
 
     @Test
     public void testRoles() throws Exception {
@@ -89,12 +90,14 @@ public class AuthenticationTest {
         Assert.assertTrue( StringUtils.isNotBlank( creds.getIdToken() ) );
     }
 
-    public static Pair<Credentials, Authentication> authenticate() {
+    public static synchronized Pair<Credentials, Authentication> authenticate() {
+        if ( cache == null ) {
+            AuthenticationRequest request = client.login( "support@kryptnostic.com", "abracadabra" )
+                    .setConnection( "Tests" )
+                    .setScope( "openid email nickname roles" );
 
-        AuthenticationRequest request = client.login( "support@kryptnostic.com", "abracadabra" )
-                .setConnection( "Tests" )
-                .setScope( "openid email nickname roles" );
-
-        return Pair.of( request.execute(), client.getProfileAfter( request ).execute() );
+            cache = Pair.of( request.execute(), client.getProfileAfter( request ).execute() );
+        }
+        return cache;
     }
 }
