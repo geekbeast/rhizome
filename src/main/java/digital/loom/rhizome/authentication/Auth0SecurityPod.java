@@ -99,7 +99,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     @Bean(
         name = "auth0Filter" )
     public Auth0AuthenticationFilter auth0AuthenticationFilter( final Auth0AuthenticationEntryPoint entryPoint ) {
-        final Auth0AuthenticationFilter filter = new Auth0AuthenticationFilter();
+        final Auth0AuthenticationFilter filter = new CookieReadingAuth0AuthenticationFilter();
         filter.setEntryPoint( entryPoint );
         return filter;
     }
