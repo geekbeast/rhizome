@@ -13,11 +13,13 @@ public class CookieReadingAuth0AuthenticationFilter extends Auth0AuthenticationF
     @Override
     protected String getToken( HttpServletRequest httpRequest ) {
         String authorizationCookie = null;
-
-        for ( Cookie cookie : httpRequest.getCookies() ) {
-            if ( StringUtils.equals( cookie.getName(), "authorization" ) ) {
-                authorizationCookie = cookie.getValue();
-                break;
+        Cookie[] cookies = httpRequest.getCookies();
+        if ( cookies != null ) {
+            for ( Cookie cookie : httpRequest.getCookies() ) {
+                if ( StringUtils.equals( cookie.getName(), "authorization" ) ) {
+                    authorizationCookie = cookie.getValue();
+                    break;
+                }
             }
         }
 
