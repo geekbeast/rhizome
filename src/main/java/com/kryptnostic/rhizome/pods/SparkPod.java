@@ -52,7 +52,7 @@ public class SparkPod {
                 sparkMasterUrlBuilder.append( sparkMastersAsString );
             }
 
-            SparkConf conf = new SparkConf()
+            return new SparkConf()
                     .setMaster( sparkMasterUrlBuilder.toString() )
                     .setAppName( sparkConfiguration.getAppName() )
                     .set( "spark.sql.warehouse.dir", "file:///" + sparkConfiguration.getWorkingDirectory() )
@@ -62,7 +62,6 @@ public class SparkPod {
                     .set( "spark.cassandra.connection.ssl.enabled",
                             String.valueOf( cassandraConfiguration.isSslEnabled() ) )
                     .setJars( sparkConfiguration.getJarLocations() );
-            return conf;
         }
         return null;
     }
