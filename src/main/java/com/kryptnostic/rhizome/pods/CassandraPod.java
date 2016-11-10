@@ -1,10 +1,8 @@
 package com.kryptnostic.rhizome.pods;
 
-import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -124,7 +122,7 @@ public class CassandraPod {
         return configuration.getCassandraConfigurations().or( new CassandraConfigurations() );
     }
 
-    private static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
+    public static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
         Builder builder = new Cluster.Builder();
         builder.withCompression( cassandraConfiguration.getCompression() )
                 .withPoolingOptions( getPoolingOptions() )
