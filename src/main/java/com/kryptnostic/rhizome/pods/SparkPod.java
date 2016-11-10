@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.pods;
 
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -25,15 +26,15 @@ import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 @Profile( SparkPod.SPARK_PROFILE )
 @Import( CassandraPod.class )
 public class SparkPod {
-    public static final String   SPARK_PROFILE                         = "spark";
-    private static final Logger  logger                                = LoggerFactory.getLogger( SparkPod.class );
-    private static final String  CASSANDRA_CONNECTION_FACTORY_PROPERTY = "spark.cassandra.connection.factory";
-    private static Cluster       CLUSTER                               = null;
+    public static final String       SPARK_PROFILE                         = "spark";
+    private static final Logger      logger                                = LoggerFactory.getLogger( SparkPod.class );
+    private static final String      CASSANDRA_CONNECTION_FACTORY_PROPERTY = "spark.cassandra.connection.factory";
+    private static Supplier<Cluster> CLUSTER_FACTORY                       = null;
 
-    public static String         CASSANDRA_CONNECTION_FACTORY_CLASS    = null;
+    public static String             CASSANDRA_CONNECTION_FACTORY_CLASS    = null;
 
     @Inject
-    private RhizomeConfiguration rhizomeConfiguration;
+    private RhizomeConfiguration     rhizomeConfiguration;
 
     @Bean
     public SparkConf sparkConf() {
@@ -42,7 +43,7 @@ public class SparkPod {
         if ( maybeSparkConfiguration.isPresent() && maybeCassandraConfiguration.isPresent() ) {
             SparkConfiguration sparkConfiguration = maybeSparkConfiguration.get();
             CassandraConfiguration cassandraConfiguration = maybeCassandraConfiguration.get();
-            CLUSTER = CassandraPod.clusterBuilder( cassandraConfiguration )
+            CLUSTER_FACTORY = () -> CassandraPod.clusterBuilder( cassandraConfiguration )
                     .withCodecRegistry( CodecRegistry.DEFAULT_INSTANCE ).build();
             StringBuilder sparkMasterUrlBuilder;
             if ( sparkConfiguration.isLocal() ) {
@@ -85,8 +86,8 @@ public class SparkPod {
      * @return A cluster instance as described by the default CassandraConfiguration. Will return null if called before
      *         spring invokes {@code SparkPod#sparkConf()}.
      */
-    public static Cluster getCluster() {
-        return CLUSTER;
+    public static Supplier<Cluster> getCluster() {
+        return CLUSTER_FACTORY;
     }
 
 }
