@@ -99,7 +99,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     @Bean(
         name = "auth0Filter" )
     public Auth0AuthenticationFilter auth0AuthenticationFilter( final Auth0AuthenticationEntryPoint entryPoint ) {
-        final Auth0AuthenticationFilter filter = new Auth0AuthenticationFilter();
+        final Auth0AuthenticationFilter filter = new CookieReadingAuth0AuthenticationFilter();
         filter.setEntryPoint( entryPoint );
         return filter;
     }
@@ -123,7 +123,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         // Add Auth0 Authentication Filter
         http.addFilterAfter( auth0AuthenticationFilter( auth0AuthenticationEntryPoint() ),
                 SecurityContextPersistenceFilter.class )
-                .addFilterBefore( simpleCORSFilter(), Auth0AuthenticationFilter.class );
+                .addFilterBefore( simpleCORSFilter(), CookieReadingAuth0AuthenticationFilter.class );
 
         // Apply the Authentication and Authorization Strategies your application endpoints require
         authorizeRequests( http );

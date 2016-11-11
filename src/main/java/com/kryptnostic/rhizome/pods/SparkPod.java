@@ -1,16 +1,22 @@
 package com.kryptnostic.rhizome.pods;
 
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.CodecRegistry;
 import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
@@ -20,10 +26,15 @@ import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 @Profile( SparkPod.SPARK_PROFILE )
 @Import( CassandraPod.class )
 public class SparkPod {
-    public static final String   SPARK_PROFILE = "spark";
+    public static final String       SPARK_PROFILE                         = "spark";
+    private static final Logger      logger                                = LoggerFactory.getLogger( SparkPod.class );
+    private static final String      CASSANDRA_CONNECTION_FACTORY_PROPERTY = "spark.cassandra.connection.factory";
+    private static Supplier<Cluster> CLUSTER_FACTORY                       = null;
+
+    public static String             CASSANDRA_CONNECTION_FACTORY_CLASS    = null;
 
     @Inject
-    private RhizomeConfiguration rhizomeConfiguration;
+    private RhizomeConfiguration     rhizomeConfiguration;
 
     @Bean
     public SparkConf sparkConf() {
@@ -32,6 +43,8 @@ public class SparkPod {
         if ( maybeSparkConfiguration.isPresent() && maybeCassandraConfiguration.isPresent() ) {
             SparkConfiguration sparkConfiguration = maybeSparkConfiguration.get();
             CassandraConfiguration cassandraConfiguration = maybeCassandraConfiguration.get();
+            CLUSTER_FACTORY = () -> CassandraPod.clusterBuilder( cassandraConfiguration )
+                    .withCodecRegistry( CodecRegistry.DEFAULT_INSTANCE ).build();
             StringBuilder sparkMasterUrlBuilder;
             if ( sparkConfiguration.isLocal() ) {
                 sparkMasterUrlBuilder = new StringBuilder( sparkConfiguration.getSparkMasters().iterator().next() );
@@ -50,16 +63,31 @@ public class SparkPod {
                     .set( "spark.cassandra.connection.host", cassandraConfiguration.getCassandraSeedNodes().stream()
                             .map( host -> host.getHostAddress() ).collect( Collectors.joining( "," ) ) )
                     .set( "spark.cassandra.connection.port", Integer.toString( 9042 ) )
+                    .set( "spark.cassandra.connection.ssl.enabled",
+                            String.valueOf( cassandraConfiguration.isSslEnabled() ) )
                     .setJars( sparkConfiguration.getJarLocations() );
         }
         return null;
-
     }
 
     @Bean
     public SparkSession sparkSession() {
         SparkConf sc = sparkConf();
+        if ( StringUtils.isNotBlank( CASSANDRA_CONNECTION_FACTORY_CLASS ) ) {
+            logger.info( "Cassandra connector factory class: {}", CASSANDRA_CONNECTION_FACTORY_CLASS );
+            sc.set( CASSANDRA_CONNECTION_FACTORY_PROPERTY, CASSANDRA_CONNECTION_FACTORY_CLASS );
+        }
         return sc == null ? null : SparkSession.builder().config( sc ).getOrCreate();
+    }
+
+    /**
+     * This is hack to allow bootstrapping cluster from cassandra configuration.
+     * 
+     * @return A cluster instance as described by the default CassandraConfiguration. Will return null if called before
+     *         spring invokes {@code SparkPod#sparkConf()}.
+     */
+    public static Supplier<Cluster> getCluster() {
+        return CLUSTER_FACTORY;
     }
 
 }
