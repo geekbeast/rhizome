@@ -64,7 +64,7 @@ public class AuthenticationTest {
             base64EncodedSecret );
 
     private static final Auth0                             auth0               = new Auth0(
-            "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8",
+            clientId,
             "loom.auth0.com" );
     private static final AuthenticationAPIClient           client              = auth0.newAuthenticationAPIClient();
 
@@ -73,6 +73,7 @@ public class AuthenticationTest {
                 .setConnection( "Tests" )
                 .setScope( "openid email nickname roles" );
         cache = Pair.of( request.execute(), client.getProfileAfter( request ).execute() );
+        logger.info( "Using the following idToken: Bearer {}" , cache.getRight().getCredentials().getIdToken() );
     }
 
     @Test

@@ -24,10 +24,7 @@ public class CookieReadingAuth0AuthenticationFilter extends Auth0AuthenticationF
         }
 
         final String authorizationHeader = httpRequest.getHeader( "authorization" );
-        if ( authorizationHeader == null ) {
-            // "Unauthorized: No Authorization header was found"
-            return null;
-        }
+
         final String[] parts = MoreObjects.firstNonNull( authorizationHeader, authorizationCookie ).split( " " );
         if ( parts.length != 2 ) {
             // "Unauthorized: Format is Authorization: Bearer [token]"
