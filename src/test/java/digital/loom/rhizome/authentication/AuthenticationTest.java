@@ -52,7 +52,7 @@ public class AuthenticationTest {
     // private static final String signingAlgorithm = "HS256";
     private static final boolean                           base64EncodedSecret = true;
     private static final Pair<Credentials, Authentication> cache;
-
+    private static final String                  token = "No token for you";
     public static final Auth0Configuration                 configuration       = new Auth0Configuration(
             domain,
             issuer,
@@ -61,7 +61,8 @@ public class AuthenticationTest {
             securedRoute,
             authorityStrategy,
             signingAlgorithm,
-            base64EncodedSecret );
+            base64EncodedSecret,
+            token );
 
     private static final Auth0                             auth0               = new Auth0(
             clientId,
