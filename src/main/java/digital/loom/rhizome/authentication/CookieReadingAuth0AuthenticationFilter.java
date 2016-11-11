@@ -23,9 +23,12 @@ public class CookieReadingAuth0AuthenticationFilter extends Auth0AuthenticationF
             }
         }
 
-        final String authorizationHeader = httpRequest.getHeader( "authorization" );
-
-        final String[] parts = MoreObjects.firstNonNull( authorizationHeader, authorizationCookie ).split( " " );
+        final String authorizationInfo = MoreObjects.firstNonNull( httpRequest.getHeader( "authorization" ), authorizationCookie ); 
+        if( authorizationInfo == null ) {
+            return null;
+        }
+        final String[] parts = authorizationInfo.split( " " );
+        
         if ( parts.length != 2 ) {
             // "Unauthorized: Format is Authorization: Bearer [token]"
             return null;
