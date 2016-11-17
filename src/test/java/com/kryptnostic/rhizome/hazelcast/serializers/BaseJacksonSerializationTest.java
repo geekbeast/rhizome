@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,8 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 public abstract class BaseJacksonSerializationTest<T> {
-    private static final ObjectMapper mapper = ObjectMapperRegistry.getJsonMapper();
-    private static final ObjectMapper smile  = ObjectMapperRegistry.getSmileMapper();
+    protected static final ObjectMapper mapper = ObjectMapperRegistry.getJsonMapper();
+    protected static final ObjectMapper smile  = ObjectMapperRegistry.getSmileMapper();
 
     @Test
     public void testSerdes() throws IOException {
@@ -40,6 +41,11 @@ public abstract class BaseJacksonSerializationTest<T> {
         return smile.readValue( result.getSmileBytes(), getClazz() );
     }
 
+    protected static void registerModule( Consumer<ObjectMapper> c ) {
+        c.accept( mapper );
+        c.accept( smile );
+    }
+    
     protected static class SerializationResult {
         private String jsonString;
         private byte[] jsonBytes;
