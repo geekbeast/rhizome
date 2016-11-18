@@ -24,23 +24,22 @@ import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
+import com.kryptnostic.rhizome.converters.PassthroughCallAdapterFactory;
 import com.kryptnostic.rhizome.converters.RhizomeConverter;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.squareup.okhttp.ResponseBody;
 
 import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
 import digital.loom.rhizome.authentication.Auth0TestPod;
 import digital.loom.rhizome.authentication.AuthenticationTest;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.RestAdapter.LogLevel;
-import retrofit.RetrofitError;
-import retrofit.client.Header;
-import retrofit.client.Response;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import retrofit2.Retrofit;
 
 public class RhizomeTests {
     private final static Logger      logger     = LoggerFactory.getLogger( RhizomeTests.class );
-    private static RestAdapter       adapter;
+    private static Retrofit          adapter;
     public static final byte[]       TEST_BYTES = RandomUtils.nextBytes( 4096 );
 
     private static Rhizome           rhizome    = null;
@@ -56,19 +55,14 @@ public class RhizomeTests {
                 RegistryBasedHazelcastInstanceConfigurationPod.class );
         rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
-        adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
-                .setRequestInterceptor(
-                        (RequestInterceptor) facade -> facade.addHeader( "Authorization", "Bearer "  + jwtToken ) )
-                .setConverter( new RhizomeConverter() )
-                .setErrorHandler( new DefaultErrorHandler() )
-                .setLogLevel( LogLevel.FULL )
-                .setLog( new RestAdapter.Log() {
-                    @Override
-                    public void log( String msg ) {
-                        logger.debug( msg.replaceAll( "%", "[percent]" ) );
-                    }
-                } )
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor( chain -> chain
+                        .proceed( chain.request().newBuilder().addHeader( "Authorization", "Bearer " + jwtToken )
+                                .build() ) )
                 .build();
+        adapter = new Retrofit.Builder().baseUrl( "http://localhost:8081/rhizome/api/" ).client( httpClient )
+                .addConverterFactory( new RhizomeConverter() )
+                .addCallAdapterFactory( new PassthroughCallAdapterFactory() ).build();
 
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
 
@@ -96,33 +90,25 @@ public class RhizomeTests {
         Response response = api.gzipTest();
 
         Assert.assertNotNull( response );
-        Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
-        try ( InputStream in = response.getBody().in() ) {
+        Assert.assertEquals( MediaType.TEXT_PLAIN, response.body().contentType().toString() );
+        try ( InputStream in = response.body().byteStream() ) {
             byte[] b = IOUtils.toByteArray( in );
             Assert.assertArrayEquals( TEST_BYTES, b );
         }
-        for ( Header header : response.getHeaders() ) {
-            if ( header.getName() == HttpHeaders.CONTENT_TYPE ) {
-                Assert.assertEquals( "gzip", header.getValue() );
-                break;
-            }
-        }
+        Assert.assertTrue( "Content type header must be present",
+                response.headers().names().contains( HttpHeaders.CONTENT_TYPE ) );
+        Assert.assertEquals( "gzip", response.headers().get( HttpHeaders.CONTENT_TYPE ) );
 
     }
 
     @Test
     public void teapotTest() throws IOException {
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
-        Response raw;
+        String raw;
 
-        try {
-            raw = api.teapot();
-        } catch ( RetrofitError e ) {
-            raw = e.getResponse();
-        }
-
-        Assert.assertEquals( HttpStatus.I_AM_A_TEAPOT.value(), raw.getStatus() );
-        Assert.assertEquals( IOUtils.toString( raw.getBody().in() ), "I AM A TEAPOT!" );
+        raw = api.teapot();
+//        Assert.assertEquals( HttpStatus.I_AM_A_TEAPOT.value(), raw.contentType(). );
+        Assert.assertEquals( "I AM A TEAPOT!" , raw  );
     }
 
     @Test

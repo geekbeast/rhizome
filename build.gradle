@@ -209,8 +209,10 @@ dependencies {
      */
      compile fileTree( dir: "lib/", include: "*.jar") 
      
-     compile "com.squareup.retrofit:retrofit:${retrofit_version}"
-     compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
+     //compile "com.squareup.retrofit:retrofit:${retrofit_version}"
+     //compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
+
+     compile 'com.squareup.retrofit2:retrofit:2.1.0'
 
     /*
      * WEBSOCKET DEPENDENCIES
