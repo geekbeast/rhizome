@@ -5,8 +5,6 @@ import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.PUT;
@@ -15,18 +13,19 @@ public interface SimpleControllerAPI {
     String CONTROLLER = "/";
 
     interface ENDPOINTS {
-        String GZIP_TEST                  = "rhizome/unsecured/gzip";
-        String CONTEXT_CONFIGURATION      = "rhizome/unsecured/context";
-        String JETTY_CONFIGURATION        = "rhizome/unsecured/jetty";
-        String TEST_CONFIGURATION         = "rhizome/unsecured/test";
-        String TEAPOT                     = "rhizome/unsecured/teapot";
-        String SECURED_ADMIN              = "rhizome/secured/admin";
-        String SECURED_USER               = "rhizome/secured/user";
-        String SECURED_TEST_CONFIGURATION = "rhizome/test";
+        String GZIP_TEST                  = "unsecured/gzip";
+        String CONTEXT_CONFIGURATION      = "unsecured/context";
+        String JETTY_CONFIGURATION        = "unsecured/jetty";
+        String TEST_CONFIGURATION         = "unsecured/test";
+        String TEAPOT                     = "unsecured/teapot";
+        String SECURED_ADMIN              = "secured/admin";
+        String SECURED_FOO                = "secured/foo";
+        String SECURED_USER               = "secured/user";
+        String SECURED_TEST_CONFIGURATION = "secured/test";
     }
 
     @GET( ENDPOINTS.GZIP_TEST )
-    Response gzipTest();
+    byte[] gzipTest();
 
     @GET( ENDPOINTS.CONTEXT_CONFIGURATION )
     ContextConfiguration getContextConfiguration();
@@ -39,6 +38,9 @@ public interface SimpleControllerAPI {
 
     @GET( ENDPOINTS.SECURED_ADMIN )
     TestConfiguration getTestConfigurationSecuredAdmin();
+    
+    @GET( ENDPOINTS.SECURED_FOO )
+    TestConfiguration getTestConfigurationSecuredFoo();
 
     @GET( ENDPOINTS.SECURED_USER )
     TestConfiguration getTestConfigurationSecuredUser();
@@ -48,5 +50,6 @@ public interface SimpleControllerAPI {
 
     @GET( ENDPOINTS.TEAPOT )
     String teapot();
+
 
 }

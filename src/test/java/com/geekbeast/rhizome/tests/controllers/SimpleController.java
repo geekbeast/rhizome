@@ -26,8 +26,6 @@ import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
-import okhttp3.Response;
-
 @Controller
 public class SimpleController implements SimpleControllerAPI {
     private static Logger        logger = LoggerFactory.getLogger( SimpleController.class );
@@ -83,13 +81,30 @@ public class SimpleController implements SimpleControllerAPI {
 
     @Override
     @RequestMapping(
-        value = ENDPOINTS.SECURED_ADMIN,
+        value = { ENDPOINTS.SECURED_ADMIN },
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration getTestConfigurationSecuredAdmin() {
         Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities();
-
+        logger.debug( "Granted authorities:  {}", authorities );
+        try {
+            return configurationService.getConfiguration( TestConfiguration.class );
+        } catch ( Exception e ) {
+            logger.error( "Failed to get test configuration.", e );
+            return null;
+        }
+    }
+    
+    @Override
+    @RequestMapping(
+        value = { ENDPOINTS.SECURED_FOO },
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON )
+    public @ResponseBody TestConfiguration getTestConfigurationSecuredFoo() {
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities();
+        logger.debug( "Granted authorities:  {}", authorities );
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
         } catch ( Exception e ) {
@@ -154,22 +169,20 @@ public class SimpleController implements SimpleControllerAPI {
 
     @RequestMapping(
         value = ENDPOINTS.TEAPOT,
-        method = RequestMethod.GET )
+        method = RequestMethod.GET,
+        produces = MediaType.TEXT_PLAIN )
     public ResponseEntity<String> teapot( HttpServletResponse response ) {
         teapot();
         return new ResponseEntity<>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
     }
 
     @Override
-    public Response gzipTest() {
-        return null;
-    }
-
     @RequestMapping(
         value = ENDPOINTS.GZIP_TEST,
         method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN )
-    public @ResponseBody byte[] gzipTestHandler() {
+        produces = MediaType.APPLICATION_OCTET_STREAM )
+    public @ResponseBody byte[] gzipTest() {
         return RhizomeTests.TEST_BYTES;
     }
+
 }
