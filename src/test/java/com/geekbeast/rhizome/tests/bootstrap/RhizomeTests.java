@@ -17,15 +17,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 
+import com.dataloom.client.LoomByteConverterFactory;
+import com.dataloom.client.LoomCallAdapterFactory;
+import com.dataloom.client.LoomJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
-import com.kryptnostic.rhizome.converters.ByteConverter;
-import com.kryptnostic.rhizome.converters.PassthroughCallAdapterFactory;
-import com.kryptnostic.rhizome.converters.RhizomeConverter;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 
@@ -85,9 +85,9 @@ public class RhizomeTests {
                                 .build() ) )
                 .build();
         adapter = new Retrofit.Builder().baseUrl( "http://localhost:8081/rhizome/api/" ).client( httpClient )
-                .addConverterFactory( new ByteConverter() )
-                .addConverterFactory( new RhizomeConverter() )
-                .addCallAdapterFactory( new PassthroughCallAdapterFactory() ).build();
+                .addConverterFactory( new LoomByteConverterFactory() )
+                .addConverterFactory( new LoomJacksonConverterFactory() )
+                .addCallAdapterFactory( new LoomCallAdapterFactory() ).build();
 
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
 
