@@ -209,8 +209,10 @@ dependencies {
      */
      compile fileTree( dir: "lib/", include: "*.jar") 
      
-     compile "com.squareup.retrofit:retrofit:${retrofit_version}"
-     compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
+     //compile "com.squareup.retrofit:retrofit:${retrofit_version}"
+     //compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
+
+     compile 'com.squareup.retrofit2:retrofit:2.1.0'
 
     /*
      * WEBSOCKET DEPENDENCIES
@@ -223,6 +225,11 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
+     if (project.hasProperty("developmentMode") && project.developmentMode) {
+       testCompile project(":loom-api")
+     } else{
+       testCompile "com.kryptnostic:loom-api:${loom_api_version}"
+     }
      testCompile 'com.auth0:auth0:0.4.0'
  }
 

@@ -1,13 +1,12 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -18,30 +17,29 @@ import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 
+import com.dataloom.client.LoomByteConverterFactory;
+import com.dataloom.client.LoomCallAdapterFactory;
+import com.dataloom.client.LoomJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
 import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
-import com.kryptnostic.rhizome.converters.RhizomeConverter;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 
 import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
 import digital.loom.rhizome.authentication.Auth0TestPod;
 import digital.loom.rhizome.authentication.AuthenticationTest;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.RestAdapter.LogLevel;
-import retrofit.RetrofitError;
-import retrofit.client.Header;
-import retrofit.client.Response;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import retrofit2.Retrofit;
 
 public class RhizomeTests {
     private final static Logger      logger     = LoggerFactory.getLogger( RhizomeTests.class );
-    private static RestAdapter       adapter;
-    public static final byte[]       TEST_BYTES = RandomUtils.nextBytes( 4096 );
+    private static Retrofit          adapter;
+    public static final byte[]       TEST_BYTES = RandomUtils.nextBytes( 1 << 12 );
 
     private static Rhizome           rhizome    = null;
     private static TestConfiguration expected   = null;
@@ -56,19 +54,40 @@ public class RhizomeTests {
                 RegistryBasedHazelcastInstanceConfigurationPod.class );
         rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
-        adapter = new RestAdapter.Builder().setEndpoint( "http://localhost:8081/rhizome/api" )
-                .setRequestInterceptor(
-                        (RequestInterceptor) facade -> facade.addHeader( "Authorization", "Bearer "  + jwtToken ) )
-                .setConverter( new RhizomeConverter() )
-                .setErrorHandler( new DefaultErrorHandler() )
-                .setLogLevel( LogLevel.FULL )
-                .setLog( new RestAdapter.Log() {
-                    @Override
-                    public void log( String msg ) {
-                        logger.debug( msg.replaceAll( "%", "[percent]" ) );
+        /*
+         * These interceptor are finicky and order dependent. Jetty doesn't do gzip unless content is long enough so
+         * only verify gzip is enabled if contentLength > 2K. Exact value is tough since it is post compression.
+         */
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor( chain -> {
+                    Response response = chain.proceed( chain.request() );// .newBuilder().addHeader(
+                                                                         // HttpHeaders.ACCEPT_ENCODING, "gzip, deflate"
+                                                                         // ).build() );
+                    int responseCode = response.code();
+                    if ( responseCode >= 200 && responseCode < 300 && response.body().contentLength() > 2048 ) {
+                        Assert.assertTrue( "Content encoding header must be present",
+                                response.headers().names().contains( HttpHeaders.CONTENT_ENCODING ) );
+                        Assert.assertEquals( "gzip", response.headers().get( HttpHeaders.CONTENT_ENCODING ) );
                     }
+                    return response;
                 } )
+                .addInterceptor( chain -> {
+                    Response response = chain.proceed( chain.request() );
+                    if ( response.code() == HttpStatus.I_AM_A_TEAPOT.value() ) {
+                        Assert.assertTrue( StringUtils.startsWith( response.body().contentType().toString(),
+                                MediaType.TEXT_PLAIN ) );
+                        return response.newBuilder().code( 200 ).build();
+                    }
+                    return response;
+                } )
+                .addInterceptor( chain -> chain
+                        .proceed( chain.request().newBuilder().addHeader( "Authorization", "Bearer " + jwtToken )
+                                .build() ) )
                 .build();
+        adapter = new Retrofit.Builder().baseUrl( "http://localhost:8081/rhizome/api/" ).client( httpClient )
+                .addConverterFactory( new LoomByteConverterFactory() )
+                .addConverterFactory( new LoomJacksonConverterFactory() )
+                .addCallAdapterFactory( new LoomCallAdapterFactory() ).build();
 
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
 
@@ -90,39 +109,19 @@ public class RhizomeTests {
     }
 
     @Test
-    public void testGzip() throws IOException {
+    public void testByteArray() throws IOException {
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
 
-        Response response = api.gzipTest();
+        byte[] response = api.gzipTest();
 
         Assert.assertNotNull( response );
-        Assert.assertEquals( MediaType.TEXT_PLAIN, response.getBody().mimeType() );
-        try ( InputStream in = response.getBody().in() ) {
-            byte[] b = IOUtils.toByteArray( in );
-            Assert.assertArrayEquals( TEST_BYTES, b );
-        }
-        for ( Header header : response.getHeaders() ) {
-            if ( header.getName() == HttpHeaders.CONTENT_TYPE ) {
-                Assert.assertEquals( "gzip", header.getValue() );
-                break;
-            }
-        }
-
+        Assert.assertArrayEquals( TEST_BYTES, response );
     }
 
     @Test
     public void teapotTest() throws IOException {
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
-        Response raw;
-
-        try {
-            raw = api.teapot();
-        } catch ( RetrofitError e ) {
-            raw = e.getResponse();
-        }
-
-        Assert.assertEquals( HttpStatus.I_AM_A_TEAPOT.value(), raw.getStatus() );
-        Assert.assertEquals( IOUtils.toString( raw.getBody().in() ), "I AM A TEAPOT!" );
+        Assert.assertEquals( "I AM A TEAPOT!", api.teapot() );
     }
 
     @Test
@@ -133,11 +132,17 @@ public class RhizomeTests {
         logger.info( "Jetty configuration: {}", mapper.writeValueAsString( api.getJettyConfiguration() ) );
     }
 
-    @Test(
-        expected = AccessDeniedException.class )
+    @Test
     public void testGetAdminEndpoint() {
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
         TestConfiguration actual = api.getTestConfigurationSecuredAdmin();
+    }
+
+    @Test
+    public void testGetFooEndpoint() {
+        SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
+        TestConfiguration actual = api.getTestConfigurationSecuredFoo();
+        Assert.assertNull( actual );
     }
 
     @Test

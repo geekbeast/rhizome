@@ -13,8 +13,8 @@ public class Auth0SecurityTestPod extends Auth0SecurityPod {
     protected void authorizeRequests( HttpSecurity http ) throws Exception {
         http.authorizeRequests()
                 .antMatchers( "/api/unsecured/**" ).authenticated()
-                .antMatchers( "/api/secured/admin").hasAnyRole( "admin","ADMIN" )
-                .antMatchers( "/api/secured/admin").hasAnyRole( "user","USER" )
-        ;
+                .antMatchers( "/api/secured/foo" ).hasAnyAuthority( "foo", "FOO" )
+                .antMatchers( "/api/secured/admin" ).hasAnyAuthority( "admin", "ADMIN" )
+                .antMatchers( "/api/secured/user" ).hasAnyAuthority( "user", "USER" );
     }
 }

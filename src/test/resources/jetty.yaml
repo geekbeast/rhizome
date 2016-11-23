@@ -36,3 +36,6 @@ keystore:
 truststore:
     path: security/rhizome.jks
     password: rhizome
+
+gzip: 
+    enabled: true

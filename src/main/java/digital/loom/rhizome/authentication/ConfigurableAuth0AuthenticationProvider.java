@@ -23,19 +23,19 @@ public class ConfigurableAuth0AuthenticationProvider extends Auth0Authentication
 
     @Override
     public Authentication authenticate( Authentication authentication ) throws AuthenticationException {
-        super.authenticate( authentication );
+        return super.authenticate( authentication );
         //TODO: Pretty sure we can skip below, now the we are correctly configuring scope options
         //Need to verify that front-end code is correctly passing roles before removing this.
-        final Auth0JWTToken tokenAuth = ( (Auth0JWTToken) authentication );
-        UserProfile profile = auth0Client.tokenInfo( tokenAuth.getJwt() ).execute();
-        @SuppressWarnings( "unchecked" )
-        Map<String, Object> decoded = (Map<String, Object>) tokenAuth.getDetails();
+//        final Auth0JWTToken tokenAuth = ( (Auth0JWTToken) authentication );
+//        UserProfile profile = auth0Client.tokenInfo( tokenAuth.getJwt() ).execute();
+//        @SuppressWarnings( "unchecked" )
+//        Map<String, Object> decoded = (Map<String, Object>) tokenAuth.getDetails();
         
-        decoded.putAll( profile.getAppMetadata() );
-        tokenAuth.setPrincipal( new Auth0UserDetails( decoded, getAuthorityStrategy() ) );
-        tokenAuth.setDetails( decoded );
+//        decoded.putAll( profile.getAppMetadata() );
+//        tokenAuth.setPrincipal( new Auth0UserDetails( decoded, getAuthorityStrategy() ) );
+//        tokenAuth.setDetails( decoded );
         
-        return authentication;
+//        return authentication;
     }
 
     @Override

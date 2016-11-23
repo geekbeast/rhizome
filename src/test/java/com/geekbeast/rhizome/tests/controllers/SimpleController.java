@@ -26,8 +26,6 @@ import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
-import retrofit.client.Response;
-
 @Controller
 public class SimpleController implements SimpleControllerAPI {
     private static Logger        logger = LoggerFactory.getLogger( SimpleController.class );
@@ -43,7 +41,7 @@ public class SimpleController implements SimpleControllerAPI {
      */
     @Override
     @RequestMapping(
-        value = GET.CONTEXT_CONFIGURATION,
+        value = ENDPOINTS.CONTEXT_CONFIGURATION,
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody ContextConfiguration getContextConfiguration() {
@@ -56,7 +54,7 @@ public class SimpleController implements SimpleControllerAPI {
      */
     @Override
     @RequestMapping(
-        value = GET.JETTY_CONFIGURATION,
+        value = ENDPOINTS.JETTY_CONFIGURATION,
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody JettyConfiguration getJettyConfiguration() {
@@ -69,7 +67,7 @@ public class SimpleController implements SimpleControllerAPI {
      */
     @Override
     @RequestMapping(
-        value = GET.TEST_CONFIGURATION,
+        value = ENDPOINTS.TEST_CONFIGURATION,
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration getTestConfiguration() {
@@ -80,15 +78,16 @@ public class SimpleController implements SimpleControllerAPI {
             return null;
         }
     }
-    
+
     @Override
     @RequestMapping(
-        value = GET.SECURED_ADMIN,
+        value = { ENDPOINTS.SECURED_ADMIN },
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration getTestConfigurationSecuredAdmin() {
-        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities();
+        logger.debug( "Granted authorities:  {}", authorities );
         try {
             return configurationService.getConfiguration( TestConfiguration.class );
         } catch ( Exception e ) {
@@ -99,7 +98,24 @@ public class SimpleController implements SimpleControllerAPI {
     
     @Override
     @RequestMapping(
-        value = GET.SECURED_USER,
+        value = { ENDPOINTS.SECURED_FOO },
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON )
+    public @ResponseBody TestConfiguration getTestConfigurationSecuredFoo() {
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities();
+        logger.debug( "Granted authorities:  {}", authorities );
+        try {
+            return configurationService.getConfiguration( TestConfiguration.class );
+        } catch ( Exception e ) {
+            logger.error( "Failed to get test configuration.", e );
+            return null;
+        }
+    }
+
+    @Override
+    @RequestMapping(
+        value = ENDPOINTS.SECURED_USER,
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration getTestConfigurationSecuredUser() {
@@ -119,21 +135,21 @@ public class SimpleController implements SimpleControllerAPI {
      */
     @Override
     @RequestMapping(
-        value = PUT.TEST_CONFIGURATION,
+        value = ENDPOINTS.SECURED_TEST_CONFIGURATION,
         method = RequestMethod.PUT,
         produces = MediaType.APPLICATION_JSON,
         consumes = MediaType.APPLICATION_JSON )
     public @ResponseBody TestConfiguration setTestConfiguration( @RequestBody TestConfiguration configuration ) {
-        if( configuration == null ) {
+        if ( configuration == null ) {
             return null;
         }
-        
+
         try {
             configurationService.setConfiguration( configuration );
         } catch ( IOException e ) {
             return null;
         }
-        
+
         try {
             return Preconditions.checkNotNull( configurationService.getConfiguration( TestConfiguration.class ) );
         } catch ( IOException e ) {
@@ -146,29 +162,27 @@ public class SimpleController implements SimpleControllerAPI {
      * @see com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI#teapot()
      */
     @Override
-    public Response teapot() {
+    public String teapot() {
         // Empty impl, not the cleanest, but its pretty rare to have httpstatus only api calls
         return null;
     }
 
     @RequestMapping(
-        value = GET.TEAPOT,
-        method = RequestMethod.GET )
+        value = ENDPOINTS.TEAPOT,
+        method = RequestMethod.GET,
+        produces = MediaType.TEXT_PLAIN )
     public ResponseEntity<String> teapot( HttpServletResponse response ) {
         teapot();
         return new ResponseEntity<>( "I AM A TEAPOT!", HttpStatus.I_AM_A_TEAPOT );
     }
 
     @Override
-    public Response gzipTest() {
-        return null;
-    }
-
     @RequestMapping(
-        value = GET.GZIP_TEST,
+        value = ENDPOINTS.GZIP_TEST,
         method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN )
-    public @ResponseBody byte[] gzipTestHandler() {
+        produces = MediaType.APPLICATION_OCTET_STREAM )
+    public @ResponseBody byte[] gzipTest() {
         return RhizomeTests.TEST_BYTES;
     }
+
 }

@@ -31,11 +31,11 @@ import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 public class JettyLoam implements Loam {
-    private static final Logger        logger = LoggerFactory.getLogger( JettyLoam.class );
-    protected final JettyConfiguration config;
-    private final Server               server;
+    private static final Logger                         logger = LoggerFactory.getLogger( JettyLoam.class );
+    protected final JettyConfiguration                  config;
+    private final Server                                server;
     protected final Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration;
-    
+
     protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
@@ -43,11 +43,12 @@ public class JettyLoam implements Loam {
     public JettyLoam( JettyConfiguration config ) throws IOException {
         this( config, Optional.absent() );
     }
-    
-    protected JettyLoam( JettyConfiguration config , Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration ) throws IOException {
+
+    protected JettyLoam( JettyConfiguration config, Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration )
+            throws IOException {
         this.config = config;
         this.maybeAmazonLaunchConfiguration = maybeAmazonLaunchConfiguration;
-        
+
         WebAppContext context = new WebAppContext();
         if ( config.getContextConfiguration().isPresent() ) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
@@ -88,6 +89,8 @@ public class JettyLoam implements Loam {
             HandlerList handlerList = new HandlerList();
             handlerList.setHandlers( new Handler[] { context, defaultHandler } );
             gzipHandler.addIncludedMimeTypes( gzipConfig.get().getGzipContentTypes().toArray( new String[ 0 ] ) );
+            gzipHandler.addIncludedMethods( gzipConfig.get().getGzipMethods().toArray( new String[ 0 ] ) );
+            gzipHandler.setMinGzipSize( 0 );
             gzipHandler.setHandler( handlerList );
             handler = gzipHandler;
         }

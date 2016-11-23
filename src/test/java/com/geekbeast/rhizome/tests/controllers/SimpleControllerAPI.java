@@ -1,51 +1,55 @@
-package com.geekbeast.rhizome.tests.controllers;
 
-import retrofit.client.Response;
-import retrofit.http.Body;
+package com.geekbeast.rhizome.tests.controllers;
 
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.PUT;
+
 public interface SimpleControllerAPI {
     String CONTROLLER = "/";
 
-    interface GET {
-        String GZIP_TEST             = "/unsecured/gzip";
-        String CONTEXT_CONFIGURATION = "/unsecured/context";
-        String JETTY_CONFIGURATION   = "/unsecured/jetty";
-        String TEST_CONFIGURATION    = "/unsecured/test";
-        String TEAPOT                = "/unsecured/teapot";
-        String SECURED_ADMIN         = "/secured/admin";
-        String SECURED_USER          = "/secured/user";
+    interface ENDPOINTS {
+        String GZIP_TEST                  = "unsecured/gzip";
+        String CONTEXT_CONFIGURATION      = "unsecured/context";
+        String JETTY_CONFIGURATION        = "unsecured/jetty";
+        String TEST_CONFIGURATION         = "unsecured/test";
+        String TEAPOT                     = "unsecured/teapot";
+        String SECURED_ADMIN              = "secured/admin";
+        String SECURED_FOO                = "secured/foo";
+        String SECURED_USER               = "secured/user";
+        String SECURED_TEST_CONFIGURATION = "secured/test";
     }
 
-    interface PUT {
-        String TEST_CONFIGURATION = "/test";
-    }
+    @GET( ENDPOINTS.GZIP_TEST )
+    byte[] gzipTest();
 
-    @retrofit.http.GET( GET.GZIP_TEST )
-    Response gzipTest();
-
-    @retrofit.http.GET( GET.CONTEXT_CONFIGURATION )
+    @GET( ENDPOINTS.CONTEXT_CONFIGURATION )
     ContextConfiguration getContextConfiguration();
 
-    @retrofit.http.GET( GET.JETTY_CONFIGURATION )
+    @GET( ENDPOINTS.JETTY_CONFIGURATION )
     JettyConfiguration getJettyConfiguration();
 
-    @retrofit.http.GET( GET.TEST_CONFIGURATION )
+    @GET( ENDPOINTS.TEST_CONFIGURATION )
     TestConfiguration getTestConfiguration();
 
-    @retrofit.http.GET( GET.SECURED_ADMIN )
+    @GET( ENDPOINTS.SECURED_ADMIN )
     TestConfiguration getTestConfigurationSecuredAdmin();
+    
+    @GET( ENDPOINTS.SECURED_FOO )
+    TestConfiguration getTestConfigurationSecuredFoo();
 
-    @retrofit.http.GET( GET.SECURED_USER )
+    @GET( ENDPOINTS.SECURED_USER )
     TestConfiguration getTestConfigurationSecuredUser();
 
-    @retrofit.http.PUT( PUT.TEST_CONFIGURATION )
+    @PUT( ENDPOINTS.SECURED_TEST_CONFIGURATION )
     TestConfiguration setTestConfiguration( @Body TestConfiguration configuration );
 
-    @retrofit.http.GET( GET.TEAPOT )
-    Response teapot();
+    @GET( ENDPOINTS.TEAPOT )
+    String teapot();
+
 
 }

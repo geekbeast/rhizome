@@ -5,9 +5,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.DataType;
+import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
+import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder.ValueColumn;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
@@ -16,7 +20,7 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  *
  *         This test requires a cassandra instance to be locally available in order to run thest.
  */
-@Ignore
+ @Ignore
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
@@ -60,5 +64,27 @@ public class BaseCassandraMapStoreTest {
         store.store( "blah", "humbugabcdef" );
         store.store( "blah2", "humbugabcdef" );
         Assert.assertEquals( ImmutableSet.of( "blah", "blah2" ), store.loadAllKeys() );
+    }
+
+    @Test
+    public void testSCMS() throws Exception {
+        Cluster clust = new Cluster.Builder()
+                .addContactPoints( config.getCassandraSeedNodes() )
+                .build();
+
+        TestableSelfRegisteringMapStore<String, TestConfiguration> store = new StructuredCassandraMapstoreImpl(
+                "test2",
+                clust.connect(),
+                ( k, bs ) -> bs.set( "uri", k, String.class ),
+                ( k, v, bs ) -> bs.set( "uri", k, String.class ).set( "required", v.getRequired(), String.class ),
+                row -> row.getString( "uri" ),
+                row -> new TestConfiguration( row.getString( "required" ), Optional.absent() ),
+                new CassandraTableBuilder( "sparks", "test2" ).ifNotExists()
+                        .partitionKey( new ValueColumn( "uri", DataType.text() ) )
+                        .columns( new ValueColumn( "required", DataType.text() ) ) );
+        TestConfiguration expected = store.generateTestValue();
+        String key = store.generateTestKey();
+        store.store( key, expected );
+        Assert.assertEquals( expected, store.load( key ) );
     }
 }
