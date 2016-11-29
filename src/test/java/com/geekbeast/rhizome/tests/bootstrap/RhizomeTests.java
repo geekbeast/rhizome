@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 
 import com.dataloom.client.LoomByteConverterFactory;
 import com.dataloom.client.LoomCallAdapterFactory;
@@ -60,9 +59,7 @@ public class RhizomeTests {
          */
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addInterceptor( chain -> {
-                    Response response = chain.proceed( chain.request() );// .newBuilder().addHeader(
-                                                                         // HttpHeaders.ACCEPT_ENCODING, "gzip, deflate"
-                                                                         // ).build() );
+                    Response response = chain.proceed( chain.request() );
                     int responseCode = response.code();
                     if ( responseCode >= 200 && responseCode < 300 && response.body().contentLength() > 2048 ) {
                         Assert.assertTrue( "Content encoding header must be present",
