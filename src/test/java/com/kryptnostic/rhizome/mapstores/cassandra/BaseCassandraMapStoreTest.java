@@ -19,6 +19,7 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  *
  *         This test requires a cassandra instance to be locally available in order to run thest.
  */
+@Ignore
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(

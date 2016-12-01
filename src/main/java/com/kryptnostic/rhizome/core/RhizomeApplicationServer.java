@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.core;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Pods;
 import com.kryptnostic.rhizome.pods.AsyncPod;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
@@ -14,12 +15,8 @@ public class RhizomeApplicationServer {
             RegistryBasedHazelcastInstanceConfigurationPod.class, HazelcastPod.class,
             AsyncPod.class, ConfigurationPod.class };
 
-    public RhizomeApplicationServer() {
-        this( defaultPods );
-    }
-
     public RhizomeApplicationServer( Class<?>... pods ) {
-        this.context.register( pods );
+        this.context.register( Pods.concatenate( defaultPods, pods ) );
     }
 
     public void intercrop( Class<?>... pods ) {
