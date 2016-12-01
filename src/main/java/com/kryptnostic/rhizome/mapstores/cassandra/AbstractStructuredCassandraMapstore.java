@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
@@ -17,48 +18,32 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.datastax.driver.core.exceptions.QueryValidationException;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.cassandra.BindingFunction;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
-import com.kryptnostic.rhizome.cassandra.KeyBindingFunction;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 public abstract class AbstractStructuredCassandraMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private static final Logger         logger = LoggerFactory
+    private static final Logger           logger = LoggerFactory
             .getLogger( AbstractStructuredCassandraMapstore.class );
-    private final Session               session;
-    private final String                mapName;
-    private final KeyBindingFunction<K> kf;
-    private final BindingFunction<K, V> vsf;
-    private final Function<Row, K>      krf;
-    private final Function<Row, V>      vf;
-
+    private final Session                 session;
+    private final String                  mapName;
     private final CassandraTableBuilder tableBuilder;
-    private final PreparedStatement     LOAD_ALL_QUERY;
-    private final PreparedStatement     LOAD_QUERY;
-    private final PreparedStatement     STORE_QUERY;
-    private final PreparedStatement     DELETE_QUERY;
+    private final PreparedStatement       LOAD_ALL_QUERY;
+    private final PreparedStatement       LOAD_QUERY;
+    private final PreparedStatement       STORE_QUERY;
+    private final PreparedStatement       DELETE_QUERY;
 
     public AbstractStructuredCassandraMapstore(
             String mapName,
             Session session,
-            KeyBindingFunction<K> kf,
-            BindingFunction<K, V> vsf,
-            Function<Row, K> krf,
-            Function<Row, V> vf,
             CassandraTableBuilder tableBuilder ) {
         Preconditions.checkArgument( StringUtils.isNotBlank( mapName ), "Map name cannot be blank" );
         this.mapName = mapName;
         this.session = Preconditions.checkNotNull( session, "Cassandra session cannot be null" );
         this.tableBuilder = Preconditions.checkNotNull( tableBuilder, "Table builder is required" );
-        this.vsf = Preconditions.checkNotNull( vsf, "Binding function for storage required." );
-        this.kf = Preconditions.checkNotNull( kf, "Key binding fuction for reading and deletes required" );
-        this.vf = Preconditions.checkNotNull( vf, "Value transforming function required." );
-        this.krf = Preconditions.checkNotNull( krf, "Key reading fuction for loading all keys required" );
         createCassandraSchemaIfNotExist( session, tableBuilder );
         LOAD_ALL_QUERY = prepareLoadAllQuery();
         LOAD_QUERY = prepareLoadQuery();
@@ -93,7 +78,7 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
     @Override
     public Iterable<K> loadAllKeys() {
         Iterable<Row> rs = session.execute( getLoadAllKeysQuery().bind() );
-        return Iterables.transform( rs, krf );
+        return Iterables.transform( rs, this::mapKey );
     }
 
     @Override
@@ -118,7 +103,7 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
 
     protected ResultSetFuture asyncLoad( K key ) {
         try {
-            return session.executeAsync( kf.bind( key, getLoadQuery().bind() ) );
+            return session.executeAsync( bind( key, getLoadQuery().bind() ) );
         } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
             logger.error( "Unable to perform query to load key {}", key, e );
             return null;
@@ -127,12 +112,12 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
 
     protected V safeTransform( ResultSetFuture rsf ) {
         Row row = rsf.getUninterruptibly().one();
-        return row == null ? null : vf.apply( row );
+        return row == null ? null : mapValue( row );
     }
 
     protected ResultSetFuture asyncStore( K key, V value ) {
         try {
-            return session.executeAsync( vsf.bind( key, value, getStoreQuery().bind() ) );
+            return session.executeAsync( bind( key, value, getStoreQuery().bind() ) );
         } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
             logger.error( "Unable to perform query to store key {}", key, e );
             return null;
@@ -141,7 +126,7 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
 
     protected ResultSetFuture asyncDelete( K key ) {
         try {
-            return session.executeAsync( kf.bind( key, getDeleteQuery().bind() ) );
+            return session.executeAsync( bind( key, getDeleteQuery().bind() ) );
         } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
             logger.error( "Unable to perform query to delete key {}", key, e );
             return null;
@@ -205,6 +190,14 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
     public String getTable() {
         return tableBuilder.getName();
     }
+
+    protected abstract BoundStatement bind( K key, BoundStatement bs );
+
+    protected abstract BoundStatement bind( K key, V value, BoundStatement bs );
+
+    protected abstract K mapKey( Row row );
+
+    protected abstract V mapValue( Row row );
 
     @Override
     public abstract K generateTestKey();

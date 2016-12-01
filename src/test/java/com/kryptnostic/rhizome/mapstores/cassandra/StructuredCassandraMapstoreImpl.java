@@ -2,26 +2,20 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.kryptnostic.rhizome.cassandra.BindingFunction;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
-import com.kryptnostic.rhizome.cassandra.KeyBindingFunction;
 
-public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandraMapstore<String, TestConfiguration>{
+public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandraMapstore<String, TestConfiguration> {
 
     public StructuredCassandraMapstoreImpl(
             String mapName,
             Session session,
-            KeyBindingFunction<String> kf,
-            BindingFunction<String, TestConfiguration> vsf,
-            Function<Row, String> krf,
-            Function<Row, TestConfiguration> vf,
             CassandraTableBuilder tableBuilder ) {
-        super( mapName, session, kf, vsf, krf, vf, tableBuilder );
+        super( mapName, session, tableBuilder );
     }
 
     @Override
@@ -34,6 +28,26 @@ public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandra
         return new TestConfiguration(
                 RandomStringUtils.random( 10 ),
                 Optional.<String> absent() );
+    }
+
+    @Override
+    protected BoundStatement bind( String key, BoundStatement bs ) {
+        return bs.set( "uri", key, String.class );
+    }
+
+    @Override
+    protected BoundStatement bind( String key, TestConfiguration value, BoundStatement bs ) {
+        return bs.set( "uri", key, String.class ).set( "required", value.getRequired(), String.class );
+    }
+
+    @Override
+    protected String mapKey( Row row ) {
+        return row.getString( "uri" );
+    }
+
+    @Override
+    protected TestConfiguration mapValue( Row row ) {
+        return new TestConfiguration( row.getString( "required" ), Optional.absent() );
     }
 
 }

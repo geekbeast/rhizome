@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -20,7 +19,6 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  *
  *         This test requires a cassandra instance to be locally available in order to run thest.
  */
- @Ignore
 public class BaseCassandraMapStoreTest {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
@@ -75,13 +73,9 @@ public class BaseCassandraMapStoreTest {
         TestableSelfRegisteringMapStore<String, TestConfiguration> store = new StructuredCassandraMapstoreImpl(
                 "test2",
                 clust.connect(),
-                ( k, bs ) -> bs.set( "uri", k, String.class ),
-                ( k, v, bs ) -> bs.set( "uri", k, String.class ).set( "required", v.getRequired(), String.class ),
-                row -> row.getString( "uri" ),
-                row -> new TestConfiguration( row.getString( "required" ), Optional.absent() ),
                 new CassandraTableBuilder( "sparks", "test2" ).ifNotExists()
                         .partitionKey( new ValueColumn( "uri", DataType.text() ) )
-                        .columns( new ValueColumn( "required", DataType.text() ) ) );
+                        .columns( new ValueColumn( "required", DataType.cboolean() ) ) );
         TestConfiguration expected = store.generateTestValue();
         String key = store.generateTestKey();
         store.store( key, expected );

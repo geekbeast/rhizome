@@ -2,15 +2,11 @@ package com.kryptnostic.rhizome.cassandra;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.BindMarker;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.Insert;
@@ -21,8 +17,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * This class is not thread safe.
@@ -179,24 +173,11 @@ public class CassandraTableBuilder {
     }
 
     public Where buildLoadQuery() {
-//        return QueryBuilder.select().all().from( "sparks", "test2" )
-//                .where( QueryBuilder.eq( "uri", QueryBuilder.bindMarker() ) )
-//                .and( QueryBuilder.eq( "required", QueryBuilder.bindMarker() ) );
         Where w = buildLoadAllQuery().where();
-        for ( String col : primaryKeyColumns() ) {
-            w = w.and( QueryBuilder.eq( col, QueryBuilder.bindMarker() ) );
+        for ( ColumnDef col : primaryKeyColumns() ) {
+            w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
-        // List<String> cols = ImmutableList.copyOf( primaryKeyColumns() );
-        // BindMarker[] markers = new BindMarker[ cols.size() ];
-        //
-        // for ( int i = 0; i < markers.length; ++i ) {
-        // markers[ i ] = QueryBuilder.bindMarker();
-        // }
-        //
-        // List<BindMarker> bindMarkers = Arrays.asList( markers );
-
-        // return buildLoadAllQuery().where( QueryBuilder.eq( cols, bindMarkers ) );
     }
 
     public Insert buildStoreQuery() {
@@ -229,20 +210,10 @@ public class CassandraTableBuilder {
         }
 
         com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
-        for ( String col : primaryKeyColumns() ) {
-            w = w.and( QueryBuilder.eq( col, QueryBuilder.bindMarker() ) );
+        for ( ColumnDef col : primaryKeyColumns() ) {
+            w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
-//        List<String> cols = ImmutableList.copyOf( primaryKeyColumns() );
-//        BindMarker[] markers = new BindMarker[ cols.size() ];
-//
-//        for ( int i = 0; i < markers.length; ++i ) {
-//            markers[ i ] = QueryBuilder.bindMarker();
-//        }
-//
-//        List<BindMarker> bindMarkers = Arrays.asList( markers );
-//
-//        return del.where( QueryBuilder.eq( cols, bindMarkers ) );
     }
 
     public String getName() {
@@ -253,36 +224,14 @@ public class CassandraTableBuilder {
         return this.replicationFactor;
     }
 
-    private Iterable<String> primaryKeyColumns() {
-        return Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
-                Arrays.asList( this.clustering ) ), colDef -> colDef.cql() );
+    private Iterable<ColumnDef> primaryKeyColumns() {
+        return Iterables.concat( Arrays.asList( this.partition ), Arrays.asList( this.clustering ) );
     }
 
     private Iterable<String> allColumns() {
         return Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
                 Arrays.asList( this.clustering ),
                 Arrays.asList( this.columns ) ), colDef -> colDef.cql() );
-    }
-
-    private String[] allColumnsArray() {
-        return Iterables.toArray( allColumns(), String.class );
-    }
-
-    private Map<ColumnDef, String> generateBindMarkers() {
-        final Iterable<ColumnDef> combined = Iterables.concat( Arrays.asList( this.partition ),
-                Arrays.asList( this.clustering ),
-                Arrays.asList( this.columns ) );
-        final Set<String> bindMarkers = Sets
-                .newHashSetWithExpectedSize( this.partition.length + this.clustering.length + this.columns.length );
-        return Maps.toMap( combined, col -> getUnusedBindMarker( bindMarkers ) );
-    }
-
-    private static String getUnusedBindMarker( Set<String> usedBindMarkers ) {
-        String newMarker = RandomStringUtils.randomAlphabetic( 8 );
-        while ( !usedBindMarkers.add( newMarker ) ) {
-            newMarker = RandomStringUtils.randomAlphabetic( 8 );
-        }
-        return newMarker;
     }
 
     private static String getPrimaryKeyDef( ColumnDef[] columns ) {
