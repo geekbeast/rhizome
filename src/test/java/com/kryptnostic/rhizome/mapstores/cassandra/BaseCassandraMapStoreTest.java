@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
