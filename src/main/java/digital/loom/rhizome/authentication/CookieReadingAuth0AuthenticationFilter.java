@@ -1,9 +1,13 @@
 package digital.loom.rhizome.authentication;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.codec.Charsets;
 
 import com.auth0.jwt.internal.org.apache.commons.lang3.StringUtils;
 import com.auth0.spring.security.api.Auth0AuthenticationFilter;
@@ -17,7 +21,11 @@ public class CookieReadingAuth0AuthenticationFilter extends Auth0AuthenticationF
         if ( cookies != null ) {
             for ( Cookie cookie : httpRequest.getCookies() ) {
                 if ( StringUtils.equals( cookie.getName(), "authorization" ) ) {
-                    authorizationCookie = cookie.getValue();
+                    try {
+                        authorizationCookie = URLDecoder.decode( cookie.getValue() ,Charsets.UTF_8.name() );
+                    } catch ( UnsupportedEncodingException e ) {
+                        logger.error( "Unable to decode authorization cookie. " );
+                    }
                     break;
                 }
             }
