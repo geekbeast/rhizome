@@ -13,17 +13,36 @@ import com.kryptnostic.rhizome.hazelcast.objects.UUIDSet;
 
 public class SetStreamSerializers {
 
-    public static <T> void serialize( ObjectDataOutput out, Set<T> elements, IoPerformingConsumer<T> c ) throws IOException {
+    public static <T> void serialize( ObjectDataOutput out, Set<T> elements, IoPerformingConsumer<T> c )
+            throws IOException {
         out.writeInt( elements.size() );
-        for( T elem :  elements ) {
+        for ( T elem : elements ) {
             c.accept( elem );
         }
     }
 
-    public static <T> void serialize( ObjectDataOutput out, Iterable<T> elements, IoPerformingConsumer<T> c ) throws IOException {
-        //Iterables correctly does collections efficiently.
+    /**
+     * This method is useful for re-using static serialization helpers to write out set elements.
+     * @param out
+     * @param elements
+     * @param c
+     * @throws IOException
+     */
+    public static <T> void serialize(
+            ObjectDataOutput out,
+            Set<T> elements,
+            IoPerformingBiConsumer<ObjectDataOutput, T> c ) throws IOException {
+        out.writeInt( elements.size() );
+        for ( T elem : elements ) {
+            c.accept( out, elem );
+        }
+    }
+
+    public static <T> void serialize( ObjectDataOutput out, Iterable<T> elements, IoPerformingConsumer<T> c )
+            throws IOException {
+        // Iterables correctly does collections efficiently.
         out.writeInt( Iterables.size( elements ) );
-        for( T elem :  elements ) {
+        for ( T elem : elements ) {
             c.accept( elem );
         }
     }
@@ -63,7 +82,8 @@ public class SetStreamSerializers {
         return set;
     }
 
-    public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f ) throws IOException {
+    public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f )
+            throws IOException {
         int size = in.readInt();
         return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
     }
@@ -73,7 +93,7 @@ public class SetStreamSerializers {
             Set<T> set,
             int size,
             IoPerformingFunction<ObjectDataInput, T> f )
-                    throws IOException {
+            throws IOException {
         for ( int i = 0; i < size; ++i ) {
             T elem = f.apply( in );
             if ( elem != null ) {
@@ -86,7 +106,7 @@ public class SetStreamSerializers {
     public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
         int size = Iterables.size( object );
         out.writeInt( size );
-        for( String item : object ) {
+        for ( String item : object ) {
             out.writeUTF( item );
         }
     }
@@ -94,7 +114,7 @@ public class SetStreamSerializers {
     public static Set<String> fastStringSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
         Set<String> items = Sets.newHashSetWithExpectedSize( size );
-        for( int i = 0; i < size; i++ ){
+        for ( int i = 0; i < size; i++ ) {
             items.add( in.readUTF() );
         }
         return items;
