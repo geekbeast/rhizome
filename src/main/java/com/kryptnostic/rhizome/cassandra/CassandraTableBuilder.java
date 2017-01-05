@@ -57,6 +57,8 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   partition         = null;
     private ColumnDef[]                   clustering        = new ColumnDef[] {};
     private ColumnDef[]                   columns           = new ColumnDef[] {};
+    private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
+    private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
     private int                           replicationFactor = 2;
 
@@ -95,6 +97,19 @@ public class CassandraTableBuilder {
     public CassandraTableBuilder columns( ColumnDef... columns ) {
         this.columns = Preconditions.checkNotNull( columns );
         Arrays.asList( columns ).forEach( Preconditions::checkNotNull );
+        return this;
+    }
+
+    public CassandraTableBuilder secondaryIndex( ColumnDef... columns ) {
+        this.secondaryIndices = Preconditions.checkNotNull( columns );
+        return this;
+    }
+
+    public CassandraTableBuilder sasi( ColumnDef... columns ) {
+        if ( Iterables.any( Arrays.asList( columns ), col -> col.getType().isCollection() ) ) {
+            throw new IllegalArgumentException( "Cannot create sasi index on collection columns" );
+        }
+        this.sasi = columns;
         return this;
     }
 

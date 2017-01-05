@@ -8,8 +8,8 @@ import com.hazelcast.map.EntryProcessor;
 
 public abstract class AbstractRhizomeEntryProcessor<K, V, R>
         implements EntryProcessor<K, V>, EntryBackupProcessor<K, V> {
-    private static final long                serialVersionUID = 5060655249179605949L;
-    private final boolean applyOnBackup;
+    private static final long serialVersionUID = 5060655249179605949L;
+    private final boolean     applyOnBackup;
 
     /**
      * Creates an EntryProcessor that applies the {@link #process(java.util.Map.Entry)} to primary and backups.
@@ -27,10 +27,10 @@ public abstract class AbstractRhizomeEntryProcessor<K, V, R>
 
     @Override
     public final EntryBackupProcessor<K, V> getBackupProcessor() {
-        if (!applyOnBackup){
-            return null;
+        if ( applyOnBackup ) {
+            return this;
         }
-        return this;
+        return null;
     }
 
     @Override
