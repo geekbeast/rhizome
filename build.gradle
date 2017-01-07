@@ -149,6 +149,7 @@ dependencies {
      }
 
     compile "org.hibernate:hibernate-validator:${hibernate_version}"
+
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
      * Transparent http clustering, distributed java.util collections
