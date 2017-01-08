@@ -184,12 +184,6 @@ dependencies {
      //compile "javax.mail:mail:1.5.6"
      compile "org.jodd:jodd-mail:3.7.1"
 
-     /*
-      * RethinkDB
-      */
-     //TODO: Replace with official version
-     compile "com.dkhenry:rethinkjava:0.9"
-
      /**
       * Cassandra
       */
@@ -226,11 +220,13 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
-     if (project.hasProperty("developmentMode") && project.developmentMode) {
-       testCompile project(":loom-api")
-     } else{
-       testCompile "com.kryptnostic:loom-api:${loom_api_version}"
-     }
+     /*
+      * TODO: The rest we depend on Loom API via Jar dependency is to avoid circular classpath problems in Eclipse.
+      * Some day we'll either create a separate project or make a rhizome-client library based off retrofit
+      * that loom-api and rhizome server tests can both depend on.
+      */ 
+     testCompile "com.kryptnostic:loom-api:${loom_api_version}"
+
      testCompile 'com.auth0:auth0:0.4.0'
  }
 
