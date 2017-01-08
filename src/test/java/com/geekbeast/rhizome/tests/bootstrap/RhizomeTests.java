@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
 
-import com.dataloom.client.LoomByteConverterFactory;
-import com.dataloom.client.LoomCallAdapterFactory;
-import com.dataloom.client.LoomJacksonConverterFactory;
+import com.dataloom.retrofit.LoomByteConverterFactory;
+import com.dataloom.retrofit.LoomCallAdapterFactory;
+import com.dataloom.retrofit.LoomJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;

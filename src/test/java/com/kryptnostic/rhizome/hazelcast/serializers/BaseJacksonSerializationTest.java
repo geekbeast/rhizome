@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.dataloom.mappers.ObjectMapperRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 public abstract class BaseJacksonSerializationTest<T> {
     protected static final ObjectMapper mapper = ObjectMapperRegistry.getJsonMapper();

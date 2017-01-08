@@ -226,10 +226,10 @@ dependencies {
      
    if( project.hasProperty('developmentMode') && project.developmentMode ) {
         logger.quiet(project.name + " using project dependencies.")     
-        testCompile project(":rhizome-client")
+        compile project(":rhizome-client")
     } else {
         logger.quiet(project.name + " using jar dependencies.")
-        testCompile "com.kryptnostic:rhizome-client:${rhizome_client_version}"
+        compile "com.kryptnostic:rhizome-client:${rhizome_client_version}"
     }
      testCompile 'com.auth0:auth0:0.4.0'
  }
