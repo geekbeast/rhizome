@@ -223,8 +223,14 @@ dependencies {
       * Some day we'll either create a separate project or make a rhizome-client library based off retrofit
       * that loom-api and rhizome server tests can both depend on.
       */ 
-     testCompile "com.kryptnostic:loom-api:${loom_api_version}"
-
+     
+   if( project.hasProperty('developmentMode') && project.developmentMode ) {
+        logger.quiet(project.name + " using project dependencies.")     
+        compile project(":rhizome-client")
+    } else {
+        logger.quiet(project.name + " using jar dependencies.")
+        compile "com.kryptnostic:rhizome-client:${rhizome_client_version}"
+    }
      testCompile 'com.auth0:auth0:0.4.0'
  }
 

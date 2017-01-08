@@ -6,12 +6,12 @@ import java.util.function.Consumer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.dataloom.mappers.ObjectMappers;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 public abstract class BaseJacksonSerializationTest<T> {
-    protected static final ObjectMapper mapper = ObjectMapperRegistry.getJsonMapper();
-    protected static final ObjectMapper smile  = ObjectMapperRegistry.getSmileMapper();
+    protected static final ObjectMapper mapper = ObjectMappers.getJsonMapper();
+    protected static final ObjectMapper smile  = ObjectMappers.getSmileMapper();
 
     @Test
     public void testSerdes() throws IOException {

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.auth0.jwt.internal.org.apache.commons.io.IOUtils;
+import com.dataloom.mappers.ObjectMappers;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -21,7 +22,6 @@ import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
-import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 /**
  * Configuration service API for getting, setting, and registering for configuration updates.
@@ -61,7 +61,7 @@ public interface ConfigurationService {
 
     public final static class StaticLoader {
         private static final Logger       logger = LoggerFactory.getLogger( StaticLoader.class );
-        private static final ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
+        private static final ObjectMapper mapper = ObjectMappers.getYamlMapper();
 
         private StaticLoader() {}
 

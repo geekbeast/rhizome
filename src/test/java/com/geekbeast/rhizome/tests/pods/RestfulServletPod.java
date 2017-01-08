@@ -10,7 +10,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
-import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
+import com.dataloom.mappers.ObjectMappers;
 
 @Configuration
 @ComponentScan(
@@ -26,7 +26,7 @@ public class RestfulServletPod extends WebMvcConfigurationSupport {
         for ( HttpMessageConverter<?> converter : converters ) {
             if ( converter instanceof MappingJackson2HttpMessageConverter ) {
                 ( (MappingJackson2HttpMessageConverter) converter )
-                        .setObjectMapper( ObjectMapperRegistry.getJsonMapper() );
+                        .setObjectMapper( ObjectMappers.getJsonMapper() );
             }
         }
     }

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dataloom.mappers.ObjectMappers;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.Module;
@@ -15,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AsyncEventBus;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
-import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
 
 /**
  * Abstract class for loading YAML format configuration classes that handles low level resource reading, validation, and
@@ -25,7 +25,7 @@ import com.kryptnostic.rhizome.registries.ObjectMapperRegistry;
  */
 // TODO: Add hibernate validation
 public abstract class AbstractYamlConfigurationService implements ConfigurationService {
-    protected ObjectMapper        mapper = ObjectMapperRegistry.getYamlMapper();
+    protected ObjectMapper        mapper = ObjectMappers.getYamlMapper();
 
     protected final Logger        logger = LoggerFactory.getLogger( getClass() );
     protected final AsyncEventBus configurationEvents;

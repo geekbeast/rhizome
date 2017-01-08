@@ -17,7 +17,7 @@ context:
 
 web-endpoint:
     http-port: 8081
-    https-port: 8443
+    https-port: 8444
     use-ssl: true
     require-ssl: false
     require-client-auth: false
