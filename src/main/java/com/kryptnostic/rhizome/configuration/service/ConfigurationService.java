@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.auth0.jwt.internal.org.apache.commons.io.IOUtils;
-import com.dataloom.mappers.ObjectMapperRegistry;
+import com.dataloom.mappers.ObjectMappers;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -61,7 +61,7 @@ public interface ConfigurationService {
 
     public final static class StaticLoader {
         private static final Logger       logger = LoggerFactory.getLogger( StaticLoader.class );
-        private static final ObjectMapper mapper = ObjectMapperRegistry.getYamlMapper();
+        private static final ObjectMapper mapper = ObjectMappers.getYamlMapper();
 
         private StaticLoader() {}
 
