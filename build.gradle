@@ -1,5 +1,5 @@
 plugins {
-    id 'org.inferred.processors' version '1.1'
+    id 'net.ltgt.apt' version "0.9"
     id 'maven-publish'
     id 'application'
     id 'java'
@@ -11,7 +11,6 @@ plugins {
 
 description = "Java Framework for building clustered RESTful web applications"
 group = "com.kryptnostic"
-
 
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
 apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
@@ -39,8 +38,7 @@ dependencies {
     /*
      * Immutables library for immutable objects
      */
-    // processor comes from org.inferred.processors, https://github.com/palantir/gradle-processors
-    processor "org.immutables:value:${immutables_version}"
+    apt "org.immutables:value:${immutables_version}"
 
     /*
      * Servlet API 3.1 
