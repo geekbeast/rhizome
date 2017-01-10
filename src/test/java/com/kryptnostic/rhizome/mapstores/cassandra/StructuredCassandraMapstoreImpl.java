@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.mapstores.cassandra;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
@@ -46,8 +47,9 @@ public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandra
     }
 
     @Override
-    protected TestConfiguration mapValue( Row row ) {
-        return new TestConfiguration( row.getString( "required" ), Optional.absent() );
+    protected TestConfiguration mapValue( ResultSet rs ) {
+        Row row = rs.one();
+        return row == null ? null : new TestConfiguration( row.getString( "required" ), Optional.absent() );
     }
 
 }

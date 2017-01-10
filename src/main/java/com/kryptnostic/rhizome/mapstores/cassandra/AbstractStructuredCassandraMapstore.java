@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.RegularStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -26,15 +28,15 @@ import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 
 public abstract class AbstractStructuredCassandraMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private static final Logger           logger = LoggerFactory
+    private static final Logger         logger = LoggerFactory
             .getLogger( AbstractStructuredCassandraMapstore.class );
-    private final Session                 session;
-    private final String                  mapName;
+    private final Session               session;
+    private final String                mapName;
     private final CassandraTableBuilder tableBuilder;
-    private final PreparedStatement       LOAD_ALL_QUERY;
-    private final PreparedStatement       LOAD_QUERY;
-    private final PreparedStatement       STORE_QUERY;
-    private final PreparedStatement       DELETE_QUERY;
+    private final PreparedStatement     allKeysQuery;
+    private final PreparedStatement     loadQuery;
+    private final PreparedStatement     storeQuery;
+    private final PreparedStatement     deleteQuery;
 
     public AbstractStructuredCassandraMapstore(
             String mapName,
@@ -45,10 +47,10 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
         this.session = Preconditions.checkNotNull( session, "Cassandra session cannot be null" );
         this.tableBuilder = Preconditions.checkNotNull( tableBuilder, "Table builder is required" );
         createCassandraSchemaIfNotExist( session, tableBuilder );
-        LOAD_ALL_QUERY = prepareLoadAllQuery();
-        LOAD_QUERY = prepareLoadQuery();
-        STORE_QUERY = prepareStoreQuery();
-        DELETE_QUERY = prepareDeleteQuery();
+        allKeysQuery = prepareLoadAllKeysQuery();
+        loadQuery = prepareLoadQuery();
+        storeQuery = prepareStoreQuery();
+        deleteQuery = prepareDeleteQuery();
     }
 
     private void createCassandraSchemaIfNotExist(
@@ -59,7 +61,7 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
                         "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true",
                         tableBuilder.getKeyspace().or( "sparks" ),
                         tableBuilder.getReplicationFactor() ) );
-        session.execute( tableBuilder.buildQuery() );
+        session.execute( tableBuilder.buildCreateTableQuery() );
     }
 
     @Override
@@ -77,7 +79,10 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
 
     @Override
     public Iterable<K> loadAllKeys() {
-        Iterable<Row> rs = session.execute( getLoadAllKeysQuery().bind() );
+        /*
+         * One limitation of this is that if key stream isn't unique then values may get loaded into the map multiple times.
+         */
+        ResultSet rs = session.execute( getLoadAllKeysQuery().bind() );
         return Iterables.transform( rs, this::mapKey );
     }
 
@@ -111,8 +116,8 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
     }
 
     protected V safeTransform( ResultSetFuture rsf ) {
-        Row row = rsf.getUninterruptibly().one();
-        return row == null ? null : mapValue( row );
+        ResultSet rs = rsf.getUninterruptibly();
+        return rs == null ? null : mapValue( rs );
     }
 
     protected ResultSetFuture asyncStore( K key, V value ) {
@@ -137,36 +142,52 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
         return asyncStore( entry.getKey(), entry.getValue() );
     }
 
-    protected PreparedStatement prepareLoadAllQuery() {
-        return session.prepare( tableBuilder.buildLoadAllQuery() );
+    protected RegularStatement loadAllKeyQuery() {
+        return tableBuilder.buildLoadAllPrimaryKeysQuery();
+    }
+
+    protected PreparedStatement prepareLoadAllKeysQuery() {
+        return session.prepare( loadAllKeyQuery() );
+    }
+
+    protected RegularStatement loadQuery() {
+        return tableBuilder.buildLoadQuery();
     }
 
     protected PreparedStatement prepareLoadQuery() {
-        return session.prepare( tableBuilder.buildLoadQuery() );
+        return session.prepare( loadQuery() );
+    }
+
+    protected RegularStatement storeQuery() {
+        return tableBuilder.buildStoreQuery();
     }
 
     protected PreparedStatement prepareStoreQuery() {
-        return session.prepare( tableBuilder.buildStoreQuery() );
+        return session.prepare( storeQuery() );
+    }
+
+    protected RegularStatement deleteQuery() {
+        return tableBuilder.buildDeleteQuery();
     }
 
     protected PreparedStatement prepareDeleteQuery() {
-        return session.prepare( tableBuilder.buildDeleteQuery() );
+        return session.prepare( deleteQuery() );
     }
 
     protected PreparedStatement getLoadAllKeysQuery() {
-        return LOAD_ALL_QUERY;
+        return allKeysQuery;
     }
 
     protected PreparedStatement getLoadQuery() {
-        return LOAD_QUERY;
+        return loadQuery;
     }
 
     protected PreparedStatement getStoreQuery() {
-        return STORE_QUERY;
+        return storeQuery;
     }
 
     protected PreparedStatement getDeleteQuery() {
-        return DELETE_QUERY;
+        return deleteQuery;
     }
 
     @Override
@@ -195,14 +216,8 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
 
     protected abstract BoundStatement bind( K key, V value, BoundStatement bs );
 
-    protected abstract K mapKey( Row row );
+    protected abstract K mapKey( Row rs );
 
-    protected abstract V mapValue( Row row );
-
-    @Override
-    public abstract K generateTestKey();
-
-    @Override
-    public abstract V generateTestValue() throws Exception;
+    protected abstract V mapValue( ResultSet rs );
 
 }

@@ -3,15 +3,20 @@ package com.kryptnostic.rhizome.cassandra;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.querybuilder.BindMarker;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import com.datastax.driver.core.querybuilder.Select.Builder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -123,12 +128,35 @@ public class CassandraTableBuilder {
         return this;
     }
 
-    CassandraTableBuilder withReplicationFactor( int replicationFactor ) {
+    public CassandraTableBuilder withReplicationFactor( int replicationFactor ) {
         this.replicationFactor = replicationFactor;
         return this;
     }
 
-    public String buildQuery() {
+    /**
+     * Builds the set of queries necessary to create the cassandra table and all secondary indices.
+     * 
+     * @return A list of CQL queries that MUST be executed in provided order to create the table.
+     * 
+     */
+    public List<String> build() {
+        List<Supplier<Stream<String>>> queries = Arrays
+                .<Supplier<Stream<String>>> asList(
+                        () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
+                        this::buildRegularIndexQueries,
+                        this::buildSasiIndexQueries );
+        return queries.stream().flatMap( Supplier::get ).collect( Collectors.toList() );
+    }
+
+    public Stream<String> buildSasiIndexQueries() {
+        return Arrays.asList( sasi ).stream().map( createSasiIndexQueryFunction( keyspace.get(), name ) );
+    }
+
+    public Stream<String> buildRegularIndexQueries() {
+        return Arrays.asList( sasi ).stream().map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
+    }
+
+    public String buildCreateTableQuery() {
         Preconditions.checkState( partition != null, "Partition key was not configured" );
 
         // Map<ColumnDef, String> bindMarkers = generateBindMarkers();
@@ -179,17 +207,24 @@ public class CassandraTableBuilder {
         return query.toString();
     }
 
+    public Select buildLoadAllPartitionKeysQuery() {
+        Builder s = QueryBuilder.select( Iterables.toArray( partitionKeyColumns(), String.class ) ).distinct();
+        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
+    }
+
+    public RegularStatement buildLoadAllPrimaryKeysQuery() {
+        Builder s = QueryBuilder.select( Iterables.toArray( primaryKeyColumns(), String.class ) ).distinct();
+        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
+    }
+
     public Select buildLoadAllQuery() {
-        if ( keyspace.isPresent() ) {
-            return QueryBuilder.select( Iterables.toArray( allColumns(), String.class ) ).from( keyspace.get(), name );
-        } else {
-            return QueryBuilder.select( Iterables.toArray( allColumns(), String.class ) ).from( name );
-        }
+        Builder s = QueryBuilder.select( Iterables.toArray( allColumns(), String.class ) );
+        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
     public Where buildLoadQuery() {
         Where w = buildLoadAllQuery().where();
-        for ( ColumnDef col : primaryKeyColumns() ) {
+        for ( ColumnDef col : primaryKeyColumnDefs() ) {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
@@ -225,7 +260,7 @@ public class CassandraTableBuilder {
         }
 
         com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
-        for ( ColumnDef col : primaryKeyColumns() ) {
+        for ( ColumnDef col : primaryKeyColumnDefs() ) {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
@@ -239,14 +274,22 @@ public class CassandraTableBuilder {
         return this.replicationFactor;
     }
 
-    private Iterable<ColumnDef> primaryKeyColumns() {
+    private Iterable<ColumnDef> primaryKeyColumnDefs() {
         return Iterables.concat( Arrays.asList( this.partition ), Arrays.asList( this.clustering ) );
+    }
+
+    public Iterable<String> primaryKeyColumns() {
+        return Iterables.transform( primaryKeyColumnDefs(), ColumnDef::cql );
+    }
+
+    private Iterable<String> partitionKeyColumns() {
+        return Iterables.transform( Arrays.asList( this.partition ), ColumnDef::cql );
     }
 
     private Iterable<String> allColumns() {
         return Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
                 Arrays.asList( this.clustering ),
-                Arrays.asList( this.columns ) ), colDef -> colDef.cql() );
+                Arrays.asList( this.columns ) ), ColumnDef::cql );
     }
 
     private static String getPrimaryKeyDef( ColumnDef[] columns ) {
@@ -280,4 +323,28 @@ public class CassandraTableBuilder {
         return keyspace;
     }
 
+    private static Function<ColumnDef, String> createRegularSecondaryIndexQueryFunction(
+            String keyspace,
+            String table ) {
+        return column -> createRegularSecondaryIndexQuery( keyspace, table, column );
+    }
+
+    private static final Function<ColumnDef, String> createSasiIndexQueryFunction(
+            String keyspace,
+            String table ) {
+        return column -> createSasiIndexQuery( keyspace, table, column );
+    }
+
+    public static String createRegularSecondaryIndexQuery( String keyspace, String table, ColumnDef column ) {
+        String query = "CREATE INDEX IF NOT EXISTS ON %s.%s (%s)";
+        return String.format( query, keyspace, table, column.cql() );
+    }
+
+    public static final String createSasiIndexQuery(
+            String keyspace,
+            String table,
+            ColumnDef column ) {
+        String query = "CREATE CUSTOM INDEX IF NOT EXISTS ON %s.%s (%s) USING 'org.apache.cassandra.index.sasi.SASIIndex'";
+        return String.format( query, keyspace, table, column.cql() );
+    }
 }
