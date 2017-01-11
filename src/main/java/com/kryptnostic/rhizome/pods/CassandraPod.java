@@ -82,11 +82,13 @@ public class CassandraPod {
         Session session = cluster().newSession();
         // Create all the required tables.
         if ( tables != null ) {
+            logger.info( "Setting up tables and secondary indices." );
             tables.stream()
                     .flatMap( Supplier::get )
                     .map( TableDef::getBuilder )
                     .map( CassandraTableBuilder::build )
                     .flatMap( List::stream )
+                    .peek( query -> logger.info( "Executing query: {}" , query ) )
                     .forEach( session::execute );
         }
         return session;
