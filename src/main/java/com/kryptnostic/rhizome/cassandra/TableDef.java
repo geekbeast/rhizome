@@ -7,4 +7,5 @@ package com.kryptnostic.rhizome.cassandra;
 public interface TableDef {
     String getKeyspace();
     String getName();
+    CassandraTableBuilder getBuilder();
 }

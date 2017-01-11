@@ -142,12 +142,12 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> implements Testa
         return asyncStore( entry.getKey(), entry.getValue() );
     }
 
-    protected RegularStatement loadAllKeyQuery() {
+    protected RegularStatement loadAllKeysQuery() {
         return tableBuilder.buildLoadAllPrimaryKeysQuery();
     }
 
     protected PreparedStatement prepareLoadAllKeysQuery() {
-        return session.prepare( loadAllKeyQuery() );
+        return session.prepare( loadAllKeysQuery() );
     }
 
     protected RegularStatement loadQuery() {

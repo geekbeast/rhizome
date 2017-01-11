@@ -153,7 +153,7 @@ public class CassandraTableBuilder {
     }
 
     public Stream<String> buildRegularIndexQueries() {
-        return Arrays.asList( sasi ).stream().map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
+        return Arrays.asList( secondaryIndices ).stream().map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
     }
 
     public String buildCreateTableQuery() {
@@ -213,7 +213,7 @@ public class CassandraTableBuilder {
     }
 
     public RegularStatement buildLoadAllPrimaryKeysQuery() {
-        Builder s = QueryBuilder.select( Iterables.toArray( primaryKeyColumns(), String.class ) ).distinct();
+        Builder s = QueryBuilder.select( Iterables.toArray( primaryKeyColumns(), String.class ) );
         return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
     }
 

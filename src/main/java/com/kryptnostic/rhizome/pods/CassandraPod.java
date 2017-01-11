@@ -3,7 +3,9 @@ package com.kryptnostic.rhizome.pods;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -28,11 +30,14 @@ import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TypeCodec;
 import com.google.common.annotations.VisibleForTesting;
+import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
+import com.kryptnostic.rhizome.cassandra.TableDef;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
+import com.kryptnostic.rhizome.configuration.cassandra.TableDefSource;
 
 import jersey.repackaged.com.google.common.collect.Maps;
 
@@ -40,15 +45,19 @@ import jersey.repackaged.com.google.common.collect.Maps;
 @Profile( CassandraPod.CASSANDRA_PROFILE )
 @Import( ConfigurationPod.class )
 public class CassandraPod {
-    public static final String   CASSANDRA_PROFILE = "cassandra";
-    private static final Logger  logger            = LoggerFactory.getLogger( CassandraPod.class );
+    public static final String              CASSANDRA_PROFILE = "cassandra";
+    private static final Logger             logger            = LoggerFactory.getLogger( CassandraPod.class );
 
     @Inject
-    private RhizomeConfiguration configuration;
+    private RhizomeConfiguration            configuration;
 
     @Autowired(
         required = false )
-    private Set<TypeCodec<?>>    codecs;
+    private Set<TypeCodec<?>>               codecs;
+
+    @Autowired(
+        required = false )
+    private Set<TableDefSource> tables;
 
     @Bean
     public CassandraConfiguration cassandraConfiguration() {
@@ -70,7 +79,15 @@ public class CassandraPod {
 
     @Bean
     public Session session() {
-        return cluster().newSession();
+        Session session = cluster().newSession();
+        // Create all the required tables.
+        tables.stream()
+                .flatMap( Supplier::get )
+                .map( TableDef::getBuilder )
+                .map( CassandraTableBuilder::build )
+                .flatMap( List::stream )
+                .forEach( session::execute );
+        return session;
     }
 
     @Bean
