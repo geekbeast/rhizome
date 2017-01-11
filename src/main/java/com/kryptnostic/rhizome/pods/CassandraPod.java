@@ -45,19 +45,19 @@ import jersey.repackaged.com.google.common.collect.Maps;
 @Profile( CassandraPod.CASSANDRA_PROFILE )
 @Import( ConfigurationPod.class )
 public class CassandraPod {
-    public static final String              CASSANDRA_PROFILE = "cassandra";
-    private static final Logger             logger            = LoggerFactory.getLogger( CassandraPod.class );
+    public static final String   CASSANDRA_PROFILE = "cassandra";
+    private static final Logger  logger            = LoggerFactory.getLogger( CassandraPod.class );
 
     @Inject
-    private RhizomeConfiguration            configuration;
+    private RhizomeConfiguration configuration;
 
     @Autowired(
         required = false )
-    private Set<TypeCodec<?>>               codecs;
+    private Set<TypeCodec<?>>    codecs;
 
     @Autowired(
         required = false )
-    private Set<TableDefSource> tables;
+    private Set<TableDefSource>  tables;
 
     @Bean
     public CassandraConfiguration cassandraConfiguration() {
@@ -81,12 +81,14 @@ public class CassandraPod {
     public Session session() {
         Session session = cluster().newSession();
         // Create all the required tables.
-        tables.stream()
-                .flatMap( Supplier::get )
-                .map( TableDef::getBuilder )
-                .map( CassandraTableBuilder::build )
-                .flatMap( List::stream )
-                .forEach( session::execute );
+        if ( tables != null ) {
+            tables.stream()
+                    .flatMap( Supplier::get )
+                    .map( TableDef::getBuilder )
+                    .map( CassandraTableBuilder::build )
+                    .flatMap( List::stream )
+                    .forEach( session::execute );
+        }
         return session;
     }
 
