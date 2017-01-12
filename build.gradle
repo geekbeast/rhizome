@@ -146,7 +146,12 @@ dependencies {
         exclude module: 'spring-web'
      }
 
-    compile "org.hibernate:hibernate-validator:${hibernate_version}"
+    /*
+     * Hibernate Validator
+     */
+     compile "org.hibernate:hibernate-validator:${hibernate_version}"
+     compile "javax.el:javax.el-api:2.2.4"
+     compile "org.glassfish.web:javax.el:2.2.4"
 
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
