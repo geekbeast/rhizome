@@ -27,7 +27,7 @@ public class CassandraConfiguration {
 
     private static final List<String> CASSANDRA_SEED_DEFAULT         = ImmutableList.of( "127.0.0.1" );
     private static final String       KEYSPACE_DEFAULT               = "rhizome";
-    private static final int          REPLICATION_FACTOR_DEFAULT     = 2;
+    private static final int          REPLICATION_FACTOR_DEFAULT     = 1;
     private static final boolean      EMBEDDED_DEFAULT               = true;
     private static final boolean      SSL_ENABLED_DEFAULT            = false;
     private static final String       COMPRESSION_DEFAULT            = "NONE";

@@ -1,16 +1,13 @@
 package com.kryptnostic.rhizome.pods;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.net.ssl.SSLContext;
-
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.Cluster.Builder;
+import com.google.common.annotations.VisibleForTesting;
+import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
+import com.kryptnostic.rhizome.cassandra.TableDef;
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.kryptnostic.rhizome.configuration.cassandra.*;
+import jersey.repackaged.com.google.common.collect.Maps;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
@@ -21,43 +18,57 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Cluster.Builder;
-import com.datastax.driver.core.CodecRegistry;
-import com.datastax.driver.core.JdkSSLOptions;
-import com.datastax.driver.core.PoolingOptions;
-import com.datastax.driver.core.ProtocolVersion;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.TypeCodec;
-import com.google.common.annotations.VisibleForTesting;
-import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
-import com.kryptnostic.rhizome.cassandra.TableDef;
-import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
-import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
-import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
-import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
-import com.kryptnostic.rhizome.configuration.cassandra.TableDefSource;
-
-import jersey.repackaged.com.google.common.collect.Maps;
+import javax.inject.Inject;
+import javax.net.ssl.SSLContext;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Configuration
 @Profile( CassandraPod.CASSANDRA_PROFILE )
 @Import( ConfigurationPod.class )
 public class CassandraPod {
-    public static final String   CASSANDRA_PROFILE = "cassandra";
-    private static final Logger  logger            = LoggerFactory.getLogger( CassandraPod.class );
+    public static final  String CASSANDRA_PROFILE = "cassandra";
+    public static final  String CREATE_KEYSPACE   = "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true";
+    private static final Logger logger            = LoggerFactory.getLogger( CassandraPod.class );
 
     @Inject
     private RhizomeConfiguration configuration;
 
     @Autowired(
-        required = false )
-    private Set<TypeCodec<?>>    codecs;
+            required = false )
+    private Set<TypeCodec<?>> codecs;
 
     @Autowired(
-        required = false )
-    private Set<TableDefSource>  tables;
+            required = false )
+    private Set<TableDefSource> tables;
+
+    private static PoolingOptions getPoolingOptions() {
+        PoolingOptions poolingOptions = new PoolingOptions();
+        return poolingOptions;
+    }
+
+    public static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
+        Builder builder = new Cluster.Builder();
+        builder.withCompression( cassandraConfiguration.getCompression() )
+                .withPoolingOptions( getPoolingOptions() )
+                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
+                .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );
+        if ( cassandraConfiguration.isSslEnabled() ) {
+            SSLContext context = null;
+            try {
+                context = SSLContextBuilder.create().loadTrustMaterial( new TrustSelfSignedStrategy() ).build();
+            } catch ( NoSuchAlgorithmException | KeyStoreException | KeyManagementException e ) {
+                logger.error( "Unable to configure SSL for Cassanda Java Driver" );
+            }
+            builder.withSSL( JdkSSLOptions.builder().withSSLContext( context ).build() );
+        }
+        return builder;
+    }
 
     @Bean
     public CassandraConfiguration cassandraConfiguration() {
@@ -80,6 +91,8 @@ public class CassandraPod {
     @Bean
     public Session session() {
         Session session = cluster().newSession();
+        CassandraConfiguration cc = cassandraConfiguration();
+        session.execute( String.format( CREATE_KEYSPACE, cc.getKeyspace(), cc.getReplicationFactor() ) );
         // Create all the required tables.
         if ( tables != null ) {
             logger.info( "Setting up tables and secondary indices." );
@@ -88,9 +101,10 @@ public class CassandraPod {
                     .map( TableDef::getBuilder )
                     .map( CassandraTableBuilder::build )
                     .flatMap( List::stream )
-                    .peek( query -> logger.info( "Executing query: {}" , query ) )
+                    .peek( query -> logger.info( "Executing query: {}", query ) )
                     .forEach( session::execute );
         }
+
         return session;
     }
 
@@ -124,11 +138,6 @@ public class CassandraPod {
         return new Sessions( Maps.transformValues( clusters(), cluster -> cluster.newSession() ) );
     }
 
-    private static PoolingOptions getPoolingOptions() {
-        PoolingOptions poolingOptions = new PoolingOptions();
-        return poolingOptions;
-    }
-
     @VisibleForTesting
     public void setRhizomeConfig( RhizomeConfiguration config ) {
         this.configuration = config;
@@ -141,23 +150,5 @@ public class CassandraPod {
 
     private CassandraConfigurations getConfigurations() {
         return configuration.getCassandraConfigurations().or( new CassandraConfigurations() );
-    }
-
-    public static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
-        Builder builder = new Cluster.Builder();
-        builder.withCompression( cassandraConfiguration.getCompression() )
-                .withPoolingOptions( getPoolingOptions() )
-                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
-                .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );
-        if ( cassandraConfiguration.isSslEnabled() ) {
-            SSLContext context = null;
-            try {
-                context = SSLContextBuilder.create().loadTrustMaterial( new TrustSelfSignedStrategy() ).build();
-            } catch ( NoSuchAlgorithmException | KeyStoreException | KeyManagementException e ) {
-                logger.error( "Unable to configure SSL for Cassanda Java Driver" );
-            }
-            builder.withSSL( JdkSSLOptions.builder().withSSLContext( context ).build() );
-        }
-        return builder;
     }
 }
