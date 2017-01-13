@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.core;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
@@ -14,6 +15,8 @@ import javax.servlet.ServletRegistration;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -26,9 +29,11 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
 import com.hazelcast.web.SessionListener;
 import com.hazelcast.web.WebFilter;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
@@ -48,6 +53,8 @@ import com.kryptnostic.rhizome.pods.MetricsPod;
  *
  */
 public class Rhizome implements WebApplicationInitializer {
+    private static final Logger                            logger                        = LoggerFactory
+            .getLogger( Rhizome.class );
     private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     protected static final Class<?>[]                      DEFAULT_SERVICE_PODS          = new Class<?>[] {
             ConfigurationPod.class,
@@ -168,7 +175,7 @@ public class Rhizome implements WebApplicationInitializer {
         for ( Entry<String, DispatcherServletConfiguration> configPair : dispatcherServletsConfigs.entrySet() ) {
             DispatcherServletConfiguration configuration = configPair.getValue();
             AnnotationConfigWebApplicationContext dispatchServletContext = new AnnotationConfigWebApplicationContext();
-
+            logger.info( " Registering dispatcher servlet: {}", configuration );
             dispatchServletContext.setParent( rhizomeContext );
             dispatchServletContext.register( configuration.getPods().toArray( new Class<?>[ 0 ] ) );
             ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
@@ -204,10 +211,12 @@ public class Rhizome implements WebApplicationInitializer {
         for ( String profile : activeProfiles ) {
             if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile ) ) {
                 awsProfile = true;
+                logger.info( "Using AWS profile for configuration." );
             }
 
             if ( StringUtils.equals( Profiles.LOCAL_CONFIGURATION_PROFILE, profile ) ) {
                 localProfile = true;
+                logger.info( "Using Local profile for configuration." );
             }
 
             context.getEnvironment().addActiveProfile( profile );
@@ -238,6 +247,7 @@ public class Rhizome implements WebApplicationInitializer {
         } finally {
             rhizomeContext = null;
             startupLock.unlock();
+            showBanner();
         }
     }
 
@@ -263,5 +273,13 @@ public class Rhizome implements WebApplicationInitializer {
 
     public Class<?>[] getDefaultServicePods() {
         return DEFAULT_SERVICE_PODS;
+    }
+
+    public static void showBanner() {
+        try {
+            logger.info( "\n\n{}\n\n", Resources.toString( Resources.getResource( "banner.txt" ), Charsets.UTF_8 ) );
+        } catch ( IOException e ) {
+            logger.warn( "No startup banner found." );
+        }
     }
 }
