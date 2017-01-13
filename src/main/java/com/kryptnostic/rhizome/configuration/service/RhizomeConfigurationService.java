@@ -113,12 +113,12 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
          */
         if ( message.getMessageObject() != null ) {
             String uri = "";
-            
+
             if ( logger.isDebugEnabled() ) {
                 uri = ConfigurationService.StaticLoader.getConfigurationKey( message.getMessageObject().getClass() )
                         .getUri();
             }
-            
+
             logger.debug( "Updating Configuration {}", uri );
             post( message.getMessageObject() );
             logger.debug( "Successfully updated Configuration {}", uri );
