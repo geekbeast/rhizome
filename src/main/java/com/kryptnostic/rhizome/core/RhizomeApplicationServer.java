@@ -44,6 +44,7 @@ public class RhizomeApplicationServer {
             context.getEnvironment().addActiveProfile( Profiles.LOCAL_CONFIGURATION_PROFILE );
         }
         context.refresh();
+        Rhizome.showBanner();
     }
 
     public void plowUnder() {
