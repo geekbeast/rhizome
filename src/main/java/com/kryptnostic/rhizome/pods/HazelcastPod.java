@@ -19,6 +19,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.web.WebFilter;
+import com.kryptnostic.rhizome.async.Synapse;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
@@ -29,8 +30,15 @@ import com.kryptnostic.rhizome.configuration.service.RhizomeConfigurationService
 
 @Configuration
 public class HazelcastPod {
-    public static final Logger              logger                      = LoggerFactory.getLogger( HazelcastPod.class );
+    public static final Logger logger = LoggerFactory.getLogger( HazelcastPod.class );
+
+    public static enum Topic {
+        RHIZOME_CONFIGURATION_UPDATES,
+        RHIZOME_AXON
+    }
+
     public static final String              SESSIONS_MAP_NAME           = "sessions";
+
     public static final String              CONFIGURATION_UPDATE_TOPIC  = "configuration-update-topic";
     private static final String             HAZELCAST_CONFIGURATION_ERR = "Hazelcast configuration must be present in order to use the HazelcastPod.";
 
@@ -46,7 +54,7 @@ public class HazelcastPod {
     private RhizomeConfiguration            rhizomeConfiguration;
 
     @Inject
-    private AsyncEventBus                   configurationUpdates;
+    private AsyncEventBus                   dendrite;
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
@@ -72,13 +80,24 @@ public class HazelcastPod {
     }
 
     @Bean
+    public Synapse synapse() {
+        return new Synapse( axon(), dendrite );
+    }
+
+    @Bean
+    public ITopic<?> axon() {
+        HazelcastInstance hazelcast = hazelcastInstance();
+        return hazelcast.getReliableTopic( Topic.RHIZOME_AXON.name() );
+    }
+
+    @Bean
     public ITopic<Object> configTopic() {
-        return hazelcastInstance().getTopic( CONFIGURATION_UPDATE_TOPIC );
+        return hazelcastInstance().getReliableTopic( Topic.RHIZOME_CONFIGURATION_UPDATES.name() );
     }
 
     @Bean
     public ConfigurationService configurationService() {
-        return new RhizomeConfigurationService( configurations(), configTopic(), configurationUpdates );
+        return new RhizomeConfigurationService( configurations(), configTopic(), dendrite );
     }
 
     @Bean
