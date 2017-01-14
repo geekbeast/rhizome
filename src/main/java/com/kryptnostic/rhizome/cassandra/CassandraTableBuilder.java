@@ -223,13 +223,21 @@ public class CassandraTableBuilder {
     }
 
     public Where buildLoadQuery() {
+        return buildLoadQuery( primaryKeyColumnDefs() );
+    }
+    
+    public Where buildLoadByPartitionKeyQuery() {
+        return buildLoadQuery( partitionKeyColumnDefs() );
+    }
+    
+    private Where buildLoadQuery( Iterable<ColumnDef> selectedCols ){
         Where w = buildLoadAllQuery().where();
-        for ( ColumnDef col : primaryKeyColumnDefs() ) {
+        for ( ColumnDef col : selectedCols ) {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
-        return w;
+        return w;                
     }
-
+    
     public Insert buildStoreQuery() {
         List<String> cols = ImmutableList.copyOf( allColumns() );
         Object[] markers = new BindMarker[ cols.size() ];
@@ -252,6 +260,14 @@ public class CassandraTableBuilder {
     }
 
     public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery() {
+        return buildDeleteQuery( primaryKeyColumnDefs() );
+    }
+
+    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPartitionKeyQuery() {
+        return buildDeleteQuery( partitionKeyColumnDefs() );
+    }
+
+    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery( Iterable<ColumnDef> selectedCols ) {
         Delete del;
         if ( keyspace.isPresent() ) {
             del = QueryBuilder.delete().from( keyspace.get(), name );
@@ -260,11 +276,11 @@ public class CassandraTableBuilder {
         }
 
         com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
-        for ( ColumnDef col : primaryKeyColumnDefs() ) {
+        for ( ColumnDef col : selectedCols ) {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
-    }
+    }    
 
     public String getName() {
         return this.name;
@@ -274,6 +290,10 @@ public class CassandraTableBuilder {
         return this.replicationFactor;
     }
 
+    private Iterable<ColumnDef> partitionKeyColumnDefs() {
+        return Arrays.asList( this.partition );
+    }
+    
     private Iterable<ColumnDef> primaryKeyColumnDefs() {
         return Iterables.concat( Arrays.asList( this.partition ), Arrays.asList( this.clustering ) );
     }
