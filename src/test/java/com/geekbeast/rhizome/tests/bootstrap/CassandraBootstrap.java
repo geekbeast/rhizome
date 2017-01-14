@@ -16,14 +16,11 @@ public class CassandraBootstrap {
     @BeforeClass
     public static void startCassandra() throws ConfigurationException, TTransportException, IOException {
         EmbeddedCassandraServerHelper
-                .startEmbeddedCassandra( EmbeddedCassandraServerHelper.CASSANDRA_RNDPORT_YML_FILE );
+                .startEmbeddedCassandra( "cu-cassandra-rndport-workaround.yaml" );
         logger.info( "Started cassandra on port: {}", EmbeddedCassandraServerHelper.getNativeTransportPort() );
     }
 
     @Test
     public void foo() throws InterruptedException {
-        Thread.sleep( 100000 );
     }
-    
-    
 }
