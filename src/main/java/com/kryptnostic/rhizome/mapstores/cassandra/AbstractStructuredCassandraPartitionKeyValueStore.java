@@ -7,11 +7,11 @@ import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.Session;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
 
-public abstract class AbstractStructuredCassandraMapstore<K, V> extends AbstractStructuredCassandraMapstoreBase<K, V> {
+public abstract class AbstractStructuredCassandraPartitionKeyValueStore<K, V> extends AbstractStructuredCassandraMapstoreBase<K, V> {
     private static final Logger         logger = LoggerFactory
-            .getLogger( AbstractStructuredCassandraMapstore.class );
+            .getLogger( AbstractStructuredCassandraPartitionKeyValueStore.class );
 
-    public AbstractStructuredCassandraMapstore(
+    public AbstractStructuredCassandraPartitionKeyValueStore(
             String mapName,
             Session session,
             CassandraTableBuilder tableBuilder ) {
@@ -20,11 +20,11 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> extends Abstract
 
     @Override
     protected RegularStatement loadQuery(){
-        return tableBuilder.buildLoadQuery();
+        return tableBuilder.buildLoadByPartitionKeyQuery();
     }
     
     @Override
     protected RegularStatement deleteQuery(){
-        return tableBuilder.buildDeleteQuery();
+        return tableBuilder.buildDeleteByPartitionKeyQuery();
     }
 }
