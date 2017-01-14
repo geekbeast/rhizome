@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.configuration.servlets;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -55,4 +56,12 @@ public class DispatcherServletConfiguration {
     public void intercrop( List<Class<?>> servletPods ) {
         this.pods.addAll( servletPods );
     }
+
+    @Override
+    public String toString() {
+        return "DispatcherServletConfiguration [servletName=" + servletName + ", mappings="
+                + Arrays.toString( mappings ) + ", loadOnStartup=" + loadOnStartup + ", pods=" + pods + "]";
+    }
+    
+    
 }
