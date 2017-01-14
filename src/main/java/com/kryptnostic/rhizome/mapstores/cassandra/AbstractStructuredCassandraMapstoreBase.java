@@ -61,7 +61,7 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
                         "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true",
                         tableBuilder.getKeyspace().or( "sparks" ),
                         tableBuilder.getReplicationFactor() ) );
-        session.execute( tableBuilder.buildCreateTableQuery() );
+        tableBuilder.build().forEach( stmt -> session.execute( stmt ) );
     }
 
     @Override
