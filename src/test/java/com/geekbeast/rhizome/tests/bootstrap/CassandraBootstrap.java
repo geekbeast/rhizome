@@ -18,7 +18,7 @@ public class CassandraBootstrap {
     private static Logger     logger = LoggerFactory.getLogger( CassandraBootstrap.class );
     private static final Lock lock   = new ReentrantLock();
     static {
-        CassandraPod.setEmbeddedCassandraManager( EmbeddedCassandraServerHelper::startEmbeddedCassandra );
+        CassandraPod.setEmbeddedCassandraManager( CassandraBootstrap::startAndLogExceptions );
     }
 
     @BeforeClass
@@ -32,4 +32,13 @@ public class CassandraBootstrap {
 
     @Test
     public void foo() throws InterruptedException {}
+
+    private static void startAndLogExceptions( String yamlFile ) {
+        try {
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile );
+        } catch ( ConfigurationException | TTransportException | IOException e ) {
+            throw new IllegalStateException( "Cassandra unable to start.", e );
+
+        }
+    }
 }

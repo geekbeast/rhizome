@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.pods;
 
-import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -12,10 +11,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 
-import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,8 +96,7 @@ public class CassandraPod {
     }
 
     @Bean
-    public CassandraConfiguration cassandraConfiguration()
-            throws ConfigurationException, TTransportException, IOException {
+    public CassandraConfiguration cassandraConfiguration() {
         if ( configuration == null || !configuration.getCassandraConfiguration().isPresent() ) {
             throw new RuntimeException(
                     "Cassandra configuration is missing. Please add a cassandra configuration to rhizome.yaml" );
@@ -123,7 +119,7 @@ public class CassandraPod {
     }
 
     @Bean
-    public Session session() throws ConfigurationException, TTransportException, IOException {
+    public Session session() {
         Session session = cluster().newSession();
         CassandraConfiguration cc = cassandraConfiguration();
 
@@ -156,7 +152,7 @@ public class CassandraPod {
     }
 
     @Bean
-    public Cluster cluster() throws ConfigurationException, TTransportException, IOException {
+    public Cluster cluster() {
         CassandraConfiguration cc = cassandraConfiguration();
         if ( cc.isRandomPorts() ) {
             return EmbeddedCassandraServerHelper.getCluster();
