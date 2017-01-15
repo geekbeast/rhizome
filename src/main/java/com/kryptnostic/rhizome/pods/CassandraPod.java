@@ -47,7 +47,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.TableDefSource;
 @Import( ConfigurationPod.class )
 public class CassandraPod {
     public static final String              CASSANDRA_PROFILE = "cassandra";
-    public static final String              TEST_YAML         = "cu-cassandra-rndport-workaround.yaml";
+    public static final String              RANDOM_PORTS_YAML = "cu-cassandra-rndport-workaround.yaml";
     public static final String              EMBEDDED_YAML     = "cu-cassandra.yaml";
     public static final String              CREATE_KEYSPACE   = "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true";
     private static final Logger             logger            = LoggerFactory.getLogger( CassandraPod.class );
@@ -107,7 +107,7 @@ public class CassandraPod {
             if ( cassandraConfiguration.isEmbedded() ) {
                 ecm.start( EMBEDDED_YAML );
             } else if ( cassandraConfiguration.isEmbedded() && cassandraConfiguration.isRandomPorts() ) {
-                ecm.start( TEST_YAML );
+                ecm.start( RANDOM_PORTS_YAML );
             }
             logger.info( "Using the following seeds for cassandra: {}",
                     cassandraConfiguration.getCassandraSeedNodes().stream().map( s -> s.getHostAddress() )

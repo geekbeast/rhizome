@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
- *         This test requires a cassandra instance to be locally available in order to run thest.
  */
 public class BaseCassandraMapStoreTest extends CassandraBootstrap {
 
@@ -41,7 +39,7 @@ public class BaseCassandraMapStoreTest extends CassandraBootstrap {
     @Ignore
     public void testCassandraMapstore() {
         
-        Cluster clust = EmbeddedCassandraServerHelper.getCluster();
+        Cluster clust = ecm.cluster();
 
         CassandraMapStoreFactory.Builder builder = new CassandraMapStoreFactory.Builder().withConfiguration( config )
                 .withSession( clust.newSession() );
@@ -69,11 +67,9 @@ public class BaseCassandraMapStoreTest extends CassandraBootstrap {
 
     @Test
     public void testSCMS() throws Exception {
-        Cluster clust = EmbeddedCassandraServerHelper.getCluster();
-
         TestableSelfRegisteringMapStore<String, TestConfiguration> store = new StructuredCassandraMapstoreImpl(
                 "test2",
-                clust.connect(),
+                ecm.cluster().connect(),
                 new CassandraTableBuilder( "sparks", "test2" ).ifNotExists()
                         .partitionKey( new ValueColumn( "uri", DataType.text() ) )
                         .columns( new ValueColumn( "required", DataType.text() ),

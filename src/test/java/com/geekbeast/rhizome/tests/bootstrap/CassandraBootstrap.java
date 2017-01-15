@@ -16,13 +16,16 @@ import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
 import com.kryptnostic.rhizome.pods.CassandraPod;
 
 public class CassandraBootstrap {
-    private static Logger logger = LoggerFactory.getLogger( CassandraBootstrap.class );
+    private static Logger                          logger = LoggerFactory.getLogger( CassandraBootstrap.class );
+    protected static EmbeddedCassandraManager ecm    = new RhizomeEmbeddedCassandraManager();
     static {
-        CassandraPod.setEmbeddedCassandraManager( new RhizomeEmbeddedCassandraManager() );
+        CassandraPod.setEmbeddedCassandraManager( ecm );
     }
 
     @BeforeClass
-    public static void startCassandra() throws ConfigurationException, TTransportException, IOException {}
+    public static void startCassandra() throws ConfigurationException, TTransportException, IOException {
+        ecm.start( CassandraPod.RANDOM_PORTS_YAML );
+    }
 
     private static final class RhizomeEmbeddedCassandraManager implements EmbeddedCassandraManager {
         private static final Lock lock = new ReentrantLock();
@@ -36,10 +39,7 @@ public class CassandraBootstrap {
                 }
                 logger.info( "Started cassandra on port: {}", EmbeddedCassandraServerHelper.getNativeTransportPort() );
             }
-            startWithLongTimeout( yamlFile );
         }
-
-        public static void startWithLongTimeout( String yamlFile ) {}
 
         @Override
         public Cluster cluster() {
