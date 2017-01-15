@@ -38,7 +38,7 @@ public class CassandraBootstrap {
     private static final class RhizomeEmbeddedCassandraManager implements EmbeddedCassandraManager {
         public void start( String yamlFile ) {
             try {
-                EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile, 100000 );
+                EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile, 1000000 );
             } catch ( ConfigurationException | TTransportException | IOException e ) {
                 throw new IllegalStateException( "Cassandra unable to start.", e );
 
