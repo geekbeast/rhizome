@@ -1,11 +1,13 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.DataType;
+import com.geekbeast.rhizome.tests.bootstrap.CassandraBootstrap;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -20,12 +22,12 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  *
  *         This test requires a cassandra instance to be locally available in order to run thest.
  */
-@Ignore
-public class BaseCassandraMapStoreTest {
+public class BaseCassandraMapStoreTest extends CassandraBootstrap {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
             Optional.absent(),
-            Optional.of( Boolean.FALSE ),
+            Optional.of( Boolean.TRUE ),
+            Optional.of( Boolean.TRUE ),
             Optional.of( Boolean.FALSE ),
             Optional.of( ImmutableList.of( "localhost" ) ),
             Optional.of( "test" ),
@@ -36,11 +38,10 @@ public class BaseCassandraMapStoreTest {
             Optional.absent() );
 
     @Test
+    @Ignore
     public void testCassandraMapstore() {
-
-        Cluster clust = new Cluster.Builder()
-                .addContactPoints( config.getCassandraSeedNodes() )
-                .build();
+        
+        Cluster clust = EmbeddedCassandraServerHelper.getCluster();
 
         CassandraMapStoreFactory.Builder builder = new CassandraMapStoreFactory.Builder().withConfiguration( config )
                 .withSession( clust.newSession() );
@@ -68,16 +69,15 @@ public class BaseCassandraMapStoreTest {
 
     @Test
     public void testSCMS() throws Exception {
-        Cluster clust = new Cluster.Builder()
-                .addContactPoints( config.getCassandraSeedNodes() )
-                .build();
+        Cluster clust = EmbeddedCassandraServerHelper.getCluster();
 
         TestableSelfRegisteringMapStore<String, TestConfiguration> store = new StructuredCassandraMapstoreImpl(
                 "test2",
                 clust.connect(),
                 new CassandraTableBuilder( "sparks", "test2" ).ifNotExists()
                         .partitionKey( new ValueColumn( "uri", DataType.text() ) )
-                        .columns( new ValueColumn( "required", DataType.cboolean() ) ) );
+                        .columns( new ValueColumn( "required", DataType.text() ),
+                                new ValueColumn( "optional", DataType.text() ) ) );
         TestConfiguration expected = store.generateTestValue();
         String key = store.generateTestKey();
         store.store( key, expected );

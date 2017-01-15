@@ -16,22 +16,24 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 
 public class CassandraConfiguration {
-    private static final String       CASSANDRA_COMPRESSION_PROPERTY = "compression";
-    private static final String       CASSANDRA_EMBEDDED_PROPERTY    = "embedded";
-    private static final String       CASSANDRA_SSL_ENABLED          = "ssl-enabled";
-    private static final String       CASSANDRA_KEYSPACE_PROPERTY    = "keyspace";
-    private static final String       CASSANDRA_REPLICATION_FACTOR   = "replication-factor";
-    private static final String       CASSANDRA_SEED_NODES_PROPERTY  = "seed-nodes";
-    private static final String       HAZELCAST_WRITE_DELAY_FIELD    = "write-delay";
-    private static final String       CASSANDRA_PORT                 = "port";
+    private static final String       CASSANDRA_COMPRESSION_PROPERTY  = "compression";
+    private static final String       CASSANDRA_RANDOM_PORTS_PROPERTY = "random-ports";
+    private static final String       CASSANDRA_EMBEDDED_PROPERTY     = "embedded";
+    private static final String       CASSANDRA_SSL_ENABLED           = "ssl-enabled";
+    private static final String       CASSANDRA_KEYSPACE_PROPERTY     = "keyspace";
+    private static final String       CASSANDRA_REPLICATION_FACTOR    = "replication-factor";
+    private static final String       CASSANDRA_SEED_NODES_PROPERTY   = "seed-nodes";
+    private static final String       HAZELCAST_WRITE_DELAY_FIELD     = "write-delay";
 
-    private static final List<String> CASSANDRA_SEED_DEFAULT         = ImmutableList.of( "127.0.0.1" );
-    private static final String       KEYSPACE_DEFAULT               = "rhizome";
-    private static final int          REPLICATION_FACTOR_DEFAULT     = 1;
-    private static final boolean      EMBEDDED_DEFAULT               = true;
-    private static final boolean      SSL_ENABLED_DEFAULT            = false;
-    private static final String       COMPRESSION_DEFAULT            = "NONE";
+    private static final List<String> CASSANDRA_SEED_DEFAULT          = ImmutableList.of( "127.0.0.1" );
+    private static final String       KEYSPACE_DEFAULT                = "rhizome";
+    private static final int          REPLICATION_FACTOR_DEFAULT      = 1;
+    private static final boolean      RANDOM_PORTS_DEFAULT            = false;
+    private static final boolean      EMBEDDED_DEFAULT                = true;
+    private static final boolean      SSL_ENABLED_DEFAULT             = false;
+    private static final String       COMPRESSION_DEFAULT             = "NONE";
 
+    private final boolean             randomPorts;
     private final boolean             embedded;
     private final boolean             sslEnabled;
 
@@ -44,12 +46,13 @@ public class CassandraConfiguration {
     private final String              provider;
     private String                    region;
 
-    private static final Logger       logger                         = LoggerFactory
+    private static final Logger       logger                          = LoggerFactory
             .getLogger( CassandraConfiguration.class );
 
     @JsonCreator
     public CassandraConfiguration(
             @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY ) Optional<String> compression,
+            @JsonProperty( CASSANDRA_RANDOM_PORTS_PROPERTY ) Optional<Boolean> randomPorts,
             @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY ) Optional<Boolean> embedded,
             @JsonProperty( CASSANDRA_SSL_ENABLED ) Optional<Boolean> sslEnabled,
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
@@ -59,6 +62,10 @@ public class CassandraConfiguration {
             @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue ) {
+        this.randomPorts = randomPorts.or( RANDOM_PORTS_DEFAULT );
+        if ( this.randomPorts ) {
+            logger.warn( "Starting cassandra in test mode" );
+        }
         this.embedded = embedded.or( EMBEDDED_DEFAULT );
         this.sslEnabled = sslEnabled.or( SSL_ENABLED_DEFAULT );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
@@ -117,6 +124,11 @@ public class CassandraConfiguration {
     @JsonProperty( CASSANDRA_COMPRESSION_PROPERTY )
     public Compression getCompression() {
         return compression;
+    }
+
+    @JsonProperty( CASSANDRA_RANDOM_PORTS_PROPERTY )
+    public boolean isRandomPorts() {
+        return randomPorts;
     }
 
     @JsonProperty( CASSANDRA_EMBEDDED_PROPERTY )
