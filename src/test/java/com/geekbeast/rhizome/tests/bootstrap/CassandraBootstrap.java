@@ -12,13 +12,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.Cluster;
+import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
 import com.kryptnostic.rhizome.pods.CassandraPod;
 
 public class CassandraBootstrap {
     private static Logger     logger = LoggerFactory.getLogger( CassandraBootstrap.class );
     private static final Lock lock   = new ReentrantLock();
     static {
-        CassandraPod.setEmbeddedCassandraManager( CassandraBootstrap::startAndLogExceptions );
+        CassandraPod.setEmbeddedCassandraManager( new RhizomeEmbeddedCassandraManager() );
     }
 
     @BeforeClass
@@ -33,12 +35,19 @@ public class CassandraBootstrap {
     @Test
     public void foo() throws InterruptedException {}
 
-    private static void startAndLogExceptions( String yamlFile ) {
-        try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile );
-        } catch ( ConfigurationException | TTransportException | IOException e ) {
-            throw new IllegalStateException( "Cassandra unable to start.", e );
+    private static final class RhizomeEmbeddedCassandraManager implements EmbeddedCassandraManager {
+        public void start( String yamlFile ) {
+            try {
+                EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile );
+            } catch ( ConfigurationException | TTransportException | IOException e ) {
+                throw new IllegalStateException( "Cassandra unable to start.", e );
 
+            }
+        }
+
+        @Override
+        public Cluster cluster() {
+            return EmbeddedCassandraServerHelper.getCluster();
         }
     }
 }

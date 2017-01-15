@@ -13,7 +13,6 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TypeCodec;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
 import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
 import com.kryptnostic.rhizome.cassandra.TableDef;
@@ -41,8 +41,6 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
 import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
 import com.kryptnostic.rhizome.configuration.cassandra.TableDefSource;
-
-import jersey.repackaged.com.google.common.collect.Maps;
 
 @Configuration
 @Profile( CassandraPod.CASSANDRA_PROFILE )
@@ -154,8 +152,8 @@ public class CassandraPod {
     @Bean
     public Cluster cluster() {
         CassandraConfiguration cc = cassandraConfiguration();
-        if ( cc.isRandomPorts() ) {
-            return EmbeddedCassandraServerHelper.getCluster();
+        if ( cc.isRandomPorts() || cc.isEmbedded() ) {
+            return ecm.cluster();
         }
 
         return clusterBuilder( cc )
