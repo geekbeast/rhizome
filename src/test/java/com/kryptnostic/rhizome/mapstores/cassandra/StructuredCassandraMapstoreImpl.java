@@ -38,7 +38,10 @@ public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandra
 
     @Override
     protected BoundStatement bind( String key, TestConfiguration value, BoundStatement bs ) {
-        return bs.set( "uri", key, String.class ).set( "required", value.getRequired(), String.class );
+        return bs
+                .set( "uri", key, String.class )
+                .set( "required", value.getRequired(), String.class )
+                .set( "optional", value.getOptional().orNull(), String.class );
     }
 
     @Override
@@ -49,7 +52,10 @@ public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandra
     @Override
     protected TestConfiguration mapValue( ResultSet rs ) {
         Row row = rs.one();
-        return row == null ? null : new TestConfiguration( row.getString( "required" ), Optional.absent() );
+        return row == null ? null
+                : new TestConfiguration(
+                        row.getString( "required" ),
+                        Optional.fromNullable( row.getString( "optional" ) ) );
     }
 
 }

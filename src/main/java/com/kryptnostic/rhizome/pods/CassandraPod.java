@@ -1,13 +1,16 @@
 package com.kryptnostic.rhizome.pods;
 
-import com.datastax.driver.core.*;
-import com.datastax.driver.core.Cluster.Builder;
-import com.google.common.annotations.VisibleForTesting;
-import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
-import com.kryptnostic.rhizome.cassandra.TableDef;
-import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
-import com.kryptnostic.rhizome.configuration.cassandra.*;
-import jersey.repackaged.com.google.common.collect.Maps;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
@@ -18,34 +21,53 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
-import javax.inject.Inject;
-import javax.net.ssl.SSLContext;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Cluster.Builder;
+import com.datastax.driver.core.CodecRegistry;
+import com.datastax.driver.core.JdkSSLOptions;
+import com.datastax.driver.core.PoolingOptions;
+import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.TypeCodec;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
+import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
+import com.kryptnostic.rhizome.cassandra.TableDef;
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
+import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
+import com.kryptnostic.rhizome.configuration.cassandra.Clusters;
+import com.kryptnostic.rhizome.configuration.cassandra.Sessions;
+import com.kryptnostic.rhizome.configuration.cassandra.TableDefSource;
 
 @Configuration
 @Profile( CassandraPod.CASSANDRA_PROFILE )
 @Import( ConfigurationPod.class )
 public class CassandraPod {
-    public static final  String CASSANDRA_PROFILE = "cassandra";
-    public static final  String CREATE_KEYSPACE   = "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true";
-    private static final Logger logger            = LoggerFactory.getLogger( CassandraPod.class );
+    public static final String              CASSANDRA_PROFILE = "cassandra";
+    public static final String              TEST_YAML         = "cu-cassandra-rndport-workaround.yaml";
+    public static final String              EMBEDDED_YAML     = "cu-cassandra.yaml";
+    public static final String              CREATE_KEYSPACE   = "CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION={ 'class' : 'SimpleStrategy', 'replication_factor' : %d } AND DURABLE_WRITES=true";
+    private static final Logger             logger            = LoggerFactory.getLogger( CassandraPod.class );
 
     @Inject
-    private RhizomeConfiguration configuration;
+    private RhizomeConfiguration            configuration;
+
+    private static EmbeddedCassandraManager ecm               = s -> logger
+            .warn( "\n****************************************"
+                    + "\nA request was made to try and start cassandra with {}. No action was taking since you are using the no-op cassandra manager"
+                    + "\nTry using lambda syntax such as EmbeddedCassandraUnitHelper::startEmbeddedCassandra to setup a cassandra manager in the cassandra pod.",
+                    s );
 
     @Autowired(
-            required = false )
-    private Set<TypeCodec<?>> codecs;
+        required = false )
+    private Set<TypeCodec<?>>               codecs;
 
     @Autowired(
-            required = false )
-    private Set<TableDefSource> tables;
+        required = false )
+    private Set<TableDefSource>             tables;
 
     private static PoolingOptions getPoolingOptions() {
         PoolingOptions poolingOptions = new PoolingOptions();
@@ -67,6 +89,7 @@ public class CassandraPod {
             }
             builder.withSSL( JdkSSLOptions.builder().withSSLContext( context ).build() );
         }
+
         return builder;
     }
 
@@ -81,6 +104,11 @@ public class CassandraPod {
             logger.error(
                     "Seed nodes not found in cassandra configuration. Please add seed nodes to cassandra configuration block in rhizome.yaml" );
         } else {
+            if ( cassandraConfiguration.isEmbedded() ) {
+                ecm.start( EMBEDDED_YAML );
+            } else if ( cassandraConfiguration.isEmbedded() && cassandraConfiguration.isRandomPorts() ) {
+                ecm.start( TEST_YAML );
+            }
             logger.info( "Using the following seeds for cassandra: {}",
                     cassandraConfiguration.getCassandraSeedNodes().stream().map( s -> s.getHostAddress() )
                             .collect( Collectors.toList() ) );
@@ -92,7 +120,10 @@ public class CassandraPod {
     public Session session() {
         Session session = cluster().newSession();
         CassandraConfiguration cc = cassandraConfiguration();
+
+        // ensure the keyspace exists
         session.execute( String.format( CREATE_KEYSPACE, cc.getKeyspace(), cc.getReplicationFactor() ) );
+
         // Create all the required tables.
         if ( tables != null ) {
             logger.info( "Setting up tables and secondary indices." );
@@ -120,7 +151,12 @@ public class CassandraPod {
 
     @Bean
     public Cluster cluster() {
-        return clusterBuilder( cassandraConfiguration() )
+        CassandraConfiguration cc = cassandraConfiguration();
+        if ( cc.isRandomPorts() || cc.isEmbedded() ) {
+            return ecm.cluster();
+        }
+
+        return clusterBuilder( cc )
                 .withCodecRegistry( codecRegistry() )
                 .build();
     }
@@ -151,4 +187,9 @@ public class CassandraPod {
     private CassandraConfigurations getConfigurations() {
         return configuration.getCassandraConfigurations().or( new CassandraConfigurations() );
     }
+
+    public static void setEmbeddedCassandraManager( EmbeddedCassandraManager ecManager ) {
+        ecm = Preconditions.checkNotNull( ecManager, "Cannot set a null cassandra manager" );
+    }
+
 }
