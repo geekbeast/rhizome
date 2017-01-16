@@ -192,7 +192,7 @@ public class CassandraTableBuilder {
         }
 
         if ( staticColumns.length > 0 ) {
-            appendStaticColumnDefs( query, columns );
+            appendStaticColumnDefs( query, staticColumns );
         }
 
         // extra comma from appendColumns is already included
