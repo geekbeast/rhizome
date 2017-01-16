@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.cassandra;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -67,6 +68,10 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
     private int                           replicationFactor = 2;
+
+    // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
+    // beginning would work for now.
+    private ColumnDef[]                   desc              = new ColumnDef[] {};
 
     public CassandraTableBuilder( TableDef table ) {
         this( table.getKeyspace(), table.getName() );
@@ -137,6 +142,11 @@ public class CassandraTableBuilder {
 
     public CassandraTableBuilder withReplicationFactor( int replicationFactor ) {
         this.replicationFactor = replicationFactor;
+        return this;
+    }
+
+    public CassandraTableBuilder withDescendingOrder( ColumnDef... columns ) {
+        this.desc = columns;
         return this;
     }
 
@@ -216,6 +226,12 @@ public class CassandraTableBuilder {
         }
 
         query.append( " ) )" );
+
+        if ( desc.length > 0 ) {
+            query.append( " WITH CLUSTERING ORDER BY ( " );
+            appendClusteringOrder( query, clustering, desc );
+            query.append( " )" );
+        }
         return query.toString();
     }
 
@@ -364,6 +380,25 @@ public class CassandraTableBuilder {
         }
         return builder;
     }
+
+    private StringBuilder appendClusteringOrder(
+            StringBuilder builder,
+            ColumnDef[] clustering,
+            ColumnDef[] desc ) {
+        Set<String> descNames = Arrays.stream( desc ).map( col -> col.cql() ).collect( Collectors.toSet() );
+
+        int len = clustering.length - 1;
+        for ( int i = 0; i < len; i++ ) {
+            builder.append( clustering[ i ].cql() )
+                    .append( " " )
+                    .append( descNames.contains( clustering[ i ].cql() ) ? "DESC" : "ASC" )
+                    .append( "," );
+        }
+        builder.append( clustering[ len ].cql() )
+                .append( " " )
+                .append( descNames.contains( clustering[ len ].cql() ) ? "DESC" : "ASC" );
+        return builder;
+    };
 
     public Optional<String> getKeyspace() {
         return keyspace;
