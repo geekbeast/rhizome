@@ -62,6 +62,7 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   partition         = null;
     private ColumnDef[]                   clustering        = new ColumnDef[] {};
     private ColumnDef[]                   columns           = new ColumnDef[] {};
+    private ColumnDef[]                   staticColumns     = new ColumnDef[] {};
     private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
     private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
@@ -101,6 +102,12 @@ public class CassandraTableBuilder {
 
     public CassandraTableBuilder columns( ColumnDef... columns ) {
         this.columns = Preconditions.checkNotNull( columns );
+        Arrays.asList( columns ).forEach( Preconditions::checkNotNull );
+        return this;
+    }
+
+    public CassandraTableBuilder staticColumns( ColumnDef... columns ) {
+        this.staticColumns = Preconditions.checkNotNull( columns );
         Arrays.asList( columns ).forEach( Preconditions::checkNotNull );
         return this;
     }
@@ -153,7 +160,8 @@ public class CassandraTableBuilder {
     }
 
     public Stream<String> buildRegularIndexQueries() {
-        return Arrays.asList( secondaryIndices ).stream().map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
+        return Arrays.asList( secondaryIndices ).stream()
+                .map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
     }
 
     public String buildCreateTableQuery() {
@@ -181,6 +189,10 @@ public class CassandraTableBuilder {
 
         if ( columns.length > 0 ) {
             appendColumnDefs( query, columns );
+        }
+
+        if ( staticColumns.length > 0 ) {
+            appendStaticColumnDefs( query, columns );
         }
 
         // extra comma from appendColumns is already included
@@ -225,19 +237,19 @@ public class CassandraTableBuilder {
     public Where buildLoadQuery() {
         return buildLoadQuery( primaryKeyColumnDefs() );
     }
-    
+
     public Where buildLoadByPartitionKeyQuery() {
         return buildLoadQuery( partitionKeyColumnDefs() );
     }
-    
-    private Where buildLoadQuery( Iterable<ColumnDef> selectedCols ){
+
+    private Where buildLoadQuery( Iterable<ColumnDef> selectedCols ) {
         Where w = buildLoadAllQuery().where();
         for ( ColumnDef col : selectedCols ) {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
-        return w;                
+        return w;
     }
-    
+
     public Insert buildStoreQuery() {
         List<String> cols = ImmutableList.copyOf( allColumns() );
         Object[] markers = new BindMarker[ cols.size() ];
@@ -280,7 +292,7 @@ public class CassandraTableBuilder {
             w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
         }
         return w;
-    }    
+    }
 
     public String getName() {
         return this.name;
@@ -293,7 +305,7 @@ public class CassandraTableBuilder {
     private Iterable<ColumnDef> partitionKeyColumnDefs() {
         return Arrays.asList( this.partition );
     }
-    
+
     private Iterable<ColumnDef> primaryKeyColumnDefs() {
         return Iterables.concat( Arrays.asList( this.partition ), Arrays.asList( this.clustering ) );
     }
@@ -334,6 +346,20 @@ public class CassandraTableBuilder {
                     .append( columns[ i ].cql() )
                     .append( " " )
                     .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( "," );
+        }
+        return builder;
+    }
+
+    private StringBuilder appendStaticColumnDefs(
+            StringBuilder builder,
+            ColumnDef[] columns ) {
+        for ( int i = 0; i < columns.length; ++i ) {
+            builder
+                    .append( columns[ i ].cql() )
+                    .append( " " )
+                    .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( " STATIC" )
                     .append( "," );
         }
         return builder;
