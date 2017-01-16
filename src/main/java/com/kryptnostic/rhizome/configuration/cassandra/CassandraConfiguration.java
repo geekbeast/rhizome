@@ -29,7 +29,7 @@ public class CassandraConfiguration {
     private static final String       KEYSPACE_DEFAULT                = "rhizome";
     private static final int          REPLICATION_FACTOR_DEFAULT      = 1;
     private static final boolean      RANDOM_PORTS_DEFAULT            = false;
-    private static final boolean      EMBEDDED_DEFAULT                = true;
+    private static final boolean      EMBEDDED_DEFAULT                = false;
     private static final boolean      SSL_ENABLED_DEFAULT             = false;
     private static final String       COMPRESSION_DEFAULT             = "NONE";
 
