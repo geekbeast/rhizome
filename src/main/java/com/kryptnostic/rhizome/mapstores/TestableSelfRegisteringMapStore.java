@@ -11,5 +11,5 @@ public interface TestableSelfRegisteringMapStore<K, V> extends SelfRegisteringMa
     K generateTestKey();
     
     @VisibleForTesting
-    V generateTestValue() throws Exception;
+    V generateTestValue();
 }

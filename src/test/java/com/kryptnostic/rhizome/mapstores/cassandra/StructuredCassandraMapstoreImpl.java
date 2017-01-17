@@ -25,7 +25,7 @@ public class StructuredCassandraMapstoreImpl extends AbstractStructuredCassandra
     }
 
     @Override
-    public TestConfiguration generateTestValue() throws Exception {
+    public TestConfiguration generateTestValue() {
         return new TestConfiguration(
                 RandomStringUtils.random( 10 ),
                 Optional.<String> absent() );

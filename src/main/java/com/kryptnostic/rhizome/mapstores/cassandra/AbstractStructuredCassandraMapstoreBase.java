@@ -83,7 +83,7 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
          * One limitation of this is that if key stream isn't unique then values may get loaded into the map multiple times.
          */
         ResultSet rs = session.execute( getLoadAllKeysQuery().bind() );
-        return Iterables.transform( rs, this::mapKey );
+        return Iterables.transform( rs, this::mapKey )::iterator;
     }
 
     @Override
