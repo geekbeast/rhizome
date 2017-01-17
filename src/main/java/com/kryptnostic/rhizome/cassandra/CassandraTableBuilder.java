@@ -65,6 +65,7 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   columns           = new ColumnDef[] {};
     private ColumnDef[]                   staticColumns     = new ColumnDef[] {};
     private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
+    private ColumnDef[]                   fullCollectionIndices  = new ColumnDef[] {};
     private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
     private int                           replicationFactor = 2;
@@ -122,6 +123,11 @@ public class CassandraTableBuilder {
         return this;
     }
 
+    public CassandraTableBuilder fullCollectionIndex( ColumnDef... columns ) {
+        this.fullCollectionIndices = Preconditions.checkNotNull( columns );
+        return this;
+    }
+
     public CassandraTableBuilder sasi( ColumnDef... columns ) {
         if ( Iterables.any( Arrays.asList( columns ), col -> col.getType().isCollection() ) ) {
             throw new IllegalArgumentException( "Cannot create sasi index on collection columns" );
@@ -161,6 +167,7 @@ public class CassandraTableBuilder {
                 .<Supplier<Stream<String>>> asList(
                         () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
                         this::buildRegularIndexQueries,
+                        this::buildFullCollectionIndexQueries,
                         this::buildSasiIndexQueries );
         return queries.stream().flatMap( Supplier::get ).collect( Collectors.toList() );
     }
@@ -172,6 +179,11 @@ public class CassandraTableBuilder {
     public Stream<String> buildRegularIndexQueries() {
         return Arrays.asList( secondaryIndices ).stream()
                 .map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
+    }
+
+    public Stream<String> buildFullCollectionIndexQueries() {
+        return Arrays.asList( fullCollectionIndices ).stream()
+                .map( createFullCollectionIndexQueryFunction( keyspace.get(), name ) );
     }
 
     public String buildCreateTableQuery() {
@@ -410,6 +422,12 @@ public class CassandraTableBuilder {
         return column -> createRegularSecondaryIndexQuery( keyspace, table, column );
     }
 
+    private static Function<ColumnDef, String> createFullCollectionIndexQueryFunction(
+            String keyspace,
+            String table ) {
+        return column -> createFullCollectionIndexQuery( keyspace, table, column );
+    }
+
     private static final Function<ColumnDef, String> createSasiIndexQueryFunction(
             String keyspace,
             String table ) {
@@ -418,6 +436,11 @@ public class CassandraTableBuilder {
 
     public static String createRegularSecondaryIndexQuery( String keyspace, String table, ColumnDef column ) {
         String query = "CREATE INDEX IF NOT EXISTS ON %s.%s (%s)";
+        return String.format( query, keyspace, table, column.cql() );
+    }
+
+    public static String createFullCollectionIndexQuery( String keyspace, String table, ColumnDef column ) {
+        String query = "CREATE INDEX IF NOT EXISTS ON %s.%s (FULL(%s))";
         return String.format( query, keyspace, table, column.cql() );
     }
 
