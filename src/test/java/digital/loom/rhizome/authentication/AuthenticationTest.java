@@ -72,7 +72,7 @@ public class AuthenticationTest {
     static {
         AuthenticationRequest request = client.login( "support@kryptnostic.com", "abracadabra" )
                 .setConnection( "Tests" )
-                .setScope( "openid email nickname roles" );
+                .setScope( "openid email nickname roles user_id" );
         cache = Pair.of( request.execute(), client.getProfileAfter( request ).execute() );
         logger.info( "Using the following idToken: Bearer {}" , cache.getRight().getCredentials().getIdToken() );
     }
