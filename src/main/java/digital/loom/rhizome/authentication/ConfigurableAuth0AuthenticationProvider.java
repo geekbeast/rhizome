@@ -1,16 +1,11 @@
 package digital.loom.rhizome.authentication;
 
-import java.util.Map;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 import com.auth0.authentication.AuthenticationAPIClient;
-import com.auth0.authentication.result.UserProfile;
 import com.auth0.jwt.Algorithm;
 import com.auth0.spring.security.api.Auth0AuthenticationProvider;
-import com.auth0.spring.security.api.Auth0JWTToken;
-import com.auth0.spring.security.api.Auth0UserDetails;
 import com.auth0.spring.security.api.authority.AuthorityStrategy;
 
 public class ConfigurableAuth0AuthenticationProvider extends Auth0AuthenticationProvider {
