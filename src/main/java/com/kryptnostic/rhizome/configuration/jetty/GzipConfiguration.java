@@ -15,9 +15,11 @@ public class GzipConfiguration {
     protected static final String       GZIP_CONTENT_TYPES_PROPERTY = "content-types";
     protected static final String       GZIP_METHODS_PROPERTY       = "methods";
     protected static final boolean      GZIP_ENABLED_DEFAULT        = true;
-    protected static final List<String> GZIP_CONTENT_TYPES          = Arrays.asList( new String[] { "text/html",
-            "text/plain", "text/xml", "application/xhtml+xml", "text/css", "application/javascript", "image/svg+xml",
-            MediaType.APPLICATION_OCTET_STREAM } );
+    protected static final List<String> GZIP_CONTENT_TYPES          = Arrays
+            .asList( new String[] { "application/json", "text/html",
+                    "text/plain", "text/xml", "application/xhtml+xml", "text/css", "application/javascript",
+                    "image/svg+xml",
+                    MediaType.APPLICATION_OCTET_STREAM } );
     protected static final List<String> GZIP_METHODS                = Arrays
             .asList( new String[] { "GET", "DELETE", "POST", "PUT" } );
 
