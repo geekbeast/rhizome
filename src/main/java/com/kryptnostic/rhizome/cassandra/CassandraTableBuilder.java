@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.cassandra;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -64,9 +65,14 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   columns           = new ColumnDef[] {};
     private ColumnDef[]                   staticColumns     = new ColumnDef[] {};
     private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
+    private ColumnDef[]                   fullCollectionIndices  = new ColumnDef[] {};
     private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
     private int                           replicationFactor = 2;
+
+    // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
+    // beginning would work for now.
+    private ColumnDef[]                   desc              = new ColumnDef[] {};
 
     public CassandraTableBuilder( TableDef table ) {
         this( table.getKeyspace(), table.getName() );
@@ -117,6 +123,11 @@ public class CassandraTableBuilder {
         return this;
     }
 
+    public CassandraTableBuilder fullCollectionIndex( ColumnDef... columns ) {
+        this.fullCollectionIndices = Preconditions.checkNotNull( columns );
+        return this;
+    }
+
     public CassandraTableBuilder sasi( ColumnDef... columns ) {
         if ( Iterables.any( Arrays.asList( columns ), col -> col.getType().isCollection() ) ) {
             throw new IllegalArgumentException( "Cannot create sasi index on collection columns" );
@@ -140,6 +151,11 @@ public class CassandraTableBuilder {
         return this;
     }
 
+    public CassandraTableBuilder withDescendingOrder( ColumnDef... columns ) {
+        this.desc = columns;
+        return this;
+    }
+
     /**
      * Builds the set of queries necessary to create the cassandra table and all secondary indices.
      * 
@@ -151,6 +167,7 @@ public class CassandraTableBuilder {
                 .<Supplier<Stream<String>>> asList(
                         () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
                         this::buildRegularIndexQueries,
+                        this::buildFullCollectionIndexQueries,
                         this::buildSasiIndexQueries );
         return queries.stream().flatMap( Supplier::get ).collect( Collectors.toList() );
     }
@@ -162,6 +179,11 @@ public class CassandraTableBuilder {
     public Stream<String> buildRegularIndexQueries() {
         return Arrays.asList( secondaryIndices ).stream()
                 .map( createRegularSecondaryIndexQueryFunction( keyspace.get(), name ) );
+    }
+
+    public Stream<String> buildFullCollectionIndexQueries() {
+        return Arrays.asList( fullCollectionIndices ).stream()
+                .map( createFullCollectionIndexQueryFunction( keyspace.get(), name ) );
     }
 
     public String buildCreateTableQuery() {
@@ -216,6 +238,12 @@ public class CassandraTableBuilder {
         }
 
         query.append( " ) )" );
+
+        if ( desc.length > 0 ) {
+            query.append( " WITH CLUSTERING ORDER BY ( " );
+            appendClusteringOrder( query, clustering, desc );
+            query.append( " )" );
+        }
         return query.toString();
     }
 
@@ -365,6 +393,25 @@ public class CassandraTableBuilder {
         return builder;
     }
 
+    private StringBuilder appendClusteringOrder(
+            StringBuilder builder,
+            ColumnDef[] clustering,
+            ColumnDef[] desc ) {
+        Set<String> descNames = Arrays.stream( desc ).map( col -> col.cql() ).collect( Collectors.toSet() );
+
+        int len = clustering.length - 1;
+        for ( int i = 0; i < len; i++ ) {
+            builder.append( clustering[ i ].cql() )
+                    .append( " " )
+                    .append( descNames.contains( clustering[ i ].cql() ) ? "DESC" : "ASC" )
+                    .append( "," );
+        }
+        builder.append( clustering[ len ].cql() )
+                .append( " " )
+                .append( descNames.contains( clustering[ len ].cql() ) ? "DESC" : "ASC" );
+        return builder;
+    };
+
     public Optional<String> getKeyspace() {
         return keyspace;
     }
@@ -375,6 +422,12 @@ public class CassandraTableBuilder {
         return column -> createRegularSecondaryIndexQuery( keyspace, table, column );
     }
 
+    private static Function<ColumnDef, String> createFullCollectionIndexQueryFunction(
+            String keyspace,
+            String table ) {
+        return column -> createFullCollectionIndexQuery( keyspace, table, column );
+    }
+
     private static final Function<ColumnDef, String> createSasiIndexQueryFunction(
             String keyspace,
             String table ) {
@@ -383,6 +436,11 @@ public class CassandraTableBuilder {
 
     public static String createRegularSecondaryIndexQuery( String keyspace, String table, ColumnDef column ) {
         String query = "CREATE INDEX IF NOT EXISTS ON %s.%s (%s)";
+        return String.format( query, keyspace, table, column.cql() );
+    }
+
+    public static String createFullCollectionIndexQuery( String keyspace, String table, ColumnDef column ) {
+        String query = "CREATE INDEX IF NOT EXISTS ON %s.%s (FULL(%s))";
         return String.format( query, keyspace, table, column.cql() );
     }
 
