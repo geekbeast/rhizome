@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.driver.core.DataType;
@@ -56,8 +57,8 @@ public class CassandraTableBuilder {
 
     }
 
-    private Optional<String>              keyspace          = Optional.absent();
     private final String                  name;
+    private Supplier<String>              keyspace;
     private boolean                       ifNotExists       = false;
     private ColumnDef[]                   partition         = null;
     private ColumnDef[]                   clustering        = new ColumnDef[] {};
@@ -66,25 +67,22 @@ public class CassandraTableBuilder {
     private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
     private ColumnDef[]                   sasi              = new ColumnDef[] {};
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
+
     private int                           replicationFactor = 2;
 
     public CassandraTableBuilder( TableDef table ) {
-        this( table.getKeyspace(), table.getName() );
-    }
+        this.name = table.getName();
+        Preconditions.checkArgument( StringUtils.isNotBlank( name ), "Table name cannot be blank." );
+        this.keyspace = table::getKeyspace;
 
-    @Deprecated
-    public CassandraTableBuilder( String keyspace, TableDef table ) {
-        this( keyspace, table.getName() );
     }
 
     public CassandraTableBuilder( String keyspace, String name ) {
-        this.keyspace = Optional.fromNullable( keyspace );
-        this.name = name;
+        this( new InternalTableDef( keyspace, name ) );
     }
 
     public CassandraTableBuilder( String name ) {
-        Preconditions.checkArgument( StringUtils.isNotBlank( name ), "Table name cannot be blank." );
-        this.name = name;
+        this( new InternalTableDef( null, name ) );
     }
 
     public CassandraTableBuilder partitionKey( ColumnDef... columns ) {
@@ -175,7 +173,7 @@ public class CassandraTableBuilder {
             query.append( "IF NOT EXISTS " );
         }
 
-        if ( keyspace.isPresent() ) {
+        if ( keyspace.get() != null ) {
             query.append( keyspace.get() ).append( "." );
         }
 
@@ -221,17 +219,17 @@ public class CassandraTableBuilder {
 
     public Select buildLoadAllPartitionKeysQuery() {
         Builder s = QueryBuilder.select( Iterables.toArray( partitionKeyColumns(), String.class ) ).distinct();
-        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
+        return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
     public RegularStatement buildLoadAllPrimaryKeysQuery() {
         Builder s = QueryBuilder.select( Iterables.toArray( primaryKeyColumns(), String.class ) );
-        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
+        return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
     public Select buildLoadAllQuery() {
         Builder s = QueryBuilder.select( Iterables.toArray( allColumns(), String.class ) );
-        return keyspace.isPresent() ? s.from( keyspace.get(), name ) : s.from( name );
+        return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
     public Where buildLoadQuery() {
@@ -262,7 +260,7 @@ public class CassandraTableBuilder {
 
         Insert insertQuery;
 
-        if ( keyspace.isPresent() ) {
+        if ( keyspace != null ) {
             insertQuery = QueryBuilder.insertInto( keyspace.get(), name );
         } else {
             insertQuery = QueryBuilder.insertInto( name );
@@ -281,7 +279,7 @@ public class CassandraTableBuilder {
 
     private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery( Iterable<ColumnDef> selectedCols ) {
         Delete del;
-        if ( keyspace.isPresent() ) {
+        if ( keyspace != null ) {
             del = QueryBuilder.delete().from( keyspace.get(), name );
         } else {
             del = QueryBuilder.delete().from( name );
@@ -366,7 +364,7 @@ public class CassandraTableBuilder {
     }
 
     public Optional<String> getKeyspace() {
-        return keyspace;
+        return Optional.fromNullable( keyspace.get() );
     }
 
     private static Function<ColumnDef, String> createRegularSecondaryIndexQueryFunction(
@@ -392,5 +390,31 @@ public class CassandraTableBuilder {
             ColumnDef column ) {
         String query = "CREATE CUSTOM INDEX IF NOT EXISTS ON %s.%s (%s) USING 'org.apache.cassandra.index.sasi.SASIIndex'";
         return String.format( query, keyspace, table, column.cql() );
+    }
+
+    static class InternalTableDef implements TableDef {
+        private final String keyspace;
+        private final String name;
+
+        public InternalTableDef( String keyspace, String name ) {
+            this.keyspace = keyspace;
+            this.name = name;
+        }
+
+        @Override
+        public String getKeyspace() {
+            return keyspace;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public CassandraTableBuilder getBuilder() {
+            throw new NotImplementedException( "This page intentionally left blank." );
+        }
+
     }
 }
