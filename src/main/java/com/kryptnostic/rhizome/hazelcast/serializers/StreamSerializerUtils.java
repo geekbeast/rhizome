@@ -25,4 +25,5 @@ public final class StreamSerializerUtils {
         }
         return Arrays.asList( elems );
     }
+
 }
