@@ -246,8 +246,10 @@ public class Rhizome implements WebApplicationInitializer {
             }
         } finally {
             rhizomeContext = null;
+            if ( context.isActive() ) {
+                showBanner();
+            }
             startupLock.unlock();
-            showBanner();
         }
     }
 
