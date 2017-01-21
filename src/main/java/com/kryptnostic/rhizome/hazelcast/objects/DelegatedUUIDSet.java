@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.hazelcast.objects;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -10,8 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class DelegatedUUIDSet implements Set<UUID>, Serializable {
-    private static final long serialVersionUID = 4650957850522550536L;
+public class DelegatedUUIDSet implements Set<UUID> {
     private final Set<UUID>   uuids;
 
     public DelegatedUUIDSet( Set<UUID> uuids ) {

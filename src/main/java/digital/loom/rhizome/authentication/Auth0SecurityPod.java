@@ -15,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 import com.auth0.Auth0;
+import com.auth0.authentication.AuthenticationAPIClient;
 import com.auth0.jwt.Algorithm;
 import com.auth0.spring.security.api.Auth0AuthenticationEntryPoint;
 import com.auth0.spring.security.api.Auth0AuthenticationFilter;
@@ -75,8 +76,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     @Bean(
         name = "auth0AuthenticationProvider" )
     public Auth0AuthenticationProvider auth0AuthenticationProvider() {
-        final ConfigurableAuth0AuthenticationProvider authenticationProvider = new ConfigurableAuth0AuthenticationProvider(
-                auth0.newAuthenticationAPIClient() );
+        final ConfigurableAuth0AuthenticationProvider authenticationProvider = getAuthenticationProvider();
 
         authenticationProvider.setDomain( configuration.getDomain() );
         authenticationProvider.setIssuer( configuration.getIssuer() );
@@ -89,7 +89,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
         return authenticationProvider;
     }
-
+    
     @Bean(
         name = "auth0EntryPoint" )
     public Auth0AuthenticationEntryPoint auth0AuthenticationEntryPoint() {
@@ -147,5 +147,17 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers( "/**" ).authenticated();
     }
+    
+    /**
+     * Override this to modify the type of ConfigurableAuthenticationProvider for performing authentication.
+     * @return The Auth0AuthenticationProvider to use for performing authentications.
+     */
+    protected ConfigurableAuth0AuthenticationProvider getAuthenticationProvider() {
+        return new ConfigurableAuth0AuthenticationProvider(
+                getAuthenticationApiClient() );
+    }
 
+    protected AuthenticationAPIClient getAuthenticationApiClient() {
+        return auth0.newAuthenticationAPIClient(); 
+    }
 }
