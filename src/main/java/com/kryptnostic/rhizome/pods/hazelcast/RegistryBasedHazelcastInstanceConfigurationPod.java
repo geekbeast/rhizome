@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializerConfig;
@@ -23,33 +25,42 @@ import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 @Configuration
 public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcastInstanceConfigurationPod {
     private static final Logger                                               logger             = LoggerFactory
-                                                                                                         .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
+            .getLogger( RegistryBasedHazelcastInstanceConfigurationPod.class );
     private static final ConcurrentMap<Class<?>, Serializer>                  serializerRegistry = Maps
-                                                                                                         .newConcurrentMap();
+            .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps
-                                                                                                         .newConcurrentMap();
+            .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
-                                                                                                         .newConcurrentMap();
+            .newConcurrentMap();
 
     @Override
     protected Collection<SerializerConfig> getSerializerConfigs() {
-        return Collections2.transform( serializerRegistry.entrySet(), e -> {
-            return new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() );
-        } );
+        final Multiset<Integer> typeIds = HashMultiset.create();
+
+        Set<SerializerConfig> configs = serializerRegistry.entrySet()
+                .stream()
+                .peek( e -> typeIds.add( e.getValue().getTypeId() ) )
+                .map( e -> new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() ) )
+                .collect( Collectors.toSet() );
+        logger.info("Detected the following serializer configurations at startup {}." , configs );
+        typeIds.entrySet()
+                .stream()
+                .filter( e -> e.getCount() > 1 )
+                .forEach( e -> logger.warn( "Found {} duplicate serializers for type id: {}",
+                        e.getCount(),
+                        e.getElement() ) );
+        
+        return configs;
     }
 
     @Override
     protected Map<String, MapConfig> getMapConfigs() {
-        return Maps.transformEntries( mapRegistry, ( k, v ) -> {
-            return v.getMapConfig();
-        } );
+        return Maps.transformEntries( mapRegistry, ( k, v ) -> v.getMapConfig() );
     }
 
     @Override
     protected Map<String, QueueConfig> getQueueConfigs() {
-        return Maps.transformEntries( queueRegistry, ( k, v ) -> {
-            return v.getQueueConfig();
-        } );
+        return Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() );
     }
 
     /*

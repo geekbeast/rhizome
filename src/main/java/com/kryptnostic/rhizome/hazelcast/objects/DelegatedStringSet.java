@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class DelegatedStringSet implements Set<String> {
-    private static final long serialVersionUID = 4751044544768442186L;
     private final Set<String> strings;
 
     public DelegatedStringSet( Set<String> strings ) {

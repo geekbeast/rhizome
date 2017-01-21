@@ -3,11 +3,14 @@ package com.kryptnostic.rhizome.pods.hazelcast;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -44,7 +47,8 @@ import com.kryptnostic.rhizome.pods.HazelcastPod;
 @Configuration
 @Import( { HazelcastPod.class, ConfigurationPod.class } )
 public class BaseHazelcastInstanceConfigurationPod {
-    private static final Lock      startupLock = new ReentrantLock();
+    private static final Logger logger      = LoggerFactory.getLogger( BaseHazelcastInstanceConfigurationPod.class );
+    private static final Lock   startupLock = new ReentrantLock();
 
     @Inject
     protected RhizomeConfiguration rhizomeConfiguration;
@@ -79,10 +83,12 @@ public class BaseHazelcastInstanceConfigurationPod {
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
+        SerializationConfig serializationConfig = getSerializationConfig();
+        logger.info("Registering the following serializers: {}" , serializationConfig );
         return hzConfiguration.isServer() ? null : new ClientConfig()
                 .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( getSerializationConfig() )
+                .setSerializationConfig( serializationConfig )
                 .setProperty( "hazelcast.logging.type", "slf4j" );
 
     }
