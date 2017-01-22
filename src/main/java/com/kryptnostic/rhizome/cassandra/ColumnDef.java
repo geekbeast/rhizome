@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.querybuilder.BindMarker;
+import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 /**
@@ -25,5 +26,9 @@ public interface ColumnDef {
      */
     default BindMarker bindMarker() {
         return QueryBuilder.bindMarker();
+    }
+
+    default Clause eq() {
+        return QueryBuilder.eq( cql(), bindMarker() );
     }
 }

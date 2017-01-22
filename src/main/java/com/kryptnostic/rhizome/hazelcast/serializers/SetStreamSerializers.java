@@ -1,6 +1,8 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ public class SetStreamSerializers {
 
     /**
      * This method is useful for re-using static serialization helpers to write out set elements.
+     * 
      * @param out
      * @param elements
      * @param c
@@ -73,6 +76,11 @@ public class SetStreamSerializers {
         return (UUIDSet) processEntries( set, size, in );
     }
 
+    public static List<UUID> fastUUIDListDeserialize( ObjectDataInput in ) throws IOException {
+        int size = in.readInt();
+        return processEntries( size, in );
+    }
+
     private static Set<UUID> processEntries( Set<UUID> set, int size, ObjectDataInput in ) throws IOException {
         long[] least = in.readLongArray();
         long[] most = in.readLongArray();
@@ -80,6 +88,16 @@ public class SetStreamSerializers {
             set.add( new UUID( most[ i ], least[ i ] ) );
         }
         return set;
+    }
+
+    private static List<UUID> processEntries( int size, ObjectDataInput in ) throws IOException {
+        long[] least = in.readLongArray();
+        long[] most = in.readLongArray();
+        UUID[] uuids = new UUID[ size ];
+        for ( int i = 0; i < size; i++ ) {
+            uuids[ i ] = new UUID( most[ i ], least[ i ] );
+        }
+        return Arrays.asList( uuids );
     }
 
     public static <T> Set<T> deserialize( ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f )
