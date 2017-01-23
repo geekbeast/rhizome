@@ -28,7 +28,7 @@ public class StreamSerializerBasedValueMapper<T> implements SelfRegisteringValue
     }
 
     @Override
-    public Class<T> getClazz() {
+    public Class<? extends T> getClazz() {
         return serializer.getClazz();
     }
 

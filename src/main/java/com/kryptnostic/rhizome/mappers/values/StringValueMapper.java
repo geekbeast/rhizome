@@ -15,7 +15,7 @@ public class StringValueMapper implements SelfRegisteringValueMapper<String> {
     }
 
     @Override
-    public Class<String> getClazz() {
+    public Class<? extends String> getClazz() {
         return String.class;
     }
 }

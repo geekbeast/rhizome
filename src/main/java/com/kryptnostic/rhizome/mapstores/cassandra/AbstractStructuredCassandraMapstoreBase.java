@@ -30,9 +30,9 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     private static final Logger         logger = LoggerFactory
             .getLogger( AbstractStructuredCassandraMapstoreBase.class );
-    private final Session               session;
-    private final String                mapName;
+    protected final Session               session;
     protected final CassandraTableBuilder tableBuilder;
+    private final String                mapName;
     private final PreparedStatement     allKeysQuery;
     private final PreparedStatement     loadQuery;
     private final PreparedStatement     storeQuery;
