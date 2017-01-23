@@ -21,7 +21,7 @@ public class SetProxyAwareValueMapper<C> implements SelfRegisteringValueMapper<C
     }
 
     @Override
-    public Class<C> getClazz() {
+    public Class<? extends C> getClazz() {
         return null;
     }
 

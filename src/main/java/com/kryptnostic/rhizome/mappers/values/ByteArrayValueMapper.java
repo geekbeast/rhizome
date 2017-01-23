@@ -15,7 +15,7 @@ public class ByteArrayValueMapper implements SelfRegisteringValueMapper<byte[]> 
     }
 
     @Override
-    public Class<byte[]> getClazz() {
+    public Class<? extends byte[]> getClazz() {
         return byte[].class;
     }
 
