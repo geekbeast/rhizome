@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 
+import com.datastax.driver.core.*;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
@@ -21,14 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Cluster.Builder;
-import com.datastax.driver.core.CodecRegistry;
-import com.datastax.driver.core.JdkSSLOptions;
-import com.datastax.driver.core.PoolingOptions;
-import com.datastax.driver.core.ProtocolVersion;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.TypeCodec;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -71,6 +65,9 @@ public class CassandraPod {
 
     private static PoolingOptions getPoolingOptions() {
         PoolingOptions poolingOptions = new PoolingOptions();
+        poolingOptions
+                .setMaxRequestsPerConnection( HostDistance.LOCAL, 32768 )
+                .setMaxRequestsPerConnection( HostDistance.REMOTE, 32768 );
         return poolingOptions;
     }
 
