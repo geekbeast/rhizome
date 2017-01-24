@@ -32,7 +32,7 @@ public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
         return serializer;
     }
 
-    protected abstract <S extends D> S createInput();
+    protected abstract D createInput();
 
     @Test
     public void testSerializeDeserialize() throws SecurityException, IOException {
