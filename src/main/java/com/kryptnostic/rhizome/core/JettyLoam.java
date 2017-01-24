@@ -13,7 +13,9 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,8 +73,14 @@ public class JettyLoam implements Loam {
         // TODO: Make loaded servlet classes configurable
         // context.addServlet( JspServlet.class, "*.jsp" );
 
+        QueuedThreadPool threadPool = new QueuedThreadPool(
+                config.getMaxThreads(),
+                Math.min( config.getMaxThreads(), 100 ),
+                60000,
+                new BlockingArrayQueue<>( 6000 ));
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
-        server = new Server();
+        server = new Server(threadPool);
+
 
         if ( config.getWebConnectorConfiguration().isPresent() ) {
             configureEndpoint( config.getWebConnectorConfiguration().get() );
