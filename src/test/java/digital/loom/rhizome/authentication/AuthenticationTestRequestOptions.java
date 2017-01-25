@@ -6,7 +6,7 @@ package digital.loom.rhizome.authentication;
 public class AuthenticationTestRequestOptions {
     private String usernameOrEmail;
     private String password;
-    private String connection = "Test";
+    private String connection = "Tests";
     private String scope = "openid email nickname roles user_id organizations";
 
     @Override public boolean equals( Object o ) {
