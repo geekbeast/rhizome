@@ -45,7 +45,7 @@ public class RhizomeTests {
 
     @BeforeClass
     public static void plant() throws Exception {
-        final String jwtToken = AuthenticationTest.authenticate().getLeft().getIdToken();
+        final String jwtToken = AuthenticationTest.authenticate().getCredentials().getIdToken();
         rhizome = new Rhizome(
                 Auth0TestPod.class,
                 Auth0SecurityTestPod.class,
