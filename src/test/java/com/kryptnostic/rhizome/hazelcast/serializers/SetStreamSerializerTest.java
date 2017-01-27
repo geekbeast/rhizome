@@ -7,7 +7,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
-public class SetStreamSerializerTest extends BaseSerializerTest<StreamSerializer<TestSet>, TestSet> {
+public class SetStreamSerializerTest extends AbstractStreamSerializerTest<StreamSerializer<TestSet>, TestSet> {
 
     @Override
     protected StreamSerializer<TestSet> createSerializer() {

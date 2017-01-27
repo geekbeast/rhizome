@@ -11,12 +11,12 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
-public abstract class BaseSerializerTest<T extends StreamSerializer<D>, D> {
+public abstract class AbstractStreamSerializerTest<T extends StreamSerializer<D>, D> {
 
     private final transient T serializer;
     private final transient T deserializer;
 
-    public BaseSerializerTest() {
+    public AbstractStreamSerializerTest() {
         serializer = createSerializer();
         deserializer = createDeserializer();
     }
