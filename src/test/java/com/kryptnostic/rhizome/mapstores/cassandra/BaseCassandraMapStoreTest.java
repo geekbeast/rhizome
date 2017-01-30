@@ -33,6 +33,7 @@ public class BaseCassandraMapStoreTest extends CassandraBootstrap {
             Optional.absent(),
             Optional.absent(),
             Optional.absent(),
+            Optional.absent(),
             Optional.absent() );
 
     @Test
