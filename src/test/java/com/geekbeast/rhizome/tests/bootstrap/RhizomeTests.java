@@ -19,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import com.dataloom.retrofit.LoomByteConverterFactory;
 import com.dataloom.retrofit.LoomCallAdapterFactory;
 import com.dataloom.retrofit.LoomJacksonConverterFactory;
-import com.dataloom.retrofit.LoomStringConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
@@ -84,7 +83,6 @@ public class RhizomeTests {
                 .build();
         adapter = new Retrofit.Builder().baseUrl( "http://localhost:8081/rhizome/api/" ).client( httpClient )
                 .addConverterFactory( new LoomByteConverterFactory() )
-                .addConverterFactory( new LoomStringConverterFactory() )
                 .addConverterFactory( new LoomJacksonConverterFactory() )
                 .addCallAdapterFactory( new LoomCallAdapterFactory() ).build();
 
