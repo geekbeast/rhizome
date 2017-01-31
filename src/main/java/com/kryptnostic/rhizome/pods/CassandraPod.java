@@ -74,6 +74,7 @@ public class CassandraPod {
     public static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
         Builder builder = new Cluster.Builder();
         builder.withCompression( cassandraConfiguration.getCompression() )
+                .withQueryOptions( new QueryOptions().setConsistencyLevel( cassandraConfiguration.getConsistencyLevel() ) )
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
                 .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );

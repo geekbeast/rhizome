@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.geekbeast.rhizome.tests.bootstrap.CassandraBootstrap;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
@@ -30,6 +31,7 @@ public class BaseCassandraMapStoreTest extends CassandraBootstrap {
             Optional.of( ImmutableList.of( "localhost" ) ),
             Optional.of( "test" ),
             Optional.of( Integer.valueOf( 3 ) ),
+            Optional.of( ConsistencyLevel.ONE ),
             Optional.absent(),
             Optional.absent(),
             Optional.absent(),

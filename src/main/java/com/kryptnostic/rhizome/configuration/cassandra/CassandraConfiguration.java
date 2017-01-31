@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ProtocolOptions.Compression;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,37 +17,40 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
 
 public class CassandraConfiguration {
-    private static final String       CASSANDRA_COMPRESSION_PROPERTY  = "compression";
-    private static final String       CASSANDRA_RANDOM_PORTS_PROPERTY = "random-ports";
-    private static final String       CASSANDRA_EMBEDDED_PROPERTY     = "embedded";
-    private static final String       CASSANDRA_SSL_ENABLED           = "ssl-enabled";
-    private static final String       CASSANDRA_KEYSPACE_PROPERTY     = "keyspace";
-    private static final String       CASSANDRA_REPLICATION_FACTOR    = "replication-factor";
-    private static final String       CASSANDRA_SEED_NODES_PROPERTY   = "seed-nodes";
-    private static final String       HAZELCAST_WRITE_DELAY_FIELD     = "write-delay";
+    private static final String           CASSANDRA_COMPRESSION_PROPERTY       = "compression";
+    private static final String           CASSANDRA_RANDOM_PORTS_PROPERTY      = "random-ports";
+    private static final String           CASSANDRA_EMBEDDED_PROPERTY          = "embedded";
+    private static final String           CASSANDRA_SSL_ENABLED                = "ssl-enabled";
+    private static final String           CASSANDRA_KEYSPACE_PROPERTY          = "keyspace";
+    private static final String           CASSANDRA_REPLICATION_FACTOR         = "replication-factor";
+    private static final String           CASSANDRA_SEED_NODES_PROPERTY        = "seed-nodes";
+    private static final String           HAZELCAST_WRITE_DELAY_FIELD          = "write-delay";
+    private static final String           CASSANDRA_CONSISTENCY_LEVEL_PROPERTY = "consistency-level";
 
-    private static final List<String> CASSANDRA_SEED_DEFAULT          = ImmutableList.of( "127.0.0.1" );
-    private static final String       KEYSPACE_DEFAULT                = "rhizome";
-    private static final int          REPLICATION_FACTOR_DEFAULT      = 1;
-    private static final boolean      RANDOM_PORTS_DEFAULT            = false;
-    private static final boolean      EMBEDDED_DEFAULT                = false;
-    private static final boolean      SSL_ENABLED_DEFAULT             = false;
-    private static final String       COMPRESSION_DEFAULT             = "NONE";
+    private static final List<String>     CASSANDRA_SEED_DEFAULT               = ImmutableList.of( "127.0.0.1" );
+    private static final String           KEYSPACE_DEFAULT                     = "rhizome";
+    private static final int              REPLICATION_FACTOR_DEFAULT           = 1;
+    private static final ConsistencyLevel CONSISTENCY_LEVEL_DEFAULT            = ConsistencyLevel.QUORUM;
+    private static final boolean          RANDOM_PORTS_DEFAULT                 = false;
+    private static final boolean          EMBEDDED_DEFAULT                     = false;
+    private static final boolean          SSL_ENABLED_DEFAULT                  = false;
+    private static final String           COMPRESSION_DEFAULT                  = "NONE";
 
-    private final boolean             randomPorts;
-    private final boolean             embedded;
-    private final boolean             sslEnabled;
+    private final boolean                 randomPorts;
+    private final boolean                 embedded;
+    private final boolean                 sslEnabled;
 
-    private final Compression         compression;
-    private List<InetAddress>         cassandraSeedNodes;
-    private final String              keyspace;
-    private final int                 replicationFactor;
-    private int                       writeBackDelay;
+    private final Compression             compression;
+    private List<InetAddress>             cassandraSeedNodes;
+    private final String                  keyspace;
+    private final int                     replicationFactor;
+    private final ConsistencyLevel        consistencyLevel;
+    private int                           writeBackDelay;
 
-    private final String              provider;
-    private String                    region;
+    private final String                  provider;
+    private String                        region;
 
-    private static final Logger       logger                          = LoggerFactory
+    private static final Logger           logger                               = LoggerFactory
             .getLogger( CassandraConfiguration.class );
 
     @JsonCreator
@@ -58,6 +62,7 @@ public class CassandraConfiguration {
             @JsonProperty( CASSANDRA_SEED_NODES_PROPERTY ) Optional<List<String>> cassandraSeedNodes,
             @JsonProperty( CASSANDRA_KEYSPACE_PROPERTY ) Optional<String> keyspace,
             @JsonProperty( CASSANDRA_REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
+            @JsonProperty( CASSANDRA_CONSISTENCY_LEVEL_PROPERTY ) Optional<ConsistencyLevel> consistencyLevel,
             @JsonProperty( AmazonConfiguration.PROVIDER_PROPERTY ) Optional<String> provider,
             @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
@@ -70,6 +75,7 @@ public class CassandraConfiguration {
         this.sslEnabled = sslEnabled.or( SSL_ENABLED_DEFAULT );
         this.keyspace = keyspace.or( KEYSPACE_DEFAULT );
         this.replicationFactor = replicationFactor.or( REPLICATION_FACTOR_DEFAULT );
+        this.consistencyLevel = consistencyLevel.or( CONSISTENCY_LEVEL_DEFAULT );
         // TODO: I don't think this switch statement is required as Jackson will correctly ser/des the enum.
         switch ( compression.or( COMPRESSION_DEFAULT ).toLowerCase() ) {
             case "lz4":
@@ -154,6 +160,11 @@ public class CassandraConfiguration {
     @JsonProperty( CASSANDRA_REPLICATION_FACTOR )
     public int getReplicationFactor() {
         return replicationFactor;
+    }
+
+    @JsonProperty( CASSANDRA_CONSISTENCY_LEVEL_PROPERTY )
+    public ConsistencyLevel getConsistencyLevel() {
+        return consistencyLevel;
     }
 
     @JsonProperty( HAZELCAST_WRITE_DELAY_FIELD )
