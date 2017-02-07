@@ -267,6 +267,24 @@ public class CassandraTableBuilder {
     public Where buildLoadByPartitionKeyQuery() {
         return buildLoadQuery( partitionKeyColumnDefs() );
     }
+    
+    public Where buildLoadByPartitionKeyQueryWithStaticColumns() {
+        
+        Iterable<String> columns = Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
+                Arrays.asList( this.clustering ),
+                Arrays.asList( this.columns ),
+                Arrays.asList( this.staticColumns ) ),
+                ColumnDef::cql );
+        
+        Builder s = QueryBuilder.select( Iterables.toArray( columns, String.class ) );
+        Select loadAllWithStaticColumnsQuery = keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
+                
+        Where w = loadAllWithStaticColumnsQuery.where();
+        for ( ColumnDef col : partitionKeyColumnDefs() ) {
+            w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
+        }
+        return w;
+    }
 
     private Where buildLoadQuery( Iterable<ColumnDef> selectedCols ) {
         Where w = buildLoadAllQuery().where();
