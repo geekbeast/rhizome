@@ -347,7 +347,8 @@ public class CassandraTableBuilder {
     private Iterable<String> allColumns() {
         return Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
                 Arrays.asList( this.clustering ),
-                Arrays.asList( this.columns ) ), ColumnDef::cql );
+                Arrays.asList( this.columns ),
+                Arrays.asList( this.staticColumns ) ), ColumnDef::cql );
     }
 
     private static String getPrimaryKeyDef( ColumnDef[] columns ) {
