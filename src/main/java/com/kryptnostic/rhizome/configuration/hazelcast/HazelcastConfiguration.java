@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.configuration.hazelcast;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -11,7 +12,7 @@ import com.google.common.collect.ImmutableList;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
-public class HazelcastConfiguration {
+public class HazelcastConfiguration implements Serializable {
     private static final String       REPLICATION_FACTOR         = "replication-factor";
     private static final String       SEED_NODES_PROPERTY        = "seed-nodes";
     private static final String       NAME_PROPERTY              = "instance-name";

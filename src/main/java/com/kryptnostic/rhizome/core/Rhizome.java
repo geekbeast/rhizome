@@ -1,29 +1,5 @@
 package com.kryptnostic.rhizome.core;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.request.RequestContextListener;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
-
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
@@ -41,11 +17,26 @@ import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.servlets.DispatcherServletConfiguration;
-import com.kryptnostic.rhizome.pods.AsyncPod;
-import com.kryptnostic.rhizome.pods.ConfigurationPod;
-import com.kryptnostic.rhizome.pods.JettyContainerPod;
-import com.kryptnostic.rhizome.pods.LoamPod;
-import com.kryptnostic.rhizome.pods.MetricsPod;
+import com.kryptnostic.rhizome.pods.*;
+import com.kryptnostic.rhizome.startup.Requirement;
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
+
+import javax.servlet.*;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Note: if using jetty, jetty creates an instance of this class with a no-arg constructor in order to call onStartup
@@ -246,7 +237,7 @@ public class Rhizome implements WebApplicationInitializer {
             }
         } finally {
             rhizomeContext = null;
-            if ( context.isActive() ) {
+            if ( context.isActive() && startupRequirementsSatisfied( context ) ) {
                 showBanner();
             }
             startupLock.unlock();
@@ -283,5 +274,12 @@ public class Rhizome implements WebApplicationInitializer {
         } catch ( IOException e ) {
             logger.warn( "No startup banner found." );
         }
+    }
+
+    public static boolean startupRequirementsSatisfied( AnnotationConfigWebApplicationContext context ) {
+        return context.getBeansOfType( Requirement.class )
+                .values()
+                .parallelStream()
+                .allMatch( Requirement::isSatisfied );
     }
 }

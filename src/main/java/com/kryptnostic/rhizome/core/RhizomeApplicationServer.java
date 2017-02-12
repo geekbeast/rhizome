@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.core;
 
+import com.kryptnostic.rhizome.startup.Requirement;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -13,12 +14,16 @@ import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConf
 
 public class RhizomeApplicationServer {
     private final AnnotationConfigApplicationContext context     = new AnnotationConfigApplicationContext();;
-    public static final Class<?>[]                   defaultPods = new Class<?>[] {
+    public static final Class<?>[] DEFAULT_PODS = new Class<?>[] {
             RegistryBasedHazelcastInstanceConfigurationPod.class, HazelcastPod.class,
             AsyncPod.class, ConfigurationPod.class };
 
     public RhizomeApplicationServer( Class<?>... pods ) {
-        this.context.register( Pods.concatenate( defaultPods, pods ) );
+        this( DEFAULT_PODS , pods );
+    }
+
+    private RhizomeApplicationServer( Class<?>[] basePods, Class<?>... pods ) {
+        this.context.register( Pods.concatenate( basePods, pods ) );
     }
 
     public void intercrop( Class<?>... pods ) {
@@ -44,7 +49,9 @@ public class RhizomeApplicationServer {
             context.getEnvironment().addActiveProfile( Profiles.LOCAL_CONFIGURATION_PROFILE );
         }
         context.refresh();
-        Rhizome.showBanner();
+        if( context.isActive() && startupRequirementsSatisfied( context ) ) {
+            Rhizome.showBanner();
+        }
     }
 
     public void plowUnder() {
@@ -55,7 +62,18 @@ public class RhizomeApplicationServer {
         context.close();
     }
 
+    public boolean isActive() {
+        return context.isActive();
+    }
+
     public AnnotationConfigApplicationContext getContext() {
         return context;
+    }
+
+    public static boolean startupRequirementsSatisfied( AnnotationConfigApplicationContext context ) {
+        return context.getBeansOfType( Requirement.class )
+                .values()
+                .parallelStream()
+                .allMatch( Requirement::isSatisfied );
     }
 }
