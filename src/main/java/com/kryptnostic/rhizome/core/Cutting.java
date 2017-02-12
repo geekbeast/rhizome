@@ -31,9 +31,11 @@ public class Cutting implements Serializable {
     private static final     CountDownLatch           latch                      = new CountDownLatch( 1 );
     private static final     Lock                     lock                       = new ReentrantLock();
     private final String[] activeProfiles;
+    private final Class<?>[] additionalPods;
 
-    public Cutting( String[] activeProfiles ) {
+    public Cutting( String[] activeProfiles, Class<?> ... additionalPods ) {
         this.activeProfiles = activeProfiles;
+        this.additionalPods = additionalPods;
     }
 
     public <T> T getBean( Class<T> clazz ) throws InterruptedException {
@@ -48,6 +50,7 @@ public class Cutting implements Serializable {
 
     public void ensureInitialized() throws InterruptedException {
         if ( !RHIZOME_APPLICATION_SERVER.getContext().isActive() && lock.tryLock() ) {
+            RHIZOME_APPLICATION_SERVER.intercrop( additionalPods );
             RHIZOME_APPLICATION_SERVER.sprout( activeProfiles );
             latch.countDown();
         } else {
