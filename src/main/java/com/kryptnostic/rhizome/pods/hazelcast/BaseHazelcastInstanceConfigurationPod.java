@@ -48,14 +48,12 @@ import com.kryptnostic.rhizome.pods.HazelcastPod;
 @Import( { HazelcastPod.class, ConfigurationPod.class } )
 public class BaseHazelcastInstanceConfigurationPod {
     private static final Logger logger      = LoggerFactory.getLogger( BaseHazelcastInstanceConfigurationPod.class );
-    private static final Lock   startupLock = new ReentrantLock();
 
     @Inject
     protected RhizomeConfiguration rhizomeConfiguration;
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
-        startupLock.lock();
         return new HazelcastConfigurationContainer(
                 getHazelcastServerConfiguration(),
                 getHazelcastClientConfiguration() );
@@ -100,11 +98,6 @@ public class BaseHazelcastInstanceConfigurationPod {
                 .setAllowUnsafe( true )
                 .setUseNativeByteOrder( true );
         return config;
-    }
-
-    @Bean
-    public static Lock hazelcastStartupLock() {
-        return startupLock;
     }
 
     protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {

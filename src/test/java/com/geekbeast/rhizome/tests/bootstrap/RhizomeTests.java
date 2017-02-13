@@ -1,9 +1,22 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
-import java.io.IOException;
-
-import javax.ws.rs.core.MediaType;
-
+import com.dataloom.retrofit.LoomByteConverterFactory;
+import com.dataloom.retrofit.LoomCallAdapterFactory;
+import com.dataloom.retrofit.LoomJacksonConverterFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
+import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
+import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
+import com.google.common.base.Optional;
+import com.google.common.net.HttpHeaders;
+import com.kryptnostic.rhizome.core.Cutting;
+import com.kryptnostic.rhizome.core.Rhizome;
+import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
+import digital.loom.rhizome.authentication.Auth0TestPod;
+import digital.loom.rhizome.authentication.AuthenticationTest;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,25 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
-
-import com.dataloom.retrofit.LoomByteConverterFactory;
-import com.dataloom.retrofit.LoomCallAdapterFactory;
-import com.dataloom.retrofit.LoomJacksonConverterFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
-import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
-import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
-import com.google.common.base.Optional;
-import com.google.common.net.HttpHeaders;
-import com.kryptnostic.rhizome.core.Rhizome;
-import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
-
-import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
-import digital.loom.rhizome.authentication.Auth0TestPod;
-import digital.loom.rhizome.authentication.AuthenticationTest;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import retrofit2.Retrofit;
+
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 
 public class RhizomeTests {
     private final static Logger      logger     = LoggerFactory.getLogger( RhizomeTests.class );
@@ -95,6 +93,12 @@ public class RhizomeTests {
                 Optional.<String> absent() );
         TestConfiguration actual = api.setTestConfiguration( expected );
         Assert.assertEquals( expected, actual );
+    }
+
+    @Test
+    public void getCutting() {
+        Assert.assertNotNull( "Cuttings of the rhizome must always be present.",
+                rhizome.getContext().getBean( Cutting.class ) );
     }
 
     @Test

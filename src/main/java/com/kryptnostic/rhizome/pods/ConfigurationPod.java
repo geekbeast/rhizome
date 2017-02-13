@@ -1,7 +1,12 @@
 package com.kryptnostic.rhizome.pods;
 
+import com.kryptnostic.rhizome.core.Cutting;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+
+import javax.inject.Inject;
 
 /**
  * The configuration pod is responsible for bootstrapping the initial environment. It sets up component scanning
@@ -16,4 +21,12 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @Import( { LocalConfigurationPod.class, AwsConfigurationPod.class } )
-public class ConfigurationPod {}
+public class ConfigurationPod {
+    @Inject
+    private Environment environment;
+
+    @Bean
+    public Cutting getCutting() {
+        return new Cutting( environment.getActiveProfiles() );
+    }
+}
