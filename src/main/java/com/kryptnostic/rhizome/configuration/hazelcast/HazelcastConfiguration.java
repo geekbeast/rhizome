@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
-public class HazelcastConfiguration implements Serializable {
+public class HazelcastConfiguration {
     private static final String       REPLICATION_FACTOR         = "replication-factor";
     private static final String       SEED_NODES_PROPERTY        = "seed-nodes";
     private static final String       NAME_PROPERTY              = "instance-name";
