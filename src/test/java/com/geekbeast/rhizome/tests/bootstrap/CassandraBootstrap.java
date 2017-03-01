@@ -12,12 +12,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
 import com.kryptnostic.rhizome.pods.CassandraPod;
 
 public class CassandraBootstrap {
-    private static Logger                          logger = LoggerFactory.getLogger( CassandraBootstrap.class );
-    protected static EmbeddedCassandraManager ecm    = new RhizomeEmbeddedCassandraManager();
+    private static final int                  EMBEDDED_TIMEOUT = 60000;
+
+    private static Logger                     logger           = LoggerFactory.getLogger( CassandraBootstrap.class );
+    protected static EmbeddedCassandraManager ecm              = new RhizomeEmbeddedCassandraManager();
     static {
         CassandraPod.setEmbeddedCassandraManager( ecm );
     }
@@ -28,12 +32,22 @@ public class CassandraBootstrap {
     }
 
     private static final class RhizomeEmbeddedCassandraManager implements EmbeddedCassandraManager {
-        private static final Lock lock = new ReentrantLock();
+        private static final Lock              lock            = new ReentrantLock();
+        private static final Supplier<Cluster> clusterSupplier = Suppliers.memoize( () -> {
+                                                                   final Cluster cluster = EmbeddedCassandraServerHelper
+                                                                           .getCluster();
+                                                                   cluster.getConfiguration()
+                                                                           .getSocketOptions()
+                                                                           .setReadTimeoutMillis( EMBEDDED_TIMEOUT );
+                                                                   return cluster;
+                                                               } );
 
         public void start( String yamlFile ) {
             if ( lock.tryLock() ) {
                 try {
                     EmbeddedCassandraServerHelper.startEmbeddedCassandra( yamlFile, 100000 );
+                    EmbeddedCassandraServerHelper.getCluster().getConfiguration().getSocketOptions()
+                            .setReadTimeoutMillis( EMBEDDED_TIMEOUT );
                 } catch ( ConfigurationException | TTransportException | IOException e ) {
                     throw new IllegalStateException( "Cassandra unable to start.", e );
                 }
@@ -43,7 +57,7 @@ public class CassandraBootstrap {
 
         @Override
         public Cluster cluster() {
-            return EmbeddedCassandraServerHelper.getCluster();
+            return clusterSupplier.get();
         }
     }
 }
