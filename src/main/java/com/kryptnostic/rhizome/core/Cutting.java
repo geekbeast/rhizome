@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class Cutting implements Serializable {
+    private static final long serialVersionUID = -8431251486986674006L;
     private static final RhizomeApplicationServer RHIZOME_APPLICATION_SERVER = new RhizomeApplicationServer();
     private static final     CountDownLatch           latch                      = new CountDownLatch( 1 );
     private static final     Lock                     lock                       = new ReentrantLock();
