@@ -28,6 +28,7 @@ public class RhizomeConfiguration implements Configuration {
 
     protected static final String                                 PERSISTENCE_ENABLED_PROPERTY                    = "enable-persistence";
     protected static final String                                 SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
+    protected static final String                                 CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL            = "cors-access-control-allow-origin-url";
     protected static final String                                 CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
     protected static final String                                 SPARK_CONFIGURATION_PROPERTY                    = "spark";
     protected static final String                                 CASSANDRA_CONFIGURATIONS_PROPERTY               = "cassandras";
@@ -43,6 +44,7 @@ public class RhizomeConfiguration implements Configuration {
                                                                                                                                   getClass() );
     protected final boolean                                       persistData;
     protected final boolean                                       sessionClusteringEnabled;
+    protected final String                                        corsAccessControlAllowOriginUrl;
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
     protected final Optional<GraphiteConfiguration>               graphiteConfiguration;
     @Deprecated
@@ -56,6 +58,7 @@ public class RhizomeConfiguration implements Configuration {
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
+            @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL ) Optional<String> corsAccessControlAllowOriginUrl,
             @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY ) Optional<RethinkDbConfiguration> rethinkDbConfiguration,
             @Deprecated @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY ) Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY ) Optional<CassandraConfigurations> cassandraConfigurations,
@@ -65,6 +68,7 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig) {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
+        this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
         this.cassandraConfiguration = cassandraConfiguration;
         this.cassandraConfigurations = cassandraConfigurations;
         this.rethinkDbConfiguration = rethinkDbConfiguration;
@@ -92,6 +96,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY )
     public boolean isSessionClusteringEnabled() {
         return sessionClusteringEnabled;
+    }
+
+    @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL )
+    public String getCORSAccessControlAllowOriginUrl() {
+        return corsAccessControlAllowOriginUrl;
     }
 
     @Deprecated
