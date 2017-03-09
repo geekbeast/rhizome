@@ -51,8 +51,12 @@ public class Cutting implements Serializable {
 
     public void ensureInitialized() throws InterruptedException {
         if ( !RHIZOME_APPLICATION_SERVER.getContext().isActive() && lock.tryLock() ) {
-            RHIZOME_APPLICATION_SERVER.intercrop( additionalPods );
+            if( additionalPods.length > 0 ) {
+                RHIZOME_APPLICATION_SERVER.intercrop( additionalPods );
+            }
+            
             RHIZOME_APPLICATION_SERVER.sprout( activeProfiles );
+            
             latch.countDown();
         } else {
             latch.await();
