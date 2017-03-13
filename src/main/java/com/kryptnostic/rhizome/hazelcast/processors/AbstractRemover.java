@@ -27,6 +27,10 @@ public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhiz
         if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
             entry.setValue( currentObjects );
         }
+        
+        if( currentObjects.isEmpty() ){
+            entry.setValue( null );
+        }
 
         return null;
     }
