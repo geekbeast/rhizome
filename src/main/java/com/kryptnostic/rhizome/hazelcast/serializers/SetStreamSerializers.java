@@ -1,8 +1,7 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -91,9 +90,17 @@ public class SetStreamSerializers {
         return deserialize( in, Sets.newHashSetWithExpectedSize( size ), size, f );
     }
 
-    public static <T> Set<T> deserialize(
+    public static <T> LinkedHashSet<T> orderedDeserialize(
             ObjectDataInput in,
-            Set<T> set,
+            IoPerformingFunction<ObjectDataInput, T> f )
+            throws IOException {
+        int size = in.readInt();
+        return deserialize( in, Sets.newLinkedHashSetWithExpectedSize( size ), size, f );
+    }
+
+    public static <T, S extends Set<T>> S deserialize(
+            ObjectDataInput in,
+            S set,
             int size,
             IoPerformingFunction<ObjectDataInput, T> f )
             throws IOException {

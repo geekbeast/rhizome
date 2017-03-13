@@ -18,24 +18,30 @@
 package com.kryptnostic.rhizome.core;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
+
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class Cutting implements Serializable {
+    private static final long                     serialVersionUID           = -8431251486986674006L;
     private static final RhizomeApplicationServer RHIZOME_APPLICATION_SERVER = new RhizomeApplicationServer();
-    private static final     CountDownLatch           latch                      = new CountDownLatch( 1 );
-    private static final     Lock                     lock                       = new ReentrantLock();
-    private final String[] activeProfiles;
-    private final Class<?>[] additionalPods;
+    private static final CountDownLatch           latch                      = new CountDownLatch( 1 );
+    private static final Lock                     lock                       = new ReentrantLock();
+    private final String[]                        activeProfiles;
+    private final List<Class<?>>                  additionalPods;
 
-    public Cutting( String[] activeProfiles, Class<?> ... additionalPods ) {
+    public Cutting( String[] activeProfiles, Class<?>... additionalPods ) {
         this.activeProfiles = activeProfiles;
-        this.additionalPods = additionalPods;
+        this.additionalPods = Lists.newArrayList( additionalPods );
     }
 
     public <T> T getBean( Class<T> clazz ) throws InterruptedException {
@@ -50,11 +56,19 @@ public class Cutting implements Serializable {
 
     public void ensureInitialized() throws InterruptedException {
         if ( !RHIZOME_APPLICATION_SERVER.getContext().isActive() && lock.tryLock() ) {
-            RHIZOME_APPLICATION_SERVER.intercrop( additionalPods );
+            if ( additionalPods.size() > 0 ) {
+                RHIZOME_APPLICATION_SERVER.intercrop( additionalPods.toArray( new Class<?>[]{} ) );
+            }
             RHIZOME_APPLICATION_SERVER.sprout( activeProfiles );
+
             latch.countDown();
         } else {
             latch.await();
         }
+    }
+
+    public void addPods( Class<?> newClass ) {
+        Preconditions.checkState( !RHIZOME_APPLICATION_SERVER.getContext().isActive() );
+        additionalPods.add( newClass );
     }
 }

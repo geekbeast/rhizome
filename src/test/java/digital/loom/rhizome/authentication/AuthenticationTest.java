@@ -1,5 +1,17 @@
 package digital.loom.rhizome.authentication;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import com.auth0.Auth0;
 import com.auth0.authentication.AuthenticationAPIClient;
 import com.auth0.authentication.result.Authentication;
@@ -15,18 +27,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.google.common.util.concurrent.RateLimiter;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
 
 /**
  * This class is a sanity check to ensure that authentication is successfully working against auth0 server. The hard
@@ -67,11 +70,12 @@ public class AuthenticationTest {
             clientId,
             "loom.auth0.com" );
     private static final AuthenticationAPIClient client = auth0.newAuthenticationAPIClient();
-
+    private static final RateLimiter authRateLimiter = RateLimiter.create( 1.75 ); 
     static {
         authentications = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, Authentication>() {
                     @Override public Authentication load( AuthenticationTestRequestOptions options ) throws Exception {
+                        authRateLimiter.acquire();
                         Authentication auth = client
                                 .getProfileAfter( client.login( options.getUsernameOrEmail(), options.getPassword() )
                                         .setConnection( options.getConnection() )
