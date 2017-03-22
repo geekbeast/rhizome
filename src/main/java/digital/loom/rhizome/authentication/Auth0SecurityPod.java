@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 import com.auth0.Auth0;
@@ -92,13 +93,13 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     
     @Bean(
         name = "auth0EntryPoint" )
-    public Auth0AuthenticationEntryPoint auth0AuthenticationEntryPoint() {
+    public AuthenticationEntryPoint auth0AuthenticationEntryPoint() {
         return new Auth0AuthenticationEntryPoint();
     }
 
     @Bean(
         name = "auth0Filter" )
-    public Auth0AuthenticationFilter auth0AuthenticationFilter( final Auth0AuthenticationEntryPoint entryPoint ) {
+    public Auth0AuthenticationFilter auth0AuthenticationFilter( final AuthenticationEntryPoint entryPoint ) {
         final Auth0AuthenticationFilter filter = new CookieReadingAuth0AuthenticationFilter();
         filter.setEntryPoint( entryPoint );
         return filter;

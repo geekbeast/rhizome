@@ -95,6 +95,11 @@ public class AuthenticationTest {
         return authentications.getUnchecked( authOptions );
     }
 
+    public static Authentication refreshAndGetAuthentication( AuthenticationTestRequestOptions options ) {
+        authentications.invalidate( options );
+        return authentications.getUnchecked( options );
+    }
+
     @Test
     public void testRoles() throws Exception {
         Authentication auth = authenticate();
