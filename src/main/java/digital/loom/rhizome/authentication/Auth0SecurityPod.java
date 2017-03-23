@@ -33,7 +33,7 @@ import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
  * Including this pod will enable using Auth0 as an authentication source. It based off the one provided by auth0 in the
  * spring-mvc pod, but differs in that it enables {@code @Secured} annotations, disables debug, and allows configuration
  * using properties file.
- * 
+ *
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
@@ -58,11 +58,6 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         name = "auth0AuthenticationManager" )
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
-    }
-
-    @Bean
-    public Auth0CORSFilter simpleCORSFilter() {
-        return new Auth0CORSFilter();
     }
 
     @Bean(
@@ -90,7 +85,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
         return authenticationProvider;
     }
-    
+
     @Bean(
         name = "auth0EntryPoint" )
     public AuthenticationEntryPoint auth0AuthenticationEntryPoint() {
@@ -122,9 +117,15 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
 
         // Add Auth0 Authentication Filter
-        http.addFilterAfter( auth0AuthenticationFilter( auth0AuthenticationEntryPoint() ),
-                SecurityContextPersistenceFilter.class )
-                .addFilterBefore( simpleCORSFilter(), CookieReadingAuth0AuthenticationFilter.class );
+        http
+                .addFilterAfter(
+                        auth0AuthenticationFilter( auth0AuthenticationEntryPoint() ),
+                        SecurityContextPersistenceFilter.class
+                )
+                .addFilterBefore(
+                        getAuth0CORSFilter(),
+                        CookieReadingAuth0AuthenticationFilter.class
+                );
 
         // Apply the Authentication and Authorization Strategies your application endpoints require
         authorizeRequests( http );
@@ -148,7 +149,7 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers( "/**" ).authenticated();
     }
-    
+
     /**
      * Override this to modify the type of ConfigurableAuthenticationProvider for performing authentication.
      * @return The Auth0AuthenticationProvider to use for performing authentications.
@@ -159,6 +160,10 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     }
 
     protected AuthenticationAPIClient getAuthenticationApiClient() {
-        return auth0.newAuthenticationAPIClient(); 
+        return auth0.newAuthenticationAPIClient();
+    }
+
+    protected Auth0CORSFilter getAuth0CORSFilter() {
+        return new Auth0CORSFilter();
     }
 }
