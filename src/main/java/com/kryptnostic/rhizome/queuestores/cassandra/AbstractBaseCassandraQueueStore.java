@@ -33,11 +33,13 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.datastax.driver.core.exceptions.QueryValidationException;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.QueueStoreConfig;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
@@ -53,6 +55,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
 
     private final PreparedStatement deleteQuery;
     private final PreparedStatement loadQuery;
+    private final PreparedStatement storeQuery;
 
     public AbstractBaseCassandraQueueStore( String queueName, Session session, CassandraTableBuilder builder ) {
 
@@ -63,6 +66,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
 
         deleteQuery = session.prepare( builder.buildDeleteQuery() );
         loadQuery = session.prepare( builder.buildLoadQuery() );
+        storeQuery = session.prepare( builder.buildStoreQuery() );
     }
 
     @Override
@@ -140,13 +144,17 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     @Override
     public void store( Long key, T value ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        asyncStore( key, value ).getUninterruptibly();
     }
 
     @Override
     public void storeAll( Map<Long, T> map ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        map
+                .entrySet()
+                .parallelStream()
+                .map( entry -> asyncStore( entry.getKey(), entry.getValue() ) )
+                .forEach( ResultSetFuture::getUninterruptibly );
     }
 
     protected ResultSetFuture asyncDelete( Long key ) {
@@ -169,6 +177,15 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
         }
     }
 
+    protected ResultSetFuture asyncStore( Long key, T value ) {
+        try {
+            return session.executeAsync( bind( key, value, storeQuery.bind() ) );
+        } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
+            logger.error( "Unable to perform query to store key {}", key, e );
+            return null;
+        }
+    }
+
     protected T safeTransform( ResultSetFuture resultSetFuture ) {
 
         ResultSet resultSet = resultSetFuture.getUninterruptibly();
@@ -178,6 +195,8 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     }
 
     protected abstract BoundStatement bind( Long key, BoundStatement bs );
+
+    protected abstract BoundStatement bind( Long key, T value, BoundStatement bs );
 
     protected abstract T mapValue( ResultSet resultSet );
 }
