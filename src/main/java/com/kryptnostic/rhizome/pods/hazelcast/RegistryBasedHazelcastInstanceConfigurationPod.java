@@ -20,7 +20,7 @@ import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
+import com.kryptnostic.rhizome.queuestores.SelfRegisteringQueueStore;
 
 @Configuration
 public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcastInstanceConfigurationPod {
@@ -49,7 +49,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
                 .forEach( e -> logger.warn( "Found {} duplicate serializers for type id: {}",
                         e.getCount(),
                         e.getElement() ) );
-        
+
         return configs;
     }
 
