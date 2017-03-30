@@ -22,13 +22,16 @@ package com.kryptnostic.rhizome.queuestores.cassandra;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -49,6 +52,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     protected final CassandraTableBuilder cassandraTableBuilder;
 
     private final PreparedStatement deleteQuery;
+    private final PreparedStatement loadQuery;
 
     public AbstractBaseCassandraQueueStore( String queueName, Session session, CassandraTableBuilder builder ) {
 
@@ -58,6 +62,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
         this.cassandraTableBuilder = Preconditions.checkNotNull( builder, "CassandraTableBuilder cannot be null" );
 
         deleteQuery = session.prepare( builder.buildDeleteQuery() );
+        loadQuery = session.prepare( builder.buildLoadQuery() );
     }
 
     @Override
@@ -112,13 +117,18 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     @Override
     public T load( Long key ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        return safeTransform( asyncLoad( key ) );
     }
 
     @Override
     public Map<Long, T> loadAll( Collection<Long> keys ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        return keys
+                .stream()
+                .map( key -> Pair.of( key, asyncLoad( key ) ) )
+                .map( pair -> Pair.of( pair.getLeft(), safeTransform( pair.getRight() ) ) )
+                .filter( pair -> pair.getRight() != null )
+                .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
     }
 
     @Override
@@ -149,5 +159,25 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
         }
     }
 
+    protected ResultSetFuture asyncLoad( Long key ) {
+
+        try {
+            return session.executeAsync( bind( key, loadQuery.bind() ) );
+        } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
+            logger.error( "Unable to perform query to load key {}", key, e );
+            return null;
+        }
+    }
+
+    protected T safeTransform( ResultSetFuture resultSetFuture ) {
+
+        ResultSet resultSet = resultSetFuture.getUninterruptibly();
+        return resultSet == null
+                ? null
+                : mapValue( resultSet );
+    }
+
     protected abstract BoundStatement bind( Long key, BoundStatement bs );
+
+    protected abstract T mapValue( ResultSet resultSet );
 }
