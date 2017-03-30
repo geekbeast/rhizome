@@ -27,7 +27,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
+import com.datastax.driver.core.exceptions.QueryValidationException;
 import com.google.common.base.Preconditions;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.QueueStoreConfig;
@@ -42,12 +48,16 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     protected final Session               session;
     protected final CassandraTableBuilder cassandraTableBuilder;
 
+    private final PreparedStatement deleteQuery;
+
     public AbstractBaseCassandraQueueStore( String queueName, Session session, CassandraTableBuilder builder ) {
 
         Preconditions.checkArgument( StringUtils.isNotBlank( queueName ), "Queue name cannot be blank" );
         this.queueName = queueName;
         this.session = Preconditions.checkNotNull( session, "Session cannot be null" );
         this.cassandraTableBuilder = Preconditions.checkNotNull( builder, "CassandraTableBuilder cannot be null" );
+
+        deleteQuery = session.prepare( builder.buildDeleteQuery() );
     }
 
     @Override
@@ -87,13 +97,16 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     @Override
     public void delete( Long key ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        asyncDelete( key ).getUninterruptibly();
     }
 
     @Override
     public void deleteAll( Collection<Long> keys ) {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        keys
+                .parallelStream()
+                .map( this::asyncDelete )
+                .forEach( ResultSetFuture::getUninterruptibly );
     }
 
     @Override
@@ -126,4 +139,15 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
         throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
     }
 
+    protected ResultSetFuture asyncDelete( Long key ) {
+
+        try {
+            return session.executeAsync( bind( key, deleteQuery.bind() ) );
+        } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
+            logger.error( "Unable to perform query to delete key {}", key, e );
+            return null;
+        }
+    }
+
+    protected abstract BoundStatement bind( Long key, BoundStatement bs );
 }
