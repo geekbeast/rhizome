@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,7 +40,6 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.datastax.driver.core.exceptions.QueryValidationException;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.QueueStoreConfig;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
@@ -55,6 +55,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
 
     private final PreparedStatement deleteQuery;
     private final PreparedStatement loadQuery;
+    private final PreparedStatement loadAllKeysQuery;
     private final PreparedStatement storeQuery;
 
     public AbstractBaseCassandraQueueStore( String queueName, Session session, CassandraTableBuilder builder ) {
@@ -66,6 +67,7 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
 
         deleteQuery = session.prepare( builder.buildDeleteQuery() );
         loadQuery = session.prepare( builder.buildLoadQuery() );
+        loadAllKeysQuery = session.prepare( builder.buildLoadAllPrimaryKeysQuery() );
         storeQuery = session.prepare( builder.buildStoreQuery() );
     }
 
@@ -138,7 +140,12 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     @Override
     public Set<Long> loadAllKeys() {
 
-        throw new UnsupportedOperationException( "NOT IMPLEMENTED!" );
+        ResultSet resultSet = session.execute( loadAllKeysQuery.bind() );
+
+        return StreamSupport
+                .stream( resultSet.spliterator(), false )
+                .map( this::mapKey )
+                .collect( Collectors.toSet() );
     }
 
     @Override
@@ -197,6 +204,8 @@ public abstract class AbstractBaseCassandraQueueStore<T> implements TestableSelf
     protected abstract BoundStatement bind( Long key, BoundStatement bs );
 
     protected abstract BoundStatement bind( Long key, T value, BoundStatement bs );
+
+    protected abstract Long mapKey( Row row );
 
     protected abstract T mapValue( ResultSet resultSet );
 }
