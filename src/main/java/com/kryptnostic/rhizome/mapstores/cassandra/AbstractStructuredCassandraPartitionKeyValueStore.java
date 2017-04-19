@@ -45,6 +45,10 @@ public abstract class AbstractStructuredCassandraPartitionKeyValueStore<K, V>
         return tableBuilder.buildDeleteByPartitionKeyQuery();
     }
 
+    @Override protected RegularStatement loadAllKeysQuery() {
+        return super.loadAllKeysQuery();
+    }
+
     /**
      * We assume that the (partition key)-value store has a unique value for each partition key. This has to be true for
      * a (partition key)-value store to make sense.
