@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.Update;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -155,7 +155,7 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
         return session.prepare( loadQuery() );
     }
 
-    protected Insert storeQuery() {
+    protected RegularStatement storeQuery() {
         return tableBuilder.buildStoreQuery();
     }
 
