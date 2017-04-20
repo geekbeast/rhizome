@@ -74,6 +74,7 @@ public class CassandraPod {
     public static Builder clusterBuilder( CassandraConfiguration cassandraConfiguration ) {
         Builder builder = new Cluster.Builder();
         builder.withCompression( cassandraConfiguration.getCompression() )
+                .withSocketOptions( getSocketOptions() )
                 .withQueryOptions( new QueryOptions().setConsistencyLevel( cassandraConfiguration.getConsistencyLevel() ) )
                 .withPoolingOptions( getPoolingOptions() )
                 .withProtocolVersion( ProtocolVersion.V4 )
@@ -89,6 +90,10 @@ public class CassandraPod {
         }
 
         return builder;
+    }
+
+    public  static SocketOptions getSocketOptions() {
+        return new SocketOptions().setReadTimeoutMillis( 60000 * 10 );
     }
 
     @Bean
