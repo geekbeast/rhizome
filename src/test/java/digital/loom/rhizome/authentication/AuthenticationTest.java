@@ -70,7 +70,7 @@ public class AuthenticationTest {
             clientId,
             "loom.auth0.com" );
     private static final AuthenticationAPIClient client = auth0.newAuthenticationAPIClient();
-    private static final RateLimiter authRateLimiter = RateLimiter.create( 1.75 ); 
+    private static final RateLimiter authRateLimiter = RateLimiter.create( 0.25 ); 
     static {
         authentications = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, Authentication>() {
