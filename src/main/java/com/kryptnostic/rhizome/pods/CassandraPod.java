@@ -76,7 +76,7 @@ public class CassandraPod {
         builder.withCompression( cassandraConfiguration.getCompression() )
                 .withQueryOptions( new QueryOptions().setConsistencyLevel( cassandraConfiguration.getConsistencyLevel() ) )
                 .withPoolingOptions( getPoolingOptions() )
-                .withProtocolVersion( ProtocolVersion.NEWEST_SUPPORTED )
+                .withProtocolVersion( ProtocolVersion.V4 )
                 .addContactPoints( cassandraConfiguration.getCassandraSeedNodes() );
         if ( cassandraConfiguration.isSslEnabled() ) {
             SSLContext context = null;
