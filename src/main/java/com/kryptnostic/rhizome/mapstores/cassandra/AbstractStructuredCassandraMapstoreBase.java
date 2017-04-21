@@ -72,10 +72,11 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
 
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        return keys.stream().map( k -> Pair.of( k, asyncLoad( k ) ) )
+        return keys.parallelStream()
+                .map( k -> Pair.of( k, asyncLoad( k ) ) )
                 .map( p -> Pair.of( p.getLeft(), safeTransform( p.getRight() ) ) )
                 .filter( p -> p.getRight() != null )
-                .collect( Collectors.toMap( p -> p.getLeft(), p -> p.getRight() ) );
+                .collect( Collectors.toConcurrentMap( p -> p.getLeft(), p -> p.getRight() ) );
     }
 
     @Override
