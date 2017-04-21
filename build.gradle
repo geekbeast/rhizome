@@ -226,7 +226,7 @@ dependencies {
      * TESTING
      */
      testCompile 'junit:junit:4.12'
-     testCompile "org.cassandraunit:cassandra-unit:3.1.1.0"
+     testCompile "org.cassandraunit:cassandra-unit:3.1.3.2"
      /*
       * TODO: The rest we depend on Loom API via Jar dependency is to avoid circular classpath problems in Eclipse.
       * Some day we'll either create a separate project or make a rhizome-client library based off retrofit
