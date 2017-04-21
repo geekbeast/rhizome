@@ -76,7 +76,7 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
                 .map( k -> Pair.of( k, asyncLoad( k ) ) )
                 .map( p -> Pair.of( p.getLeft(), safeTransform( p.getRight() ) ) )
                 .filter( p -> p.getRight() != null )
-                .collect( Collectors.toConcurrentMap( p -> p.getLeft(), p -> p.getRight() ) );
+                .collect( Collectors.toMap( p -> p.getLeft(), p -> p.getRight() ) );
     }
 
     @Override
