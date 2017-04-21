@@ -27,7 +27,7 @@ public class ListenableHazelcastFuture<T> implements ListenableFuture<T> {
             }
 
             @Override public void onFailure( Throwable t ) {
-                logger.error( "Unable to retrieve Ace.", t );
+                logger.error( "Unable to retrieve result.", t );
             }
         } );
     }
