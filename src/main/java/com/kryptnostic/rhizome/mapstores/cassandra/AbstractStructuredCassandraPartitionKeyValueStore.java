@@ -46,7 +46,7 @@ public abstract class AbstractStructuredCassandraPartitionKeyValueStore<K, V>
     }
 
     @Override protected RegularStatement loadAllKeysQuery() {
-        return super.loadAllKeysQuery();
+        return tableBuilder.buildLoadAllPartitionKeysQuery();
     }
 
     /**
