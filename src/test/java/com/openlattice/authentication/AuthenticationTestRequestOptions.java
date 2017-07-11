@@ -1,4 +1,4 @@
-package digital.loom.rhizome.authentication;
+package com.openlattice.authentication;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
@@ -7,22 +7,17 @@ public class AuthenticationTestRequestOptions {
     private String usernameOrEmail;
     private String password;
     private String connection = "Tests";
-    private String scope = "openid email nickname roles user_id organizations";
+    private String scope      = "openid email nickname roles user_id organizations";
 
     @Override public boolean equals( Object o ) {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+        if ( this == o ) { return true; }
+        if ( o == null || getClass() != o.getClass() ) { return false; }
 
         AuthenticationTestRequestOptions that = (AuthenticationTestRequestOptions) o;
 
-        if ( !usernameOrEmail.equals( that.usernameOrEmail ) )
-            return false;
-        if ( !password.equals( that.password ) )
-            return false;
-        if ( !connection.equals( that.connection ) )
-            return false;
+        if ( !usernameOrEmail.equals( that.usernameOrEmail ) ) { return false; }
+        if ( !password.equals( that.password ) ) { return false; }
+        if ( !connection.equals( that.connection ) ) { return false; }
         return scope.equals( that.scope );
     }
 

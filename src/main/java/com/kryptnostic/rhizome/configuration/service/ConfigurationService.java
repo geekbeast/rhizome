@@ -3,25 +3,20 @@ package com.kryptnostic.rhizome.configuration.service;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nullable;
 
+import com.openlattice.ResourceConfigurationLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.auth0.jwt.internal.org.apache.commons.io.IOUtils;
 import com.dataloom.mappers.ObjectMappers;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Resources;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
-import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 
 /**
  * Configuration service API for getting, setting, and registering for configuration updates.
@@ -56,14 +51,14 @@ public interface ConfigurationService {
      * @param subscriber
      */
     // public abstract <T extends Configuration> s<Configuration> getAllConfigurations();
-
     public abstract void subscribe( Object subscriber );
 
     public final static class StaticLoader {
         private static final Logger       logger = LoggerFactory.getLogger( StaticLoader.class );
         private static final ObjectMapper mapper = ObjectMappers.getYamlMapper();
 
-        private StaticLoader() {}
+        private StaticLoader() {
+        }
 
         /**
          * Static method for loading a configuration before the service has been instantiated. This is useful for
@@ -88,7 +83,7 @@ public interface ConfigurationService {
         }
 
         public static @Nullable ConfigurationKey getConfigurationKey( Class<?> clazz ) {
-            String uri = getReloadableConfigurationUri( clazz );
+            String uri = ResourceConfigurationLoader.getReloadableConfigurationUri( clazz );
             if ( StringUtils.isNotBlank( uri ) ) {
                 return new SimpleConfigurationKey( uri );
             }
@@ -109,66 +104,11 @@ public interface ConfigurationService {
             }
         }
 
-        static String getReloadableConfigurationUri( Class<?> clazz ) {
-            ReloadableConfiguration config = clazz.getAnnotation( ReloadableConfiguration.class );
-            if ( config != null ) {
-                if ( StringUtils.isBlank( config.uri() ) ) {
-                    return clazz.getCanonicalName();
-                } else {
-                    return config.uri();
-                }
-            } else {
-                return null;
-            }
-        }
-
         static @Nullable <T> T loadConfigurationFromResource(
                 ConfigurationKey key,
                 Class<T> clazz ) {
-            T s = null;
-            String yamlString = null;
+            return ResourceConfigurationLoader.loadConfigurationFromResource( key.getUri(), clazz );
 
-            try {
-                try {
-                    URL resource = Resources.getResource( key.getUri() );
-                    yamlString = Resources.toString( resource, StandardCharsets.UTF_8 );
-                    if ( StringUtils.isBlank( yamlString ) ) {
-                        throw new IOException( "Unable to read configuration from classpath." );
-                    }
-                } catch ( IOException | IllegalArgumentException e ) {
-                    logger.warn( "Failed to load resource from " + key.getUri(), e );
-                }
-                s = mapper.readValue( yamlString, clazz );
-            } catch ( IOException e ) {
-                logger.error( "Failed to load default configuration for " + key.getUri(), e );
-            }
-
-            return s;
-        }
-
-        public static @Nullable <T> T loadConfigurationFromS3(
-                AmazonS3 s3,
-                String bucket,
-                String folder,
-                Class<T> clazz ) {
-            T s = null;
-            String key = getReloadableConfigurationUri( clazz );
-            String yamlString = null;
-            try {
-                try {
-                    yamlString = IOUtils.toString( s3.getObject( bucket, folder + key ).getObjectContent() );
-                } catch ( IOException | IllegalArgumentException e ) {
-                    logger.debug( "Failed to load resource from " + key, e );
-                }
-                if ( StringUtils.isBlank( yamlString ) ) {
-                    throw new IOException( "Unable to read configuration from classpath." );
-                }
-                s = mapper.readValue( yamlString, clazz );
-            } catch ( IOException e ) {
-                logger.debug( "Failed to load default configuration for " + key, e );
-            }
-
-            return s;
         }
     }
 }
