@@ -70,6 +70,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .setMapConfigs( getMapConfigs() )
                     .setQueueConfigs( getQueueConfigs( config.getQueueConfig( "default" ) ) )
                     .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+            return config;
         }
         return null;
     }
