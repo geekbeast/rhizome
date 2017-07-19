@@ -1,20 +1,5 @@
 package com.kryptnostic.rhizome.pods.hazelcast;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +21,15 @@ import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * This pod provides a basic hazelcast configuration without stream serializers, map stores, or queue stores. If
@@ -47,7 +41,7 @@ import com.kryptnostic.rhizome.pods.HazelcastPod;
 @Configuration
 @Import( { HazelcastPod.class, ConfigurationPod.class } )
 public class BaseHazelcastInstanceConfigurationPod {
-    private static final Logger logger      = LoggerFactory.getLogger( BaseHazelcastInstanceConfigurationPod.class );
+    private static final Logger logger = LoggerFactory.getLogger( BaseHazelcastInstanceConfigurationPod.class );
 
     @Inject
     protected RhizomeConfiguration rhizomeConfiguration;
@@ -65,14 +59,19 @@ public class BaseHazelcastInstanceConfigurationPod {
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        return hzConfiguration.isServer() ? new Config( hzConfiguration.getInstanceName() )
-                .setProperty( "hazelcast.logging.type", "slf4j" )
-                .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
-                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                .setSerializationConfig( getSerializationConfig() )
-                .setMapConfigs( getMapConfigs() )
-                .setQueueConfigs( getQueueConfigs() )
-                .setNetworkConfig( getNetworkConfig( hzConfiguration ) ) : null;
+        if ( hzConfiguration.isServer() ) {
+            Config config = new Config( hzConfiguration.getInstanceName() );
+
+            config
+                    .setProperty( "hazelcast.logging.type", "slf4j" )
+                    .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
+                    .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                    .setSerializationConfig( getSerializationConfig() )
+                    .setMapConfigs( getMapConfigs() )
+                    .setQueueConfigs( getQueueConfigs( config.getQueueConfig( "default" ) ) )
+                    .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+        }
+        return null;
     }
 
     public ClientConfig getHazelcastClientConfiguration() {
@@ -82,7 +81,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
         SerializationConfig serializationConfig = getSerializationConfig();
-        logger.info("Registering the following serializers: {}" , serializationConfig );
+        logger.info( "Registering the following serializers: {}", serializationConfig );
         return hzConfiguration.isServer() ? null : new ClientConfig()
                 .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
@@ -100,20 +99,24 @@ public class BaseHazelcastInstanceConfigurationPod {
         return config;
     }
 
-    protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
-        return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
-    }
-
     protected Map<String, MapConfig> getMapConfigs() {
         return ImmutableMap.of();
     }
 
-    protected Map<String, QueueConfig> getQueueConfigs() {
-        return ImmutableMap.of();
+    protected Map<String, QueueConfig> getQueueConfigs( QueueConfig defaultConfig ) {
+        return getQueueConfigs( ImmutableMap.of( "default", defaultConfig ) );
+    }
+
+    protected Map<String, QueueConfig> getQueueConfigs( Map<String, QueueConfig> configs ) {
+        return ImmutableMap.copyOf( configs );
     }
 
     protected Collection<SerializerConfig> getSerializerConfigs() {
         return ImmutableList.of();
+    }
+
+    protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
+        return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
 
     protected static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
