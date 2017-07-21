@@ -73,6 +73,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
         Preconditions.checkState( addedCols.size() <= 1, "Can only add at mose one column to primary" );
 
         StringBuilder query = new StringBuilder( "CREATE MATERIALIZED VIEW " )
+                .append( ifNotExists ? "IF NOT EXISTS " : "" )
                 .append( base.getKeyspace().transform( ks -> ks + "." + name ).or( name ) )
                 .append( " AS\n" )
                 .append( "SELECT " );

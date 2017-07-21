@@ -37,7 +37,7 @@ public class CassandraTableBuilder {
     protected ColumnDef[] fullCollectionIndices = new ColumnDef[] {};
     protected ColumnDef[] sasi                  = new ColumnDef[] {};
     private Supplier<String> keyspace;
-    private boolean                       ifNotExists       = false;
+    protected boolean                       ifNotExists       = false;
     private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
     private int                           replicationFactor = 2;
     // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
