@@ -81,8 +81,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
                 .collect( Collectors.joining( "," ) ) );
         query
                 .append( "\nFROM " )
-                .append( base.getKeyspace().transform( ks -> ks + "." + name ).or( name ) )
-                .append( base.getName() )
+                .append( base.getKeyspace().transform( ks -> ks + "." + base.getName() ).or( base.getName() ) )
                 .append( "\nWHERE " );
 
         query.append( primaryKeyColumns()
