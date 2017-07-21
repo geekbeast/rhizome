@@ -36,9 +36,8 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
 
     public CassandraMaterializedViewBuilder(
             CassandraTableBuilder base,
-            String keyspace,
             String name ) {
-        super( keyspace, name );
+        super( base.getKeyspace().orNull(), name );
         this.base = base;
         this.name = name;
     }
@@ -82,7 +81,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
                 .collect( Collectors.joining( "," ) ) );
         query
                 .append( "\nFROM " )
-                .append( base.getKeyspace().isPresent() ? base.getKeyspace().get() : "" )
+                .append( base.getKeyspace().transform( ks -> ks + "." + name ).or( name ) )
                 .append( base.getName() )
                 .append( "\nWHERE " );
 

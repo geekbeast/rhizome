@@ -28,30 +28,33 @@ import org.apache.commons.lang3.StringUtils;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class CassandraTableBuilder {
-    private final String           name;
-    private       Supplier<String> keyspace;
-    private boolean                       ifNotExists           = false;
-    protected ColumnDef[]                   partition             = null;
-    protected ColumnDef[]                   clustering            = new ColumnDef[] {};
-    protected ColumnDef[]                   columns               = new ColumnDef[] {};
-    protected ColumnDef[]                   staticColumns         = new ColumnDef[] {};
-    protected ColumnDef[]                   secondaryIndices      = new ColumnDef[] {};
-    protected ColumnDef[]                   fullCollectionIndices = new ColumnDef[] {};
-    protected ColumnDef[]                   sasi                  = new ColumnDef[] {};
-    private Function<ColumnDef, DataType> typeResolver          = c -> c.getType();
-    private int                           replicationFactor     = 2;
+    private final String name;
+    protected ColumnDef[] partition             = null;
+    protected ColumnDef[] clustering            = new ColumnDef[] {};
+    protected ColumnDef[] columns               = new ColumnDef[] {};
+    protected ColumnDef[] staticColumns         = new ColumnDef[] {};
+    protected ColumnDef[] secondaryIndices      = new ColumnDef[] {};
+    protected ColumnDef[] fullCollectionIndices = new ColumnDef[] {};
+    protected ColumnDef[] sasi                  = new ColumnDef[] {};
+    private Supplier<String> keyspace;
+    private boolean                       ifNotExists       = false;
+    private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
+    private int                           replicationFactor = 2;
     // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
     // beginning would work for now.
-    private ColumnDef[]                   desc                  = new ColumnDef[] {};
+    private ColumnDef[]                   desc              = new ColumnDef[] {};
+
     public CassandraTableBuilder( TableDef table ) {
         this.name = table.getName();
         Preconditions.checkArgument( StringUtils.isNotBlank( name ), "Table name cannot be blank." );
         this.keyspace = table::getKeyspace;
 
     }
+
     public CassandraTableBuilder( String keyspace, String name ) {
         this( new InternalTableDef( keyspace, name ) );
     }
+
     public CassandraTableBuilder( String name ) {
         this( new InternalTableDef( null, name ) );
     }

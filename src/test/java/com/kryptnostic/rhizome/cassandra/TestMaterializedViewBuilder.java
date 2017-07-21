@@ -109,7 +109,7 @@ public class TestMaterializedViewBuilder {
 
     @Test
     public void testMaterializedView() {
-        CassandraMaterializedViewBuilder mvb = new CassandraMaterializedViewBuilder( base, def.getKeyspace(), "mview" )
+        CassandraMaterializedViewBuilder mvb = new CassandraMaterializedViewBuilder( base, "mview" )
                 .partitionKey( p2, c1 )
                 .clusteringColumns( c2, p1 );
 

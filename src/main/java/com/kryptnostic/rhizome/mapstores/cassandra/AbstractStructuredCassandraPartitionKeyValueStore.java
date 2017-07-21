@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import com.datastax.driver.core.ResultSetFuture;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,6 +70,6 @@ public abstract class AbstractStructuredCassandraPartitionKeyValueStore<K, V>
      */
     protected void replace( K key, V value ) {
         delete( key );
-        asyncStore( key, value ).getUninterruptibly();
+        asyncStore( key, value ).forEach( ResultSetFuture::getUninterruptibly );
     }
 }
