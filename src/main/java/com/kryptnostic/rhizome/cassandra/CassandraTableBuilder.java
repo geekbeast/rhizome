@@ -1,16 +1,5 @@
 package com.kryptnostic.rhizome.cassandra;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.querybuilder.BindMarker;
@@ -22,71 +11,47 @@ import com.datastax.driver.core.querybuilder.Select.Builder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is not thread safe.
- * 
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
+ * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class CassandraTableBuilder {
-
-    public static class ValueColumn implements ColumnDef {
-        private final String   cql;
-        private final DataType dataType;
-
-        public ValueColumn( String cql, DataType dataType ) {
-            this.cql = cql;
-            this.dataType = dataType;
-
-        }
-
-        public String cql() {
-            return cql;
-        }
-
-        public DataType getType() {
-            return dataType;
-        }
-
-        @Override
-        public DataType getType( Function<ColumnDef, DataType> typeResolver ) {
-            return dataType == null ? typeResolver.apply( this ) : getType();
-        }
-
-    }
-
-    private final String                  name;
-    private Supplier<String>              keyspace;
-    private boolean                       ifNotExists       = false;
-    private ColumnDef[]                   partition         = null;
-    private ColumnDef[]                   clustering        = new ColumnDef[] {};
-    private ColumnDef[]                   columns           = new ColumnDef[] {};
-    private ColumnDef[]                   staticColumns     = new ColumnDef[] {};
-    private ColumnDef[]                   secondaryIndices  = new ColumnDef[] {};
-    private ColumnDef[]                   fullCollectionIndices  = new ColumnDef[] {};
-    private ColumnDef[]                   sasi              = new ColumnDef[] {};
-    private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
-
-    private int                           replicationFactor = 2;
-
+    private final String           name;
+    private       Supplier<String> keyspace;
+    private boolean                       ifNotExists           = false;
+    protected ColumnDef[]                   partition             = null;
+    protected ColumnDef[]                   clustering            = new ColumnDef[] {};
+    protected ColumnDef[]                   columns               = new ColumnDef[] {};
+    protected ColumnDef[]                   staticColumns         = new ColumnDef[] {};
+    protected ColumnDef[]                   secondaryIndices      = new ColumnDef[] {};
+    protected ColumnDef[]                   fullCollectionIndices = new ColumnDef[] {};
+    protected ColumnDef[]                   sasi                  = new ColumnDef[] {};
+    private Function<ColumnDef, DataType> typeResolver          = c -> c.getType();
+    private int                           replicationFactor     = 2;
     // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
     // beginning would work for now.
-    private ColumnDef[]                   desc              = new ColumnDef[] {};
-
+    private ColumnDef[]                   desc                  = new ColumnDef[] {};
     public CassandraTableBuilder( TableDef table ) {
         this.name = table.getName();
         Preconditions.checkArgument( StringUtils.isNotBlank( name ), "Table name cannot be blank." );
         this.keyspace = table::getKeyspace;
 
     }
-
     public CassandraTableBuilder( String keyspace, String name ) {
         this( new InternalTableDef( keyspace, name ) );
     }
-
     public CassandraTableBuilder( String name ) {
         this( new InternalTableDef( null, name ) );
     }
@@ -156,13 +121,12 @@ public class CassandraTableBuilder {
 
     /**
      * Builds the set of queries necessary to create the cassandra table and all secondary indices.
-     * 
+     *
      * @return A list of CQL queries that MUST be executed in provided order to create the table.
-     * 
      */
     public List<String> build() {
         List<Supplier<Stream<String>>> queries = Arrays
-                .<Supplier<Stream<String>>> asList(
+                .<Supplier<Stream<String>>>asList(
                         () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
                         this::buildRegularIndexQueries,
                         this::buildFullCollectionIndexQueries,
@@ -251,12 +215,12 @@ public class CassandraTableBuilder {
     }
 
     public RegularStatement buildLoadAllPrimaryKeysQuery() {
-        Builder s = QueryBuilder.select( Iterables.toArray( primaryKeyColumns(), String.class ) );
+        Builder s = QueryBuilder.select( primaryKeyColumns().toArray( String[]::new ) );
         return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
     public Select buildLoadAllQuery() {
-        Builder s = QueryBuilder.select( Iterables.toArray( allColumns(), String.class ) );
+        Builder s = QueryBuilder.select( allColumns().toArray( String[]::new ) );
         return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
@@ -268,16 +232,14 @@ public class CassandraTableBuilder {
         return buildLoadQuery( partitionKeyColumnDefs() );
     }
 
-    private Where buildLoadQuery( Iterable<ColumnDef> selectedCols ) {
+    private Where buildLoadQuery( Stream<ColumnDef> selectedCols ) {
         Where w = buildLoadAllQuery().where();
-        for ( ColumnDef col : selectedCols ) {
-            w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
-        }
+        selectedCols.map( ColumnDef::eq ).forEach( w::and );
         return w;
     }
 
     public Insert buildStoreQuery() {
-        List<String> cols = ImmutableList.copyOf( allColumns() );
+        List<String> cols = allColumns().collect( Collectors.toList() );
         Object[] markers = new BindMarker[ cols.size() ];
 
         for ( int i = 0; i < markers.length; ++i ) {
@@ -305,7 +267,7 @@ public class CassandraTableBuilder {
         return buildDeleteQuery( partitionKeyColumnDefs() );
     }
 
-    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery( Iterable<ColumnDef> selectedCols ) {
+    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery( Stream<ColumnDef> selectedCols ) {
         Delete del;
         if ( keyspace != null ) {
             del = QueryBuilder.delete().from( keyspace.get(), name );
@@ -314,9 +276,7 @@ public class CassandraTableBuilder {
         }
 
         com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
-        for ( ColumnDef col : selectedCols ) {
-            w = w.and( QueryBuilder.eq( col.cql(), col.bindMarker() ) );
-        }
+        selectedCols.map( ColumnDef::eq ).forEach( w::and );
         return w;
     }
 
@@ -328,41 +288,29 @@ public class CassandraTableBuilder {
         return this.replicationFactor;
     }
 
-    private Iterable<ColumnDef> partitionKeyColumnDefs() {
-        return Arrays.asList( this.partition );
+    private Stream<ColumnDef> partitionKeyColumnDefs() {
+        return Stream.of( this.partition );
     }
 
-    private Iterable<ColumnDef> primaryKeyColumnDefs() {
-        return Iterables.concat( Arrays.asList( this.partition ), Arrays.asList( this.clustering ) );
+    private Stream<ColumnDef> primaryKeyColumnDefs() {
+        return Stream.concat( Stream.of( this.partition ), Stream.of( this.clustering ) );
     }
 
-    public Iterable<String> primaryKeyColumns() {
-        return Iterables.transform( primaryKeyColumnDefs(), ColumnDef::cql );
+    public Stream<String> primaryKeyColumns() {
+        return primaryKeyColumnDefs().map( ColumnDef::cql );
     }
 
     private Iterable<String> partitionKeyColumns() {
         return Iterables.transform( Arrays.asList( this.partition ), ColumnDef::cql );
     }
 
-    private Iterable<String> allColumns() {
-        return Iterables.transform( Iterables.concat( Arrays.asList( this.partition ),
-                Arrays.asList( this.clustering ),
-                Arrays.asList( this.columns ),
-                Arrays.asList( this.staticColumns ) ), ColumnDef::cql );
-    }
-
-    private static String getPrimaryKeyDef( ColumnDef[] columns ) {
-        StringBuilder builder = new StringBuilder();
-
-        int len = columns.length - 1;
-        for ( int i = 0; i < len; ++i ) {
-            builder
-                    .append( columns[ i ].cql() ).append( "," );
-        }
-        builder
-                .append( columns[ len ].cql() );
-
-        return builder.toString();
+    private Stream<String> allColumns() {
+        return Stream.of(
+                Stream.of( this.partition ),
+                Stream.of( this.clustering ),
+                Stream.of( this.columns ),
+                Stream.of( this.staticColumns ) )
+                .flatMap( s -> s.map( ColumnDef::cql ) );
     }
 
     private StringBuilder appendColumnDefs(
@@ -409,7 +357,7 @@ public class CassandraTableBuilder {
                 .append( " " )
                 .append( descNames.contains( clustering[ len ].cql() ) ? "DESC" : "ASC" );
         return builder;
-    };
+    }
 
     public Optional<String> getKeyspace() {
         return Optional.fromNullable( keyspace.get() );
@@ -449,6 +397,45 @@ public class CassandraTableBuilder {
             ColumnDef column ) {
         String query = "CREATE CUSTOM INDEX IF NOT EXISTS ON %s.%s (%s) USING 'org.apache.cassandra.index.sasi.SASIIndex'";
         return String.format( query, keyspace, table, column.cql() );
+    }
+
+    private static String getPrimaryKeyDef( ColumnDef[] columns ) {
+        StringBuilder builder = new StringBuilder();
+
+        int len = columns.length - 1;
+        for ( int i = 0; i < len; ++i ) {
+            builder
+                    .append( columns[ i ].cql() ).append( "," );
+        }
+        builder
+                .append( columns[ len ].cql() );
+
+        return builder.toString();
+    }
+
+    public static class ValueColumn implements ColumnDef {
+        private final String   cql;
+        private final DataType dataType;
+
+        public ValueColumn( String cql, DataType dataType ) {
+            this.cql = cql;
+            this.dataType = dataType;
+
+        }
+
+        public String cql() {
+            return cql;
+        }
+
+        public DataType getType() {
+            return dataType;
+        }
+
+        @Override
+        public DataType getType( Function<ColumnDef, DataType> typeResolver ) {
+            return dataType == null ? typeResolver.apply( this ) : getType();
+        }
+
     }
 
     static class InternalTableDef implements TableDef {
