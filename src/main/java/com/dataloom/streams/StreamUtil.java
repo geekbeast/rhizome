@@ -19,16 +19,24 @@
 
 package com.dataloom.streams;
 
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
+import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
-public class StreamUtil {
+public final class StreamUtil {
+    private static final Logger logger = LoggerFactory.getLogger( StreamUtil.class );
+
+    private StreamUtil() {
+    }
+
     public static <T> Stream<T> stream( Iterable<T> rs ) {
         return StreamSupport.stream( rs.spliterator(), false );
     }
@@ -40,7 +48,7 @@ public class StreamUtil {
     /**
      * Useful adapter for {@code Iterables#transform(Iterable, com.google.common.base.Function)} that allows lazy
      * evaluation of result set future. See the same function in AuthorizationUtils as well.
-     * 
+     *
      * @param rsf The result set future to make a lazy evaluated iterator
      * @return The lazy evaluatable iterable
      */
@@ -52,4 +60,14 @@ public class StreamUtil {
         return stream.map( ResultSetFuture::getUninterruptibly )
                 .flatMap( StreamUtil::stream );
     }
+
+    public static <V> V safeGet( ListenableFuture<V> f ) {
+        try {
+            return f.get();
+        } catch ( InterruptedException | ExecutionException e ) {
+            logger.error( "Error retrieving future value.", e );
+            return null;
+        }
+    }
 }
+
