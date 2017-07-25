@@ -55,7 +55,9 @@ public abstract class AbstractStructuredCassandraPartitionKeyValueStore<K, V>
      */
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        return keys.stream().distinct().map( k -> Pair.of( k, asyncLoad( k ) ) )
+        return keys.stream().distinct()
+                .parallel()
+                .map( k -> Pair.of( k, asyncLoad( k ) ) )
                 .map( p -> Pair.of( p.getLeft(), safeTransform( p.getRight() ) ) )
                 .filter( p -> p.getRight() != null )
                 .collect( Collectors.toMap( p -> p.getLeft(), p -> p.getRight() ) );

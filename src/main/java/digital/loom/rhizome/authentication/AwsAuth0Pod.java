@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
+import com.openlattice.ResourceConfigurationLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -12,7 +13,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.auth0.Auth0;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
-import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 
 import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
 
@@ -27,7 +27,7 @@ public class AwsAuth0Pod {
 
     @Bean
     public Auth0Configuration auth0Configuration() {
-        return ConfigurationService.StaticLoader.loadConfigurationFromS3( s3,
+        return ResourceConfigurationLoader.loadConfigurationFromS3( s3,
                 awsConfig.getBucket(),
                 awsConfig.getFolder(),
                 Auth0Configuration.class );
