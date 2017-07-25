@@ -84,8 +84,8 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
          */
         return Stream
                 .of( session.executeAsync( getLoadAllKeysQuery().bind() ) )
-                .map( ResultSetFuture::getUninterruptibly )
                 .parallel()
+                .map( ResultSetFuture::getUninterruptibly )
                 .flatMap( StreamUtil::stream )
                 .map( this::mapKey )::iterator;
     }

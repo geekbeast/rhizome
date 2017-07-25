@@ -22,6 +22,8 @@ package com.dataloom.streams;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.hazelcast.core.ICompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -66,6 +68,24 @@ public final class StreamUtil {
             return f.get();
         } catch ( InterruptedException | ExecutionException e ) {
             logger.error( "Error retrieving future value.", e );
+            return null;
+        }
+    }
+
+    public static <T> T getUninterruptibly( ICompletableFuture<T> f ) {
+        try {
+            return Uninterruptibles.getUninterruptibly( f );
+        } catch ( ExecutionException e ) {
+            logger.error( "Unable to get future!", e );
+            return null;
+        }
+    }
+
+    public static <T> T getUninterruptibly( ListenableFuture<T> f ) {
+        try {
+            return Uninterruptibles.getUninterruptibly( f );
+        } catch ( ExecutionException e ) {
+            logger.error( "Unable to get future!", e );
             return null;
         }
     }

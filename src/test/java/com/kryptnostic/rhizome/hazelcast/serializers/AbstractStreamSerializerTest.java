@@ -1,15 +1,13 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.hazelcast.internal.serialization.InternalSerializationService;
 import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
+import java.io.IOException;
+import org.junit.Assert;
+import org.junit.Test;
 
 public abstract class AbstractStreamSerializerTest<T extends StreamSerializer<D>, D> {
 
@@ -25,8 +23,6 @@ public abstract class AbstractStreamSerializerTest<T extends StreamSerializer<D>
 
     /**
      * Override this class when deserializer is expected to deal with encrypted data.
-     * 
-     * @return
      */
     protected T createDeserializer() {
         return serializer;
@@ -49,8 +45,11 @@ public abstract class AbstractStreamSerializerTest<T extends StreamSerializer<D>
         ObjectDataInput dataIn = ss.createObjectDataInput( inputData );
 
         D outputObject = deserializer.read( dataIn );
-
-        Assert.assertEquals( inputObject, outputObject );
+        if ( inputObject instanceof Object[] || outputObject instanceof Object[] ) {
+            Assert.assertArrayEquals( (Object[]) inputObject, (Object[]) outputObject );
+        } else {
+            Assert.assertEquals( inputObject, outputObject );
+        }
     }
 
 }
