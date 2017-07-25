@@ -1,26 +1,25 @@
 package com.kryptnostic.rhizome.pods.hazelcast;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcastInstanceConfigurationPod {
@@ -32,6 +31,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
             .newConcurrentMap();
+    private static final Set<QueueConfigurer>                                 queueConfigurers   = Sets.newHashSet();
 
     @Override
     protected Collection<SerializerConfig> getSerializerConfigs() {
@@ -42,14 +42,14 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
                 .peek( e -> typeIds.add( e.getValue().getTypeId() ) )
                 .map( e -> new SerializerConfig().setTypeClass( e.getKey() ).setImplementation( e.getValue() ) )
                 .collect( Collectors.toSet() );
-        logger.info("Detected the following serializer configurations at startup {}." , configs );
+        logger.info( "Detected the following serializer configurations at startup {}.", configs );
         typeIds.entrySet()
                 .stream()
                 .filter( e -> e.getCount() > 1 )
                 .forEach( e -> logger.warn( "Found {} duplicate serializers for type id: {}",
                         e.getCount(),
                         e.getElement() ) );
-        
+
         return configs;
     }
 
@@ -59,8 +59,17 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     @Override
-    protected Map<String, QueueConfig> getQueueConfigs() {
-        return Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() );
+    protected Map<String, QueueConfig> getQueueConfigs( Map<String, QueueConfig> queueConfigs ) {
+        Map<String, QueueConfig> configs = Maps
+                .newHashMap( Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() ) );
+        configs.putAll( queueConfigs );
+        queueConfigurers.forEach( configurer -> {
+            QueueConfig config = configs.get( configurer.getQueueName() );
+            if ( config != null ) {
+                configurer.configure( config );
+            }
+        } );
+        return configs;
     }
 
     /*
@@ -69,7 +78,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
      */
 
     @Autowired(
-        required = false )
+            required = false )
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
         if ( mapStores.isEmpty() ) {
             logger.warn( "No map stores were configured." );
@@ -81,7 +90,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     @Autowired(
-        required = false )
+            required = false )
     public void registerQueueStores( Set<SelfRegisteringQueueStore<?>> queueStores ) {
         if ( queueStores.isEmpty() ) {
             logger.warn( "No queue stores were configured." );
@@ -92,7 +101,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     @Autowired(
-        required = false )
+            required = false )
     public void register( Set<SelfRegisteringStreamSerializer<?>> serializers ) {
         if ( serializers.isEmpty() ) {
             logger.warn( "No serializers were configured." );
@@ -100,6 +109,15 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
+    }
+
+    @Autowired(
+            required = false )
+    public void configureQueues( Set<QueueConfigurer> queueConfigurers ) {
+        if ( queueConfigurers.isEmpty() ) {
+            logger.info( "No queue configurers detected." );
+        }
+        this.queueConfigurers.addAll( queueConfigurers );
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {

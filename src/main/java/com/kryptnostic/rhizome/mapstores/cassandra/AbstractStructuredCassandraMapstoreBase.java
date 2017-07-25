@@ -1,16 +1,6 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import com.datastax.driver.core.querybuilder.Update;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.dataloom.streams.StreamUtil;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.RegularStatement;
@@ -22,22 +12,30 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.datastax.driver.core.exceptions.QueryValidationException;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.cassandra.CassandraTableBuilder;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    private static final Logger         logger = LoggerFactory
+    private static final Logger logger = LoggerFactory
             .getLogger( AbstractStructuredCassandraMapstoreBase.class );
     protected final Session               session;
     protected final CassandraTableBuilder tableBuilder;
-    private final String                mapName;
-    private final PreparedStatement     allKeysQuery;
-    private final PreparedStatement     loadQuery;
-    private final PreparedStatement     storeQuery;
-    private final PreparedStatement     deleteQuery;
+    private final   String                mapName;
+    private final   PreparedStatement     allKeysQuery;
+    private final   PreparedStatement     loadQuery;
+    private final   PreparedStatement     storeQuery;
+    private final   PreparedStatement     deleteQuery;
 
     public AbstractStructuredCassandraMapstoreBase(
             String mapName,
@@ -84,18 +82,25 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
         /*
          * One limitation of this is that if key stream isn't unique then values may get loaded into the map multiple times.
          */
-        ResultSet rs = session.execute( getLoadAllKeysQuery().bind() );
-        return Iterables.transform( rs, this::mapKey )::iterator;
+        return Stream
+                .of( session.executeAsync( getLoadAllKeysQuery().bind() ) )
+                .parallel()
+                .map( ResultSetFuture::getUninterruptibly )
+                .flatMap( StreamUtil::stream )
+                .map( this::mapKey )::iterator;
     }
 
     @Override
     public void store( K key, V value ) {
-        asyncStore( key, value ).getUninterruptibly();
+        asyncStore( key, value ).forEach( ResultSetFuture::getUninterruptibly );
     }
 
     @Override
     public void storeAll( Map<K, V> map ) {
-        map.entrySet().parallelStream().map( this::asyncStoreEntry ).forEach( ResultSetFuture::getUninterruptibly );
+        map.entrySet()
+                .parallelStream()
+                .flatMap( this::asyncStoreEntry )
+                .forEach( ResultSetFuture::getUninterruptibly );
     }
 
     @Override
@@ -122,9 +127,9 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
         return rs == null ? null : mapValue( rs );
     }
 
-    protected ResultSetFuture asyncStore( K key, V value ) {
+    protected Stream<ResultSetFuture> asyncStore( K key, V value ) {
         try {
-            return session.executeAsync( bind( key, value, getStoreQuery().bind() ) );
+            return Stream.of( session.executeAsync( bind( key, value, getStoreQuery().bind() ) ) );
         } catch ( NoHostAvailableException | QueryExecutionException | QueryValidationException e ) {
             logger.error( "Unable to perform query to store key {}", key, e );
             return null;
@@ -140,7 +145,7 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
         }
     }
 
-    private ResultSetFuture asyncStoreEntry( Entry<K, V> entry ) {
+    private Stream<ResultSetFuture> asyncStoreEntry( Entry<K, V> entry ) {
         return asyncStore( entry.getKey(), entry.getValue() );
     }
 
@@ -207,9 +212,9 @@ public abstract class AbstractStructuredCassandraMapstoreBase<K, V> implements T
     }
 
     protected abstract RegularStatement loadQuery();
-    
+
     protected abstract RegularStatement deleteQuery();
-    
+
     protected abstract BoundStatement bind( K key, BoundStatement bs );
 
     protected abstract BoundStatement bind( K key, V value, BoundStatement bs );
