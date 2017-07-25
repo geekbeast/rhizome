@@ -14,7 +14,7 @@ import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
 import digital.loom.rhizome.authentication.Auth0TestPod;
-import digital.loom.rhizome.authentication.AuthenticationTest;
+import com.openlattice.authentication.AuthenticationTest;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.apache.commons.lang3.RandomStringUtils;

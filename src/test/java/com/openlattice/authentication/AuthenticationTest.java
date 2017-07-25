@@ -1,16 +1,4 @@
-package digital.loom.rhizome.authentication;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+package com.openlattice.authentication;
 
 import com.auth0.Auth0;
 import com.auth0.authentication.AuthenticationAPIClient;
@@ -28,14 +16,23 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
-
 import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * This class is a sanity check to ensure that authentication is successfully working against auth0 server. The hard
  * coded credentials and secrets are only usable for testing.
  *
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
+ * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class AuthenticationTest {
     private static final Logger  logger              = LoggerFactory
@@ -48,7 +45,6 @@ public class AuthenticationTest {
     private static final String  authorityStrategy   = "ROLES";
     private static final String  signingAlgorithm    = "HS256";
     // private static final String defaultAuth0ApiSecurityEnabled = "false";
-    // private static final String signingAlgorithm = "HS256";
     private static final boolean base64EncodedSecret = true;
     private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
     private static final AuthenticationTestRequestOptions authOptions   = new AuthenticationTestRequestOptions()
@@ -66,11 +62,12 @@ public class AuthenticationTest {
             base64EncodedSecret,
             token );
 
-    private static final Auth0                   auth0  = new Auth0(
+    private static final Auth0                   auth0           = new Auth0(
             clientId,
             "loom.auth0.com" );
-    private static final AuthenticationAPIClient client = auth0.newAuthenticationAPIClient();
-    private static final RateLimiter authRateLimiter = RateLimiter.create( 0.25 ); 
+    private static final AuthenticationAPIClient client          = auth0.newAuthenticationAPIClient();
+    private static final RateLimiter             authRateLimiter = RateLimiter.create( 0.25 );
+
     static {
         authentications = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, Authentication>() {
@@ -85,19 +82,6 @@ public class AuthenticationTest {
                         return auth;
                     }
                 } );
-    }
-
-    public static Authentication getAuthentication( AuthenticationTestRequestOptions options ) {
-        return authentications.getUnchecked( options );
-    }
-
-    public static Authentication authenticate() {
-        return authentications.getUnchecked( authOptions );
-    }
-
-    public static Authentication refreshAndGetAuthentication( AuthenticationTestRequestOptions options ) {
-        authentications.invalidate( options );
-        return authentications.getUnchecked( options );
     }
 
     @Test
@@ -127,5 +111,18 @@ public class AuthenticationTest {
         List<String> roles = (List<String>) profile.getAppMetadata().getOrDefault( "roles", ImmutableList.of() );
         Assert.assertTrue( "Return roles must contain user", roles.contains( "user" ) );
         Assert.assertTrue( StringUtils.isNotBlank( creds.getIdToken() ) );
+    }
+
+    public static Authentication getAuthentication( AuthenticationTestRequestOptions options ) {
+        return authentications.getUnchecked( options );
+    }
+
+    public static Authentication authenticate() {
+        return authentications.getUnchecked( authOptions );
+    }
+
+    public static Authentication refreshAndGetAuthentication( AuthenticationTestRequestOptions options ) {
+        authentications.invalidate( options );
+        return authentications.getUnchecked( options );
     }
 }

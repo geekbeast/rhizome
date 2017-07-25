@@ -37,7 +37,6 @@ dependencies {
      */
     compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.50'
     compile 'com.amazonaws:aws-java-sdk-s3:1.11.50'
-    //compile 'com.amazonaws:aws-java-sdk:1.11.50'
 
     /*
      * Immutables library for immutable objects

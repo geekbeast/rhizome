@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.pods;
 
+import com.openlattice.ResourceConfigurationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -31,11 +32,11 @@ public class AwsConfigurationPod {
         try {
             awsConfig = ConfigurationService.StaticLoader.loadConfiguration( AmazonLaunchConfiguration.class );
             
-            rhizomeConfiguration = ConfigurationService.StaticLoader.loadConfigurationFromS3( s3,
+            rhizomeConfiguration = ResourceConfigurationLoader.loadConfigurationFromS3( s3,
                     awsConfig.getBucket(),
                     awsConfig.getFolder(),
                     RhizomeConfiguration.class );
-            jettyConfiguration = ConfigurationService.StaticLoader.loadConfigurationFromS3( s3,
+            jettyConfiguration = ResourceConfigurationLoader.loadConfigurationFromS3( s3,
                     awsConfig.getBucket(),
                     awsConfig.getFolder(),
                     JettyConfiguration.class );
