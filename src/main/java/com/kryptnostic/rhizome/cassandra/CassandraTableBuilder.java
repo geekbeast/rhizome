@@ -217,7 +217,7 @@ public class CassandraTableBuilder {
         return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
 
-    public RegularStatement buildLoadAllPrimaryKeysQuery() {
+    public Select buildLoadAllPrimaryKeysQuery() {
         Builder s = QueryBuilder.select( primaryKeyColumns().toArray( String[]::new ) );
         return keyspace != null ? s.from( keyspace.get(), name ) : s.from( name );
     }
