@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.cassandra;
 
 import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.querybuilder.BindMarker;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.Insert;
@@ -262,22 +261,28 @@ public class CassandraTableBuilder {
         return insertQuery.values( cols, bindMarkers );
     }
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery() {
-        return buildDeleteQuery( primaryKeyColumnDefs() );
-    }
+    public com.datastax.driver.core.querybuilder.Delete buildDeleteQuery() {
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPartitionKeyQuery() {
-        return buildDeleteQuery( partitionKeyColumnDefs() );
-    }
-
-    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteQuery( Stream<ColumnDef> selectedCols ) {
         Delete del;
         if ( keyspace != null ) {
             del = QueryBuilder.delete().from( keyspace.get(), name );
         } else {
             del = QueryBuilder.delete().from( name );
         }
+        return del;
+    }
 
+    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPrimaryKeyQuery() {
+        return buildDeleteByColumnsQuery( primaryKeyColumnDefs() );
+    }
+
+    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPartitionKeyQuery() {
+        return buildDeleteByColumnsQuery( partitionKeyColumnDefs() );
+    }
+
+    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByColumnsQuery( Stream<ColumnDef> selectedCols ) {
+
+        Delete del = buildDeleteQuery();
         com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
         selectedCols.map( ColumnDef::eq ).forEach( w::and );
         return w;
@@ -307,7 +312,7 @@ public class CassandraTableBuilder {
         return Iterables.transform( Arrays.asList( this.partition ), ColumnDef::cql );
     }
 
-    private Stream<String> allColumns() {
+    protected Stream<String> allColumns() {
         return Stream.of(
                 Stream.of( this.partition ),
                 Stream.of( this.clustering ),
