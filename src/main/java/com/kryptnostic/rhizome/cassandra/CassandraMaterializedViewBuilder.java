@@ -56,10 +56,6 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
         return super.columns( columns );
     }
 
-    @Override public CassandraTableBuilder staticColumns( ColumnDef... columns ) {
-        return super.staticColumns( columns );
-    }
-
     //TODO: There are functions such as secondary index which need to be ignore
     @Override public String buildCreateTableQuery() {
         Set<String> baseCols = base.primaryKeyColumns().collect( Collectors.toSet() );
@@ -70,7 +66,9 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
         Preconditions.checkState( missingCols.isEmpty(),
                 "Missing columns: " + missingCols.stream().collect( Collectors.joining( "," ) ) );
 
-        Preconditions.checkState( addedCols.size() <= 1, "Can only add at mose one column to primary" );
+        Preconditions.checkState( addedCols.size() <= 1, "Can only add at most one column to primary" );
+
+        Preconditions.checkState( staticColumns.length == 0, "Static columns are not allowed" );
 
         StringBuilder query = new StringBuilder( "CREATE MATERIALIZED VIEW " )
                 .append( ifNotExists ? "IF NOT EXISTS " : "" )
@@ -78,8 +76,9 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
                 .append( " AS\n" )
                 .append( "SELECT " );
 
-        query.append( primaryKeyColumns()
-                .collect( Collectors.joining( "," ) ) );
+        query
+                .append( allColumns().collect( Collectors.joining( "," ) ) );
+
         query
                 .append( "\nFROM " )
                 .append( base.getKeyspace().transform( ks -> ks + "." + base.getName() ).or( base.getName() ) )

@@ -22,9 +22,9 @@ public abstract class AbstractStructuredCassandraMapstore<K, V> extends Abstract
     protected RegularStatement loadQuery(){
         return tableBuilder.buildLoadQuery();
     }
-    
+
     @Override
     protected RegularStatement deleteQuery(){
-        return tableBuilder.buildDeleteQuery();
+        return tableBuilder.buildDeleteByPrimaryKeyQuery();
     }
 }
