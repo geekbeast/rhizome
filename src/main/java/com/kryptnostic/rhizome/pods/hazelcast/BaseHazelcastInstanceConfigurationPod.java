@@ -65,11 +65,13 @@ public class BaseHazelcastInstanceConfigurationPod {
             config
                     .setProperty( "hazelcast.logging.type", "slf4j" )
                     .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
+                    .setProperty( "hazelcast.map.load.chunk.size","100000" )
                     .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                     .setSerializationConfig( getSerializationConfig() )
                     .setMapConfigs( getMapConfigs() )
                     .setQueueConfigs( getQueueConfigs( config.getQueueConfig( "default" ) ) )
                     .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+
             return config;
         }
         return null;
