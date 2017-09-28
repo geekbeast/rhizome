@@ -1,21 +1,5 @@
 package com.kryptnostic.rhizome.pods;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
@@ -27,22 +11,35 @@ import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author Matthew Tamayo-Rios
  */
 @Configuration
 @EnableMetrics(
-    proxyTargetClass = true )
+        proxyTargetClass = true )
 @Import(
-    value = AsyncPod.class )
+        value = AsyncPod.class )
 public class MetricsPod implements MetricsConfigurer {
     private static final Logger              logger              = LoggerFactory.getLogger( MetricsPod.class );
     private static final MetricRegistry      metricRegistry      = new MetricRegistry();
     private static final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
     @Inject
-    private RhizomeConfiguration             config;
+    private RhizomeConfiguration config;
 
     @Bean
     @Timed
@@ -82,11 +79,13 @@ public class MetricsPod implements MetricsConfigurer {
     }
 
     @Override
+    @Bean
     public HealthCheckRegistry getHealthCheckRegistry() {
         return healthCheckRegistry;
     }
 
     @Override
+    @Bean
     public MetricRegistry getMetricRegistry() {
         return metricRegistry;
     }
@@ -107,7 +106,7 @@ public class MetricsPod implements MetricsConfigurer {
     }
 
     @Autowired(
-        required = false )
+            required = false )
     public void startGraphite( Set<ScheduledReporter> reporters ) {
         reporters.forEach( reporter -> {
             if ( reporter != null ) {

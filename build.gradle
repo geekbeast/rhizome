@@ -196,6 +196,12 @@ dependencies {
     compile group: 'com.datastax.cassandra', name: 'cassandra-driver-mapping', version: "${cassandra_driver_version}"
     compile "org.xerial.snappy:snappy-java:${snappy_version}"
     compile "net.jpountz.lz4:lz4:${lz4_version}"
+    /*
+     * Postgres
+     */
+
+    compile 'com.zaxxer:HikariCP:2.7.1'
+    compile 'org.postgresql:postgresql:42.1.4'
 
     /**
      * SPARK
