@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2017. OpenLattice, Inc
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * You can contact the owner of the copyright at support@openlattice.com
+ *
+ */
+
+package com.com.openlattice.postgres;
+
+import com.openlattice.jdbc.JdbcPod;
+import com.zaxxer.hikari.HikariDataSource;
+import java.sql.SQLException;
+import java.util.Set;
+import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+
+/**
+ * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
+ */
+@Configuration
+@Profile( PostgresPod.PROFILE )
+@Import( JdbcPod.class )
+public class PostgresPod {
+    public static final String PROFILE = "postgres";
+
+    @Autowired( required = false )
+    private Set<PostgresTableDefinition> tables;
+
+    @Inject
+    private HikariDataSource hds;
+
+    public PostgresTableManager tableManager() throws SQLException {
+        PostgresTableManager ptm = new PostgresTableManager( hds );
+        if ( tables != null ) {
+            ptm.registerTables( tables );
+        }
+        return ptm;
+    }
+}
