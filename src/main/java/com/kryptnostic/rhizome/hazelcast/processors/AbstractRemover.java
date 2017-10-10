@@ -29,9 +29,9 @@ public class AbstractRemover<K, V extends Collection<T>, T> extends AbstractRhiz
         }
         
         //TODO cassandra is not distinguishing null value and empty collection right now; this line should be removed as soon as cassandra fixes NPE in https://github.com/apache/cassandra/pull/98
-        if( currentObjects.isEmpty() ){
-            entry.setValue( null );
-        }
+//        if( currentObjects.isEmpty() ){
+//            entry.setValue( null );
+//        }
 
         return null;
     }
