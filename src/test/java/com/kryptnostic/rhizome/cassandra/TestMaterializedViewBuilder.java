@@ -116,7 +116,7 @@ public class TestMaterializedViewBuilder {
         String expected =
                 "CREATE MATERIALIZED VIEW test.mview AS\n"
                         + "SELECT p2,c1,c2,p1\n"
-                        + "FROM testsource\n"
+                        + "FROM test.source\n"
                         + "WHERE p2 IS NOT NULL AND c1 IS NOT NULL AND c2 IS NOT NULL AND p1 IS NOT NULL\n"
                         + "PRIMARY KEY ((p2,c1),c2,p1)";
         String actual = mvb.buildCreateTableQuery();
