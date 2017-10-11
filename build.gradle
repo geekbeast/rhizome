@@ -13,9 +13,9 @@ description = "Java Framework for building clustered RESTful web applications"
 group = "com.openlattice"
 
 ext.projectName = "rhizome"
-ext.scmUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
-ext.connectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
-ext.developerConnectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
+ext.scmUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
+ext.connectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
+ext.developerConnectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
