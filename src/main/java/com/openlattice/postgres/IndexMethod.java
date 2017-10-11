@@ -18,16 +18,14 @@
  *
  */
 
-package com.com.openlattice.postgres;
-
-import java.util.stream.Stream;
+package com.openlattice.postgres;
 
 /**
+ * We currently only support the following index types. In the future we may support gist and btree_gin types
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-public interface TableDefinition {
-
-    String createTableQuery();
-
-    Stream<String> getCreateIndexQueries();
+public enum IndexMethod {
+    BTREE,
+    HASH,
+    GIN
 }

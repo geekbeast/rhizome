@@ -18,7 +18,7 @@
  *
  */
 
-package com.com.openlattice.postgres;
+package com.openlattice.postgres;
 
 import java.util.Optional;
 

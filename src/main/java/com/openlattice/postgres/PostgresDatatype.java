@@ -18,7 +18,7 @@
  *
  */
 
-package com.com.openlattice.postgres;
+package com.openlattice.postgres;
 
 //@formatter:off
 import java.util.EnumSet; /**
