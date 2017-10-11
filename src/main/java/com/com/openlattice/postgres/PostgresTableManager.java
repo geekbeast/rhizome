@@ -53,8 +53,7 @@ public class PostgresTableManager {
                 logger.warn( "Table {} has already been registered and initialized... skipping", table );
             } else {
                 try ( Connection conn = hds.getConnection() ) {
-                    conn.createStatement().executeQuery( table.createTableQuery() );
-
+                    conn.createStatement().execute( table.createTableQuery() );
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
                         String indexSql = index.sql();
                         try {
@@ -68,12 +67,16 @@ public class PostgresTableManager {
                         }
                     }
                 } catch ( SQLException e ) {
-                    logger.info( "Failed to initialize postgres table {}", table, e );
+                    logger.info( "Failed to initialize postgres table {} with query {}", table,table.createTableQuery(), e );
                     throw e;
                 }
             }
             activeTables.put( table.getName(), table );
         }
+    }
+
+    public HikariDataSource getHikariDataSource() {
+        return hds;
     }
 
     public PostgresTableDefinition getTable( String name ) {

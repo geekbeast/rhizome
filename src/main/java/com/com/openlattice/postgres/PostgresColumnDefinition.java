@@ -71,8 +71,14 @@ public class PostgresColumnDefinition {
         return this;
     }
 
-    public boolean notNull() {
-        return notNull;
+    public PostgresColumnDefinition withDefault( Object defaultValue ) {
+        this.defaultValue = Optional.of( defaultValue );
+        return this;
+    }
+
+    public PostgresColumnDefinition notNull() {
+        this.notNull = true;
+        return this;
     }
 
     public boolean isUnique() {
@@ -111,7 +117,7 @@ public class PostgresColumnDefinition {
             pcdSql.append( " default " + String.valueOf( defaultValue.get() ) );
         }
 
-        return pcdSql.toString();
+        return pcdSql.toString().trim();
     }
 
     @Override public String toString() {

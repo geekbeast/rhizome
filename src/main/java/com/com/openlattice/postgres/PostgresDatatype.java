@@ -21,7 +21,7 @@
 package com.com.openlattice.postgres;
 
 //@formatter:off
-/**
+import java.util.EnumSet; /**
  * From https://www.postgresql.org/docs/9.5/static/datatype.html
  * <table>
  *     <tr>
@@ -49,21 +49,24 @@ package com.com.openlattice.postgres;
  */
 //@formatter:on
 public enum PostgresDatatype {
-    SMALLINT,
-    INTEGER,
-    BIGINT,
+    SMALLINT, SMALLINT_ARRAY,
+    INTEGER, INTEGER_ARRAY,
+    BIGINT, BIGINT_ARRAY,
     DECIMAL,
     NUMERIC,
-    DOUBLE,
+    DOUBLE, DOUBLE_ARRAY,
     SERIAL,
     BIGSERIAL,
     BYTEA,
     BOOLEAN,
-    TIMESTAMPTZ,
-    UUID,
-    TEXT;
+    TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
+    UUID, UUID_ARRAY,
+    TEXT, TEXT_ARRAY;
+
+    private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
+            .of( SMALLINT_ARRAY, INTEGER_ARRAY, BIGINT_ARRAY, DOUBLE_ARRAY, TIMESTAMPTZ_ARRAY, UUID_ARRAY, TEXT_ARRAY );
 
     public String sql() {
-        return name();
+        return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
     }
 }

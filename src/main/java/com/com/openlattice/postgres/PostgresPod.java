@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.Set;
 import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
@@ -39,16 +40,17 @@ import org.springframework.context.annotation.Profile;
 public class PostgresPod {
     public static final String PROFILE = "postgres";
 
-    @Autowired( required = false )
-    private Set<PostgresTableDefinition> tables;
-
     @Inject
     private HikariDataSource hds;
 
+    @Autowired( required = false )
+    private Set<PostgresTables> spt;
+
+    @Bean
     public PostgresTableManager tableManager() throws SQLException {
         PostgresTableManager ptm = new PostgresTableManager( hds );
-        if ( tables != null ) {
-            ptm.registerTables( tables );
+        if ( spt != null ) {
+            ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
         }
         return ptm;
     }
