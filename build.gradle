@@ -10,15 +10,15 @@ plugins {
 }
 
 description = "Java Framework for building clustered RESTful web applications"
-group = "com.kryptnostic"
+group = "com.openlattice"
 
 ext.projectName = "rhizome"
-ext.scmUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
-ext.connectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
-ext.developerConnectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
+ext.scmUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
+ext.connectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
+ext.developerConnectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
 
-apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
-apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
@@ -243,7 +243,7 @@ dependencies {
         compile project(":rhizome-client")
     } else {
         logger.quiet(project.name + " using jar dependencies.")
-        compile "com.kryptnostic:rhizome-client:${rhizome_client_version}"
+        compile "com.openlattice:rhizome-client:${rhizome_client_version}"
     }
 
     testCompile 'com.auth0:auth0:0.4.0'

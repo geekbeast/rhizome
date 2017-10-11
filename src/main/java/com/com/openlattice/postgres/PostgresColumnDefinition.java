@@ -20,9 +20,119 @@
 
 package com.com.openlattice.postgres;
 
+import java.util.Optional;
+
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresColumnDefinition {
-    //TODO: Needs to include type, name
+    private final String           name;
+    private final PostgresDatatype datatype;
+    private boolean                            primaryKey             = false;
+    private boolean                            unique                 = false;
+    private boolean                            notNull                = false;
+    private Optional<?>                        defaultValue           = Optional.empty();
+    private Optional<PostgresTableDefinition>  foreignTableReference  = Optional.empty();
+    private Optional<PostgresColumnDefinition> foreignColumnReference = Optional.empty();
+
+    public PostgresColumnDefinition( String name, PostgresDatatype datatype ) {
+        this.name = name;
+        this.datatype = datatype;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public PostgresDatatype getDatatype() {
+        return datatype;
+    }
+
+    public PostgresColumnDefinition unique() {
+        unique = true;
+        return this;
+    }
+
+    public PostgresColumnDefinition primaryKey() {
+        primaryKey = true;
+        return this;
+    }
+
+    public PostgresColumnDefinition foreignKey( PostgresTableDefinition tableReference ) {
+        this.foreignTableReference = Optional.of( tableReference );
+        return this;
+    }
+
+    public PostgresColumnDefinition foreignKey(
+            PostgresTableDefinition tableReference,
+            PostgresColumnDefinition columnReference ) {
+        this.foreignTableReference = Optional.of( tableReference );
+        this.foreignColumnReference = Optional.of( columnReference );
+        return this;
+    }
+
+    public PostgresColumnDefinition withDefault( Object defaultValue ) {
+        this.defaultValue = Optional.of( defaultValue );
+        return this;
+    }
+
+    public PostgresColumnDefinition notNull() {
+        this.notNull = true;
+        return this;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
+    }
+
+    public String sql() {
+        StringBuilder pcdSql = new StringBuilder( name );
+        pcdSql.append( " " ).append( datatype.sql() );
+
+        if ( primaryKey ) {
+            pcdSql.append( " PRIMARY KEY " );
+        }
+
+        if ( unique ) {
+            pcdSql.append( " UNIQUE " );
+        }
+
+        if ( notNull ) {
+            pcdSql.append( " NOT NULL " );
+        }
+
+        if ( foreignTableReference.isPresent() ) {
+            pcdSql.append( " REFERENCES " ).append( foreignTableReference.get().getName() );
+        }
+
+        if ( foreignColumnReference.isPresent() ) {
+            //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
+            pcdSql.append( " (" + foreignColumnReference.get().getName() + ") " );
+        }
+        if ( defaultValue.isPresent() ) {
+            pcdSql.append( " default " + String.valueOf( defaultValue.get() ) );
+        }
+
+        return pcdSql.toString().trim();
+    }
+
+    @Override public String toString() {
+        return "PostgresColumnDefinition{" +
+                "name='" + name + '\'' +
+                ", datatype=" + datatype +
+                ", primaryKey=" + primaryKey +
+                ", unique=" + unique +
+                ", notNull=" + notNull +
+                ", defaultValue=" + defaultValue +
+                ", foreignTableReference=" + foreignTableReference +
+                ", foreignColumnReference=" + foreignColumnReference +
+                '}';
+    }
+
+    public void validate() {
+    }
 }

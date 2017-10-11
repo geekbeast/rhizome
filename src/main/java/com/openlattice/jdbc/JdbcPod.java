@@ -28,6 +28,8 @@ import com.kryptnostic.rhizome.pods.MetricsPod;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,6 +40,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import( { ConfigurationPod.class, MetricsPod.class } )
 public class JdbcPod {
+    private static final Logger logger = LoggerFactory.getLogger( JdbcPod.class );
     @Inject
     private RhizomeConfiguration rhizomeConfiguration;
 
@@ -50,8 +53,9 @@ public class JdbcPod {
     @Bean
     public HikariDataSource hikariDataSource() {
         if ( rhizomeConfiguration.getHikariConfiguration().isPresent() ) {
-            HikariDataSource hds = new HikariDataSource(
-                    new HikariConfig( rhizomeConfiguration.getHikariConfiguration().get() ) );
+            HikariConfig hc = new HikariConfig( rhizomeConfiguration.getHikariConfiguration().get() );
+            logger.info( "JDBC URL = {}", hc.getJdbcUrl() );
+            HikariDataSource hds = new HikariDataSource( hc );
             hds.setHealthCheckRegistry( healthCheckRegistry );
             hds.setMetricRegistry( metricRegistry );
             return hds;
