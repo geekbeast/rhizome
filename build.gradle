@@ -17,8 +17,8 @@ ext.scmUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
 ext.connectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/kryptnostic/rhizome.git'
 
-apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/kryptnostic.gradle"
-apply from: "https://raw.githubusercontent.com/kryptnostic/gradles/master/mavenRepos.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
