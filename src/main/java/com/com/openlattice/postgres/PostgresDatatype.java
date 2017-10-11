@@ -23,7 +23,7 @@ package com.com.openlattice.postgres;
 //@formatter:off
 import java.util.EnumSet; /**
  * From https://www.postgresql.org/docs/9.5/static/datatype.html
- * <table>
+ * <table summary ="Postgres datatypes from docs">
  *     <tr>
  *     <th>Name</th>
  *     <th>Storage Size</th>
