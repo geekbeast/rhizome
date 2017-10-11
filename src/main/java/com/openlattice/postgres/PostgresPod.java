@@ -18,7 +18,7 @@
  *
  */
 
-package com.com.openlattice.postgres;
+package com.openlattice.postgres;
 
 import com.openlattice.jdbc.JdbcPod;
 import com.zaxxer.hikari.HikariDataSource;

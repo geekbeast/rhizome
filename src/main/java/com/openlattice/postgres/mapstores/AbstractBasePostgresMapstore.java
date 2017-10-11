@@ -18,10 +18,10 @@
  *
  */
 
-package com.com.openlattice.postgres.mapstores;
+package com.openlattice.postgres.mapstores;
 
-import com.com.openlattice.postgres.PostgresColumnDefinition;
-import com.com.openlattice.postgres.PostgresTableDefinition;
+import com.openlattice.postgres.PostgresColumnDefinition;
+import com.openlattice.postgres.PostgresTableDefinition;
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.config.MapConfig;
