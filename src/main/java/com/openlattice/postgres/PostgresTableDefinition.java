@@ -169,7 +169,7 @@ public class PostgresTableDefinition implements TableDefinition {
                         .append( ") " );
             } else {
                 //All columns
-                insertSql.append( " (" )
+                insertSql.append( " VALUES (" )
                         .append( StringUtils.repeat( "?", ", ", columns.size() ) )
                         .append( ") " );
             }
@@ -191,17 +191,38 @@ public class PostgresTableDefinition implements TableDefinition {
     public String updateQuery(
             List<PostgresColumnDefinition> whereToUpdate,
             List<PostgresColumnDefinition> columnsToUpdate ) {
+        return updateQuery( whereToUpdate, columnsToUpdate, true );
+    }
+
+    public String updateQuery(
+            List<PostgresColumnDefinition> whereToUpdate,
+            List<PostgresColumnDefinition> columnsToUpdate,
+            boolean notOnConflict ) {
         checkArgument( !columnsToUpdate.isEmpty(), "Columns to update must be specified." );
         checkArgument( !whereToUpdate.isEmpty(), "Columns for where clause must be specified." );
 
         if ( this.columns.containsAll( columnsToUpdate ) && this.columns.containsAll( whereToUpdate ) ) {
             //TODO: Warn when where clause is unindexed and will trigger a table scan.
-            StringBuilder updateSql = new StringBuilder( "UPDATE " ).append( name );
+            StringBuilder updateSql = new StringBuilder( "UPDATE " );
+            if ( notOnConflict ) {
+                updateSql.append( name );
+            }
+
             updateSql.append( " SET " )
                     .append( columnsToUpdate.stream()
                             .map( PostgresColumnDefinition::getName )
                             .map( columnName -> columnName + " = ? " )
                             .collect( Collectors.joining( "," ) ) );
+
+
+            if ( notOnConflict ) {
+                updateSql
+                        .append( " WHERE " )
+                        .append( whereToUpdate.stream()
+                        .map( PostgresColumnDefinition::getName )
+                        .map( columnName -> columnName + " = ? " )
+                        .collect( Collectors.joining( " and " ) ) );
+            }
 
             return updateSql.toString();
         } else {

@@ -20,8 +20,6 @@
 
 package com.openlattice.postgres.mapstores;
 
-import com.openlattice.postgres.PostgresColumnDefinition;
-import com.openlattice.postgres.PostgresTableDefinition;
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.hazelcast.config.MapConfig;
@@ -29,6 +27,8 @@ import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.CountdownConnectionCloser;
 import com.openlattice.postgres.KeyIterator;
+import com.openlattice.postgres.PostgresColumnDefinition;
+import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -58,11 +58,20 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     private final String           deleteQuery;
     private final String           selectAllKeysQuery;
     private final String           selectByKeyQuery;
+    private final Optional<String> oc;
 
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this.mapName = mapName;
         this.table = table;
         this.hds = hds;
+
+        this.oc = Optional.of( ( " ON CONFLICT ("
+                + keyColumns().stream()
+                .map( PostgresColumnDefinition::getName )
+                .collect( Collectors.joining( ", " ) )
+                + ") DO "
+                + table.updateQuery( keyColumns(), valueColumns(), false ) ) );
+
         this.insertQuery = table.insertQuery( onConflict(), getInsertColumns() );
         this.deleteQuery = table.deleteQuery( keyColumns() );
         this.selectAllKeysQuery = table.selectQuery( keyColumns() );
@@ -74,7 +83,8 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         try ( Connection connection = hds.getConnection() ) {
             PreparedStatement insertRow = prepareInsert( connection );
             bind( insertRow, key, value );
-            insertRow.executeUpdate();
+            logger.info( insertRow.toString() );
+            insertRow.execute();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store for key {}.", key, e );
         }
@@ -191,7 +201,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     }
 
     protected Optional<String> onConflict() {
-        return Optional.of( " ON CONFLICT DO " + table.updateQuery( keyColumns(), valueColumns() ) );
+        return oc;
     }
 
     protected List<PostgresColumnDefinition> getInsertColumns() {
@@ -244,13 +254,17 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         return new MapConfig( mapName )
                 .setMapStoreConfig( getMapStoreConfig() );
     }
+
     protected abstract List<PostgresColumnDefinition> keyColumns();
 
     protected abstract List<PostgresColumnDefinition> valueColumns();
 
+    /**
+     * You must bind update parameters as well as insert parameters
+     */
     protected abstract void bind( PreparedStatement ps, K key, V value ) throws SQLException;
 
-    protected abstract void bind( PreparedStatement ps, K key );
+    protected abstract void bind( PreparedStatement ps, K key ) throws SQLException;
 
     protected abstract V mapToValue( ResultSet rs ) throws SQLException;
 
