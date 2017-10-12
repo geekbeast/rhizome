@@ -23,7 +23,7 @@ package com.openlattice.postgres;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Optional;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -105,25 +105,25 @@ public class PostgresIndexDefinition {
     }
 
     public PostgresIndexDefinition nullsFirst() {
-        checkState( !nullsLast , "Cannot set both nulls first and nulls last at the same time.");
+        checkState( !nullsLast, "Cannot set both nulls first and nulls last at the same time." );
         nullsFirst = true;
         return this;
     }
 
     public PostgresIndexDefinition nullsLast() {
-        checkState( !nullsFirst , "Cannot set both nulls last and nulls first at the same time.");
+        checkState( !nullsFirst, "Cannot set both nulls last and nulls first at the same time." );
         nullsLast = true;
         return this;
     }
 
     public PostgresIndexDefinition asc() {
-        checkState( !desc , "Cannot set both ascending and descending at the same time.");
+        checkState( !desc, "Cannot set both ascending and descending at the same time." );
         asc = true;
         return this;
     }
 
     public PostgresIndexDefinition desc() {
-        checkState( !asc , "Cannot set both descending and ascending at the same time.");
+        checkState( !asc, "Cannot set both descending and ascending at the same time." );
         desc = true;
         return this;
     }

@@ -17,9 +17,23 @@ import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.servlets.DispatcherServletConfiguration;
-import com.kryptnostic.rhizome.pods.*;
+import com.kryptnostic.rhizome.pods.AsyncPod;
+import com.kryptnostic.rhizome.pods.ConfigurationPod;
+import com.kryptnostic.rhizome.pods.JettyContainerPod;
+import com.kryptnostic.rhizome.pods.LoamPod;
+import com.kryptnostic.rhizome.pods.MetricsPod;
 import com.kryptnostic.rhizome.startup.Requirement;
-import org.apache.commons.lang.StringUtils;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
@@ -31,30 +45,22 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import javax.servlet.*;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Note: if using jetty, jetty creates an instance of this class with a no-arg constructor in order to call onStartup
  * TODO: break out WebApplicationInitializer's onStartup to a different class because of Jetty issue
- *
  */
 public class Rhizome implements WebApplicationInitializer {
-    private static final Logger                            logger                        = LoggerFactory
-            .getLogger( Rhizome.class );
-    private static final String                            HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
-    protected static final Class<?>[]                      DEFAULT_SERVICE_PODS          = new Class<?>[] {
+    protected static final Class<?>[]                            DEFAULT_SERVICE_PODS          = new Class<?>[] {
             ConfigurationPod.class,
             MetricsPod.class,
             AsyncPod.class };
-    protected static final Lock                            startupLock                   = new ReentrantLock();
-    protected static AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected final AnnotationConfigWebApplicationContext  context;
-    private JettyLoam                                      jetty;
+    protected static final Lock                                  startupLock                   = new ReentrantLock();
+    private static final   Logger                                logger                        = LoggerFactory
+            .getLogger( Rhizome.class );
+    private static final   String                                HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
+    protected static       AnnotationConfigWebApplicationContext rhizomeContext                = null;
+    protected final AnnotationConfigWebApplicationContext context;
+    private         JettyLoam                             jetty;
 
     public Rhizome() {
         this( new Class<?>[] {} );

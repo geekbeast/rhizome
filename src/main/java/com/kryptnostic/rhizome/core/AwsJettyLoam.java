@@ -1,23 +1,21 @@
 package com.kryptnostic.rhizome.core;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.S3Object;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
+import com.kryptnostic.rhizome.keystores.Keystores;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spark_project.guava.base.Preconditions;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.S3Object;
-import com.google.common.base.Optional;
-import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
-import com.kryptnostic.rhizome.keystores.Keystores;
 
 public class AwsJettyLoam extends JettyLoam {
     private static final Logger logger = LoggerFactory.getLogger( AwsJettyLoam.class );
@@ -32,12 +30,12 @@ public class AwsJettyLoam extends JettyLoam {
         AmazonS3 s3 = new AmazonS3Client();
         String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
-                        .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )
-                        .get().getStorePath();
+                .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )
+                .get().getStorePath();
         String keystoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
-                        .checkNotNull( config.getKeystoreConfiguration(), "keystore configuration cannot be null" )
-                        .get().getStorePath();
+                .checkNotNull( config.getKeystoreConfiguration(), "keystore configuration cannot be null" )
+                .get().getStorePath();
         logger.info( "AwsConfig: {}", awsConfig );
         logger.info( "Trust store key: {}", truststoreKey );
         logger.info( "Keystore key: {}", keystoreKey );
