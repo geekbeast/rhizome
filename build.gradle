@@ -111,6 +111,7 @@ dependencies {
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
      */
+    compile "org.apache.commons:commons-collection4:4.1"
     compile "commons-io:commons-io:2.4"
     compile "org.apache.commons:commons-lang3:3.4"
     compile "commons-codec:commons-codec:1.9"
