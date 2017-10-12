@@ -31,7 +31,7 @@ public class ConfigurableAuth0CORSFilter extends Auth0CORSFilter {
             if ( headerValue.size() == 1 ) {
                 response.setHeader( headerName, headerValue.get( 0 ) );
             } else {
-                response.setHeader( headerName, StringUtils.joinWith( ",", headerValue ) );
+                response.setHeader( headerName, StringUtils.join( headerValue , ",") );
             }
         } );
 
