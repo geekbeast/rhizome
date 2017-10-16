@@ -22,6 +22,7 @@ package com.openlattice.postgres.mapstores;
 
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
@@ -30,6 +31,7 @@ import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,6 +45,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +78,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.insertQuery = table.insertQuery( onConflict(), getInsertColumns() );
         this.deleteQuery = table.deleteQuery( keyColumns() );
         this.selectAllKeysQuery = table.selectQuery( keyColumns() );
-        this.selectByKeyQuery = table.selectQuery( keyColumns(), valueColumns() );
+        this.selectByKeyQuery = table.selectQuery( ImmutableList.of(), keyColumns() );
     }
 
     @Override
@@ -85,6 +88,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             bind( insertRow, key, value );
             logger.info( insertRow.toString() );
             insertRow.execute();
+            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store for key {}.", key, e );
         }
@@ -162,6 +166,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             if ( rs.next() ) {
                 val = mapToValue( rs );
             }
+            connection.close();
             logger.debug( "LOADED: {}", val );
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during select for key {}.", key, e );
@@ -182,8 +187,8 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             stmt.setFetchSize( 50000 );
             final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
             return StreamUtil
-                    .stream( () -> new KeyIterator<K>( rs,
-                            new CountdownConnectionCloser( connection, 1 ), this::mapToKey ) )
+                    .stream( Lists.newArrayList( new KeyIterator<K>( rs,
+                            new CountdownConnectionCloser( connection, 1 ), this::mapToKey ) ) )
                     .peek( key -> logger.debug( "Key to load: {}", key ) )
                     ::iterator;
         } catch ( SQLException e ) {

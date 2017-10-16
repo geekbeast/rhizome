@@ -268,21 +268,22 @@ public class PostgresTableDefinition implements TableDefinition {
     public String selectQuery(
             List<PostgresColumnDefinition> columnsToSelect,
             List<PostgresColumnDefinition> whereToSelect ) {
-        checkArgument( !columnsToSelect.isEmpty(), "Columns for where clause must be specified." );
+//        checkArgument( !whereToSelect.isEmpty(), "Columns for where clause must be specified." );
 
         if ( this.columns.containsAll( columnsToSelect ) ) {
             //TODO: Warn when where clause is unindexed and will trigger a table scan.
-            StringBuilder selectSql = new StringBuilder( "SELECT " ).append( name );
+            StringBuilder selectSql = new StringBuilder( "SELECT " );
             if ( columnsToSelect.isEmpty() ) {
-                selectSql.append( " * " );
+                selectSql.append( "*" );
             } else {
                 selectSql.append( columnsToSelect.stream()
                         .map( PostgresColumnDefinition::getName )
                         .collect( Collectors.joining( ", " ) ) );
             }
+            selectSql.append( " FROM " ).append( name );
             if ( !whereToSelect.isEmpty() ) {
                 selectSql.append( " WHERE " )
-                        .append( columnsToSelect.stream()
+                        .append( whereToSelect.stream()
                                 .map( PostgresColumnDefinition::getName )
                                 .map( columnName -> columnName + " = ? " )
                                 .collect( Collectors.joining( " and " ) ) );
