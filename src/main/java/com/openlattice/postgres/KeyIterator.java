@@ -44,6 +44,7 @@ public class KeyIterator<T> implements Iterator<T> {
         this.mapper = mapper;
         try {
             next = rs.next();
+            countDownIfExhausted();
         } catch ( SQLException e ) {
             logger.error( "Unable to execute sql for load all keys for data map store" );
             throw new IllegalStateException( "Unable to execute sql statement", e );
@@ -56,11 +57,13 @@ public class KeyIterator<T> implements Iterator<T> {
 
     @Override public T next() {
         T key;
+
         if ( next ) {
             key = mapper.apply( rs );
         } else {
             throw new NoSuchElementException( "No more elements available in iterator" );
         }
+
         try {
             next = rs.next();
         } catch ( SQLException e ) {
@@ -68,10 +71,14 @@ public class KeyIterator<T> implements Iterator<T> {
             next = false;
         }
 
+        countDownIfExhausted();
+
+        return key;
+    }
+
+    public void countDownIfExhausted() {
         if ( !next ) {
             closer.countDown();
         }
-
-        return key;
     }
 }
