@@ -42,7 +42,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +74,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.insertQuery = table.insertQuery( onConflict(), getInsertColumns() );
         this.deleteQuery = table.deleteQuery( keyColumns() );
         this.selectAllKeysQuery = table.selectQuery( keyColumns() );
-        this.selectByKeyQuery = table.selectQuery( keyColumns(), valueColumns() );
+        this.selectByKeyQuery = table.selectQuery( ImmutableList.of(), keyColumns() );
     }
 
     @Override
@@ -85,6 +84,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             bind( insertRow, key, value );
             logger.info( insertRow.toString() );
             insertRow.execute();
+            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store for key {}.", key, e );
         }
@@ -162,6 +162,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             if ( rs.next() ) {
                 val = mapToValue( rs );
             }
+            connection.close();
             logger.debug( "LOADED: {}", val );
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during select for key {}.", key, e );
@@ -176,7 +177,6 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     @Override public Iterable<K> loadAllKeys() {
         logger.info( "Starting load all keys for Edge Mapstore" );
-        Stream<K> keys;
         try ( Connection connection = hds.getConnection(); Statement stmt = connection.createStatement() ) {
             connection.setAutoCommit( false );
             stmt.setFetchSize( 50000 );
