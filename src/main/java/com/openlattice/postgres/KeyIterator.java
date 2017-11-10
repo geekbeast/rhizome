@@ -24,7 +24,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +34,10 @@ public class KeyIterator<T> implements Iterator<T> {
     private static final Logger logger = LoggerFactory.getLogger( KeyIterator.class );
     private final ResultSet                 rs;
     private final CountdownConnectionCloser closer;
-    private final Function<ResultSet, T>    mapper;
+    private final SqlFunction<ResultSet, T> mapper;
     private       boolean                   next;
 
-    public KeyIterator( ResultSet rs, CountdownConnectionCloser closer, Function<ResultSet, T> mapper ) {
+    public KeyIterator( ResultSet rs, CountdownConnectionCloser closer, SqlFunction<ResultSet, T> mapper ) {
         this.closer = closer;
         this.rs = rs;
         this.mapper = mapper;
@@ -58,20 +57,20 @@ public class KeyIterator<T> implements Iterator<T> {
     @Override public T next() {
         T key;
 
-        if ( next ) {
-            key = mapper.apply( rs );
-        } else {
-            throw new NoSuchElementException( "No more elements available in iterator" );
-        }
-
         try {
+            if ( next ) {
+                key = mapper.apply( rs );
+            } else {
+                throw new NoSuchElementException( "No more elements available in iterator" );
+            }
             next = rs.next();
         } catch ( SQLException e ) {
             logger.error( "Unable to retrieve next result from result set." );
             next = false;
+            throw new IllegalStateException( "Unable to retrieve next result from result set.", e );
+        } finally {
+            countDownIfExhausted();
         }
-
-        countDownIfExhausted();
 
         return key;
     }

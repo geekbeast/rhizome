@@ -267,5 +267,5 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     protected abstract V mapToValue( ResultSet rs ) throws SQLException;
 
-    protected abstract K mapToKey( ResultSet rs );
+    protected abstract K mapToKey( ResultSet rs ) throws SQLException;
 }
