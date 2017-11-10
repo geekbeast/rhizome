@@ -30,11 +30,10 @@ import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +41,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -177,7 +174,9 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     @Override public Iterable<K> loadAllKeys() {
         logger.info( "Starting load all keys for Edge Mapstore" );
-        try ( Connection connection = hds.getConnection(); Statement stmt = connection.createStatement() ) {
+        try {
+            Connection connection = hds.getConnection();
+            Statement stmt = connection.createStatement();
             connection.setAutoCommit( false );
             stmt.setFetchSize( 50000 );
             final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
