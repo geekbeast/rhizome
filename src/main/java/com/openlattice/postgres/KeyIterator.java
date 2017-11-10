@@ -64,12 +64,12 @@ public class KeyIterator<T> implements Iterator<T> {
                 throw new NoSuchElementException( "No more elements available in iterator" );
             }
             next = rs.next();
-            countDownIfExhausted();
         } catch ( SQLException e ) {
             logger.error( "Unable to retrieve next result from result set." );
             next = false;
-            countDownIfExhausted();
             throw new IllegalStateException( "Unable to retrieve next result from result set.", e );
+        } finally {
+            countDownIfExhausted();
         }
 
         return key;
