@@ -1,25 +1,32 @@
 package com.kryptnostic.rhizome.hazelcast.objects;
 
-import java.util.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Spliterator;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
-public class DelegatedUUIDList implements List<UUID> {
+public class DelegatedUUIDList implements List<UUID>  {
     private final List<UUID> uuids;
 
     public DelegatedUUIDList( List<UUID> uuids ) {
         this.uuids = checkNotNull( uuids );
     }
 
-    public static DelegatedUUIDList wrap( List<UUID> uuids ) {
-        return new DelegatedUUIDList( uuids );
+    public  DelegatedUUIDList( UUID... uuids ) {
+        this( Arrays.asList( uuids ) );
     }
 
     public List<UUID> unwrap() {
@@ -152,5 +159,9 @@ public class DelegatedUUIDList implements List<UUID> {
 
     @Override public void forEach( Consumer<? super UUID> action ) {
         uuids.forEach( action );
+    }
+
+    public static DelegatedUUIDList wrap( List<UUID> uuids ) {
+        return new DelegatedUUIDList( uuids );
     }
 }
