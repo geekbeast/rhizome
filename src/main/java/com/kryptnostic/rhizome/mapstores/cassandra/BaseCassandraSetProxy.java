@@ -9,7 +9,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
-import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+import com.openlattice.rhizome.hazelcast.SetProxy;
 
 public abstract class BaseCassandraSetProxy<K, T> implements SetProxy<K, T> {
 

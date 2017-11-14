@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 
-import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+import com.openlattice.rhizome.hazelcast.SetProxy;
 
 public abstract class AbstractUpdater<K, V extends Collection<T>, T>
         extends AbstractRhizomeEntryProcessor<K, V, Void> {

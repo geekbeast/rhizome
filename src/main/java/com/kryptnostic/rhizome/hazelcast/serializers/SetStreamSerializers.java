@@ -9,8 +9,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.kryptnostic.rhizome.hazelcast.objects.OrderedUUIDSet;
-import com.kryptnostic.rhizome.hazelcast.objects.UUIDSet;
+import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
+import com.openlattice.rhizome.hazelcast.UUIDSet;
 
 public class SetStreamSerializers {
 

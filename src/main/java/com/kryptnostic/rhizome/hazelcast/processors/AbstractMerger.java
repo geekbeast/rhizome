@@ -3,7 +3,7 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 import java.util.Collection;
 import java.util.Map.Entry;
 
-import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+import com.openlattice.rhizome.hazelcast.SetProxy;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;

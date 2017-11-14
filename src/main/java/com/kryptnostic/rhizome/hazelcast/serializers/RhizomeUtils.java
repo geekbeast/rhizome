@@ -21,8 +21,8 @@ import com.google.common.io.Resources;
 import com.google.common.primitives.Ints;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.kryptnostic.rhizome.hazelcast.objects.OrderedUUIDSet;
-import com.kryptnostic.rhizome.hazelcast.objects.UUIDSet;
+import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
+import com.openlattice.rhizome.hazelcast.UUIDSet;
 
 public class RhizomeUtils {
 

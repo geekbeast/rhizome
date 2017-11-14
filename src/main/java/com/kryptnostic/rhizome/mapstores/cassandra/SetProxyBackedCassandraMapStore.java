@@ -22,7 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
-import com.kryptnostic.rhizome.hazelcast.objects.SetProxy;
+import com.openlattice.rhizome.hazelcast.SetProxy;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringKeyMapper;
 import com.kryptnostic.rhizome.mappers.SelfRegisteringValueMapper;
 import com.kryptnostic.rhizome.mapstores.cassandra.BaseCassandraSetProxy.ProxyKey;
