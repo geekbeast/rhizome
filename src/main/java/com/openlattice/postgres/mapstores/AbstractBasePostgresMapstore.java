@@ -22,6 +22,7 @@ package com.openlattice.postgres.mapstores;
 
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.MapMaker;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
@@ -30,20 +31,16 @@ import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -188,7 +185,13 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        return keys.parallelStream().collect( Collectors.toConcurrentMap( Function.identity(), this::load ) );
+        Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
+        keys.parallelStream().forEach( key -> {
+            V value = load( key );
+            if ( value != null )
+                result.put( key, value );
+        } );
+        return result;
     }
 
     @Override public Iterable<K> loadAllKeys() {
