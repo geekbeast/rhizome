@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kryptnostic/rhizome.svg?branch=develop)](https://travis-ci.org/kryptnostic/rhizome)
+[![Build Status](https://travis-ci.org/dataloom/rhizome.svg?branch=develop)](https://travis-ci.org/dataloom/rhizome)
 
 rhizome
 =======
