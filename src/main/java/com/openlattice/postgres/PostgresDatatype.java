@@ -64,7 +64,14 @@ public enum PostgresDatatype {
     TEXT, TEXT_ARRAY;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
-            .of( SMALLINT_ARRAY, INTEGER_ARRAY, BIGINT_ARRAY, DOUBLE_ARRAY, TIMESTAMPTZ_ARRAY, UUID_ARRAY, TEXT_ARRAY );
+            .of( SMALLINT_ARRAY,
+                    INTEGER_ARRAY,
+                    BIGINT_ARRAY,
+                    DOUBLE_ARRAY,
+                    TIMESTAMPTZ_ARRAY,
+                    UUID_ARRAY,
+                    UUID_ARRAY_ARRAY,
+                    TEXT_ARRAY );
 
     public String sql() {
         return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
