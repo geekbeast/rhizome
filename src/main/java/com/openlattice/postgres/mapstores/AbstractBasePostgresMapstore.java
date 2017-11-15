@@ -30,10 +30,11 @@ import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -68,10 +71,26 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
                 + ") DO "
                 + table.updateQuery( keyColumns(), valueColumns(), false ) ) );
 
-        this.insertQuery = table.insertQuery( onConflict(), getInsertColumns() );
-        this.deleteQuery = table.deleteQuery( keyColumns() );
-        this.selectAllKeysQuery = table.selectQuery( keyColumns() );
-        this.selectByKeyQuery = table.selectQuery( ImmutableList.of(), keyColumns() );
+        this.insertQuery = buildInsertQuery();
+        this.deleteQuery = buildDeleteQuery();
+        this.selectAllKeysQuery = buildSelectAllKeysQuery();
+        this.selectByKeyQuery = buildSelectByKeyQuery();
+    }
+
+    protected String buildInsertQuery() {
+        return table.insertQuery( onConflict(), getInsertColumns() );
+    }
+
+    protected String buildDeleteQuery() {
+        return table.deleteQuery( keyColumns() );
+    }
+
+    protected String buildSelectAllKeysQuery() {
+        return table.selectQuery( keyColumns() );
+    }
+
+    protected String buildSelectByKeyQuery() {
+        return table.selectQuery( ImmutableList.of(), keyColumns() );
     }
 
     @Override

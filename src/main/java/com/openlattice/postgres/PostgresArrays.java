@@ -31,6 +31,9 @@ import java.util.stream.Stream;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresArrays {
+    public static Array createUuidArrayOfArrays( Connection connection, Stream<UUID[]> idArrays ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.UUID.sql(), idArrays.toArray( UUID[][]::new ) );
+    }
 
     public static Array createUuidArray( Connection connection, Stream<UUID> ids ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( UUID[]::new ) );
@@ -42,6 +45,10 @@ public class PostgresArrays {
 
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
         return (String[]) rs.getArray( column ).getArray();
+    }
+
+    public static UUID[][] getUuidArrayOfArrays( ResultSet rs, String column ) throws SQLException {
+        return (UUID[][]) rs.getArray( column ).getArray();
     }
 
     public static UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {

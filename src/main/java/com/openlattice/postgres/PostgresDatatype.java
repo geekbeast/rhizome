@@ -60,7 +60,7 @@ public enum PostgresDatatype {
     BYTEA,
     BOOLEAN,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
-    UUID, UUID_ARRAY,
+    UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
     TEXT, TEXT_ARRAY;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
