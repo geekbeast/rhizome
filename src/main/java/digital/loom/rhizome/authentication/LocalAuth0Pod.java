@@ -14,9 +14,6 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @Profile( Profiles.LOCAL_CONFIGURATION_PROFILE )
 public class LocalAuth0Pod {
-    @Inject
-    protected ConfigurationService configService;
-
     @Bean
     public Auth0Configuration auth0Configuration() throws IOException {
         return ResourceConfigurationLoader.loadConfiguration( Auth0Configuration.class );
