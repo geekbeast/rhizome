@@ -214,14 +214,13 @@ public class PostgresTableDefinition implements TableDefinition {
                             .map( columnName -> columnName + " = ? " )
                             .collect( Collectors.joining( "," ) ) );
 
-
             if ( notOnConflict ) {
                 updateSql
                         .append( " WHERE " )
                         .append( whereToUpdate.stream()
-                        .map( PostgresColumnDefinition::getName )
-                        .map( columnName -> columnName + " = ? " )
-                        .collect( Collectors.joining( " and " ) ) );
+                                .map( PostgresColumnDefinition::getName )
+                                .map( columnName -> columnName + " = ? " )
+                                .collect( Collectors.joining( " and " ) ) );
             }
 
             return updateSql.toString();
@@ -230,7 +229,7 @@ public class PostgresTableDefinition implements TableDefinition {
                     .filter( c -> !this.columns.contains( c ) )
                     .map( PostgresColumnDefinition::getName )
                     .collect( Collectors.toList() );
-            String errMsg = "Table is missing requested columns: " + String.valueOf( missingColumns );
+            String errMsg = "Table " + getName() + "is missing requested columns: " + String.valueOf( missingColumns );
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
@@ -268,7 +267,7 @@ public class PostgresTableDefinition implements TableDefinition {
     public String selectQuery(
             List<PostgresColumnDefinition> columnsToSelect,
             List<PostgresColumnDefinition> whereToSelect ) {
-//        checkArgument( !whereToSelect.isEmpty(), "Columns for where clause must be specified." );
+        //        checkArgument( !whereToSelect.isEmpty(), "Columns for where clause must be specified." );
 
         if ( this.columns.containsAll( columnsToSelect ) ) {
             //TODO: Warn when where clause is unindexed and will trigger a table scan.
