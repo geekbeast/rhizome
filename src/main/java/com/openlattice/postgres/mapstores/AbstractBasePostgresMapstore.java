@@ -31,16 +31,19 @@ import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -61,17 +64,21 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.table = table;
         this.hds = hds;
 
-        this.oc = Optional.of( ( " ON CONFLICT ("
-                + keyColumns().stream()
-                .map( PostgresColumnDefinition::getName )
-                .collect( Collectors.joining( ", " ) )
-                + ") DO "
-                + table.updateQuery( keyColumns(), valueColumns(), false ) ) );
+        this.oc = buildOnConflictQuery();
 
         this.insertQuery = buildInsertQuery();
         this.deleteQuery = buildDeleteQuery();
         this.selectAllKeysQuery = buildSelectAllKeysQuery();
         this.selectByKeyQuery = buildSelectByKeyQuery();
+    }
+
+    protected Optional<String> buildOnConflictQuery() {
+        return Optional.of( ( " ON CONFLICT ("
+                + keyColumns().stream()
+                .map( PostgresColumnDefinition::getName )
+                .collect( Collectors.joining( ", " ) )
+                + ") DO "
+                + table.updateQuery( keyColumns(), valueColumns(), false ) ) );
     }
 
     protected String buildInsertQuery() {
@@ -92,14 +99,13 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     @Override
     public void store( K key, V value ) {
-        try ( Connection connection = hds.getConnection() ) {
-            PreparedStatement insertRow = prepareInsert( connection );
+        try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
             bind( insertRow, key, value );
             logger.info( insertRow.toString() );
             insertRow.execute();
-            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store for key {}.", key, e );
+            handleStoreFailed( key, value );
         }
     }
 
@@ -188,8 +194,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
         keys.parallelStream().forEach( key -> {
             V value = load( key );
-            if ( value != null )
-                result.put( key, value );
+            if ( value != null ) { result.put( key, value ); }
         } );
         return result;
     }
@@ -272,8 +277,12 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
     @Override
     public MapConfig getMapConfig() {
-        return new MapConfig( mapName )
+        return new MapConfig( getMapName() )
                 .setMapStoreConfig( getMapStoreConfig() );
+    }
+
+    protected void handleStoreFailed( K key, V value ) {
+        //Do nothing by default
     }
 
     protected abstract List<PostgresColumnDefinition> keyColumns();
