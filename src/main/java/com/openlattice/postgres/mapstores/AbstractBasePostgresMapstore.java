@@ -52,7 +52,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     protected final PostgresTableDefinition table;
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
     private final String           mapName;
-    private final HikariDataSource hds;
+    protected final HikariDataSource hds;
     private final String           insertQuery;
     private final String           deleteQuery;
     private final String           selectAllKeysQuery;
