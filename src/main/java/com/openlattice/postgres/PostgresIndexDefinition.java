@@ -159,7 +159,7 @@ public class PostgresIndexDefinition {
             psql.append( " IF NOT EXISTS " ).append( name.get() );
         }
 
-        psql.append( " ON (" ).append( table.getName() ).append( ") " );
+        psql.append( " ON " ).append( table.getName() );
 
         if ( method.isPresent() ) {
             psql.append( " USING " ).append( method.get() );
