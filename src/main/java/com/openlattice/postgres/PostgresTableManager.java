@@ -23,6 +23,7 @@ package com.openlattice.postgres;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,12 +51,12 @@ public class PostgresTableManager {
             if ( activeTables.containsKey( table.getName() ) ) {
                 logger.warn( "Table {} has already been registered and initialized... skipping", table );
             } else {
-                try ( Connection conn = hds.getConnection() ) {
-                    conn.createStatement().execute( table.createTableQuery() );
+                try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
+                    sctq.execute( table.createTableQuery() );
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
                         String indexSql = index.sql();
-                        try {
-                            conn.createStatement().executeQuery( indexSql );
+                        try( Statement sci = conn.createStatement() ) {
+                            sci.execute( indexSql );
                         } catch ( SQLException e ) {
                             logger.info( "Failed to create index {} with query {} for table {}",
                                     index,
