@@ -22,15 +22,18 @@ package com.openlattice.postgres;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresIndexDefinition {
-    private final PostgresTableDefinition  table;
-    private final PostgresColumnDefinition column;
+    private final PostgresTableDefinition        table;
+    private final List<PostgresColumnDefinition> columns;
 
     private Optional<String>      name   = Optional.empty();
     private Optional<IndexMethod> method = Optional.empty();
@@ -44,13 +47,13 @@ public class PostgresIndexDefinition {
     private boolean ifNotExists = false;
     private boolean concurrent  = false;
 
-    public PostgresIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition column ) {
+    public PostgresIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition... column ) {
         this.table = table;
-        this.column = column;
+        this.columns = Arrays.asList( column );
     }
 
-    public PostgresColumnDefinition getColumn() {
-        return column;
+    public List<PostgresColumnDefinition> getColumns() {
+        return columns;
     }
 
     public boolean isUnique() {
@@ -162,7 +165,12 @@ public class PostgresIndexDefinition {
             psql.append( " USING " ).append( method.get() );
         }
 
-        psql.append( " (" ).append( column.getName() ).append( ") " );
+        psql.append( " (" )
+                .append(
+                        columns.stream()
+                                .map( PostgresColumnDefinition::getName )
+                                .collect( Collectors.joining( "," ) ) )
+                .append( ") " );
 
         if ( asc ) {
             psql.append( " ASC " );
@@ -188,13 +196,13 @@ public class PostgresIndexDefinition {
             checkState( name.isPresent() && StringUtils.isNotBlank( name.get() ),
                     "Name must be present if not exists is specified. See https://www.postgresql.org/docs/9.5/static/sql-createindex.html" );
         }
-        column.validate();
+        columns.forEach( PostgresColumnDefinition::validate );
     }
 
     @Override public String toString() {
         return "PostgresIndexDefinition{" +
                 "table=" + table.getName() +
-                ", column=" + column.getName() +
+                ", columns=" + columns +
                 ", name=" + name +
                 ", method=" + method +
                 ", unique=" + unique +
@@ -221,14 +229,14 @@ public class PostgresIndexDefinition {
         if ( ifNotExists != that.ifNotExists ) { return false; }
         if ( concurrent != that.concurrent ) { return false; }
         if ( table != null ? !table.equals( that.table ) : that.table != null ) { return false; }
-        if ( column != null ? !column.equals( that.column ) : that.column != null ) { return false; }
+        if ( columns != null ? !columns.equals( that.columns ) : that.columns != null ) { return false; }
         if ( name != null ? !name.equals( that.name ) : that.name != null ) { return false; }
         return method != null ? method.equals( that.method ) : that.method == null;
     }
 
     @Override public int hashCode() {
         int result = table != null ? table.hashCode() : 0;
-        result = 31 * result + ( column != null ? column.hashCode() : 0 );
+        result = 31 * result + ( columns != null ? columns.hashCode() : 0 );
         result = 31 * result + ( name != null ? name.hashCode() : 0 );
         result = 31 * result + ( method != null ? method.hashCode() : 0 );
         result = 31 * result + ( unique ? 1 : 0 );
