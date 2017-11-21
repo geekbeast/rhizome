@@ -74,6 +74,12 @@ public class PostgresTableDefinition implements TableDefinition {
     }
 
     public LinkedHashSet<PostgresColumnDefinition> getPrimaryKey() {
+        if ( primaryKey.isEmpty() ) {
+            //Try columns.
+            return columns.stream()
+                    .filter( PostgresColumnDefinition::isPrimaryKey )
+                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
+        }
         return primaryKey;
     }
 
@@ -89,7 +95,9 @@ public class PostgresTableDefinition implements TableDefinition {
     }
 
     public LinkedHashSet<PostgresColumnDefinition> getColumns() {
-        return columns;
+        return columns.stream()
+                .filter( c -> !c.isPrimaryKey() )
+                .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 
     public LinkedHashSet<PostgresColumnDefinition> getUnique() {
