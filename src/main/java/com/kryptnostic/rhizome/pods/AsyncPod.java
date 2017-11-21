@@ -1,8 +1,10 @@
 package com.kryptnostic.rhizome.pods;
 
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -15,10 +17,6 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
 @Configuration
 @EnableScheduling
@@ -33,7 +31,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     }
 
     @Bean(
-        destroyMethod = "shutdown" )
+            destroyMethod = "shutdown" )
     public ThreadPoolTaskScheduler rhizomeScheduler() {
         ThreadPoolTaskScheduler executor = new ThreadPoolTaskScheduler();
         executor.setPoolSize( 8 );
@@ -44,11 +42,11 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
 
     @Override
     @Bean(
-        destroyMethod = "shutdown" )
+            destroyMethod = "shutdown" )
     public ThreadPoolTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize( 4 );
-        executor.setMaxPoolSize( 32 );
+        executor.setMaxPoolSize( Runtime.getRuntime().availableProcessors() );
         executor.setThreadNamePrefix( "rhizome-offshoot-" );
         executor.initialize();
         return executor;
@@ -58,7 +56,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     public ListeningExecutorService listeningExecutorService() {
         return MoreExecutors.listeningDecorator( getAsyncExecutor().getThreadPoolExecutor() );
     }
-    
+
     @Bean
     public AsyncEventBus localConfigurationUpdates() {
         return new AsyncEventBus( getAsyncExecutor() );
