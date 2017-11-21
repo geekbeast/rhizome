@@ -285,9 +285,13 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         //Do nothing by default
     }
 
-    protected abstract List<PostgresColumnDefinition> keyColumns();
+    protected List<PostgresColumnDefinition> keyColumns() {
+        return ImmutableList.copyOf( table.getPrimaryKey() );
+    }
 
-    protected abstract List<PostgresColumnDefinition> valueColumns();
+    protected List<PostgresColumnDefinition> valueColumns() {
+        return ImmutableList.copyOf( table.getColumns() );
+    }
 
     /**
      * You must bind update parameters as well as insert parameters
