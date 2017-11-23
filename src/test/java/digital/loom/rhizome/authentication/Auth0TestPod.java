@@ -13,7 +13,6 @@ public class Auth0TestPod extends LocalAuth0Pod {
     @Bean
     @Override
     public Auth0Configuration auth0Configuration() throws IOException {
-        this.configService.setConfiguration( AuthenticationTest.configuration );
         return super.auth0Configuration();
     }
 }

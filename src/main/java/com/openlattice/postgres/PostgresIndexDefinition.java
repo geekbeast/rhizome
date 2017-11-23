@@ -137,6 +137,7 @@ public class PostgresIndexDefinition {
     }
 
     public PostgresIndexDefinition ifNotExists() {
+        checkState( name.isPresent(), "Name must be present for if not exists clause" );
         this.ifNotExists = true;
         return this;
     }
