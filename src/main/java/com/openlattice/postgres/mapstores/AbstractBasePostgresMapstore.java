@@ -37,10 +37,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +53,13 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     protected final PostgresTableDefinition table;
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
-    private final String           mapName;
     protected final HikariDataSource hds;
-    private final String           insertQuery;
-    private final String           deleteQuery;
-    private final String           selectAllKeysQuery;
-    private final String           selectByKeyQuery;
-    private final Optional<String> oc;
+    private final   String           mapName;
+    private final   String           insertQuery;
+    private final   String           deleteQuery;
+    private final   String           selectAllKeysQuery;
+    private final   String           selectByKeyQuery;
+    private final   Optional<String> oc;
 
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this.mapName = mapName;
@@ -101,7 +103,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     public void store( K key, V value ) {
         try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
             bind( insertRow, key, value );
-            logger.info( insertRow.toString() );
+            logger.debug( "Insert query: {}", insertRow );
             insertRow.execute();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store for key {}.", key, e );
@@ -112,29 +114,41 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     @Override
     public void storeAll( Map<K, V> map ) {
         K key = null;
+
+        final Set<K> skip = new HashSet<>();
+
         try ( Connection connection = hds.getConnection();
                 PreparedStatement insertRow = prepareInsert( connection ) ) {
-            connection.setAutoCommit( false );
-            for ( Entry<K, V> entry : map.entrySet() ) {
-                key = entry.getKey();
-                bind( insertRow, key, entry.getValue() );
-                try {
-                    insertRow.addBatch();
-                } catch ( SQLException e ) {
-                    //Reset the connection so we can keep writing in other values and log
-                    //TODO: Consider whether we should retry or whether we rethrow exception (might be able to bubble it up to Hazelcast).
-                    //TODO: If we rethrow and exception meter we can monitor if any mapstores are failing an unusually high number of writes
-                    connection.commit();
-                    logger.error( "Unable to store row {} -> {}",
-                            key,
-                            entry.getValue(), e );
+            /*
+             * Process all the writes.
+             */
+            boolean failed = true;
+            while ( failed ) {
+                failed = false;
+                for ( Entry<K, V> entry : map.entrySet() ) {
+                    key = entry.getKey();
+
+                    //Skip any writes that 
+                    if( !skip.contains( key ) ) {
+                        bind( insertRow, key, entry.getValue() );
+                        try {
+                            insertRow.addBatch();
+                        } catch ( SQLException e ) {
+                            //Reset the connection so we can keep writing in other values and log
+                            //TODO: Consider whether we should retry or whether we rethrow exception (might be able to bubble it up to Hazelcast).
+                            //TODO: If we rethrow and exception meter we can monitor if any mapstores are failing an unusually high number of writes
+                            connection.commit();
+                            skip.add( key );
+                            logger.error( "Unable to store row {} -> {}",
+                                    key,
+                                    entry.getValue(), e );
+                            failed = true;
+                        }
+                    }
                 }
-                insertRow.executeBatch();
-                insertRow.clearParameters();
             }
-            connection.commit();
-            connection.setAutoCommit( true );
-            connection.close();
+
+            insertRow.executeBatch();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store all", e );
         }
