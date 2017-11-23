@@ -47,6 +47,7 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
+        logger.info( "Processing postgres table registration." );
         for ( PostgresTableDefinition table : tables ) {
             if ( activeTables.containsKey( table.getName() ) ) {
                 logger.warn( "Table {} has already been registered and initialized... skipping", table );
@@ -55,7 +56,7 @@ public class PostgresTableManager {
                     sctq.execute( table.createTableQuery() );
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
                         String indexSql = index.sql();
-                        try( Statement sci = conn.createStatement() ) {
+                        try ( Statement sci = conn.createStatement() ) {
                             sci.execute( indexSql );
                         } catch ( SQLException e ) {
                             logger.info( "Failed to create index {} with query {} for table {}",
@@ -66,7 +67,10 @@ public class PostgresTableManager {
                         }
                     }
                 } catch ( SQLException e ) {
-                    logger.info( "Failed to initialize postgres table {} with query {}", table,table.createTableQuery(), e );
+                    logger.info( "Failed to initialize postgres table {} with query {}",
+                            table,
+                            table.createTableQuery(),
+                            e );
                     throw e;
                 }
             }
