@@ -37,12 +37,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,42 +113,18 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     public void storeAll( Map<K, V> map ) {
         K key = null;
 
-        final Set<K> skip = new HashSet<>();
-
         try ( Connection connection = hds.getConnection();
                 PreparedStatement insertRow = prepareInsert( connection ) ) {
-            /*
-             * Process all the writes.
-             */
-            boolean failed = true;
-            while ( failed ) {
-                failed = false;
-                for ( Entry<K, V> entry : map.entrySet() ) {
-                    key = entry.getKey();
 
-                    //Skip any writes that 
-                    if( !skip.contains( key ) ) {
-                        bind( insertRow, key, entry.getValue() );
-                        try {
-                            insertRow.addBatch();
-                        } catch ( SQLException e ) {
-                            //Reset the connection so we can keep writing in other values and log
-                            //TODO: Consider whether we should retry or whether we rethrow exception (might be able to bubble it up to Hazelcast).
-                            //TODO: If we rethrow and exception meter we can monitor if any mapstores are failing an unusually high number of writes
-                            connection.commit();
-                            skip.add( key );
-                            logger.error( "Unable to store row {} -> {}",
-                                    key,
-                                    entry.getValue(), e );
-                            failed = true;
-                        }
-                    }
-                }
+            for ( Entry<K, V> entry : map.entrySet() ) {
+                key = entry.getKey();
+                bind( insertRow, key, entry.getValue() );
+                insertRow.addBatch();
             }
 
             insertRow.executeBatch();
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during store all", e );
+            logger.error( "Error executing SQL during store all for key {}", key, e );
         }
     }
 
