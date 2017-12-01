@@ -84,7 +84,11 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             logger.warn( "No map stores were configured." );
         }
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
-
+            //This ensures that Hazelcast will use the byte-code re-written beans instead of the mapstores directly
+            //The metrics enabled flag can be overriden for debugging particular mapstores if stacktraces are too dirty
+            if( s.isMetricsEnabled() ) {
+                s.getMapStoreConfig().setImplementation( s );
+            }
             register( s.getMapConfig().getName(), s );
         }
     }

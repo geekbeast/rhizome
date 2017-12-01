@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres.mapstores;
 
+import com.codahale.metrics.annotation.Timed;
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
@@ -97,6 +98,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         return table.selectQuery( ImmutableList.of(), keyColumns() );
     }
 
+    @Timed
     @Override
     public void store( K key, V value ) {
         try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
@@ -109,26 +111,26 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         }
     }
 
+    @Timed
     @Override
     public void storeAll( Map<K, V> map ) {
         K key = null;
-
-        try ( Connection connection = hds.getConnection();
-                PreparedStatement insertRow = prepareInsert( connection ) ) {
-
+        try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
+            //TODO: We might want to do an inner try catch here to get specific logging on what failed
             for ( Entry<K, V> entry : map.entrySet() ) {
                 key = entry.getKey();
                 bind( insertRow, key, entry.getValue() );
                 insertRow.addBatch();
             }
-
             insertRow.executeBatch();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during store all for key {}", key, e );
         }
     }
 
-    @Override public void delete( K key ) {
+    @Timed
+    @Override
+    public void delete( K key ) {
         try ( Connection connection = hds.getConnection(); PreparedStatement deleteRow = prepareDelete( connection ) ) {
             bind( deleteRow, key );
             deleteRow.executeUpdate();
@@ -138,45 +140,49 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         }
     }
 
-    @Override public void deleteAll( Collection<K> keys ) {
+    @Timed
+    @Override
+    public void deleteAll( Collection<K> keys ) {
         K key = null;
         try ( Connection connection = hds.getConnection(); PreparedStatement deleteRow = prepareDelete( connection ) ) {
-
-            connection.setAutoCommit( false );
             for ( K k : keys ) {
                 key = k;
                 bind( deleteRow, key );
                 deleteRow.addBatch();
             }
-
             deleteRow.executeBatch();
-
-            connection.commit();
-            connection.setAutoCommit( true );
             connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during delete all for key {}", key, e );
         }
     }
 
+    @Timed
     @Override
     public V load( K key ) {
-        V val = null;
         try ( Connection connection = hds.getConnection();
                 PreparedStatement selectRow = prepareSelectByKey( connection ) ) {
             bind( selectRow, key );
-            ResultSet rs = selectRow.executeQuery();
-            if ( rs.next() ) {
-                val = mapToValue( rs );
+            try ( ResultSet rs = selectRow.executeQuery() ) {
+                if ( rs.next() ) {
+                    V val = mapToValue( rs );
+                    logger.debug( "LOADED: {}", val );
+                    return val;
+                }
+            } catch ( SQLException e ) {
+                final String errMsg = "Error executing SQL during select for key " + key + ".";
+                logger.error( errMsg, e );
+                throw new IllegalStateException( errMsg, e );
             }
-            connection.close();
-            logger.debug( "LOADED: {}", val );
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during select for key {}.", key, e );
+            final String errMsg = "Error binding to select for key " + key + ".";
+            logger.error( errMsg, key, e );
+            throw new IllegalArgumentException( errMsg, e );
         }
-        return val;
+        return null;
     }
 
+    @Timed
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
