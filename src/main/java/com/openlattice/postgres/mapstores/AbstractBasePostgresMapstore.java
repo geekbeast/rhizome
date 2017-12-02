@@ -39,6 +39,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,20 +54,20 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     public static final int BATCH_SIZE = 1 << 16;
+    public static final Map EMPTY      = new HashMap<>( 0 );
     protected final PostgresTableDefinition table;
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
-    protected final HikariDataSource hds;
-    private final   String           mapName;
-    private final   int              batchSize;
-    private final   String           insertQuery;
-    private final   String           deleteQuery;
-    private final   String           selectAllKeysQuery;
-    private final   String           selectByKeyQuery;
-    private final   String           selectInQuery;
-    private final   Optional<String> oc;
-
-    private final List<PostgresColumnDefinition> keyColumns;
-    private final List<PostgresColumnDefinition> valueColumns;
+    protected final HikariDataSource               hds;
+    private final   String                         mapName;
+    private final   int                            batchSize;
+    private final   String                         insertQuery;
+    private final   String                         deleteQuery;
+    private final   String                         selectAllKeysQuery;
+    private final   String                         selectByKeyQuery;
+    private final   String                         selectInQuery;
+    private final   Optional<String>               oc;
+    private final   List<PostgresColumnDefinition> keyColumns;
+    private final   List<PostgresColumnDefinition> valueColumns;
 
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this( mapName, table, hds, BATCH_SIZE );
@@ -118,7 +120,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     }
 
     protected String buildSelectInQuery() {
-        return table.selectInQuery( ImmutableList.of(), keyColumns() , batchSize );
+        return table.selectInQuery( ImmutableList.of(), keyColumns(), batchSize );
     }
 
     protected int getSelectInParameterCount() {
@@ -132,7 +134,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             bind( insertRow, key, value );
             logger.debug( "Insert query: {}", insertRow );
             insertRow.execute();
-            handleStoreSucceeded( key, value ) ;
+            handleStoreSucceeded( key, value );
         } catch ( SQLException e ) {
             String errMsg = "Error executing SQL during store for key " + key + "in map " + mapName + ".";
             logger.error( errMsg, e );
@@ -234,30 +236,32 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
+
         K key = null;
+
         try ( Connection connection = hds.getConnection();
                 PreparedStatement selectIn = prepareSelectIn( connection ) ) {
-            int parameterIndex = 1;
-            int batchCapacity = batchSize * getSelectInParameterCount();
 
-            for ( K loadKey : keys ) {
-                key = loadKey;
-                parameterIndex = bind( selectIn, key, parameterIndex );
-                if ( parameterIndex == batchCapacity ) {
-                    try ( ResultSet results = selectIn.executeQuery() ) {
-                        while ( results.next() ) {
-                            K k = mapToKey( results );
-                            V v = readNext( results );
-                            result.put( k, v );
-                        }
+            Iterator<K> kIterator = keys.iterator();
+            while ( kIterator.hasNext() ) {
+                int batchCapacity = batchSize * getSelectInParameterCount();
+
+                for ( int parameterIndex = bind( selectIn, key, 1 );
+                        parameterIndex < batchCapacity;
+                        parameterIndex = bind( selectIn, key, parameterIndex ) ) {
+                    //For now if we run out of keys, key binding the same key over and over again to pad it out
+                    //In the future we should null out the parameter using postgres data type info in table.
+                    if ( kIterator.hasNext() ) {
+                        key = kIterator.next();
                     }
-                    parameterIndex = 1;
                 }
-            }
-
-            //TODO: Remove cludge and set to null
-            while( parameterIndex < batchCapacity ) {
-                parameterIndex = bind( selectIn, key, parameterIndex );
+                try ( ResultSet results = selectIn.executeQuery() ) {
+                    while ( results.next() ) {
+                        K k = mapToKey( results );
+                        V v = readNext( results );
+                        result.put( k, v );
+                    }
+                }
             }
             //            keys.parallelStream().forEach( key -> {
             //                V value = load( key );
@@ -274,7 +278,6 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         try {
             Connection connection = hds.getConnection();
             Statement stmt = connection.createStatement();
-            connection.setAutoCommit( false );
             stmt.setFetchSize( 50000 );
             final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
             return StreamUtil
