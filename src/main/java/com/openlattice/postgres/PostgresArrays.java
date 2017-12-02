@@ -24,6 +24,7 @@ import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -39,8 +40,25 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( UUID[]::new ) );
     }
 
+    /**
+     * Creates a Postgres UUID array from a collection of ids. This method is preferred for performance reasons to the
+     * stream methods above.
+     *
+     * @param connection The JDBC connection to the database.
+     * @param ids The ids for the array.
+     * @return A postgres array of the ids in the iteration order of the ids collection.
+     * @throws SQLException If something goes wrong.
+     */
+    public static Array createUuidArray( Connection connection, Collection<UUID> ids ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( new UUID[ 0 ] ) );
+    }
+
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( String[]::new ) );
+    }
+
+    public static Array createTextArray( Connection connection, Collection<String> ids ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( new String[ 0 ] ) );
     }
 
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
