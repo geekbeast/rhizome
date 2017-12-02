@@ -20,6 +20,8 @@
 
 package com.openlattice.postgres.mapstores;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.codahale.metrics.annotation.Timed;
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
@@ -85,9 +87,11 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.hds = hds;
         this.mapName = mapName;
         this.batchSize = batchSize;
-        this.batchCapacity = batchSize * getSelectInParameterCount();
         this.keyColumns = initKeyColumns();
         this.valueColumns = initValueColumns();
+        this.batchCapacity = batchSize * getSelectInParameterCount();
+        checkState( batchCapacity < ( 1 << 16 ),
+                "The selected batch size results in too large of batch capacity for Postgres (limit 65536 arguments for in statement" );
 
         this.oc = buildOnConflictQuery();
 
