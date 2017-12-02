@@ -39,7 +39,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,20 +53,24 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
     public static final int BATCH_SIZE = 1 << 12;
-    public static final Map EMPTY      = new HashMap<>( 0 );
-    protected final PostgresTableDefinition table;
+
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
-    protected final HikariDataSource               hds;
-    private final   String                         mapName;
-    private final   int                            batchSize;
-    private final   String                         insertQuery;
-    private final   String                         deleteQuery;
-    private final   String                         selectAllKeysQuery;
-    private final   String                         selectByKeyQuery;
-    private final   String                         selectInQuery;
-    private final   Optional<String>               oc;
-    private final   List<PostgresColumnDefinition> keyColumns;
-    private final   List<PostgresColumnDefinition> valueColumns;
+
+    protected final PostgresTableDefinition table;
+    protected final HikariDataSource        hds;
+    private final   int                     batchSize;
+    private final   int                     batchCapacity;
+    private final   String                  mapName;
+    private final   String                  insertQuery;
+    private final   String                  deleteQuery;
+    private final   String                  selectAllKeysQuery;
+    private final   String                  selectByKeyQuery;
+    private final   String                  selectInQuery;
+
+    private final Optional<String> oc;
+
+    private final List<PostgresColumnDefinition> keyColumns;
+    private final List<PostgresColumnDefinition> valueColumns;
 
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this( mapName, table, hds, BATCH_SIZE );
@@ -82,6 +85,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.hds = hds;
         this.mapName = mapName;
         this.batchSize = batchSize;
+        this.batchCapacity = batchSize * getSelectInParameterCount();
         this.keyColumns = initKeyColumns();
         this.valueColumns = initValueColumns();
 
@@ -244,7 +248,6 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
 
             Iterator<K> kIterator = keys.iterator();
             while ( kIterator.hasNext() ) {
-                int batchCapacity = batchSize * getSelectInParameterCount();
 
                 for ( int parameterIndex = 1;
                         parameterIndex < batchCapacity;
