@@ -24,6 +24,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
@@ -50,20 +51,37 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
+    public static final int BATCH_SIZE = 1 << 16;
     protected final PostgresTableDefinition table;
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
     protected final HikariDataSource hds;
     private final   String           mapName;
+    private final   int              batchSize;
     private final   String           insertQuery;
     private final   String           deleteQuery;
     private final   String           selectAllKeysQuery;
     private final   String           selectByKeyQuery;
+    private final   String           selectInQuery;
     private final   Optional<String> oc;
 
+    private final List<PostgresColumnDefinition> keyColumns;
+    private final List<PostgresColumnDefinition> valueColumns;
+
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
-        this.mapName = mapName;
+        this( mapName, table, hds, BATCH_SIZE );
+    }
+
+    public AbstractBasePostgresMapstore(
+            String mapName,
+            PostgresTableDefinition table,
+            HikariDataSource hds,
+            int batchSize ) {
         this.table = table;
         this.hds = hds;
+        this.mapName = mapName;
+        this.batchSize = batchSize;
+        this.keyColumns = initKeyColumns();
+        this.valueColumns = initValueColumns();
 
         this.oc = buildOnConflictQuery();
 
@@ -71,6 +89,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         this.deleteQuery = buildDeleteQuery();
         this.selectAllKeysQuery = buildSelectAllKeysQuery();
         this.selectByKeyQuery = buildSelectByKeyQuery();
+        this.selectInQuery = buildSelectInQuery();
     }
 
     protected Optional<String> buildOnConflictQuery() {
@@ -98,6 +117,14 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         return table.selectQuery( ImmutableList.of(), keyColumns() );
     }
 
+    protected String buildSelectInQuery() {
+        return table.selectInQuery( ImmutableList.of(), keyColumns() );
+    }
+
+    protected int getSelectInParameterCount() {
+        return keyColumns().size();
+    }
+
     @Timed
     @Override
     public void store( K key, V value ) {
@@ -105,10 +132,17 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             bind( insertRow, key, value );
             logger.debug( "Insert query: {}", insertRow );
             insertRow.execute();
+            handleStoreSucceeded( key, value ) ;
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during store for key {}.", key, e );
+            String errMsg = "Error executing SQL during store for key " + key + "in map " + mapName + ".";
+            logger.error( errMsg, e );
             handleStoreFailed( key, value );
+            throw new IllegalStateException( errMsg, e );
         }
+
+    }
+
+    protected void handleStoreSucceeded( K key, V value ) {
     }
 
     @Timed
@@ -124,7 +158,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             }
             insertRow.executeBatch();
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during store all for key {}", key, e );
+            logger.error( "Error executing SQL during store all for key {} in map {}", key, mapName, e );
         }
     }
 
@@ -136,7 +170,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             deleteRow.executeUpdate();
             connection.close();
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during delete for key {}.", key, e );
+            logger.error( "Error executing SQL during delete for key {} in map {}.", key, mapName, e );
         }
     }
 
@@ -153,21 +187,29 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             deleteRow.executeBatch();
             connection.close();
         } catch ( SQLException e ) {
-            logger.error( "Error executing SQL during delete all for key {}", key, e );
+            logger.error( "Error executing SQL during delete all for key {} in map {}", key, mapName, e );
         }
     }
 
     @Timed
     @Override
     public V load( K key ) {
-        try ( Connection connection = hds.getConnection();
-                PreparedStatement selectRow = prepareSelectByKey( connection ) ) {
+        try ( Connection connection = hds.getConnection() ) {
+            return loadUsing( key, connection );
+        } catch ( SQLException e ) {
+            final String errMsg =
+                    "Unable to connecto to database to load key " + key.toString() + " map +" + mapName + "!";
+            logger.error( errMsg, key, e );
+            throw new IllegalStateException( errMsg, e );
+        }
+    }
+
+    protected V loadUsing( K key, Connection connection ) {
+        try ( PreparedStatement selectRow = prepareSelectByKey( connection ) ) {
             bind( selectRow, key );
             try ( ResultSet rs = selectRow.executeQuery() ) {
                 if ( rs.next() ) {
-                    V val = mapToValue( rs );
-                    logger.debug( "LOADED: {}", val );
-                    return val;
+                    return readNext( rs );
                 }
             } catch ( SQLException e ) {
                 final String errMsg = "Error executing SQL during select for key " + key + ".";
@@ -175,26 +217,54 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
                 throw new IllegalStateException( errMsg, e );
             }
         } catch ( SQLException e ) {
-            final String errMsg = "Error binding to select for key " + key + ".";
+            final String errMsg = "Error binding to select for key " + key + " in map " + mapName + ".";
             logger.error( errMsg, key, e );
             throw new IllegalArgumentException( errMsg, e );
         }
         return null;
     }
 
+    private V readNext( ResultSet rs ) throws SQLException {
+        V val = mapToValue( rs );
+        logger.debug( "LOADED value {} in map {}", val, mapName );
+        return val;
+    }
+
     @Timed
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
         Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
-        keys.parallelStream().forEach( key -> {
-            V value = load( key );
-            if ( value != null ) { result.put( key, value ); }
-        } );
+        K key = null;
+        try ( Connection connection = hds.getConnection();
+                PreparedStatement selectIn = prepareSelectIn( connection ) ) {
+            int parameterIndex = 1;
+            int batchCapacity = batchSize * getSelectInParameterCount();
+
+            for ( K loadKey : keys ) {
+                key = loadKey;
+                parameterIndex = bind( selectIn, key, parameterIndex );
+                if ( parameterIndex == batchCapacity ) {
+                    try ( ResultSet results = selectIn.executeQuery() ) {
+                        while ( results.next() ) {
+                            K k = mapToKey( results );
+                            V v = readNext( results );
+                            result.put( k, v );
+                        }
+                    }
+                }
+            }
+            //            keys.parallelStream().forEach( key -> {
+            //                V value = load( key );
+            //                if ( value != null ) { result.put( key, value ); }
+            //            } );
+        } catch ( SQLException e ) {
+            logger.error( "Error executing SQL during select for key {} in map {}.", key, mapName, e );
+        }
         return result;
     }
 
     @Override public Iterable<K> loadAllKeys() {
-        logger.info( "Starting load all keys for Edge Mapstore" );
+        logger.info( "Starting load all keys for map {}", mapName );
         try {
             Connection connection = hds.getConnection();
             Statement stmt = connection.createStatement();
@@ -207,7 +277,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
                     .peek( key -> logger.debug( "Key to load: {}", key ) )
                     ::iterator;
         } catch ( SQLException e ) {
-            logger.error( "Unable to acquire connection load all keys" );
+            logger.error( "Unable to acquire connection load all keys for map {}", mapName, e );
             return null;
         }
     }
@@ -253,6 +323,10 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         return connection.prepareStatement( selectAllKeysQuery );
     }
 
+    protected PreparedStatement prepareSelectIn( Connection connection ) throws SQLException {
+        return connection.prepareStatement( selectInQuery );
+    }
+
     protected String selectByKeyQuery() {
         return selectByKeyQuery;
     }
@@ -279,12 +353,20 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
         //Do nothing by default
     }
 
-    protected List<PostgresColumnDefinition> keyColumns() {
+    protected final List<PostgresColumnDefinition> keyColumns() {
+        return keyColumns;
+    }
+
+    protected List<PostgresColumnDefinition> initKeyColumns() {
         return ImmutableList.copyOf( table.getPrimaryKey() );
     }
 
-    protected List<PostgresColumnDefinition> valueColumns() {
-        return ImmutableList.copyOf( table.getColumns() );
+    protected final List<PostgresColumnDefinition> valueColumns() {
+        return valueColumns;
+    }
+
+    protected List<PostgresColumnDefinition> initValueColumns() {
+        return ImmutableList.copyOf( Sets.difference( table.getColumns(), table.getPrimaryKey() ) );
     }
 
     /**
@@ -292,7 +374,11 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
      */
     protected abstract void bind( PreparedStatement ps, K key, V value ) throws SQLException;
 
-    protected abstract void bind( PreparedStatement ps, K key ) throws SQLException;
+    protected abstract int bind( PreparedStatement ps, K key, int offset ) throws SQLException;
+
+    private int bind( PreparedStatement ps, K key ) throws SQLException {
+        return bind( ps, key, 1 );
+    }
 
     protected abstract V mapToValue( ResultSet rs ) throws SQLException;
 

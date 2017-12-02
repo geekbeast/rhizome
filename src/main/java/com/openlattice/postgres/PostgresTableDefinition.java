@@ -275,7 +275,6 @@ public class PostgresTableDefinition implements TableDefinition {
     public String selectQuery(
             List<PostgresColumnDefinition> columnsToSelect,
             List<PostgresColumnDefinition> whereToSelect ) {
-        //        checkArgument( !whereToSelect.isEmpty(), "Columns for where clause must be specified." );
 
         if ( this.columns.containsAll( columnsToSelect ) ) {
             //TODO: Warn when where clause is unindexed and will trigger a table scan.
@@ -306,6 +305,52 @@ public class PostgresTableDefinition implements TableDefinition {
             throw new IllegalArgumentException( errMsg );
         }
 
+    }
+
+    public String selectInQuery(
+            List<PostgresColumnDefinition> columnsToSelect,
+            List<PostgresColumnDefinition> whereToSelect ) {
+        return selectInQuery( columnsToSelect, whereToSelect, 1 );
+    }
+
+    public String selectInQuery(
+            List<PostgresColumnDefinition> columnsToSelect,
+            List<PostgresColumnDefinition> whereToSelect, int batchSize ) {
+        checkState( !whereToSelect.isEmpty(), "where columns must be specified." );
+        if ( this.columns.containsAll( columnsToSelect ) ) {
+            //TODO: Warn when where clause is unindexed and will trigger a table scan.
+            StringBuilder selectSql = new StringBuilder( "SELECT " );
+            if ( columnsToSelect.isEmpty() ) {
+                selectSql.append( "*" );
+            } else {
+                selectSql.append( columnsToSelect.stream()
+                        .map( PostgresColumnDefinition::getName )
+                        .collect( Collectors.joining( ", " ) ) );
+            }
+
+            selectSql.append( " FROM " ).append( name );
+
+            final String compoundElement = "(" + StringUtils.repeat( "?", ",", whereToSelect.size() ) + ")";
+            final String batched = StringUtils.repeat( compoundElement, ",", batchSize );
+
+            selectSql.append( " WHERE (" )
+                    .append( whereToSelect.stream()
+                            .map( PostgresColumnDefinition::getName )
+                            .collect( Collectors.joining( "," ) ) )
+                    .append( ") IN (" )
+                    .append( batched )
+                    .append( ")" );
+
+            return selectSql.toString();
+        } else {
+            List<String> missingColumns = Stream.concat( columnsToSelect.stream(), whereToSelect.stream() )
+                    .filter( c -> !this.columns.contains( c ) )
+                    .map( PostgresColumnDefinition::getName )
+                    .collect( Collectors.toList() );
+            String errMsg = "Table is missing requested columns: " + String.valueOf( missingColumns );
+            logger.error( errMsg );
+            throw new IllegalArgumentException( errMsg );
+        }
     }
 
     @Override
