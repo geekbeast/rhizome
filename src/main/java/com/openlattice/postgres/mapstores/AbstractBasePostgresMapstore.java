@@ -118,7 +118,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
     }
 
     protected String buildSelectInQuery() {
-        return table.selectInQuery( ImmutableList.of(), keyColumns() );
+        return table.selectInQuery( ImmutableList.of(), keyColumns() , batchSize );
     }
 
     protected int getSelectInParameterCount() {
