@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    public static final int BATCH_SIZE = 1 << 16;
+    public static final int BATCH_SIZE = 1 << 12;
     public static final Map EMPTY      = new HashMap<>( 0 );
     protected final PostgresTableDefinition table;
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
