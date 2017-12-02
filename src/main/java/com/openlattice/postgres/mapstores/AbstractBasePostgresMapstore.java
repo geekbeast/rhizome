@@ -251,7 +251,13 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
                             result.put( k, v );
                         }
                     }
+                    parameterIndex = 1;
                 }
+            }
+
+            //TODO: Remove cludge and set to null
+            while( parameterIndex < batchCapacity ) {
+                parameterIndex = bind( selectIn, key, parameterIndex );
             }
             //            keys.parallelStream().forEach( key -> {
             //                V value = load( key );
