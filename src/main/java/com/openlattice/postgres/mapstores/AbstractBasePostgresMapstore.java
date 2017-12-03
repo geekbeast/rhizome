@@ -254,7 +254,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> implements TestableSelf
             while ( kIterator.hasNext() ) {
 
                 for ( int parameterIndex = 1;
-                        parameterIndex < batchCapacity;
+                        parameterIndex <= batchCapacity;
                         parameterIndex = bind( selectIn, key, parameterIndex ) ) {
                     //For now if we run out of keys, key binding the same key over and over again to pad it out
                     //In the future we should null out the parameter using postgres data type info in table.
