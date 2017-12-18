@@ -1,0 +1,9 @@
+domain: "loom.auth0.com"
+issuer: "https://loom.auth0.com/"
+clientId: "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8"
+clientSecret: "VmzAkSSsYQe7DGe5Fz8IHZnKsZF8Ul3UA6tMtikZQC1wLxoA-Krve0bdMN2UH1jb"
+securedRoute: "NOT_USED"
+authorityStrategy: "ROLES"
+signingAlgorithm: "HS256"
+base64EncodedSecret: true
+token: "lol"

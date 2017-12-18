@@ -3,7 +3,6 @@ package com.kryptnostic.rhizome.pods;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -42,7 +41,6 @@ public class MetricsPod implements MetricsConfigurer {
     private RhizomeConfiguration config;
 
     @Bean
-    @Timed
     public GraphiteReporter serverGraphiteReporter() {
         Graphite graphite = serverGraphite();
 
@@ -55,8 +53,29 @@ public class MetricsPod implements MetricsConfigurer {
         } catch ( IOException e ) {
             return null;
         }
-        return GraphiteReporter.forRegistry( metricRegistry ).prefixedWith( getHostName() )
-                .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS )
+        return GraphiteReporter.forRegistry( metricRegistry )
+                .prefixedWith( getHostName() )
+                .convertDurationsTo( TimeUnit.MILLISECONDS )
+                .convertRatesTo( TimeUnit.SECONDS )
+                .build( graphite );
+    }
+
+    @Bean
+    public GraphiteReporter aggregateGraphiteReporter() {
+        Graphite graphite = serverGraphite();
+
+        if ( graphite == null ) {
+            return null;
+        }
+
+        try {
+            graphite.connect();
+        } catch ( IOException e ) {
+            return null;
+        }
+        return GraphiteReporter.forRegistry( metricRegistry )
+                .convertDurationsTo( TimeUnit.MILLISECONDS )
+                .convertRatesTo( TimeUnit.SECONDS )
                 .build( graphite );
     }
 
@@ -66,7 +85,8 @@ public class MetricsPod implements MetricsConfigurer {
             GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
             if ( graphiteConfig.isEnableConsole() ) {
                 return ConsoleReporter.forRegistry( metricRegistry )
-                        .convertDurationsTo( TimeUnit.MILLISECONDS ).convertRatesTo( TimeUnit.SECONDS )
+                        .convertDurationsTo( TimeUnit.MILLISECONDS )
+                        .convertRatesTo( TimeUnit.SECONDS )
                         .build();
             }
         }
@@ -110,7 +130,7 @@ public class MetricsPod implements MetricsConfigurer {
     public void startGraphite( Set<ScheduledReporter> reporters ) {
         reporters.forEach( reporter -> {
             if ( reporter != null ) {
-                reporter.start( 10, TimeUnit.SECONDS );
+                reporter.start( 5, TimeUnit.SECONDS );
             }
         } );
     }
