@@ -83,9 +83,14 @@ dependencies {
     compile "org.springframework.security:spring-security-config:${project.spring_security_version}"
     compile "org.springframework.security:spring-security-messaging:${project.spring_security_version}"
 
-    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
+//    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
+//        exclude group: "org.springframework.boot"
+//    }
+
+    compile("com.auth0:auth0-spring-security-api:1.0.0-rc.3") {
         exclude group: "org.springframework.boot"
     }
+
 
     /*
      * Metrics
@@ -245,7 +250,7 @@ dependencies {
         compile "com.openlattice:rhizome-client:${rhizome_client_version}"
     }
 
-    testCompile 'com.auth0:auth0:0.4.0'
+    compile 'com.auth0:auth0:1.5.0'
  }
 
 eclipse {

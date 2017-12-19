@@ -7,7 +7,7 @@ public class AuthenticationTestRequestOptions {
     private String usernameOrEmail;
     private String password;
     private String connection = "Tests";
-    private String scope      = "openid email nickname roles user_id organizations";
+    private String scope      = "openid profile email";
 
     @Override public boolean equals( Object o ) {
         if ( this == o ) { return true; }

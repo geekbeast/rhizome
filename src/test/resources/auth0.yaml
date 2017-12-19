@@ -1,9 +1,10 @@
-domain: "loom.auth0.com"
-issuer: "https://loom.auth0.com/"
-clientId: "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8"
-clientSecret: "VmzAkSSsYQe7DGe5Fz8IHZnKsZF8Ul3UA6tMtikZQC1wLxoA-Krve0bdMN2UH1jb"
+domain: "openlattice.auth0.com"
+issuer: "https://openlattice.auth0.com/"
+audience: "https://tests.openlattice.com"
+clientId: "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99"
+clientSecret: "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0"
 securedRoute: "NOT_USED"
 authorityStrategy: "ROLES"
 signingAlgorithm: "HS256"
-base64EncodedSecret: true
+base64EncodedSecret: false
 token: "lol"
