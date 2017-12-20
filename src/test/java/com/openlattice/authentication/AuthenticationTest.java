@@ -1,32 +1,27 @@
 package com.openlattice.authentication;
 
-import com.auth0.Auth0;
-import com.auth0.authentication.AuthenticationAPIClient;
-import com.auth0.authentication.result.Authentication;
-import com.auth0.authentication.result.Credentials;
-import com.auth0.authentication.result.UserProfile;
+import com.auth0.client.auth.AuthAPI;
+import com.auth0.exception.Auth0Exception;
+import com.auth0.json.auth.TokenHolder;
+import com.auth0.json.auth.UserInfo;
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
-import com.auth0.spring.security.api.Auth0AuthorityStrategy;
-import com.auth0.spring.security.api.Auth0JWTToken;
-import com.auth0.spring.security.api.Auth0UserDetails;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.net.AuthRequest;
+import com.auth0.spring.security.api.JwtAuthenticationProvider;
+import com.auth0.spring.security.api.authentication.PreAuthenticatedAuthenticationJsonWebToken;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
-import java.io.IOException;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.Authentication;
 
 /**
  * This class is a sanity check to ensure that authentication is successfully working against auth0 server. The hard
@@ -37,23 +32,26 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class AuthenticationTest {
     private static final Logger  logger              = LoggerFactory
             .getLogger( AuthenticationTest.class );
-    private static final String  domain              = "loom.auth0.com";
-    private static final String  issuer              = "https://loom.auth0.com/";
-    private static final String  clientId            = "PTmyExdBckHAiyOjh4w2MqSIUGWWEdf8";
-    private static final String  clientSecret        = "VmzAkSSsYQe7DGe5Fz8IHZnKsZF8Ul3UA6tMtikZQC1wLxoA-Krve0bdMN2UH1jb";
+    private static final String  domain              = "openlattice.auth0.com";
+    private static final String  issuer              = "https://openlattice.auth0.com/";
+    private static final String  audience            = "https://tests.openlattice.com";
+    private static final String  clientId            = "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99";
+    private static final String  clientSecret        = "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0";
     private static final String  securedRoute        = "NOT_USED";
     private static final String  authorityStrategy   = "ROLES";
     private static final String  signingAlgorithm    = "HS256";
     // private static final String defaultAuth0ApiSecurityEnabled = "false";
     private static final boolean base64EncodedSecret = true;
     private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
+    private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;
     private static final AuthenticationTestRequestOptions authOptions   = new AuthenticationTestRequestOptions()
-            .setUsernameOrEmail( "support@kryptnostic.com" )
-            .setPassword( "abracadabra" );
+            .setUsernameOrEmail( "tests@openlattice.com" )
+            .setPassword( "openlattice" );
     private static final String                           token         = "No token for you";
     public static final  Auth0Configuration               configuration = new Auth0Configuration(
             domain,
             issuer,
+            audience,
             clientId,
             clientSecret,
             securedRoute,
@@ -61,56 +59,72 @@ public class AuthenticationTest {
             signingAlgorithm,
             base64EncodedSecret,
             token );
-
-    private static final Auth0                   auth0           = new Auth0(
-            clientId,
-            "loom.auth0.com" );
-    private static final AuthenticationAPIClient client          = auth0.newAuthenticationAPIClient();
-    private static final RateLimiter             authRateLimiter = RateLimiter.create( 0.25 );
+    private static final JWTVerifier verifier;
+    private static final AuthAPI     client          = new AuthAPI( domain, clientId, "" );
+    private static final RateLimiter authRateLimiter = RateLimiter.create( 0.25 );
 
     static {
+        try {
+            verifier = forHS256( clientSecret, issuer, audience );
+        } catch ( UnsupportedEncodingException e ) {
+            throw new IllegalStateException( e );
+        }
+        JwtAuthenticationProvider provider = new JwtAuthenticationProvider( clientSecret.getBytes(), issuer, audience );
+        accessTokens = CacheBuilder.newBuilder()
+                .build( new CacheLoader<AuthenticationTestRequestOptions, TokenHolder>() {
+                    @Override public TokenHolder load( AuthenticationTestRequestOptions options ) throws Exception {
+                        authRateLimiter.acquire();
+                        AuthRequest authRequest = client
+                                .login( options.getUsernameOrEmail(), options.getPassword(), options.getConnection() )
+                                .setScope( options.getScope() )
+                                .setAudience( "https://openlattice.auth0.com/userinfo" );
+                        TokenHolder th = authRequest.execute();
+                        String accessToken = th.getAccessToken();
+                        String idToken = th.getIdToken();
+
+                        logger.info( "Caching the following id token: {}", idToken );
+                        logger.info( "Caching the following user info access token: {}", accessToken );
+                        return th;
+                    }
+                } );
+
         authentications = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, Authentication>() {
                     @Override public Authentication load( AuthenticationTestRequestOptions options ) throws Exception {
-                        authRateLimiter.acquire();
-                        Authentication auth = client
-                                .getProfileAfter( client.login( options.getUsernameOrEmail(), options.getPassword() )
-                                        .setConnection( options.getConnection() )
-                                        .setScope( options.getScope() ) )
-                                .execute();
-                        logger.info( "Caching the following idToken: Bearer {}", auth.getCredentials().getIdToken() );
+                        AuthRequest authRequest = client
+                                .login( options.getUsernameOrEmail(), options.getPassword(), options.getConnection() )
+                                .setScope( options.getScope() )
+                                .setAudience( audience );
+
+                        TokenHolder th = authRequest.execute();
+
+                        String accessToken = th.getAccessToken();
+                        logger.info( "Caching full access token: {}", accessToken );
+
+                        Authentication auth = provider
+                                .authenticate( PreAuthenticatedAuthenticationJsonWebToken.usingToken( accessToken ) );
+
+                        logger.info( "Caching the following idToken: Bearer {}", auth.getCredentials() );
                         return auth;
                     }
                 } );
     }
 
     @Test
-    public void testRoles() throws Exception {
-        Authentication auth = authenticate();
-        JWTVerifier jwtVerifier = new JWTVerifier( new Base64( true ).decodeBase64( clientSecret ), clientId, issuer );
-        String idToken = auth.getCredentials().getIdToken();
-        Auth0JWTToken token = new Auth0JWTToken( idToken );
-        final Map<String, Object> decoded = jwtVerifier.verify( idToken );
-        Map<String, Object> d2 = auth.getProfile().getAppMetadata();
-
-        Auth0UserDetails userDetails = new Auth0UserDetails(
-                d2,
-                Auth0AuthorityStrategy.ROLES.getStrategy() );
-
-        Assert.assertTrue( "Return roles must contain user",
-                userDetails.getAuthorities().contains( new SimpleGrantedAuthority( "user" ) ) );
-        logger.info( "Roles: {}", userDetails.getAuthorities() );
-    }
-
-    @Test
-    public void testLogin() throws JsonParseException, JsonMappingException, IOException {
-        Credentials creds = authenticate().getCredentials();
-        UserProfile profile = client.tokenInfo( creds.getIdToken() ).execute();
-
-        @SuppressWarnings( "unchecked" )
-        List<String> roles = (List<String>) profile.getAppMetadata().getOrDefault( "roles", ImmutableList.of() );
-        Assert.assertTrue( "Return roles must contain user", roles.contains( "user" ) );
-        Assert.assertTrue( StringUtils.isNotBlank( creds.getIdToken() ) );
+    public void testLoadUserInfo() throws Auth0Exception {
+        String accessToken = accessToken();
+        UserInfo userInfoRequest = client
+                .userInfo( accessToken )
+                .execute();
+        Map<String, Object> d2 = userInfoRequest.getValues();
+        Assert.assertTrue( d2.containsKey( "email" ) );
+        Assert.assertTrue( d2.containsKey( "email_verified" ) );
+        Assert.assertTrue( d2.containsKey( "nickname" ) );
+        Assert.assertTrue( d2.containsKey( "picture" ) );
+        Assert.assertTrue( d2.containsKey( "name" ) );
+        Assert.assertTrue( d2.containsKey( "sub" ) );
+        Assert.assertTrue( d2.containsKey( "updated_at" ) );
+        logger.info( "User Info: {}", d2 );
     }
 
     public static Authentication getAuthentication( AuthenticationTestRequestOptions options ) {
@@ -121,8 +135,21 @@ public class AuthenticationTest {
         return authentications.getUnchecked( authOptions );
     }
 
+    public static String accessToken() {
+        return accessTokens.getUnchecked( authOptions ).getAccessToken();
+    }
+
     public static Authentication refreshAndGetAuthentication( AuthenticationTestRequestOptions options ) {
         authentications.invalidate( options );
         return authentications.getUnchecked( options );
     }
+
+    private static JWTVerifier forHS256( String secret, String issuer, String audience )
+            throws UnsupportedEncodingException {
+        return JWT.require( Algorithm.HMAC256( secret ) )
+                .withIssuer( issuer )
+                .withAudience( audience )
+                .build();
+    }
+
 }
