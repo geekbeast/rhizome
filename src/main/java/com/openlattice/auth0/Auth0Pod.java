@@ -21,7 +21,7 @@
 package com.openlattice.auth0;
 
 import com.auth0.client.auth.AuthAPI;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
+import com.openlattice.authentication.Auth0Configuration;
 import java.io.IOException;
 import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;

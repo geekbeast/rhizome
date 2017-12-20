@@ -14,7 +14,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import org.junit.Assert;

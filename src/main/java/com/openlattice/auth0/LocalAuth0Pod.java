@@ -22,7 +22,7 @@ package com.openlattice.auth0;
 
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.openlattice.ResourceConfigurationLoader;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
+import com.openlattice.authentication.Auth0Configuration;
 import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

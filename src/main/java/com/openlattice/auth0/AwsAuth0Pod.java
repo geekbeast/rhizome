@@ -21,12 +21,10 @@
 package com.openlattice.auth0;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.auth0.client.auth.AuthAPI;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.openlattice.ResourceConfigurationLoader;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
-import java.io.IOException;
+import com.openlattice.authentication.Auth0Configuration;
 import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
