@@ -58,11 +58,6 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
     @Inject
     private AuthAPI auth0;
-//
-//    @Bean( name = "auth0AuthenticationManager" )
-//    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return super.authenticationManagerBean();
-//    }
 
     @Override
     public void configure( WebSecurity web ) throws Exception {
