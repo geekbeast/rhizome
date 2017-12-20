@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContainerInitializer;
@@ -60,7 +61,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
                     // process the whole class hierarchy to satisfy the ServletContainerInitializer
                     if ( context.getAttribute( CLASS_INHERITANCE_MAP ) == null ) {
                         // MultiMap<String> map = new MultiMap<>();
-                        ConcurrentHashMap<String, ConcurrentHashSet<String>> map = new ClassInheritanceMap();
+                        ConcurrentHashMap<String, Set<String>> map = new ClassInheritanceMap();
                         context.setAttribute( CLASS_INHERITANCE_MAP, map );
                         _classInheritanceHandler = new ClassInheritanceHandler( map );
                     }
