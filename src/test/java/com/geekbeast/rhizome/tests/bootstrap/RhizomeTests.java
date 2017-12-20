@@ -12,8 +12,8 @@ import com.google.common.net.HttpHeaders;
 import com.kryptnostic.rhizome.core.Cutting;
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
-import digital.loom.rhizome.authentication.Auth0Pod;
 import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
 import java.io.IOException;
 import javax.ws.rs.core.MediaType;
@@ -100,7 +100,7 @@ public class RhizomeTests {
 
     @BeforeClass
     public static void plant() throws Exception {
-        final String jwtToken = AuthenticationTest.authenticate().getCredentials().getIdToken();
+        final String jwtToken = (String) AuthenticationTest.authenticate().getCredentials();
         rhizome = new Rhizome(
                 Auth0Pod.class,
                 Auth0SecurityTestPod.class,
