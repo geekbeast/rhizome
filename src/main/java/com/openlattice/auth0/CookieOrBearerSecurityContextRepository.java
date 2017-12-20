@@ -50,7 +50,8 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
     public SecurityContext loadContext( HttpRequestResponseHolder requestResponseHolder ) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         String token = tokenFromRequest( requestResponseHolder.getRequest() );
-        Authentication authentication = PreAuthenticatedAuthenticationJsonWebToken.usingToken( token );
+        Authentication authentication = new WrappedPreAuthenticatedAuthenticationJwt(
+                PreAuthenticatedAuthenticationJsonWebToken.usingToken( token ) );
         if ( authentication != null ) {
             context.setAuthentication( authentication );
             logger.debug( "Found bearer token in request. Saving it in SecurityContext" );
@@ -109,8 +110,8 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
             return null;
         }
 
-//        final String scheme = parts[ 0 ];
-//        final String credentials = parts[ 1 ];
+        //        final String scheme = parts[ 0 ];
+        //        final String credentials = parts[ 1 ];
 
         return parts[ 1 ];
     }
