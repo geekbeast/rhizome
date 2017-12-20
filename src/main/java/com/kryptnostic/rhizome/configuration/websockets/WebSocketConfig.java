@@ -1,8 +1,8 @@
 package com.kryptnostic.rhizome.configuration.websockets;
 
+import com.kryptnostic.helper.services.v1.HandshakeInterceptor;
 import org.eclipse.jetty.websocket.api.WebSocketBehavior;
 import org.eclipse.jetty.websocket.api.WebSocketPolicy;
-import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -16,8 +16,6 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
-
-import com.kryptnostic.helper.services.v1.HandshakeInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -36,7 +34,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
         registry
                 .addEndpoint( "/" )
-                .setHandshakeHandler( handshakeHandler())
+                .setHandshakeHandler( handshakeHandler() )
                 .addInterceptors( new HandshakeInterceptor() )
                 .setAllowedOrigins( "*" )
                 .withSockJS();
@@ -49,7 +47,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
         policy.setInputBufferSize( 8192 );
         policy.setIdleTimeout( 600000 );
 
-        return new DefaultHandshakeHandler( new JettyRequestUpgradeStrategy( new WebSocketServerFactory( policy ) ) );
+        return new DefaultHandshakeHandler( new JettyRequestUpgradeStrategy( policy ) );
     }
 
     @Bean
