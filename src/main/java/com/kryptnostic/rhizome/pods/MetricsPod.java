@@ -107,7 +107,7 @@ public class MetricsPod implements MetricsConfigurer {
                     "Initializing server graphite instance with at {}:{}",
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() );
-            Graphite graphite =  new Graphite( new InetSocketAddress(
+            Graphite graphite = new Graphite( new InetSocketAddress(
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() ) );
             graphite.connect();
