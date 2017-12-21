@@ -13,10 +13,11 @@ import com.auth0.spring.security.api.authentication.PreAuthenticatedAuthenticati
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -30,35 +31,29 @@ import org.springframework.security.core.Authentication;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class AuthenticationTest {
-    private static final Logger  logger              = LoggerFactory
+    private static final Logger                           logger              = LoggerFactory
             .getLogger( AuthenticationTest.class );
-    private static final String  domain              = "openlattice.auth0.com";
-    private static final String  issuer              = "https://openlattice.auth0.com/";
-    private static final String  audience            = "https://tests.openlattice.com";
-    private static final String  clientId            = "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99";
-    private static final String  clientSecret        = "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0";
-    private static final String  securedRoute        = "NOT_USED";
-    private static final String  authorityStrategy   = "ROLES";
-    private static final String  signingAlgorithm    = "HS256";
-    // private static final String defaultAuth0ApiSecurityEnabled = "false";
-    private static final boolean base64EncodedSecret = true;
-    private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
-    private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;
-    private static final AuthenticationTestRequestOptions authOptions   = new AuthenticationTestRequestOptions()
-            .setUsernameOrEmail( "tests@openlattice.com" )
-            .setPassword( "openlattice" );
-    private static final String                           token         = "No token for you";
-    public static final  Auth0Configuration               configuration = new Auth0Configuration(
+    private static final String                           domain              = "openlattice.auth0.com";
+    private static final String                           issuer              = "https://openlattice.auth0.com/";
+    private static final String                           audience            = "https://tests.openlattice.com";
+    private static final String                           clientId            = "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99";
+    private static final String                           clientSecret        = "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0";
+    private static final String                           signingAlgorithm    = "HS256";
+    private static final boolean                          base64EncodedSecret = true;
+    public static final  Auth0AuthenticationConfiguration authConfiguration   = new Auth0AuthenticationConfiguration(
+            issuer, audience, clientSecret, Optional.of( base64EncodedSecret ), signingAlgorithm
+    );
+    public static final  Auth0Configuration               configuration       = new Auth0Configuration(
             domain,
-            issuer,
-            audience,
             clientId,
             clientSecret,
-            securedRoute,
-            authorityStrategy,
-            signingAlgorithm,
-            base64EncodedSecret,
-            token );
+            ImmutableSet.of( authConfiguration ),
+            Optional.empty() );
+    private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
+    private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;
+    private static final AuthenticationTestRequestOptions authOptions = new AuthenticationTestRequestOptions()
+            .setUsernameOrEmail( "tests@openlattice.com" )
+            .setPassword( "openlattice" );
     private static final JWTVerifier verifier;
     private static final AuthAPI     client          = new AuthAPI( domain, clientId, "" );
     private static final RateLimiter authRateLimiter = RateLimiter.create( 0.25 );

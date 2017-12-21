@@ -24,11 +24,12 @@ import com.auth0.client.auth.AuthAPI;
 import com.auth0.spring.security.api.JwtWebSecurityConfigurer;
 import com.kryptnostic.rhizome.core.JettyAnnotationConfigurationHack;
 import com.kryptnostic.rhizome.core.RhizomeSecurity;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
+import com.openlattice.authentication.Auth0AuthenticationConfiguration;
+import com.openlattice.authentication.Auth0Configuration;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.inject.Inject;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -66,31 +67,9 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure( final HttpSecurity http ) throws Exception {
-        String apiAudience = configuration.getAudience();
-        String issuer = configuration.getIssuer();
-
-        //Accept both RS256 and HS256 signed tokens.
-        JwtWebSecurityConfigurer
-                .forRS256( apiAudience, issuer )
-                .configure( http );
-        //                .authorizeRequests();
-        //                .antMatchers( HttpMethod.GET, "/login" ).permitAll()
-        //                .antMatchers( HttpMethod.GET, "/photos/**" ).hasAuthority( "read:photos" )
-        //                .antMatchers( HttpMethod.POST, "/photos/**" ).hasAuthority( "create:photos" )
-        //                .antMatchers( HttpMethod.PUT, "/photos/**" ).hasAuthority( "update:photos" )
-        //                .antMatchers( HttpMethod.DELETE, "/photos/**" ).hasAuthority( "delete:photos" )
-        //                .anyRequest().authenticated();
-
-        JwtWebSecurityConfigurer
-                .forHS256( apiAudience, issuer, configuration.getClientSecret().getBytes() )
-                .configure( http );
-        //                .authorizeRequests();
-        //                .antMatchers( HttpMethod.GET, "/login" ).permitAll()
-        //                .antMatchers( HttpMethod.GET, "/photos/**" ).hasAuthority( "read:photos" )
-        //                .antMatchers( HttpMethod.POST, "/photos/**" ).hasAuthority( "create:photos" )
-        //                .antMatchers( HttpMethod.PUT, "/photos/**" ).hasAuthority( "update:photos" )
-        //                .antMatchers( HttpMethod.DELETE, "/photos/**" ).hasAuthority( "delete:photos" )
-        //                .anyRequest().authenticated();
+        for ( Auth0AuthenticationConfiguration config : configuration.getClients() ) {
+            configure( http, config );
+        }
 
         http.securityContext().securityContextRepository( new CookieOrBearerSecurityContextRepository() );
 
@@ -110,12 +89,36 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
      * endpoints
      */
     protected void authorizeRequests( HttpSecurity http ) throws Exception {
-//        http.authorizeRequests()
-//                .antMatchers( "/**" ).authenticated();
+        //        http.authorizeRequests()
+        //                .antMatchers( "/**" ).authenticated();
     }
 
     protected AuthAPI getAuthenticationApiClient() {
         return auth0;
+    }
+
+    private void configure( final HttpSecurity http, Auth0AuthenticationConfiguration configuration ) throws Exception {
+        final byte[] secret;
+        if ( configuration.isBase64EncodedSecret() ) {
+            secret = Base64.getUrlDecoder().decode( configuration.getSecret() );
+        } else {
+            secret = configuration.getSecret().getBytes( StandardCharsets.UTF_8 );
+        }
+        switch ( configuration.getSigningAlgorithm() ) {
+            case "HS256":
+                JwtWebSecurityConfigurer
+                        .forHS256( configuration.getAudience(), configuration.getIssuer(), secret )
+                        .configure( http );
+                break;
+            case "RS256":
+                JwtWebSecurityConfigurer
+                        .forRS256( configuration.getAudience(), configuration.getIssuer() )
+                        .configure( http );
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        configuration.getSigningAlgorithm() + " is not a supported signing algorithm" );
+        }
     }
 
 }
