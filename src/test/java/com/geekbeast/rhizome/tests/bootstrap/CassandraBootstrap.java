@@ -20,7 +20,7 @@ import com.kryptnostic.rhizome.pods.CassandraPod;
 public class CassandraBootstrap {
     private static final int                  EMBEDDED_TIMEOUT = 60000;
 
-    private static Logger                     logger           = LoggerFactory.getLogger( CassandraBootstrap.class );
+    private static final Logger                     logger           = LoggerFactory.getLogger( CassandraBootstrap.class );
     protected static EmbeddedCassandraManager ecm              = new RhizomeEmbeddedCassandraManager();
     static {
         CassandraPod.setEmbeddedCassandraManager( ecm );
