@@ -404,7 +404,6 @@ public class PostgresTableDefinition implements TableDefinition {
         result = 31 * result + ( primaryKey != null ? primaryKey.hashCode() : 0 );
         result = 31 * result + ( columns != null ? columns.hashCode() : 0 );
         result = 31 * result + ( unique != null ? unique.hashCode() : 0 );
-        result = 31 * result + ( indexes != null ? indexes.hashCode() : 0 );
         result = 31 * result + ( ifNotExists ? 1 : 0 );
         return result;
     }

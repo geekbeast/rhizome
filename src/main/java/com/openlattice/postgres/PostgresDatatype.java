@@ -42,6 +42,10 @@ import java.util.EnumSet; /**
  *     <tr><td>bigserial</td><td>8 bytes</td><td>large autoincrementing integer</td><td>1 to 9223372036854775807</td></tr>
  *     <tr><td>bytea</td><td>1 or 4 bytes plus the actual binary string</td><td>variable-length binary string</td><td></td></tr>
  *     <tr><td>boolean</td><td>1 byte</td><td>state of true or false</td><td></td></tr>
+ *     <tr><td>date</td><td>4 bytes</td><td>date (no time of day)</td><td>4713 BC to 5874897 AD, 1 day resolution</td></tr>
+ *     <tr><td>time</td><td>8 bytes</td><td>	both date and time, with time zone</td><td>00:00:00 to 24:00:00, 1 microsecond resolution</td></tr>
+ *     <tr><td>timetz</td><td>12 bytes</td><td>	both date and time, with time zone</td><td>00:00:00+1459 to 24:00:00-1459, 1 microsecond resolution</td></tr>
+ *     <tr><td>timestamptz</td><td>8 bytes</td><td>	both date and time, with time zone</td><td>4713 BC to 5874897 AD, 1 microsecond resolution</td></tr>
  * </table>
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -59,9 +63,12 @@ public enum PostgresDatatype {
     BIGSERIAL,
     BYTEA,
     BOOLEAN,
+    DATE,
+    TIME,
+    TIMETZ,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
-    TEXT, TEXT_ARRAY;
+    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
             .of( SMALLINT_ARRAY,
@@ -74,6 +81,13 @@ public enum PostgresDatatype {
                     TEXT_ARRAY );
 
     public String sql() {
-        return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
+        switch( this ) {
+            case TIME:
+                return "TIME WITHOUT TIME ZONE";
+            case TIMETZ:
+                return "TIME WITH_TIME_ZONE";
+            default:
+                return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
+        }
     }
 }

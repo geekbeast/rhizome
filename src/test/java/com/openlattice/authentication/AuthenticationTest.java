@@ -107,7 +107,7 @@ public class AuthenticationTest {
 
     @Test
     public void testLoadUserInfo() throws Auth0Exception {
-        String accessToken = accessToken();
+        String accessToken = accessTokens();
         UserInfo userInfoRequest = client
                 .userInfo( accessToken )
                 .execute();
@@ -130,11 +130,15 @@ public class AuthenticationTest {
         return authentications.getUnchecked( authOptions );
     }
 
-    public static TokenHolder tokens( AuthenticationTestRequestOptions options ) {
+    public static TokenHolder tokenHolder( AuthenticationTestRequestOptions options ) {
         return accessTokens.getUnchecked( options );
     }
 
-    public static String accessToken() {
+    public static TokenHolder tokenHolder() {
+        return accessTokens.getUnchecked( authOptions );
+    }
+
+    public static String accessTokens() {
         return accessTokens.getUnchecked( authOptions ).getAccessToken();
     }
 

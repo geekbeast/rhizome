@@ -170,8 +170,8 @@ public class PostgresIndexDefinition {
                 .append(
                         columns.stream()
                                 .map( PostgresColumnDefinition::getName )
-                                .collect( Collectors.joining( "," ) ) )
-                .append( ") " );
+                                .collect( Collectors.joining( "," ) ) );
+
 
         if ( asc ) {
             psql.append( " ASC " );
@@ -188,6 +188,8 @@ public class PostgresIndexDefinition {
         if ( nullsLast ) {
             psql.append( " NULLS LAST " );
         }
+
+        psql.append( ") " );
 
         return psql.toString();
     }
