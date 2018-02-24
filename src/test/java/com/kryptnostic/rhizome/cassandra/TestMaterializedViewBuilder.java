@@ -123,5 +123,4 @@ public class TestMaterializedViewBuilder {
         logger.info( "Query: {}", actual );
         Assert.assertEquals( expected, actual );
     }
-
 }

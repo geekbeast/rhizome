@@ -90,7 +90,7 @@ public class AuthenticationTest {
                                 .login( options.getUsernameOrEmail(), options.getPassword(), options.getConnection() )
                                 .setScope( options.getScope() )
                                 .setAudience( audience );
-
+                        authRateLimiter.acquire();
                         TokenHolder th = authRequest.execute();
 
                         String accessToken = th.getAccessToken();

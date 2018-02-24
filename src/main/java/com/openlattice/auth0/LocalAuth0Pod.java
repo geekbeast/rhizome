@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Profile;
 @Profile( Profiles.LOCAL_CONFIGURATION_PROFILE )
 public class LocalAuth0Pod {
     @Bean
-    public Auth0Configuration auth0Configuration() throws IOException {
+    public Auth0Configuration auth0Configuration() {
         return ResourceConfigurationLoader.loadConfiguration( Auth0Configuration.class );
     }
 }
