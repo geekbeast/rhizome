@@ -53,6 +53,10 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( new UUID[ 0 ] ) );
     }
 
+    public static Array createLongArray( Connection connection, Collection<Long> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values.toArray( new Long[ 0 ] ) );
+    }
+
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( String[]::new ) );
     }
@@ -63,6 +67,11 @@ public class PostgresArrays {
 
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
         return (String[]) rs.getArray( column ).getArray();
+    }
+
+
+    public static Long[] getLongArray( ResultSet rs, String column ) throws SQLException {
+        return (Long[]) rs.getArray( column ).getArray();
     }
 
     public static UUID[][] getUuidArrayOfArrays( ResultSet rs, String column ) throws SQLException {

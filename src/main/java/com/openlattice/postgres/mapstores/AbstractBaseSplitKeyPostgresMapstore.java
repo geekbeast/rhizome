@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017. OpenLattice, Inc
+ * Copyright (C) 2018. OpenLattice, Inc
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,60 +20,45 @@
 
 package com.openlattice.postgres.mapstores;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.codahale.metrics.annotation.Timed;
-import com.dataloom.streams.StreamUtil;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.MapMaker;
-import com.google.common.collect.Sets;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.openlattice.postgres.CountdownConnectionCloser;
-import com.openlattice.postgres.KeyIterator;
-import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgresMapstore2<K, V> {
+public abstract class AbstractBaseSplitKeyPostgresMapstore<K, K2, V>
+        extends AbstractPostgresMapstore2<K, Map<K2, V>> {
 
-    public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
+    public AbstractBaseSplitKeyPostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this( mapName, table, hds, BATCH_SIZE );
     }
 
-    public AbstractBasePostgresMapstore(
+    public AbstractBaseSplitKeyPostgresMapstore(
             String mapName,
             PostgresTableDefinition table,
             HikariDataSource hds,
             int batchSize ) {
-        super(mapName, table, hds, batchSize );
+        super( mapName, table, hds, batchSize );
     }
 
     @Timed
     @Override
-    public void store( K key, V value ) {
+    public void store( K key, Map<K2, V> value ) {
         try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
-            bind( insertRow, key, value );
-            logger.debug( "Insert query: {}", insertRow );
-            insertRow.execute();
+            for ( Entry<K2, V> entry : value.entrySet() ) {
+                bind( insertRow, key, entry.getKey(), entry.getValue() );
+                logger.debug( "Insert query: {}", insertRow );
+                insertRow.addBatch();
+            }
+            insertRow.executeBatch();
             handleStoreSucceeded( key, value );
         } catch ( SQLException e ) {
             String errMsg = "Error executing SQL during store for key " + key + "in map " + mapName + ".";
@@ -86,14 +71,16 @@ public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgre
 
     @Timed
     @Override
-    public void storeAll( Map<K, V> map ) {
+    public void storeAll( Map<K, Map<K2, V>> map ) {
         K key = null;
         try ( Connection connection = hds.getConnection(); PreparedStatement insertRow = prepareInsert( connection ) ) {
             //TODO: We might want to do an inner try catch here to get specific logging on what failed
-            for ( Entry<K, V> entry : map.entrySet() ) {
+            for ( Entry<K, Map<K2, V>> entry : map.entrySet() ) {
                 key = entry.getKey();
-                bind( insertRow, key, entry.getValue() );
-                insertRow.addBatch();
+                for ( Entry<K2, V> subEntry : entry.getValue().entrySet() ) {
+                    bind( insertRow, key, subEntry.getKey(), subEntry.getValue() );
+                    insertRow.addBatch();
+                }
             }
             insertRow.executeBatch();
             handleStoreAllSucceeded( map );
@@ -105,7 +92,6 @@ public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgre
     /**
      * You must bind update parameters as well as insert parameters
      */
-    protected abstract void bind( PreparedStatement ps, K key, V value ) throws SQLException;
+    protected abstract void bind( PreparedStatement ps, K key, K2 subKey, V value ) throws SQLException;
 
-    protected abstract K mapToKey( ResultSet rs ) throws SQLException;
 }

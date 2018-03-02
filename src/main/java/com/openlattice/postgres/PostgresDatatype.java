@@ -85,7 +85,11 @@ public enum PostgresDatatype {
             case TIME:
                 return "TIME WITHOUT TIME ZONE";
             case TIMETZ:
-                return "TIME WITH_TIME_ZONE";
+                return "TIME WITH TIME ZONE";
+            case DOUBLE:
+                 return "DOUBLE PRECISION";
+            case DOUBLE_ARRAY:
+                return "DOUBLE PRECISION[]";
             default:
                 return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
         }
