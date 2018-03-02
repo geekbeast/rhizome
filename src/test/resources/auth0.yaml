@@ -1,10 +1,10 @@
 domain: "openlattice.auth0.com"
-issuer: "https://openlattice.auth0.com/"
-audience: "https://tests.openlattice.com"
 clientId: "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99"
 clientSecret: "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0"
-securedRoute: "NOT_USED"
-authorityStrategy: "ROLES"
-signingAlgorithm: "HS256"
-base64EncodedSecret: false
+configurations:
+  - issuer: "https://openlattice.auth0.com/"
+    audience: "https://tests.openlattice.com"
+    secret: "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0"
+    signingAlgorithm: "HS256"
+    base64EncodedSecret: false
 token: "lol"

@@ -139,7 +139,9 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jackson_version}"
     compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
-    compile 'org.yaml:snakeyaml:1.13'
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson_version}"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jackson_version}"
+    compile 'org.yaml:snakeyaml:${snakeyaml_version}'
 
     /*
      * @Inject and @Nullable support
@@ -221,7 +223,7 @@ dependencies {
     //compile "com.squareup.retrofit:retrofit:${retrofit_version}"
     //compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
 
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile "com.squareup.retrofit2:retrofit:${retrofit2_version}"
 
     /*
      * WEBSOCKET DEPENDENCIES

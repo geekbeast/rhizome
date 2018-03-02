@@ -22,7 +22,7 @@ package com.openlattice.auth0;
 
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.openlattice.ResourceConfigurationLoader;
-import digital.loom.rhizome.configuration.auth0.Auth0Configuration;
+import com.openlattice.authentication.Auth0Configuration;
 import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Profile;
 @Profile( Profiles.LOCAL_CONFIGURATION_PROFILE )
 public class LocalAuth0Pod {
     @Bean
-    public Auth0Configuration auth0Configuration() throws IOException {
+    public Auth0Configuration auth0Configuration() {
         return ResourceConfigurationLoader.loadConfiguration( Auth0Configuration.class );
     }
 }

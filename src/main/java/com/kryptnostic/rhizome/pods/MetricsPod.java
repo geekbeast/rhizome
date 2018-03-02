@@ -41,16 +41,10 @@ public class MetricsPod implements MetricsConfigurer {
     private RhizomeConfiguration config;
 
     @Bean
-    public GraphiteReporter serverGraphiteReporter() {
+    public GraphiteReporter serverGraphiteReporter() throws IOException {
         Graphite graphite = serverGraphite();
 
         if ( graphite == null ) {
-            return null;
-        }
-
-        try {
-            graphite.connect();
-        } catch ( IOException e ) {
             return null;
         }
         return GraphiteReporter.forRegistry( metricRegistry )
@@ -61,18 +55,13 @@ public class MetricsPod implements MetricsConfigurer {
     }
 
     @Bean
-    public GraphiteReporter aggregateGraphiteReporter() {
+    public GraphiteReporter aggregateGraphiteReporter() throws IOException {
         Graphite graphite = serverGraphite();
 
         if ( graphite == null ) {
             return null;
         }
 
-        try {
-            graphite.connect();
-        } catch ( IOException e ) {
-            return null;
-        }
         return GraphiteReporter.forRegistry( metricRegistry )
                 .convertDurationsTo( TimeUnit.MILLISECONDS )
                 .convertRatesTo( TimeUnit.SECONDS )
@@ -111,16 +100,17 @@ public class MetricsPod implements MetricsConfigurer {
     }
 
     @Bean
-    public Graphite serverGraphite() {
+    public Graphite serverGraphite() throws IOException {
         if ( config.getGraphiteConfiguration().isPresent() ) {
             GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
             logger.info(
                     "Initializing server graphite instance with at {}:{}",
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() );
-            return new Graphite( new InetSocketAddress(
+            Graphite graphite = new Graphite( new InetSocketAddress(
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() ) );
+            graphite.connect();
         }
         return null;
     }

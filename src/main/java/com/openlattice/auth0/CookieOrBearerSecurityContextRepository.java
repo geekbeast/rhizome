@@ -109,8 +109,8 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
             return null;
         }
 
-//        final String scheme = parts[ 0 ];
-//        final String credentials = parts[ 1 ];
+        //        final String scheme = parts[ 0 ];
+        //        final String credentials = parts[ 1 ];
 
         return parts[ 1 ];
     }

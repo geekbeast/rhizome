@@ -10,9 +10,7 @@ import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
 import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
-import com.kryptnostic.rhizome.configuration.rethinkdb.RethinkDbConfiguration;
 import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
-import com.zaxxer.hikari.HikariConfig;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,21 +43,19 @@ public class RhizomeConfiguration implements Configuration {
     protected final boolean                                       sessionClusteringEnabled;
     protected final String                                        corsAccessControlAllowOriginUrl;
     protected final Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
-    protected final Optional<GraphiteConfiguration>   graphiteConfiguration;
+    protected final Optional<GraphiteConfiguration>               graphiteConfiguration;
     @Deprecated
-    protected final Optional<CassandraConfiguration>  cassandraConfiguration;
-    protected final Optional<CassandraConfigurations> cassandraConfigurations;
-    protected final Optional<HazelcastConfiguration>  hazelcastConfiguration;
-    protected final Optional<RethinkDbConfiguration>  rethinkDbConfiguration;
-    protected final Optional<Properties>              hikariConfiguration;
-    protected final Optional<SparkConfiguration>      sparkConfiguration;
+    protected final Optional<CassandraConfiguration>              cassandraConfiguration;
+    protected final Optional<CassandraConfigurations>             cassandraConfigurations;
+    protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
+    protected final Optional<Properties>                          hikariConfiguration;
+    protected final Optional<SparkConfiguration>                  sparkConfiguration;
 
     @JsonCreator
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
             @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL ) Optional<String> corsAccessControlAllowOriginUrl,
-            @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY ) Optional<RethinkDbConfiguration> rethinkDbConfiguration,
             @Deprecated @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
                     Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY )
@@ -75,7 +71,6 @@ public class RhizomeConfiguration implements Configuration {
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
         this.cassandraConfiguration = cassandraConfiguration;
         this.cassandraConfigurations = cassandraConfigurations;
-        this.rethinkDbConfiguration = rethinkDbConfiguration;
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
@@ -83,14 +78,19 @@ public class RhizomeConfiguration implements Configuration {
         this.hikariConfiguration = hikariConfiguration;
     }
 
-    @Override
-    public String toString() {
-        return "RhizomeConfiguration [persistData=" + persistData
-                + ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration
-                + ", graphiteConfiguration=" + graphiteConfiguration
-                + ", cassandraConfigurations=" + cassandraConfigurations
-                + ", cassandraConfiguration=" + cassandraConfiguration
-                + ", rethinkDbConfiguration=" + rethinkDbConfiguration + "]";
+    @Override public String toString() {
+        return "RhizomeConfiguration{" +
+                "persistData=" + persistData +
+                ", sessionClusteringEnabled=" + sessionClusteringEnabled +
+                ", corsAccessControlAllowOriginUrl='" + corsAccessControlAllowOriginUrl + '\'' +
+                ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration +
+                ", graphiteConfiguration=" + graphiteConfiguration +
+                ", cassandraConfiguration=" + cassandraConfiguration +
+                ", cassandraConfigurations=" + cassandraConfigurations +
+                ", hazelcastConfiguration=" + hazelcastConfiguration +
+                ", hikariConfiguration=" + hikariConfiguration +
+                ", sparkConfiguration=" + sparkConfiguration +
+                '}';
     }
 
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )
@@ -117,11 +117,6 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY )
     public Optional<CassandraConfigurations> getCassandraConfigurations() {
         return cassandraConfigurations;
-    }
-
-    @JsonProperty( RETHINKDB_CONFIGURATION_PROPERTY )
-    public Optional<RethinkDbConfiguration> getRethinkDbConfiguration() {
-        return rethinkDbConfiguration;
     }
 
     @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY )
