@@ -27,14 +27,13 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.openlattice.authentication.Auth0Configuration;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Auth0TokenProvider {
-    private static final int    RETRY_MILLIS = 30000;
+    private static final int RETRY_MILLIS = 30000;
 
     private final AuthAPI          auth0Api;
     private final String           managementApiUrl;
+    private final Supplier<String> tokenUpdater;
     private       Supplier<String> token;
 
     public Auth0TokenProvider( Auth0Configuration auth0Configuration ) {
@@ -46,15 +45,15 @@ public class Auth0TokenProvider {
 
         this.managementApiUrl = auth0Configuration.getManagementApiUrl();
 
-        token = () ->
+        tokenUpdater = () ->
         {
             try {
                 TokenHolder holder = auth0Api.requestToken( managementApiUrl ).execute();
                 long expiresInMillis = ( holder.getExpiresIn() * 1000 ) / 2;
-                token = Suppliers.memoizeWithExpiration( this.token, expiresInMillis, TimeUnit.MILLISECONDS );
+                token = Suppliers.memoizeWithExpiration( getTokenUpdater(), expiresInMillis, TimeUnit.MILLISECONDS );
                 return holder.getAccessToken();
             } catch ( Auth0Exception e ) {
-                token = Suppliers.memoizeWithExpiration( this.token, RETRY_MILLIS, TimeUnit.MILLISECONDS );
+                token = Suppliers.memoizeWithExpiration( getTokenUpdater(), RETRY_MILLIS, TimeUnit.MILLISECONDS );
                 return "";
             }
         };
@@ -62,6 +61,10 @@ public class Auth0TokenProvider {
 
     public String getManagementApiUrl() {
         return managementApiUrl;
+    }
+
+    private Supplier<String> getTokenUpdater() {
+        return tokenUpdater;
     }
 
     public String getToken() {
