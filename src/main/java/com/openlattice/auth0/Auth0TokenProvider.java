@@ -57,6 +57,9 @@ public class Auth0TokenProvider {
                 return "";
             }
         };
+
+        // kick off the initial token request
+        tokenUpdater.get();
     }
 
     public String getManagementApiUrl() {
