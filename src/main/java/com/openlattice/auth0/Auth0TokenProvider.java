@@ -36,14 +36,15 @@ public class Auth0TokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger( Auth0TokenProvider.class );
 
-    static final        int    CHECK_EXP_INTERVAL_MILLIS   = 60 * 60 * 1000; // 1 hour
-    public static final String AUTH0_MANAGEMENT_API_V2_URL = "https://openlattice.auth0.com/api/v2/";
+    private static final int CHECK_EXP_INTERVAL_MILLIS = 60 * 60 * 1000; // 1 hour
 
-    private AuthAPI    auth0Api;
-    private String     token;
-    private AtomicLong tokenExp;
+    private Auth0Configuration auth0Configuration;
+    private AuthAPI            auth0Api;
+    private String             token;
+    private AtomicLong         tokenExp;
 
     public Auth0TokenProvider( Auth0Configuration auth0Configuration ) {
+        this.auth0Configuration = auth0Configuration;
         this.auth0Api = new AuthAPI(
                 auth0Configuration.getDomain(),
                 auth0Configuration.getClientId(),
@@ -64,14 +65,14 @@ public class Auth0TokenProvider {
         if ( tokenExp.get() < System.currentTimeMillis() ) {
             logger.info( "Attempting to renew Auth0 Management APIv2 token." );
             try {
-                AuthRequest request = auth0Api.requestToken( AUTH0_MANAGEMENT_API_V2_URL );
+                AuthRequest request = auth0Api.requestToken( auth0Configuration.getManagementApiUrl() );
                 TokenHolder holder = request.execute();
                 this.token = holder.getAccessToken();
 
                 // set expiration to be half of the real expiration
                 long expiresInMillis = ( holder.getExpiresIn() * 1000 ) / 2;
                 this.tokenExp.set( System.currentTimeMillis() + expiresInMillis );
-                logger.info( "Attempting to renew Auth0 Management APIv2 token." );
+                logger.info( "Successfully renewed Auth0 Management APIv2 token." );
             } catch ( Auth0Exception e ) {
                 logger.error( "Failed to renew Auth0 Management APIv2 token.", e );
             }
