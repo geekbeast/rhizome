@@ -7,4 +7,4 @@ configurations:
     secret: "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0"
     signingAlgorithm: "HS256"
     base64EncodedSecret: false
-token: "lol"
+managementApiUrl: "https://openlattice.auth0.com/api/v2/"

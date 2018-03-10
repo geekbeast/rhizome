@@ -23,59 +23,49 @@ package com.openlattice.auth0;
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
-import com.auth0.net.AuthRequest;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.openlattice.authentication.Auth0Configuration;
-import org.apache.commons.lang3.StringUtils;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 public class Auth0TokenProvider {
+    private static final int    RETRY_MILLIS = 30000;
+    private static final Logger logger       = LoggerFactory.getLogger( Auth0TokenProvider.class );
 
-    private static final Logger logger = LoggerFactory.getLogger( Auth0TokenProvider.class );
-
-    private static final int CHECK_EXP_INTERVAL_MILLIS = 60 * 60 * 1000; // 1 hour
-
-    private Auth0Configuration auth0Configuration;
-    private AuthAPI            auth0Api;
-    private String             token;
-    private AtomicLong         tokenExp;
+    private final AuthAPI          auth0Api;
+    private final String           managementApiUrl;
+    private       Supplier<String> token;
 
     public Auth0TokenProvider( Auth0Configuration auth0Configuration ) {
-        this.auth0Configuration = auth0Configuration;
         this.auth0Api = new AuthAPI(
                 auth0Configuration.getDomain(),
                 auth0Configuration.getClientId(),
                 auth0Configuration.getClientSecret()
         );
-        this.tokenExp = new AtomicLong( System.currentTimeMillis() );
+
+        this.managementApiUrl = auth0Configuration.getManagementApiUrl();
+
+        token = () ->
+        {
+            try {
+                TokenHolder holder = auth0Api.requestToken( managementApiUrl ).execute();
+                long expiresInMillis = ( holder.getExpiresIn() * 1000 ) / 2;
+                token = Suppliers.memoizeWithExpiration( this.token, expiresInMillis, TimeUnit.MILLISECONDS );
+                return holder.getAccessToken();
+            } catch ( Auth0Exception e ) {
+                token = Suppliers.memoizeWithExpiration( this.token, RETRY_MILLIS, TimeUnit.MILLISECONDS );
+                return "";
+            }
+        };
+    }
+
+    public String getManagementApiUrl() {
+        return managementApiUrl;
     }
 
     public String getToken() {
-        if ( StringUtils.isBlank( token ) || tokenExp.get() < System.currentTimeMillis() ) {
-            renewAuth0Token();
-        }
-        return token;
-    }
-
-    @Scheduled( fixedRate = CHECK_EXP_INTERVAL_MILLIS )
-    private void renewAuth0Token() {
-        if ( tokenExp.get() < System.currentTimeMillis() ) {
-            logger.info( "Attempting to renew Auth0 Management APIv2 token." );
-            try {
-                AuthRequest request = auth0Api.requestToken( auth0Configuration.getManagementApiUrl() );
-                TokenHolder holder = request.execute();
-                this.token = holder.getAccessToken();
-
-                // set expiration to be half of the real expiration
-                long expiresInMillis = ( holder.getExpiresIn() * 1000 ) / 2;
-                this.tokenExp.set( System.currentTimeMillis() + expiresInMillis );
-                logger.info( "Successfully renewed Auth0 Management APIv2 token." );
-            } catch ( Auth0Exception e ) {
-                logger.error( "Failed to renew Auth0 Management APIv2 token.", e );
-            }
-        }
+        return token.get();
     }
 }
