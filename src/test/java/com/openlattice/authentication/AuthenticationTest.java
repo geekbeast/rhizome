@@ -34,6 +34,7 @@ public class AuthenticationTest {
     private static final Logger                           logger              = LoggerFactory
             .getLogger( AuthenticationTest.class );
     private static final String                           domain              = "openlattice.auth0.com";
+    private static final String                           managementApiUrl    = "https://openlattice.auth0.com/api/v2/";
     private static final String                           issuer              = "https://openlattice.auth0.com/";
     private static final String                           audience            = "https://tests.openlattice.com";
     private static final String                           clientId            = "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99";
@@ -48,7 +49,7 @@ public class AuthenticationTest {
             clientId,
             clientSecret,
             ImmutableSet.of( authConfiguration ),
-            Optional.empty() );
+            managementApiUrl );
     private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
     private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;
     private static final AuthenticationTestRequestOptions authOptions = new AuthenticationTestRequestOptions()
