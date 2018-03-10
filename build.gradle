@@ -7,6 +7,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
+    id "org.jetbrains.kotlin.jvm" version "1.2.30"
 }
 
 description = "Java Framework for building clustered RESTful web applications"
@@ -18,6 +19,7 @@ ext.connectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
+apply plugin: 'kotlin'
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
@@ -72,7 +74,7 @@ dependencies {
     compile "org.springframework:spring-web:${project.spring_framework_version}"
     compile "org.springframework:spring-webmvc:${project.spring_framework_version}"
     compile "org.springframework:spring-test:${project.spring_framework_version}"
-
+    //compile "org.springframework:spring-jdbc:${project.spring_framework_version}"
     /*
      * SPRING SECURITY DEPENDENCIES
      * Solid and battle tested security AuthN/AuthZ framwork
@@ -83,9 +85,10 @@ dependencies {
     compile "org.springframework.security:spring-security-config:${project.spring_security_version}"
     compile "org.springframework.security:spring-security-messaging:${project.spring_security_version}"
 
-//    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
-//        exclude group: "org.springframework.boot"
-//    }
+    //JDBI
+    compile 'org.jdbi:jdbi3-core:3.1.0'
+    compile 'org.jdbi:jdbi3-sqlobject:3.1.0'
+    compile 'org.jdbi:jdbi3-postgres:3.1.0'
 
     compile("com.auth0:auth0-spring-security-api:1.0.0-rc.3") {
         exclude group: "org.springframework.boot"
@@ -253,7 +256,8 @@ dependencies {
     }
 
     compile 'com.auth0:auth0:1.5.0'
- }
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
 
 eclipse {
     ext.downloadSources = true
@@ -264,4 +268,15 @@ eclipse {
 
 install {
     configuration = configurations.published
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
