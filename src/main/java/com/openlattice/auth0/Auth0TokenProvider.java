@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 public class Auth0TokenProvider {
     private static final int    RETRY_MILLIS = 30000;
-    private static final Logger logger       = LoggerFactory.getLogger( Auth0TokenProvider.class );
 
     private final AuthAPI          auth0Api;
     private final String           managementApiUrl;
