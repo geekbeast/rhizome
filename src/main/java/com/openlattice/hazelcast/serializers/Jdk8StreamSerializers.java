@@ -35,7 +35,7 @@ import java.time.ZoneOffset;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class Jdk8StreamSerializers {
-    public static class AbstractOffsetDateTimeStreamSerializer
+    public static abstract class AbstractOffsetDateTimeStreamSerializer
             implements SelfRegisteringStreamSerializer<OffsetDateTime> {
         @Override public Class<OffsetDateTime> getClazz() {
             return OffsetDateTime.class;
@@ -47,10 +47,6 @@ public class Jdk8StreamSerializers {
 
         @Override public OffsetDateTime read( ObjectDataInput in ) throws IOException {
             return deserialize( in );
-        }
-
-        @Override public int getTypeId() {
-            return 0;
         }
 
         @Override public void destroy() {
