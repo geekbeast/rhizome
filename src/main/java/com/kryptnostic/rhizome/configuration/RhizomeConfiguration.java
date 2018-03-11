@@ -29,8 +29,8 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String           CASSANDRA_CONFIGURATIONS_PROPERTY               = "cassandras";
     protected static final String           GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String           HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
-    protected static final String           RETHINKDB_CONFIGURATION_PROPERTY                = "rethinkdb";
     protected static final String           HAZELCAST_CONFIGURATION_PROPERTY                = "hazelcast";
+    protected static final String           NAME_PROPERTY                                   = "name";
     protected static final boolean          PERSISTENCE_ENABLED_DEFAULT                     = true;
     protected static final boolean          SESSION_CLUSTERING_ENABLED_DEFAULT              = false;
     private static final   long             serialVersionUID                                = -8444209890618166001L;
@@ -50,6 +50,7 @@ public class RhizomeConfiguration implements Configuration {
     protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<Properties>                          hikariConfiguration;
     protected final Optional<SparkConfiguration>                  sparkConfiguration;
+    protected final String                                        name;
 
     @JsonCreator
     public RhizomeConfiguration(
@@ -65,7 +66,8 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY )
                     Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration,
             @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig,
-            @JsonProperty( HIKARI_CONFIGURATION_PROPERTY ) Optional<Properties> hikariConfiguration ) {
+            @JsonProperty( HIKARI_CONFIGURATION_PROPERTY ) Optional<Properties> hikariConfiguration,
+            @JsonProperty( NAME_PROPERTY ) Optional<String> name ) {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
@@ -76,6 +78,7 @@ public class RhizomeConfiguration implements Configuration {
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
         this.sparkConfiguration = sparkConfig;
         this.hikariConfiguration = hikariConfiguration;
+        this.name = name.or( "rhizome" );
     }
 
     @Override public String toString() {
@@ -142,6 +145,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( HIKARI_CONFIGURATION_PROPERTY )
     public Optional<Properties> getHikariConfiguration() {
         return hikariConfiguration;
+    }
+
+    @JsonProperty( NAME_PROPERTY )
+    public String getName() {
+        return name;
     }
 
     @Override
