@@ -52,7 +52,7 @@ public class NetworkUtils {
                 while ( networkAddresses.hasMoreElements() ) {
                     final String networkAddress = networkAddresses.nextElement().getHostAddress();
                     logger.info("Checking if address {} matches." , networkAddress);
-                    if ( acceptableAddresses.contains( networkAddresses.nextElement().getHostAddress() ) ) {
+                    if ( acceptableAddresses.contains( networkAddress ) ) {
                         logger.info("Address {} matched an acceptable address.", networkAddress );
                         return true;
                     }
