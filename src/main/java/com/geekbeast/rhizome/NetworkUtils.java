@@ -39,17 +39,21 @@ public class NetworkUtils {
 
     public static final boolean isRunningOnHost( String host ) {
         try {
-            InetAddress[] acceptableHosts = InetAddress.getAllByName( host );
-            Set<String> acceptableAddresses = new HashSet<>( acceptableHosts.length );
+            final InetAddress[] acceptableHosts = InetAddress.getAllByName( host );
+            final Set<String> acceptableAddresses = new HashSet<>( acceptableHosts.length );
             for ( InetAddress acceptableAddress : acceptableHosts ) {
                 acceptableAddresses.add( acceptableAddress.getHostAddress() );
             }
+            logger.info("Acceptable addresses: {}", acceptableAddresses);
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
             while ( networkInterfaces.hasMoreElements() ) {
                 NetworkInterface networkInterface = networkInterfaces.nextElement();
                 Enumeration<InetAddress> networkAddresses = networkInterface.getInetAddresses();
                 while ( networkAddresses.hasMoreElements() ) {
+                    final String networkAddress = networkAddresses.nextElement().getHostAddress();
+                    logger.info("Checking if address {} matches." , networkAddress)
                     if ( acceptableAddresses.contains( networkAddresses.nextElement().getHostAddress() ) ) {
+                        logger.info("Address {} matched an acceptable address.", networkAddress );
                         return true;
                     }
                 }
@@ -57,7 +61,7 @@ public class NetworkUtils {
         } catch ( SocketException | UnknownHostException e ) {
             logger.error( "Unable to determine host we are running on.", e );
         }
-        return false;
 
+        return false;
     }
 }
