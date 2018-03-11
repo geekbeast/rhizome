@@ -30,8 +30,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @EnableMetrics(
         proxyTargetClass = true )
-@Import(
-        value = AsyncPod.class )
+@Import( { AsyncPod.class, ConfigurationPod.class } )
 public class MetricsPod implements MetricsConfigurer {
     private static final Logger              logger              = LoggerFactory.getLogger( MetricsPod.class );
     private static final MetricRegistry      metricRegistry      = new MetricRegistry();

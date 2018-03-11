@@ -24,19 +24,26 @@ package com.kryptnostic.rhizome.pods;
 import com.amazonaws.services.s3.AmazonS3;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.amazon.AwsLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.openlattice.ResourceConfigurationLoader;
 import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+
+
+
 
 @Profile( { Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
 @Configuration
+@Import(AwsConfigurationPod.class)
 public class AwsRhizomeConfigurationPod {
     @Inject
-    private AwsLaunchConfiguration awsConfig;
+    private AmazonLaunchConfiguration awsConfig;
 
     @Inject
     private AmazonS3 s3;

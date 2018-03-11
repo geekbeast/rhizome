@@ -20,7 +20,7 @@ import javax.inject.Inject;
  * @author Matthew Tamayo-Rios
  */
 @Configuration
-@Import( { LocalConfigurationPod.class, AwsConfigurationPod.class } )
+@Import( { LocalConfigurationPod.class, AwsConfigurationPod.class, AwsRhizomeConfigurationPod.class } )
 public class ConfigurationPod {
     @Inject
     private Environment environment;
