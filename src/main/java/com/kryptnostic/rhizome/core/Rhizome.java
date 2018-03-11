@@ -206,7 +206,8 @@ public class Rhizome implements WebApplicationInitializer {
         boolean awsProfile = false;
         boolean localProfile = false;
         for ( String profile : activeProfiles ) {
-            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile ) ) {
+            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile )
+                    || StringUtils.equals( Profiles.AWS_TESTING_PROFILE, profile ) ) {
                 awsProfile = true;
                 logger.info( "Using AWS profile for configuration." );
             }
