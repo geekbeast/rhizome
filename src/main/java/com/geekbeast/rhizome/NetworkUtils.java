@@ -51,7 +51,7 @@ public class NetworkUtils {
                 Enumeration<InetAddress> networkAddresses = networkInterface.getInetAddresses();
                 while ( networkAddresses.hasMoreElements() ) {
                     final String networkAddress = networkAddresses.nextElement().getHostAddress();
-                    logger.info("Checking if address {} matches." , networkAddress)
+                    logger.info("Checking if address {} matches." , networkAddress);
                     if ( acceptableAddresses.contains( networkAddresses.nextElement().getHostAddress() ) ) {
                         logger.info("Address {} matched an acceptable address.", networkAddress );
                         return true;
