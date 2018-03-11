@@ -28,7 +28,6 @@ import com.kryptnostic.rhizome.configuration.amazon.AwsLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.openlattice.ResourceConfigurationLoader;
 import javax.inject.Inject;
-import jnr.ffi.annotations.In;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
