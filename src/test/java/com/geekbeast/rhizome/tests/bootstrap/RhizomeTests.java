@@ -1,8 +1,8 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
-import com.dataloom.retrofit.LoomByteConverterFactory;
-import com.dataloom.retrofit.LoomCallAdapterFactory;
-import com.dataloom.retrofit.LoomJacksonConverterFactory;
+import com.openlattice.retrofit.LoomByteConverterFactory;
+import com.openlattice.retrofit.LoomCallAdapterFactory;
+import com.openlattice.retrofit.LoomJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
