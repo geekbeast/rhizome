@@ -263,8 +263,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
             stmt.setFetchSize( 50000 );
             final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
             return () -> StreamUtil
-                    .stream( () -> new KeyIterator<K>( rs,
-                            new CountdownConnectionCloser( connection, 1 ), this::mapToKey ) )
+                    .stream( () -> new KeyIterator<>( rs,
+                            new CountdownConnectionCloser( rs, connection, 1 ), this::mapToKey ) )
                     .peek( key -> logger.debug( "Key to load: {}", key ) )
                     .iterator();
         } catch ( SQLException e ) {

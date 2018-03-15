@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-public class PostgresColumnDefinition {
+public class  PostgresColumnDefinition {
     private final String           name;
     private final PostgresDatatype datatype;
     private boolean                            primaryKey             = false;
