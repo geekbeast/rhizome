@@ -83,6 +83,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         this.hds = hds;
         this.mapName = mapName;
         this.batchSize = batchSize;
+        initMapstore();
         this.keyColumns = initKeyColumns();
         this.valueColumns = initValueColumns();
         this.batchCapacity = batchSize * getSelectInParameterCount();
@@ -97,6 +98,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         this.selectByKeyQuery = buildSelectByKeyQuery();
         this.selectInQuery = buildSelectInQuery();
     }
+
+    protected void initMapstore() {}
 
     protected final List<PostgresColumnDefinition> keyColumns() {
         return keyColumns;

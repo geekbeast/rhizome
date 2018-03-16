@@ -21,6 +21,7 @@
 package com.openlattice.postgres.mapstores;
 
 import com.codahale.metrics.annotation.Timed;
+import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
