@@ -52,6 +52,20 @@ public class CountdownConnectionCloser {
         } );
     }
 
+    public CountdownConnectionCloser( Connection connection, int count ) {
+        this.latch = new CountDownLatch( count );
+        executor.execute( () -> {
+            try {
+                latch.await();
+                connection.close();
+            } catch ( InterruptedException e ) {
+                logger.error( "Interrupted while waiting to close connection.", e );
+            } catch ( SQLException e ) {
+                logger.error( "Error while closing connection.", e );
+            }
+        } );
+    }
+
     public void countDown() {
         latch.countDown();
         logger.info( "Latch value: {}", latch.getCount() );
