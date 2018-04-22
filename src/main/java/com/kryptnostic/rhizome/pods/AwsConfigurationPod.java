@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 /**
@@ -22,37 +21,39 @@ import org.springframework.context.annotation.Profile;
 public class AwsConfigurationPod {
     private static final Logger   logger = LoggerFactory.getLogger( ConfigurationPod.class );
     private static final AmazonS3 s3     = new AmazonS3Client();
-  private  static final AmazonLaunchConfiguration awsTestConfig;
-  private  static final AmazonLaunchConfiguration awsConfig;
-  static {
-      awsConfig = ResourceConfigurationLoader
-              .loadConfigurationFromResource( "aws.yaml", AwsLaunchConfiguration.class );
-      awsTestConfig = ResourceConfigurationLoader
-              .loadConfigurationFromResource( "awstest.yaml", AwsLaunchConfiguration.class );
-  }
-    @Bean(name="awsConfig")
+    private static final AmazonLaunchConfiguration awsTestConfig;
+    private static final AmazonLaunchConfiguration awsConfig;
+
+    static {
+        awsConfig = ResourceConfigurationLoader
+                .loadConfigurationFromResource( "aws.yaml", AwsLaunchConfiguration.class );
+        awsTestConfig = ResourceConfigurationLoader
+                .loadConfigurationFromResource( "awstest.yaml", AwsLaunchConfiguration.class );
+    }
+
+    @Bean( name = "awsConfig" )
     @Profile( Profiles.AWS_CONFIGURATION_PROFILE )
     public AmazonLaunchConfiguration awsConfig() {
         logger.info( "Using aws configuration: {}", awsConfig );
-        if( awsConfig.getRegion().isPresent() ) {
-            s3.setRegion( Region.getRegion(awsConfig().getRegion().get() ) );
+        if ( awsConfig.getRegion().isPresent() ) {
+            s3.setRegion( Region.getRegion( awsConfig.getRegion().get() ) );
         }
         return awsConfig;
     }
 
-    @Bean(name="awsConfig")
+    @Bean( name = "awsConfig" )
     @Profile( Profiles.AWS_TESTING_PROFILE )
     public AmazonLaunchConfiguration awsTestingConfig() {
         logger.info( "Using aws configuration: {}", awsTestConfig );
-        if( awsTestConfig.getRegion().isPresent() ) {
-            s3.setRegion( Region.getRegion(awsConfig().getRegion().get() ) );
+        if ( awsTestConfig.getRegion().isPresent() ) {
+            s3.setRegion( Region.getRegion( awsTestConfig.getRegion().get() ) );
         }
         return awsTestConfig;
     }
 
     @Bean
     public AmazonS3 s3() {
-      return s3;
+        return s3;
     }
 
 }
