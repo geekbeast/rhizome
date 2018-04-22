@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.pods;
 
+import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
@@ -33,6 +34,9 @@ public class AwsConfigurationPod {
     @Profile( Profiles.AWS_CONFIGURATION_PROFILE )
     public AmazonLaunchConfiguration awsConfig() {
         logger.info( "Using aws configuration: {}", awsConfig );
+        if( awsConfig.getRegion().isPresent() ) {
+            s3.setRegion( Region.getRegion(awsConfig().getRegion().get() ) );
+        }
         return awsConfig;
     }
 
@@ -40,12 +44,15 @@ public class AwsConfigurationPod {
     @Profile( Profiles.AWS_TESTING_PROFILE )
     public AmazonLaunchConfiguration awsTestingConfig() {
         logger.info( "Using aws configuration: {}", awsTestConfig );
+        if( awsTestConfig.getRegion().isPresent() ) {
+            s3.setRegion( Region.getRegion(awsConfig().getRegion().get() ) );
+        }
         return awsTestConfig;
     }
 
     @Bean
     public AmazonS3 s3() {
-        return s3;
+      return s3;
     }
 
 }
