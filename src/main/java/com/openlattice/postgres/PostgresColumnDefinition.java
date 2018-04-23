@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -118,6 +119,22 @@ public class  PostgresColumnDefinition {
         }
 
         return pcdSql.toString().trim();
+    }
+
+    @Override public boolean equals( Object o ) {
+        if ( this == o ) { return true; }
+        if ( !( o instanceof PostgresColumnDefinition ) ) { return false; }
+        PostgresColumnDefinition that = (PostgresColumnDefinition) o;
+        return primaryKey == that.primaryKey &&
+                unique == that.unique &&
+                notNull == that.notNull &&
+                Objects.equals( name, that.name ) &&
+                datatype == that.datatype;
+    }
+
+    @Override public int hashCode() {
+
+        return Objects.hash( name, datatype, primaryKey, unique, notNull );
     }
 
     @Override public String toString() {
