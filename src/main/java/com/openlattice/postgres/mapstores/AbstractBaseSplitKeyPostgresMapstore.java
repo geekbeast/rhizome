@@ -42,6 +42,11 @@ public abstract class AbstractBaseSplitKeyPostgresMapstore<K, K2, V>
         this( mapName, table, hds, BATCH_SIZE );
     }
 
+    //Hack for late initialization
+    protected AbstractBaseSplitKeyPostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds, Object lateinit ) {
+        this( mapName, table, hds, BATCH_SIZE );
+    }
+
     public AbstractBaseSplitKeyPostgresMapstore(
             String mapName,
             PostgresTableDefinition table,
