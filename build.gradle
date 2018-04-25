@@ -165,7 +165,7 @@ dependencies {
      */
     compile "org.hibernate:hibernate-validator:${hibernate_version}"
     compile "javax.el:javax.el-api:3.0.0"
-    compile "org.glassfish.web:javax.el:3.0.0"
+    compile "org.glassfish:javax.el:3.0.0"
 
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
