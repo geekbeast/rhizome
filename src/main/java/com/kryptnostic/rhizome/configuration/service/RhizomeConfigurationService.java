@@ -35,6 +35,7 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
         this.configurationsTopic = configurationsTopic;
         this.configurations = Preconditions.checkNotNull( configurations, "Configurations map cannot be null." );
         configurationsTopic.addMessageListener( this );
+        logger.info("Finished launching of Rhizome Configuration Service!");
     }
 
     @Override
