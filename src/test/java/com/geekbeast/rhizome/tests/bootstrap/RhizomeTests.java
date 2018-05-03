@@ -1,8 +1,8 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
-import com.openlattice.retrofit.LoomByteConverterFactory;
-import com.openlattice.retrofit.LoomCallAdapterFactory;
-import com.openlattice.retrofit.LoomJacksonConverterFactory;
+import com.openlattice.retrofit.RhizomeByteConverterFactory;
+import com.openlattice.retrofit.RhizomeCallAdapterFactory;
+import com.openlattice.retrofit.RhizomeJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
@@ -137,9 +137,9 @@ public class RhizomeTests {
                                 .build() ) )
                 .build();
         adapter = new Retrofit.Builder().baseUrl( "http://localhost:8081/rhizome/api/" ).client( httpClient )
-                .addConverterFactory( new LoomByteConverterFactory() )
-                .addConverterFactory( new LoomJacksonConverterFactory() )
-                .addCallAdapterFactory( new LoomCallAdapterFactory() ).build();
+                .addConverterFactory( new RhizomeByteConverterFactory() )
+                .addConverterFactory( new RhizomeJacksonConverterFactory() )
+                .addCallAdapterFactory( new RhizomeCallAdapterFactory() ).build();
 
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
 

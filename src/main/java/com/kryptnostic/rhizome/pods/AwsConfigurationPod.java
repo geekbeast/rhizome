@@ -1,8 +1,5 @@
 package com.kryptnostic.rhizome.pods;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.amazon.AwsLaunchConfiguration;
@@ -19,8 +16,7 @@ import org.springframework.context.annotation.Profile;
 @Profile( { Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
 @Configuration
 public class AwsConfigurationPod {
-    private static final Logger   logger = LoggerFactory.getLogger( ConfigurationPod.class );
-    private static final AmazonS3 s3     = new AmazonS3Client();
+    private static final Logger logger = LoggerFactory.getLogger( ConfigurationPod.class );
     private static final AmazonLaunchConfiguration awsTestConfig;
     private static final AmazonLaunchConfiguration awsConfig;
 
@@ -35,25 +31,13 @@ public class AwsConfigurationPod {
     @Profile( Profiles.AWS_CONFIGURATION_PROFILE )
     public AmazonLaunchConfiguration awsConfig() {
         logger.info( "Using aws configuration: {}", awsConfig );
-        if ( awsConfig.getRegion().isPresent() ) {
-            s3.setRegion( Region.getRegion( awsConfig.getRegion().get() ) );
-        }
         return awsConfig;
     }
 
     @Bean( name = "awsConfig" )
     @Profile( Profiles.AWS_TESTING_PROFILE )
     public AmazonLaunchConfiguration awsTestingConfig() {
-        logger.info( "Using aws configuration: {}", awsTestConfig );
-        if ( awsTestConfig.getRegion().isPresent() ) {
-            s3.setRegion( Region.getRegion( awsTestConfig.getRegion().get() ) );
-        }
         return awsTestConfig;
-    }
-
-    @Bean
-    public AmazonS3 s3() {
-        return s3;
     }
 
 }
