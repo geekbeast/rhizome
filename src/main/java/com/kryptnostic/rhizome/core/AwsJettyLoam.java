@@ -8,15 +8,14 @@ import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.keystores.Keystores;
 import com.openlattice.aws.AwsS3Pod;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AwsJettyLoam extends JettyLoam {
     private static final Logger logger = LoggerFactory.getLogger( AwsJettyLoam.class );
@@ -28,7 +27,8 @@ public class AwsJettyLoam extends JettyLoam {
     @Override
     protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
         AmazonLaunchConfiguration awsConfig = maybeAmazonLaunchConfiguration.get();
-        AmazonS3 s3 = AwsS3Pod.getAmazonS3( awsConfig );
+        AmazonS3 s3 = AwsS3Pod.newS3Client( awsConfig );
+
         String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
                 .checkNotNull( config.getTruststoreConfiguration(), "keystore configuration cannot be null" )

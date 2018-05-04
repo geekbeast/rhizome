@@ -25,19 +25,21 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.pods.AwsConfigurationPod;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import javax.inject.Inject;
+import org.springframework.context.annotation.Profile;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 @Configuration
 @Import( AwsConfigurationPod.class )
+@Profile( { Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
 public class AwsS3Pod {
 
     @Inject
@@ -45,10 +47,10 @@ public class AwsS3Pod {
 
     @Bean
     public AmazonS3 awsS3() {
-        return getAmazonS3( awsConfig );
+        return newS3Client( awsConfig );
     }
 
-    public static AmazonS3 getAmazonS3(AmazonLaunchConfiguration awsConfig) {
+    public static AmazonS3 newS3Client( AmazonLaunchConfiguration awsConfig ) {
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
         builder.setRegion( Region.getRegion( awsConfig.getRegion().or( Regions.DEFAULT_REGION ) ).getName() );
         return builder.build();
