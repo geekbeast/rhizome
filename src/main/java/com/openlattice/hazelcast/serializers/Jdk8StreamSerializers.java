@@ -24,9 +24,7 @@ package com.openlattice.hazelcast.serializers;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.InputChunked;
-import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.io.OutputChunked;
-import com.google.common.collect.SetMultimap;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
@@ -196,8 +194,12 @@ public class Jdk8StreamSerializers {
         }
     }
 
-    public static void serializeWithKryo( Kryo kryo ,ObjectDataOutput out,  Object object , int chunkSize ) {
-        OutputChunked output = new OutputChunked( (OutputStream) out , chunkSize );
+    public static void serializeWithKryo( Kryo kryo, ObjectDataOutput out, Object object, int chunkSize ) {
+        serializeWithKryo( kryo, (OutputStream) out, object, chunkSize );
+    }
+
+    public static void serializeWithKryo( Kryo kryo, OutputStream out, Object object, int chunkSize ) {
+        OutputChunked output = new OutputChunked( out, chunkSize );
         kryo.writeClassAndObject( output, object );
         output.endChunks();
         output.flush();
