@@ -152,15 +152,6 @@ dependencies {
     compile "javax.inject:javax.inject:1"
 
     /*
-     * Jersey Spring Integration
-     */
-    compile("org.glassfish.jersey.ext:jersey-spring3:2.23.2") {
-        exclude module: 'spring-core'
-        exclude module: 'spring-beans'
-        exclude module: 'spring-web'
-    }
-
-    /*
      * Hibernate Validator
      */
     compile "org.hibernate:hibernate-validator:${hibernate_version}"

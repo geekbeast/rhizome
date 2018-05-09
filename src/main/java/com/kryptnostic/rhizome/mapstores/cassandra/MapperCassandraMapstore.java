@@ -1,25 +1,22 @@
 package com.kryptnostic.rhizome.mapstores.cassandra;
 
+import com.datastax.driver.core.Session;
+import com.datastax.driver.mapping.Mapper;
+import com.datastax.driver.mapping.MappingManager;
+import com.datastax.driver.mapping.annotations.Table;
+import com.google.common.base.Preconditions;
+import com.hazelcast.core.MapStore;
+import com.kryptnostic.rhizome.mapstores.cassandra.CassandraOptions.ReplicationStrategy;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.Session;
-import com.datastax.driver.mapping.Mapper;
-import com.datastax.driver.mapping.MappingManager;
-import com.datastax.driver.mapping.annotations.Table;
-import com.hazelcast.core.MapStore;
-import com.kryptnostic.rhizome.mapstores.cassandra.CassandraOptions.ReplicationStrategy;
-
-import jersey.repackaged.com.google.common.base.Preconditions;
-
 public class MapperCassandraMapstore<K extends CassandraKey, V extends K> implements MapStore<K, V> {
-    private static final Logger          logger = LoggerFactory.getLogger( MapperCassandraMapstore.class );
+    private static final Logger logger = LoggerFactory.getLogger( MapperCassandraMapstore.class );
     private Mapper<V>                    valueMapper;
     private CassandraMapStoreAccessor<K> accessor;
 

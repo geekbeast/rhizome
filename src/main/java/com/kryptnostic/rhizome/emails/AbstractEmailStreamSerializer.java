@@ -1,19 +1,16 @@
 package com.kryptnostic.rhizome.emails;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import jersey.repackaged.com.google.common.collect.Lists;
-import jodd.mail.Email;
-import jodd.mail.EmailMessage;
-import jodd.mail.MailAddress;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import jodd.mail.Email;
+import jodd.mail.EmailMessage;
+import jodd.mail.MailAddress;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractEmailStreamSerializer implements SelfRegisteringStreamSerializer<Email> {
 
@@ -135,7 +132,7 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
 
     public static List<EmailMessage> deserializeEmailMessages( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        List<EmailMessage> messages = Lists.newArrayListWithCapacity( size );
+        List<EmailMessage> messages = new ArrayList<>( size );
         for ( int i = 0; i < size; ++i ) {
             String content = in.readUTF();
             String encoding = in.readUTF();
@@ -145,5 +142,4 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         return messages;
     }
 
-    
 }
