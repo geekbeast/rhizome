@@ -103,10 +103,10 @@ public class PostgresIterable<T> implements Iterable<T> {
                 notExhausted = rs.next();
             } catch ( SQLException e ) {
                 logger.error( "Unable to retrieve next element from result set.", e );
-                notExhausted = true;
+                notExhausted = false;
                 throw new NoSuchElementException( "Unable to retrieve next element from result set." );
             } finally {
-                if ( notExhausted ) {
+                if ( !notExhausted ) {
                     try {
                         rsh.close();
                     } catch ( IOException e ) {
