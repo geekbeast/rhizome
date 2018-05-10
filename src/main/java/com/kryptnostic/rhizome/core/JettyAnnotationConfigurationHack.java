@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.core;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -8,14 +9,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.annotation.HandlesTypes;
 
-import jersey.repackaged.com.google.common.collect.Lists;
 
 import org.eclipse.jetty.annotations.AnnotationConfiguration;
 import org.eclipse.jetty.annotations.ClassInheritanceHandler;
 import org.eclipse.jetty.annotations.ContainerInitializerAnnotationHandler;
 import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
 import org.eclipse.jetty.plus.annotation.ContainerInitializer;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.webapp.WebAppContext;

@@ -16,7 +16,6 @@ import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
 import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
 import java.io.IOException;
-import javax.ws.rs.core.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -30,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import retrofit2.Retrofit;
 
 public class RhizomeTests {
@@ -127,7 +127,7 @@ public class RhizomeTests {
                     Response response = chain.proceed( chain.request() );
                     if ( response.code() == HttpStatus.I_AM_A_TEAPOT.value() ) {
                         Assert.assertTrue( StringUtils.startsWith( response.body().contentType().toString(),
-                                MediaType.TEXT_PLAIN ) );
+                                MediaType.TEXT_PLAIN_VALUE ) );
                         return response.newBuilder().code( 200 ).build();
                     }
                     return response;

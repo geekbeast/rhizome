@@ -35,7 +35,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.DefaultServlet;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -133,17 +132,6 @@ public class Rhizome implements WebApplicationInitializer {
         adminServlet.setLoadOnStartup( 1 );
         adminServlet.addMapping( "/admin/*" );
         adminServlet.setInitParameter( "show-jvm-metrics", "true" );
-
-        /*
-         * Jersey Servlet For lovers of the JAX-RS standard.
-         */
-
-        ServletRegistration.Dynamic jerseyDispatcher = servletContext.addServlet(
-                "defaultJerseyServlet",
-                new ServletContainer() );
-        jerseyDispatcher.setInitParameter( "javax.ws.rs.Application", RhizomeApplication.class.getName() );
-        jerseyDispatcher.setLoadOnStartup( 1 );
-        jerseyDispatcher.addMapping( "/health/*" );
 
         /*
          * Atmosphere Servlet

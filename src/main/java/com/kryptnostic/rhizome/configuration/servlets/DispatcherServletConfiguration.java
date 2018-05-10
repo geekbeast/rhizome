@@ -1,22 +1,18 @@
 package com.kryptnostic.rhizome.configuration.servlets;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.annotation.Nullable;
-
-import jersey.repackaged.com.google.common.base.Preconditions;
-import jersey.repackaged.com.google.common.collect.Lists;
-
 import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Optional;
 
 public class DispatcherServletConfiguration {
     private final String            servletName;
     private final String[]          mappings;
     private final Optional<Integer> loadOnStartup;
-    private final List<Class<?>>    pods = Lists.newArrayList();
+    private final List<Class<?>> pods = new ArrayList<>();
 
     // Rhizome calls registerDispatcherServlets to all DispatcherServletConfigurations that are @Beans inside a Pod
     // registered to Rhizome
@@ -62,6 +58,5 @@ public class DispatcherServletConfiguration {
         return "DispatcherServletConfiguration [servletName=" + servletName + ", mappings="
                 + Arrays.toString( mappings ) + ", loadOnStartup=" + loadOnStartup + ", pods=" + pods + "]";
     }
-    
-    
+
 }

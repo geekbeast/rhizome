@@ -67,25 +67,29 @@ public class PostgresIterable<T> implements Iterable<T> {
         }
     }
 
+    public Stream<T> stream() {
+        return StreamUtil.stream( this );
+    }
+
     public static class PostgresIterator<T> implements Iterator<T> {
         private static final Logger logger = LoggerFactory.getLogger( PostgresIterator.class );
         private final        Lock   lock   = new ReentrantLock();
         private final Function<ResultSet, T> mapper;
         private final StatementHolder        rsh;
         private final ResultSet              rs;
-        private       boolean                exhausted;
+        private       boolean                notExhausted;
 
         public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper )
                 throws SQLException {
             this.rsh = rsh;
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
-            exhausted = this.rs.next();
+            notExhausted = this.rs.next();
         }
 
         @Override
         public boolean hasNext() {
-            return !exhausted;
+            return notExhausted;
         }
 
         @Override
@@ -96,27 +100,24 @@ public class PostgresIterable<T> implements Iterable<T> {
                 lock.lock();
                 checkState( hasNext(), "There are no more items remaining in the stream." );
                 nextElem = mapper.apply( rs );
-                exhausted = rs.next();
+                notExhausted = rs.next();
             } catch ( SQLException e ) {
                 logger.error( "Unable to retrieve next element from result set.", e );
-                exhausted = true;
+                notExhausted = false;
                 throw new NoSuchElementException( "Unable to retrieve next element from result set." );
             } finally {
-                lock.unlock();
-                if ( exhausted ) {
+                if ( !notExhausted ) {
                     try {
                         rsh.close();
                     } catch ( IOException e ) {
                         logger.error( "Error while closing result set." );
                     }
                 }
+
+                lock.unlock();
             }
 
             return nextElem;
         }
-    }
-
-    public Stream<T> stream() {
-        return StreamUtil.stream( this );
     }
 }
