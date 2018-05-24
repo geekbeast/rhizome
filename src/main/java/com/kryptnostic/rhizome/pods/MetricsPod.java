@@ -110,6 +110,7 @@ public class MetricsPod implements MetricsConfigurer {
                     graphiteConfig.getGraphiteHost(),
                     graphiteConfig.getGraphitePort() ) );
             graphite.connect();
+            return graphite;
         }
         return null;
     }
