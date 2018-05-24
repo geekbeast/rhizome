@@ -24,6 +24,7 @@ package com.openlattice.postgres.streams;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.dataloom.streams.StreamUtil;
+import java.io.Closeable;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,6 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,7 @@ public class PostgresIterable<T> implements Iterable<T> {
     }
 
     @Override
-    public Iterator<T> iterator() {
+    public PostgresIterator<T> iterator() {
         try {
             return new PostgresIterator<>( rsh.get(), mapper );
         } catch ( SQLException e ) {
@@ -67,11 +69,12 @@ public class PostgresIterable<T> implements Iterable<T> {
         }
     }
 
+    @Nonnull
     public Stream<T> stream() {
         return StreamUtil.stream( this );
     }
 
-    public static class PostgresIterator<T> implements Iterator<T> {
+    public static class PostgresIterator<T> implements Iterator<T>, AutoCloseable, Closeable {
         private static final Logger logger = LoggerFactory.getLogger( PostgresIterator.class );
         private final        Lock   lock   = new ReentrantLock();
         private final Function<ResultSet, T> mapper;
@@ -119,5 +122,10 @@ public class PostgresIterable<T> implements Iterable<T> {
 
             return nextElem;
         }
+
+        @Override public void close() throws IOException {
+            rsh.close();
+        }
     }
+
 }

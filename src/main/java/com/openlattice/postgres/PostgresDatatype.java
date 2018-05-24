@@ -68,10 +68,11 @@ public enum PostgresDatatype {
     TIMETZ,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
-    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY;
+    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
-            .of( SMALLINT_ARRAY,
+            .of( BYTEA_ARRAY,
+                    SMALLINT_ARRAY,
                     INTEGER_ARRAY,
                     BIGINT_ARRAY,
                     DOUBLE_ARRAY,
