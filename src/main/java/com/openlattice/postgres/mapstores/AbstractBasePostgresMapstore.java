@@ -76,7 +76,7 @@ public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgre
             insertRow.execute();
             handleStoreSucceeded( key, value );
         } catch ( SQLException e ) {
-            String errMsg = "Error executing SQL during store for key " + key + "in map " + mapName + ".";
+            String errMsg = "Error executing SQL during store for key " + key + " in map " + mapName + ".";
             logger.error( errMsg, e );
             handleStoreFailed( key, value );
             throw new IllegalStateException( errMsg, e );
