@@ -21,58 +21,16 @@ import java.net.UnknownHostException;
  * @author Matthew Tamayo-Rios
  */
 @Configuration
-@EnableMetrics(
-        proxyTargetClass = true )
+@EnableMetrics( proxyTargetClass = true )
 @Import( { AsyncPod.class, ConfigurationPod.class } )
 public class MetricsPod implements MetricsConfigurer {
+
     private static final Logger              logger              = LoggerFactory.getLogger( MetricsPod.class );
     private static final MetricRegistry      metricRegistry      = new MetricRegistry();
     private static final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
     @Inject
     private RhizomeConfiguration config;
-
-    // @Bean
-    // public GraphiteReporter serverGraphiteReporter() throws IOException {
-    //     Graphite graphite = serverGraphite();
-    //
-    //     if ( graphite == null ) {
-    //         return null;
-    //     }
-    //     return GraphiteReporter.forRegistry( metricRegistry )
-    //             .prefixedWith( getHostName() )
-    //             .convertDurationsTo( TimeUnit.MILLISECONDS )
-    //             .convertRatesTo( TimeUnit.SECONDS )
-    //             .build( graphite );
-    // }
-
-    // @Bean
-    // public GraphiteReporter aggregateGraphiteReporter() throws IOException {
-    //     Graphite graphite = serverGraphite();
-    //
-    //     if ( graphite == null ) {
-    //         return null;
-    //     }
-    //
-    //     return GraphiteReporter.forRegistry( metricRegistry )
-    //             .convertDurationsTo( TimeUnit.MILLISECONDS )
-    //             .convertRatesTo( TimeUnit.SECONDS )
-    //             .build( graphite );
-    // }
-
-    // @Bean
-    // public ConsoleReporter consoleGraphiteReporter() {
-    //     if ( config.getGraphiteConfiguration().isPresent() ) {
-    //         GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
-    //         if ( graphiteConfig.isEnableConsole() ) {
-    //             return ConsoleReporter.forRegistry( metricRegistry )
-    //                     .convertDurationsTo( TimeUnit.MILLISECONDS )
-    //                     .convertRatesTo( TimeUnit.SECONDS )
-    //                     .build();
-    //         }
-    //     }
-    //     return null;
-    // }
 
     @Override
     public void configureReporters( MetricRegistry registry ) {
@@ -92,32 +50,6 @@ public class MetricsPod implements MetricsConfigurer {
     public MetricRegistry getMetricRegistry() {
         return metricRegistry;
     }
-
-    // @Bean
-    // public Graphite serverGraphite() throws IOException {
-    //     if ( config.getGraphiteConfiguration().isPresent() ) {
-    //         GraphiteConfiguration graphiteConfig = config.getGraphiteConfiguration().get();
-    //         logger.info(
-    //                 "Initializing server graphite instance with at {}:{}",
-    //                 graphiteConfig.getGraphiteHost(),
-    //                 graphiteConfig.getGraphitePort() );
-    //         Graphite graphite = new Graphite( new InetSocketAddress(
-    //                 graphiteConfig.getGraphiteHost(),
-    //                 graphiteConfig.getGraphitePort() ) );
-    //         graphite.connect();
-    //         return graphite;
-    //     }
-    //     return null;
-    // }
-
-    // @Autowired( required = false )
-    // public void startGraphite( Set<ScheduledReporter> reporters ) {
-    //     reporters.forEach( reporter -> {
-    //         if ( reporter != null ) {
-    //             reporter.start( 10, TimeUnit.SECONDS );
-    //         }
-    //     } );
-    // }
 
     protected String getHostName() {
         try {
