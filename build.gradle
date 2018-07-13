@@ -105,6 +105,13 @@ dependencies {
     compile "com.ryantenney.metrics:metrics-spring:${ryantenney_metrics_version}"
 
     /*
+     * Prometheus - https://prometheus.io/docs
+     */
+    compile "io.prometheus:simpleclient:${prometheus_jvm_client_version}"
+    compile "io.prometheus:simpleclient_dropwizard:${prometheus_jvm_client_version}"
+    compile "io.prometheus:simpleclient_servlet:${prometheus_jvm_client_version}"
+
+    /*
      * GUAVA
      * EventBus, FluentIterables, ListenableFutures and more
      */
