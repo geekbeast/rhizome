@@ -120,7 +120,7 @@ public class MetricsPod implements MetricsConfigurer {
     public void startGraphite( Set<ScheduledReporter> reporters ) {
         reporters.forEach( reporter -> {
             if ( reporter != null ) {
-                reporter.start( 5, TimeUnit.SECONDS );
+                reporter.start( 10, TimeUnit.SECONDS );
             }
         } );
     }
