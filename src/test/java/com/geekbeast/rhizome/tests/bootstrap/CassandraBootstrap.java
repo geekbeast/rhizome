@@ -8,6 +8,7 @@ import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import com.google.common.base.Suppliers;
 import com.kryptnostic.rhizome.cassandra.EmbeddedCassandraManager;
 import com.kryptnostic.rhizome.pods.CassandraPod;
 
+@Ignore
 public class CassandraBootstrap {
     private static final int                  EMBEDDED_TIMEOUT = 60000;
 

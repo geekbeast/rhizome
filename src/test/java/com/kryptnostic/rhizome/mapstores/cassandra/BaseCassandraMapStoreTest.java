@@ -21,6 +21,7 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
+@Ignore
 public class BaseCassandraMapStoreTest extends CassandraBootstrap {
 
     private final CassandraConfiguration config = new CassandraConfiguration(
