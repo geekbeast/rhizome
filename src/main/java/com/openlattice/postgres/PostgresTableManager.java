@@ -50,7 +50,7 @@ public class PostgresTableManager {
         logger.info( "Processing postgres table registration." );
         for ( PostgresTableDefinition table : tables ) {
             if ( activeTables.containsKey( table.getName() ) ) {
-                logger.warn( "Table {} has already been registered and initialized... skipping", table );
+                logger.debug( "Table {} has already been registered and initialized... skipping", table );
             } else {
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
                     sctq.execute( table.createTableQuery() );
