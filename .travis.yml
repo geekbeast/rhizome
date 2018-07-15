@@ -4,4 +4,4 @@ jdk:
 install:
   - git fetch --tags
   - git describe --tags
-script: ./gradlew check --stacktrace
+script: ./gradlew check --stacktrace --info
