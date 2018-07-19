@@ -92,12 +92,13 @@ public class PostgresIterable<T> implements Iterable<T> {
 
         @Override
         public boolean hasNext() {
+            //We don't lock here, because multiple calls to has next can still cause an exception to be thrown while
+            //calling next
             return notExhausted;
         }
 
         @Override
         public T next() {
-
             final T nextElem;
             try {
                 lock.lock();
