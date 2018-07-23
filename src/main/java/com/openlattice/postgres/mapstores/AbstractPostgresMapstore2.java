@@ -29,6 +29,7 @@ import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.CountdownConnectionCloser;
 import com.openlattice.postgres.KeyIterator;
@@ -279,6 +280,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     @Override
     public MapStoreConfig getMapStoreConfig() {
         return new MapStoreConfig()
+                .setInitialLoadMode( InitialLoadMode.EAGER )
                 .setImplementation( this )
                 .setEnabled( true )
                 .setWriteDelaySeconds( 0 );
