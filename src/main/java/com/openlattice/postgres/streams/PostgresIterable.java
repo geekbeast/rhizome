@@ -89,6 +89,9 @@ public class PostgresIterable<T> implements Iterable<T> {
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
             notExhausted = this.rs.next();
+            if(!notExhausted) {
+                rsh.close();
+            }
         }
 
         @Override
