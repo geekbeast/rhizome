@@ -109,17 +109,18 @@ public class PostgresIterable<T> implements Iterable<T> {
 
             executor.execute( () -> {
                 while ( rsh.isOpen() ) {
-                    if ( Instant.now().toEpochMilli() < expiration ) {
+                    if ( Instant.now().toEpochMilli() > expiration ) {
                         try {
                             rsh.close();
                         } catch ( IOException e ) {
                             logger.error( "Unable to close statement holder.", e );
                         }
-                    }
-                    try {
-                        Thread.sleep( timeoutMillis );
-                    } catch ( InterruptedException e ) {
-                        logger.error( "Unable to sleep thread for {} millis", timeoutMillis, e );
+                    } else {
+                        try {
+                            Thread.sleep( timeoutMillis );
+                        } catch ( InterruptedException e ) {
+                            logger.error( "Unable to sleep thread for {} millis", timeoutMillis, e );
+                        }
                     }
                 }
             } );
