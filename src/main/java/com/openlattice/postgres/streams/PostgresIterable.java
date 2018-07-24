@@ -28,10 +28,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -75,33 +78,68 @@ public class PostgresIterable<T> implements Iterable<T> {
     }
 
     public static class PostgresIterator<T> implements Iterator<T>, AutoCloseable, Closeable {
-        private static final Logger                 logger = LoggerFactory.getLogger( PostgresIterator.class );
-        private final        Lock                   lock   = new ReentrantLock();
+        private static final long                   DEFAULT_TIMEOUT_MILLIS = 10000;
+        private static final ExecutorService        executor               = Executors.newSingleThreadExecutor();
+        private static final Logger                 logger                 = LoggerFactory
+                .getLogger( PostgresIterator.class );
+        private final        Lock                   lock                   = new ReentrantLock();
         private final        Function<ResultSet, T> mapper;
         private final        StatementHolder        rsh;
         private final        ResultSet              rs;
+        private final        long                   timeoutMillis;
+        private              long                   expiration;
         private              boolean                notExhausted;
 
-        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper )
+        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper ) throws IOException, SQLException {
+            this( rsh, mapper, DEFAULT_TIMEOUT_MILLIS );
+        }
+
+        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper, long timeoutMillis )
                 throws SQLException, IOException {
             this.rsh = rsh;
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
+            this.timeoutMillis = timeoutMillis;
             notExhausted = this.rs.next();
+            updateExpiration();
+
             if ( !notExhausted ) {
                 rsh.close();
             }
+
+            executor.execute( () -> {
+                while ( rsh.isOpen() ) {
+                    if ( Instant.now().toEpochMilli() < expiration ) {
+                        try {
+                            rsh.close();
+                        } catch ( IOException e ) {
+                            logger.error( "Unable to close statement holder.", e );
+                        }
+                    }
+                    try {
+                        Thread.sleep( timeoutMillis );
+                    } catch ( InterruptedException e ) {
+                        logger.error( "Unable to sleep thread for {} millis", timeoutMillis, e );
+                    }
+                }
+            } );
         }
 
         @Override
         public boolean hasNext() {
             //We don't lock here, because multiple calls to has next can still cause an exception to be thrown while
             //calling next
+            updateExpiration();
             return notExhausted;
+        }
+
+        private void updateExpiration() {
+            this.expiration = Instant.now().toEpochMilli() + timeoutMillis;
         }
 
         @Override
         public T next() {
+            updateExpiration();
             final T nextElem;
             try {
                 lock.lock();

@@ -35,6 +35,7 @@ public class StatementHolder implements Closeable {
     private final Connection connection;
     private final Statement  statement;
     private final ResultSet  resultSet;
+    private       boolean    open = true;
 
     public StatementHolder( Connection connection, Statement ps, ResultSet resultSet ) {
         this.connection = connection;
@@ -59,8 +60,13 @@ public class StatementHolder implements Closeable {
             resultSet.close();
             statement.close();
             connection.close();
+            open = false;
         } catch ( SQLException e ) {
             throw new IOException( "Unable to close sql objects", e );
         }
+    }
+
+    public boolean isOpen() {
+        return open;
     }
 }
