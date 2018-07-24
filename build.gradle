@@ -251,6 +251,7 @@ dependencies {
      */
     testCompile 'junit:junit:4.12'
     testCompile "org.cassandraunit:cassandra-unit:3.5.0.1"
+    testCompile "org.mockito:mockito-all:${mockito_version}"
 
     /*
      * TODO: The rest we depend on Loom API via Jar dependency is to avoid circular classpath problems in Eclipse.

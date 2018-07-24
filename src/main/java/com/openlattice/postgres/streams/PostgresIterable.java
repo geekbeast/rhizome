@@ -28,7 +28,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -64,7 +63,7 @@ public class PostgresIterable<T> implements Iterable<T> {
     public PostgresIterator<T> iterator() {
         try {
             return new PostgresIterator<>( rsh.get(), mapper );
-        } catch ( SQLException e ) {
+        } catch ( SQLException | IOException e ) {
             logger.error( "Error creating postgres stream iterator." );
             throw new IllegalStateException( "Unable to instantiate postgres iterator.", e );
         }
@@ -76,20 +75,20 @@ public class PostgresIterable<T> implements Iterable<T> {
     }
 
     public static class PostgresIterator<T> implements Iterator<T>, AutoCloseable, Closeable {
-        private static final Logger logger = LoggerFactory.getLogger( PostgresIterator.class );
-        private final        Lock   lock   = new ReentrantLock();
-        private final Function<ResultSet, T> mapper;
-        private final StatementHolder        rsh;
-        private final ResultSet              rs;
-        private       boolean                notExhausted;
+        private static final Logger                 logger = LoggerFactory.getLogger( PostgresIterator.class );
+        private final        Lock                   lock   = new ReentrantLock();
+        private final        Function<ResultSet, T> mapper;
+        private final        StatementHolder        rsh;
+        private final        ResultSet              rs;
+        private              boolean                notExhausted;
 
         public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper )
-                throws SQLException {
+                throws SQLException, IOException {
             this.rsh = rsh;
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
             notExhausted = this.rs.next();
-            if(!notExhausted) {
+            if ( !notExhausted ) {
                 rsh.close();
             }
         }
