@@ -14,7 +14,7 @@ import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
-import digital.loom.rhizome.authentication.Auth0SecurityTestPod;
+import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
 import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
