@@ -109,7 +109,7 @@ public class PostgresIterable<T> implements Iterable<T> {
 
             executor.execute( () -> {
                 while ( rsh.isOpen() ) {
-                    if ( Instant.now().toEpochMilli() > expiration ) {
+                    if ( System.currentTimeMillis() > expiration || !notExhausted ) {
                         try {
                             rsh.close();
                         } catch ( IOException e ) {
@@ -135,7 +135,7 @@ public class PostgresIterable<T> implements Iterable<T> {
         }
 
         private void updateExpiration() {
-            this.expiration = Instant.now().toEpochMilli() + timeoutMillis;
+            this.expiration = System.currentTimeMillis() + timeoutMillis;
         }
 
         @Override
