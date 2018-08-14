@@ -53,8 +53,11 @@ public class PostgresIterableTests {
                 resultSet -> new Object()
         );
 
+        doAnswer( invocation -> closeCount.getAndIncrement() ).when( rs ).close();
         doAnswer( invocation -> closeCount.getAndIncrement() ).when( stmt ).close();
         doAnswer( invocation -> closeCount.getAndIncrement() ).when( connection ).close();
+
+        var piter = pi.iterator();
 
         Assert.assertEquals( 3, closeCount.get());
     }
