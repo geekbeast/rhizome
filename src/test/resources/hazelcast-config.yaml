@@ -1,0 +1,7 @@
+instance-name: "test"
+scheduled-executor:
+  name: "test-scheduled-executor"
+  durability: 1
+  capacity: 128
+  pool-size: 1024
+  quorum-name: "test-name"

@@ -262,9 +262,11 @@ dependencies {
     if (project.hasProperty('developmentMode') && project.developmentMode) {
         logger.quiet(project.name + " using project dependencies.")
         compile project(":rhizome-client")
+        testCompile(project(path: ":rhizome-client", configuration: "tests"))
     } else {
         logger.quiet(project.name + " using jar dependencies.")
         compile "com.openlattice:rhizome-client:${rhizome_client_version}"
+        testCompile "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
     }
 
     compile 'com.auth0:auth0:1.5.0'
@@ -275,8 +277,8 @@ dependencies {
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    ext.sourceCompatibility = JavaVersion.VERSION_1_8
-    ext.targetCompatibility = JavaVersion.VERSION_1_8
+    ext.sourceCompatibility = JavaVersion.VERSION_1_10
+    ext.targetCompatibility = JavaVersion.VERSION_1_10
 }
 
 install {
