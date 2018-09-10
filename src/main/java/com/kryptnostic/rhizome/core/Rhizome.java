@@ -241,7 +241,8 @@ public class Rhizome implements WebApplicationInitializer {
             }
         } finally {
             rhizomeContext = null;
-            if ( context.isActive() && startupRequirementsSatisfied( context ) ) {
+
+            if ( context.isActive() && context.isRunning() && startupRequirementsSatisfied( context ) ) {
                 showBanner();
             }
             startupLock.unlock();
