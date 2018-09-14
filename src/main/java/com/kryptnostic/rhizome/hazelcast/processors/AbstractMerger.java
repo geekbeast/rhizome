@@ -2,6 +2,7 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 
 import com.openlattice.rhizome.hazelcast.SetProxy;
 
@@ -30,12 +31,16 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T>
         }
 
         newObjects.forEach( currentObjects::add );
-
+        postProcess( currentObjects );
         //Don't trigger re-serialization if handled by SetProxy.
         if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
             entry.setValue( currentObjects );
         }
         return null;
+    }
+
+    protected void postProcess( V value ) {
+
     }
 
     public Iterable<T> getBackingCollection() {
