@@ -47,11 +47,12 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
-        logger.info( "Processing postgres table registration." );
+        logger.info( "Processing postgres table registrations." );
         for ( PostgresTableDefinition table : tables ) {
             if ( activeTables.containsKey( table.getName() ) ) {
                 logger.debug( "Table {} has already been registered and initialized... skipping", table );
             } else {
+                logger.debug( "Processed postgres table registration for table {}", table.getName() );
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
                     sctq.execute( table.createTableQuery() );
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
