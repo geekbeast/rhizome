@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Arrays;
@@ -47,9 +48,20 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     private boolean ifNotExists = false;
     private boolean concurrent  = false;
 
-    public PostgresColumnsIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition... column ) {
+    public PostgresColumnsIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition... columns ) {
+        checkState( checkNotNull( columns ).length > 0 );
         this.table = table;
-        this.columns = Arrays.asList( column );
+        this.columns = Arrays.asList( columns );
+        var indexPrefix = lowerCaseAndUnquote( table.getName() ) + "_";
+        this.name = Optional.of( this.columns.stream()
+                .map( PostgresColumnDefinition::getName)
+                .map( this::lowerCaseAndUnquote )
+                .collect( Collectors.joining( "_" ,indexPrefix,"_idx" ) ) );
+    }
+
+    private String lowerCaseAndUnquote( String name )
+    {
+        return name.toLowerCase().replace( "\"" , "");
     }
 
     @Override public List<PostgresColumnDefinition> getColumns() {

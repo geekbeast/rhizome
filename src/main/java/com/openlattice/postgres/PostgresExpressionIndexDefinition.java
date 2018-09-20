@@ -166,25 +166,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
             psql.append( " USING " ).append( method.get() );
         }
 
-        psql.append( " (" ).append( expression );
-
-        if ( asc ) {
-            psql.append( " ASC " );
-        }
-
-        if ( desc ) {
-            psql.append( " DESC " );
-        }
-
-        if ( nullsFirst ) {
-            psql.append( " NULLS FIRST " );
-        }
-
-        if ( nullsLast ) {
-            psql.append( " NULLS LAST " );
-        }
-
-        psql.append( ") " );
+        psql.append( " (" ).append( expression ).append( ") " );
 
         return psql.toString();
     }
