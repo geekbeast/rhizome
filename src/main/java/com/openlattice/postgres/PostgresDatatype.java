@@ -68,7 +68,7 @@ public enum PostgresDatatype {
     TIMETZ,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
-    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY;
+    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY,JSONB;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
             .of( BYTEA_ARRAY,
@@ -82,13 +82,13 @@ public enum PostgresDatatype {
                     TEXT_ARRAY );
 
     public String sql() {
-        switch( this ) {
+        switch ( this ) {
             case TIME:
                 return "TIME WITHOUT TIME ZONE";
             case TIMETZ:
                 return "TIME WITH TIME ZONE";
             case DOUBLE:
-                 return "DOUBLE PRECISION";
+                return "DOUBLE PRECISION";
             case DOUBLE_ARRAY:
                 return "DOUBLE PRECISION[]";
             default:
