@@ -106,17 +106,14 @@ public class  PostgresColumnDefinition {
             pcdSql.append( " NOT NULL " );
         }
 
-        if ( foreignTableReference.isPresent() ) {
-            pcdSql.append( " REFERENCES " ).append( foreignTableReference.get().getName() );
-        }
+        foreignTableReference.ifPresent( postgresTableDefinition -> pcdSql.append( " REFERENCES " )
+                .append( postgresTableDefinition.getName() ) );
 
-        if ( foreignColumnReference.isPresent() ) {
-            //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
-            pcdSql.append( " (" + foreignColumnReference.get().getName() + ") " );
-        }
-        if ( defaultValue.isPresent() ) {
-            pcdSql.append( " default " + String.valueOf( defaultValue.get() ) );
-        }
+        //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
+        foreignColumnReference.ifPresent( postgresColumnDefinition -> pcdSql
+                .append( " (" + postgresColumnDefinition.getName() + ") " ) );
+
+        defaultValue.ifPresent( o -> pcdSql.append( " default " + String.valueOf( o ) ) );
 
         return pcdSql.toString().trim();
     }

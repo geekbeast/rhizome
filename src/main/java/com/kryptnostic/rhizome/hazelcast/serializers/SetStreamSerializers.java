@@ -130,4 +130,14 @@ public class SetStreamSerializers {
         return items;
     }
 
+
+    public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
+        int size = in.readInt();
+        LinkedHashSet<String> items = new LinkedHashSet<>( size );
+        for ( int i = 0; i < size; i++ ) {
+            items.add( in.readUTF() );
+        }
+        return items;
+    }
+
 }
