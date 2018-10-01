@@ -34,7 +34,7 @@ import java.util.*
  * Utility function for performing stream serializations of of set multimaps of a uuid to a set of string.
  */
 fun serializeSetMultimap(out: ObjectDataOutput, mm: SetMultimap<UUID, String>) {
-    out.writeInt(mm.entries().size)
+    out.writeInt(mm.keySet().size)
     Multimaps.asMap(mm).forEach {
         val tags = it.value.toTypedArray()
         AbstractUUIDStreamSerializer.serialize(out, it.key)
