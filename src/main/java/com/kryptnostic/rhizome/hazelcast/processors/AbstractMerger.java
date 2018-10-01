@@ -31,7 +31,7 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T>
         }
 
         newObjects.forEach( currentObjects::add );
-        postProcess( currentObjects );
+        processBeforeWriteBack( currentObjects );
         //Don't trigger re-serialization if handled by SetProxy.
         if ( !( currentObjects instanceof SetProxy<?, ?> ) ) {
             entry.setValue( currentObjects );
@@ -39,7 +39,7 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T>
         return null;
     }
 
-    protected void postProcess( V value ) {
+    protected void processBeforeWriteBack( V value ) {
 
     }
 
