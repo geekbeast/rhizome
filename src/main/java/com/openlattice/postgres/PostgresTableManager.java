@@ -55,6 +55,11 @@ public class PostgresTableManager {
                 logger.debug( "Processed postgres table registration for table {}", table.getName() );
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
                     sctq.execute( table.createTableQuery() );
+                    //Creating the distributed table must be done before creating any indeices.
+                    if( table instanceof CitusDistributedTableDefinition ) {
+                        logger.info("Creating distributed table {}.", table.getName());
+                        sctq.execute(( (CitusDistributedTableDefinition) table ).createDistributedTableQuery() );
+                    }
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
                         String indexSql = index.sql();
                         try ( Statement sci = conn.createStatement() ) {
@@ -66,6 +71,7 @@ public class PostgresTableManager {
                                     table );
                             throw e;
                         }
+
                     }
                 } catch ( SQLException e ) {
                     logger.info( "Failed to initialize postgres table {} with query {}",
