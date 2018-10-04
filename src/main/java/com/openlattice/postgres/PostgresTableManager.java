@@ -34,9 +34,10 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresTableManager {
-    private static final Logger logger = LoggerFactory.getLogger( PostgresTableManager.class );
-    private final HikariDataSource hds;
-    private final Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
+    private static final Logger                               logger       = LoggerFactory
+            .getLogger( PostgresTableManager.class );
+    private final        HikariDataSource                     hds;
+    private final        Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
 
     public PostgresTableManager( HikariDataSource hds ) {
         this.hds = hds;
@@ -55,11 +56,20 @@ public class PostgresTableManager {
                 logger.debug( "Processed postgres table registration for table {}", table.getName() );
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
                     sctq.execute( table.createTableQuery() );
+
                     //Creating the distributed table must be done before creating any indeices.
-                    if( table instanceof CitusDistributedTableDefinition ) {
-                        logger.info("Creating distributed table {}.", table.getName());
-                        sctq.execute(( (CitusDistributedTableDefinition) table ).createDistributedTableQuery() );
+                    if ( table instanceof CitusDistributedTableDefinition ) {
+                        logger.info( "Creating distributed table {}.", table.getName() );
+                        try ( Statement ddstmt = conn.createStatement() ) {
+                            ddstmt.execute( ( (CitusDistributedTableDefinition) table ).createDistributedTableQuery() );
+                        } catch ( SQLException ddex ) {
+                            logger.error( "Unable to distribute table {}. Cause: {}",
+                                    table.getName(),
+                                    ddex.getMessage(),
+                                    ddex );
+                        }
                     }
+
                     for ( PostgresIndexDefinition index : table.getIndexes() ) {
                         String indexSql = index.sql();
                         try ( Statement sci = conn.createStatement() ) {

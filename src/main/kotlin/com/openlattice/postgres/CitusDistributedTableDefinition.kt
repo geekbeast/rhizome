@@ -28,30 +28,47 @@ import java.util.*
  * Used to define a partitioned postgres table.
  */
 class CitusDistributedTableDefinition(
-        name: String,
-        val distributionColumn: PostgresColumnDefinition
+        name: String
 ) : PostgresTableDefinition(name) {
-    private var colocationColumn: Optional<PostgresColumnDefinition> = Optional.empty()
+    private lateinit var distributionColumn: PostgresColumnDefinition
+    private var colocationColumn: Optional<PostgresTableDefinition> = Optional.empty()
 
-    fun colocationColumn(column: PostgresColumnDefinition): CitusDistributedTableDefinition {
+    fun colocationColumn(column: PostgresTableDefinition): CitusDistributedTableDefinition {
         this.colocationColumn = Optional.of(column)
         return this
     }
 
-    fun distributionColumns( column: PostgresColumnDefinition): CitusDistributedTableDefinition {
-        if (!this.distributionColumn.isEmpty()) {
-            this.distributionColumn.clear()
-            PostgresTableDefinition.logger.warn(
-                    "Previous partition column specification is being overriden. This is unexpected."
-            )
-        }
-        this.distributionColumn.addAll(Arrays.asList(*columns))
+    fun distributionColumn(column: PostgresColumnDefinition): CitusDistributedTableDefinition {
+        this.distributionColumn = column
         return this
     }
 
     fun createDistributedTableQuery(): String {
-        val schemaQuery = super.createTableQuery()
+        return if( colocationColumn.isPresent ) {
+            val colocationSql = colocationColumn.map { "colocate_with =>'${it.name}'" }.get()
+            "SELECT create_distributed_table('$name','${distributionColumn.name}', $colocationSql)"
+        } else {
+            "SELECT create_distributed_table('$name','${distributionColumn.name}')"
+        }
+    }
 
-        return "$schemaQuery; SELECT create_distributed_table('${distributionColumn.name}', colocate_with => $colocationColumn.name "
+    override fun addColumns(vararg columnsToAdd: PostgresColumnDefinition): CitusDistributedTableDefinition {
+        super.addColumns(*columnsToAdd)
+        return this
+    }
+
+    override fun addIndexes(vararg indexes: PostgresIndexDefinition): CitusDistributedTableDefinition {
+        super.addIndexes(*indexes)
+        return this
+    }
+
+    override fun primaryKey(vararg primaryKeyColumns: PostgresColumnDefinition): CitusDistributedTableDefinition {
+        super.primaryKey(*primaryKeyColumns)
+        return this
+    }
+
+    override fun setUnique(vararg uniqueColumns: PostgresColumnDefinition): CitusDistributedTableDefinition {
+        super.setUnique(*uniqueColumns)
+        return this
     }
 }
