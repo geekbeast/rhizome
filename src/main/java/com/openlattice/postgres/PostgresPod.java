@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.openlattice.jdbc.JdbcPod;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
@@ -40,6 +41,8 @@ import org.springframework.context.annotation.Profile;
 public class PostgresPod {
     public static final String PROFILE = "postgres";
 
+    @Inject RhizomeConfiguration rhizomeConfiguration;
+
     @Inject
     private HikariDataSource hds;
 
@@ -48,7 +51,7 @@ public class PostgresPod {
 
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
-        PostgresTableManager ptm = new PostgresTableManager( hds );
+        PostgresTableManager ptm = new PostgresTableManager( hds, rhizomeConfiguration.isUsingCitus() );
         if ( spt != null ) {
             ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
         }
