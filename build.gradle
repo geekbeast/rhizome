@@ -10,6 +10,7 @@ plugins {
     //id 'com.github.spotbugs' version '1.6.2'
     id 'org.jetbrains.kotlin.jvm' version '1.2.51'
     id 'org.jetbrains.kotlin.plugin.spring' version '1.2.51'
+    id 'org.jetbrains.dokka' version '0.9.17'
 }
 
 description = "Java Framework for building clustered RESTful web applications"
@@ -47,6 +48,15 @@ run {
 
 ext.sourceCompatibility = JavaVersion.VERSION_1_10
 ext.targetCompatibility = JavaVersion.VERSION_1_10
+
+tasks.withType(Javadoc) {
+    enabled = false
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+}
 
 dependencies {
     //spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.7.1'

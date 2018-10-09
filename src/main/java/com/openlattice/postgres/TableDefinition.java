@@ -30,4 +30,8 @@ public interface TableDefinition {
     String createTableQuery();
 
     Stream<String> getCreateIndexQueries();
+
+    default boolean isDistributed() {
+        return false;
+    }
 }

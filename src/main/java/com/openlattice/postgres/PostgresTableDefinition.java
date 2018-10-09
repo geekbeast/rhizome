@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresTableDefinition implements TableDefinition {
-    private static final Logger logger = LoggerFactory.getLogger( PostgresTableDefinition.class );
+    protected static final Logger logger = LoggerFactory.getLogger( PostgresTableDefinition.class );
 
     private final String name;
     private final LinkedHashSet<PostgresColumnDefinition> primaryKey = new LinkedHashSet<>();
