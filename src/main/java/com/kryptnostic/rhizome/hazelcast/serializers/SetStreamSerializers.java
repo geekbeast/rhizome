@@ -76,12 +76,10 @@ public class SetStreamSerializers {
     }
 
     private static Set<UUID> processEntries( Set<UUID> set, int size, ObjectDataInput in ) throws IOException {
-        if(size > 0) {
-            long[] least = in.readLongArray();
-            long[] most = in.readLongArray();
-            for ( int i = 0; i < size; i++ ) {
-                set.add( new UUID( most[i], least[i] ) );
-            }
+        long[] least = in.readLongArray();
+        long[] most = in.readLongArray();
+        for ( int i = 0; i < size; i++ ) {
+            set.add( new UUID( most[ i ], least[ i ] ) );
         }
         return set;
     }
