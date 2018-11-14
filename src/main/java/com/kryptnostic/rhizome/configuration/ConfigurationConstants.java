@@ -24,4 +24,11 @@ public final class ConfigurationConstants {
             }
         }
     }
+
+    public static final class EDM_SYNC {
+        private EDM_SYNC() {
+        }
+
+        public static final String EDM_SYNC_CONFIGURATION = "sync";
+    }
 }
