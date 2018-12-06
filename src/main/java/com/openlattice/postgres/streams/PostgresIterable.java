@@ -78,7 +78,7 @@ public class PostgresIterable<T> implements Iterable<T> {
     }
 
     public static class PostgresIterator<T> implements Iterator<T>, AutoCloseable, Closeable {
-        private static final long                   DEFAULT_TIMEOUT_MILLIS = 120000;
+        private static final long                   DEFAULT_TIMEOUT_MILLIS = 600000;
         private static final ExecutorService        executor               = Executors.newSingleThreadExecutor();
         private static final Logger                 logger                 = LoggerFactory
                 .getLogger( PostgresIterator.class );
