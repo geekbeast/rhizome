@@ -13,6 +13,15 @@ public final class ConfigurationConstants {
         }
     }
 
+    public static final class Environments {
+        public static final String TEST_PROFILE         = "test";
+        public static final String DEVELOPMENT_PROFILE  = "dev";
+        public static final String PRODUCTION_PROFILE   = "prod";
+
+        private Environments() {
+        }
+    }
+
     public static final class HZ {
         private HZ() {
         }
