@@ -69,6 +69,11 @@ public class SetStreamSerializers {
         return (OrderedUUIDSet) processEntries( set, size, in );
     }
 
+    public static void fastUUIDSetDeserialize( ObjectDataInput in, Set<UUID> out) throws IOException {
+        final int size = in.readInt();
+        processEntries( out, size, in );
+    }
+
     public static UUIDSet fastUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
         UUIDSet set = new UUIDSet( size );
