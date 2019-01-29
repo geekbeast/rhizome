@@ -26,7 +26,7 @@ public abstract class AbstractMerger<K, V extends Collection<T>, T>
     @Override
     public Void process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
-        if ( !( currentObjects instanceof SetProxy<?, ?> ) && currentObjects == null ) {
+        if ( currentObjects == null ) {
             currentObjects = newEmptyCollection();
         }
 
