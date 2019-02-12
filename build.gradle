@@ -223,7 +223,7 @@ dependencies {
      * JAVAMAIL
      * Java email client.
      */
-    compile "org.jodd:jodd-mail:3.8.1"
+    compile "org.jodd:jodd-mail:5.0.7"
 
     /**
      * Cassandra
