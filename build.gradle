@@ -1,5 +1,5 @@
 plugins {
-    id 'net.ltgt.apt' version "0.9"
+//    id 'net.ltgt.apt' version "0.21"
     id 'maven-publish'
     id 'signing'
     id 'application'
@@ -79,7 +79,7 @@ dependencies {
     /*
      * Immutables library for immutable objects
      */
-    apt "org.immutables:value:${immutables_version}"
+    annotationProcessor "org.immutables:value:${immutables_version}"
 
     /*
      * Servlet API 3.1
@@ -267,7 +267,6 @@ dependencies {
      * TESTING
      */
     testCompile 'junit:junit:4.12'
-    testCompile "org.cassandraunit:cassandra-unit:3.5.0.1"
     testCompile "org.mockito:mockito-all:${mockito_version}"
 
     /*
@@ -293,8 +292,8 @@ dependencies {
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    ext.sourceCompatibility = JavaVersion.VERSION_1_10
-    ext.targetCompatibility = JavaVersion.VERSION_1_10
+    ext.sourceCompatibility = JavaVersion.VERSION_11
+    ext.targetCompatibility = JavaVersion.VERSION_11
 }
 
 install {
