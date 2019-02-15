@@ -7,6 +7,8 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
+    id "maven-publish"
+    id "signing"
 //    id 'com.github.spotbugs' version '1.6.3'
     id 'org.jetbrains.kotlin.jvm' version '1.3.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '1.3.10'
@@ -45,8 +47,8 @@ run {
     }
 }
 
-ext.sourceCompatibility = JavaVersion.VERSION_1_10
-ext.targetCompatibility = JavaVersion.VERSION_1_10
+ext.sourceCompatibility = JavaVersion.VERSION_11
+ext.targetCompatibility = JavaVersion.VERSION_11
 
 tasks.withType(Javadoc) {
     enabled = false
@@ -119,7 +121,7 @@ dependencies {
     compile 'org.jdbi:jdbi3-sqlobject:3.1.0'
     compile 'org.jdbi:jdbi3-postgres:3.1.0'
 
-    compile("com.auth0:auth0-spring-security-api:1.0.0-rc.3") {
+    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
         exclude group: "org.springframework.boot"
     }
 
@@ -278,7 +280,7 @@ dependencies {
         testCompile "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
     }
 
-    compile 'com.auth0:auth0:1.5.0'
+    compile "com.auth0:auth0:${project.auth0_version}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
