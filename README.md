@@ -60,6 +60,6 @@ Don't leave home without it.
 Using log4j through sl4j facade, hopefully upgrade to logback soon.
 
 
-##### Postgres / Cassandra Utilities
+##### Postgres / CitusDB Utilities
 
-Quickly build out mapstores backed by Postgres or Cassandra. Stream large data sets directly from Postgres.
+Quickly build out mapstores backed by Postgres or CitusDB. Stream large data sets directly from Postgres.
