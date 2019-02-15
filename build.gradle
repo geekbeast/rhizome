@@ -58,6 +58,12 @@ dokka {
     outputDirectory = "$buildDir/javadoc"
 }
 
+
+jacoco {
+    toolVersion = "0.8.2"
+}
+
+
 dependencies {
     //spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.7.1'
     //compileOnly 'net.jcip:jcip-annotations:1.0'
