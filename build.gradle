@@ -60,7 +60,7 @@ dokka {
 
 
 jacoco {
-    toolVersion = "0.8.2"
+    toolVersion = "${project.jacoco_tool_version}"
 }
 
 
