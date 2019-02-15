@@ -1,5 +1,8 @@
 package com.kryptnostic.rhizome.pods;
 
+import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
+import com.kryptnostic.rhizome.configuration.amazon.AwsLaunchConfiguration;
 import com.openlattice.ResourceConfigurationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,64 +10,34 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.kryptnostic.rhizome.configuration.ConfigurationConstants.Profiles;
-import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
-import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
-import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
-
 /**
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
  * Used for bootstrapping configuration from a (secure) S3 bucket.
  */
-@Profile( Profiles.AWS_CONFIGURATION_PROFILE )
+@Profile( { Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
 @Configuration
 public class AwsConfigurationPod {
-    private static final Logger                    logger = LoggerFactory.getLogger( ConfigurationPod.class );
-    private static final AmazonS3                  s3     = new AmazonS3Client();
+    private static final Logger logger = LoggerFactory.getLogger( ConfigurationPod.class );
+    private static final AmazonLaunchConfiguration awsTestConfig;
     private static final AmazonLaunchConfiguration awsConfig;
-    private static final RhizomeConfiguration      rhizomeConfiguration;
-    private static final JettyConfiguration        jettyConfiguration;
 
     static {
-        try {
-            awsConfig = ConfigurationService.StaticLoader.loadConfiguration( AmazonLaunchConfiguration.class );
-            
-            rhizomeConfiguration = ResourceConfigurationLoader.loadConfigurationFromS3( s3,
-                    awsConfig.getBucket(),
-                    awsConfig.getFolder(),
-                    RhizomeConfiguration.class );
-            jettyConfiguration = ResourceConfigurationLoader.loadConfigurationFromS3( s3,
-                    awsConfig.getBucket(),
-                    awsConfig.getFolder(),
-                    JettyConfiguration.class );
-        } catch ( Exception e ) {
-            logger.error( "Error loading configuration!", e );
-            throw new Error( "Configuration failure." );
-        }
+        awsConfig = ResourceConfigurationLoader
+                .loadConfigurationFromResource( "aws.yaml", AwsLaunchConfiguration.class );
+        awsTestConfig = ResourceConfigurationLoader
+                .loadConfigurationFromResource( "awstest.yaml", AwsLaunchConfiguration.class );
     }
 
-    @Bean
-    public RhizomeConfiguration rhizomeConfiguration() {
-        return rhizomeConfiguration;
-    }
-
-    @Bean
-    public JettyConfiguration jettyConfiguration() {
-        return jettyConfiguration;
-    }
-
-    @Bean
+    @Bean( name = "awsConfig" )
+    @Profile( Profiles.AWS_CONFIGURATION_PROFILE )
     public AmazonLaunchConfiguration awsConfig() {
-        logger.info( "Using aws configuration: {}" , awsConfig );
+        logger.info( "Using aws configuration: {}", awsConfig );
         return awsConfig;
     }
 
-    @Bean
-    public AmazonS3 s3() {
-        return s3;
+    @Bean( name = "awsConfig" )
+    @Profile( Profiles.AWS_TESTING_PROFILE )
+    public AmazonLaunchConfiguration awsTestingConfig() {
+        return awsTestConfig;
     }
 
 }

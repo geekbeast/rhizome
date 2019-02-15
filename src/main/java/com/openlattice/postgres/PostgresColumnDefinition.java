@@ -20,12 +20,13 @@
 
 package com.openlattice.postgres;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-public class PostgresColumnDefinition {
+public class  PostgresColumnDefinition {
     private final String           name;
     private final PostgresDatatype datatype;
     private boolean                            primaryKey             = false;
@@ -105,19 +106,32 @@ public class PostgresColumnDefinition {
             pcdSql.append( " NOT NULL " );
         }
 
-        if ( foreignTableReference.isPresent() ) {
-            pcdSql.append( " REFERENCES " ).append( foreignTableReference.get().getName() );
-        }
+        foreignTableReference.ifPresent( postgresTableDefinition -> pcdSql.append( " REFERENCES " )
+                .append( postgresTableDefinition.getName() ) );
 
-        if ( foreignColumnReference.isPresent() ) {
-            //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
-            pcdSql.append( " (" + foreignColumnReference.get().getName() + ") " );
-        }
-        if ( defaultValue.isPresent() ) {
-            pcdSql.append( " default " + String.valueOf( defaultValue.get() ) );
-        }
+        //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
+        foreignColumnReference.ifPresent( postgresColumnDefinition -> pcdSql
+                .append( " (" + postgresColumnDefinition.getName() + ") " ) );
+
+        defaultValue.ifPresent( o -> pcdSql.append( " default " + String.valueOf( o ) ) );
 
         return pcdSql.toString().trim();
+    }
+
+    @Override public boolean equals( Object o ) {
+        if ( this == o ) { return true; }
+        if ( !( o instanceof PostgresColumnDefinition ) ) { return false; }
+        PostgresColumnDefinition that = (PostgresColumnDefinition) o;
+        return primaryKey == that.primaryKey &&
+                unique == that.unique &&
+                notNull == that.notNull &&
+                Objects.equals( name, that.name ) &&
+                datatype == that.datatype;
+    }
+
+    @Override public int hashCode() {
+
+        return Objects.hash( name, datatype, primaryKey, unique, notNull );
     }
 
     @Override public String toString() {

@@ -79,6 +79,6 @@ public class PostgresArrays {
     }
 
     public static UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {
-        return (UUID[]) rs.getArray( column ).getArray();
+          return (UUID[]) rs.getArray( column ).getArray();
     }
 }

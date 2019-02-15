@@ -1,4 +1,4 @@
-package digital.loom.rhizome.authentication;
+package com.geekbeast.rhizome.tests.authentication;
 
 import com.openlattice.auth0.Auth0SecurityPod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;

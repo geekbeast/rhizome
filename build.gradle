@@ -1,42 +1,74 @@
 plugins {
     id 'net.ltgt.apt' version "0.9"
     id 'maven-publish'
+    id 'signing'
     id 'application'
     id 'java'
     id 'maven'
     id 'eclipse'
     id 'idea'
     id 'jacoco'
+//    id 'com.github.spotbugs' version '1.6.3'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.10'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.10'
+    id 'org.jetbrains.dokka' version '0.9.17'
 }
 
 description = "Java Framework for building clustered RESTful web applications"
 group = "com.openlattice"
 
 ext.projectName = "rhizome"
-ext.scmUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
-ext.connectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
-ext.developerConnectionUrl = 'scm:git:https://github.com/dataloom/rhizome.git'
+ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
+ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
+ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
+apply plugin: 'kotlin'
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
+/*
+spotbugs {
+    toolVersion = '3.1.5'
+}
+
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+*/
 
 run {
-    if(System.getProperty("exec.args") != null) {
+    if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
     }
 }
 
-ext.sourceCompatibility=JavaVersion.VERSION_1_8
-ext.targetCompatibility=JavaVersion.VERSION_1_8
+ext.sourceCompatibility = JavaVersion.VERSION_11
+ext.targetCompatibility = JavaVersion.VERSION_11
+
+tasks.withType(Javadoc) {
+    enabled = false
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+}
 
 dependencies {
+    //spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.7.1'
+    //compileOnly 'net.jcip:jcip-annotations:1.0'
+    //compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.3'
+    //testCompileOnly 'net.jcip:jcip-annotations:1.0'
+    //testCompileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.3'
     /*
      * AWS
      */
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.50'
-    compile 'com.amazonaws:aws-java-sdk-s3:1.11.50'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.319'
+    compile 'com.amazonaws:aws-java-sdk-s3:1.11.319'
 
     /*
      * Immutables library for immutable objects
@@ -72,7 +104,7 @@ dependencies {
     compile "org.springframework:spring-web:${project.spring_framework_version}"
     compile "org.springframework:spring-webmvc:${project.spring_framework_version}"
     compile "org.springframework:spring-test:${project.spring_framework_version}"
-
+    //compile "org.springframework:spring-jdbc:${project.spring_framework_version}"
     /*
      * SPRING SECURITY DEPENDENCIES
      * Solid and battle tested security AuthN/AuthZ framwork
@@ -83,14 +115,14 @@ dependencies {
     compile "org.springframework.security:spring-security-config:${project.spring_security_version}"
     compile "org.springframework.security:spring-security-messaging:${project.spring_security_version}"
 
-//    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
-//        exclude group: "org.springframework.boot"
-//    }
+    //JDBI
+    compile 'org.jdbi:jdbi3-core:3.1.0'
+    compile 'org.jdbi:jdbi3-sqlobject:3.1.0'
+    compile 'org.jdbi:jdbi3-postgres:3.1.0'
 
-    compile("com.auth0:auth0-spring-security-api:1.0.0-rc.3") {
+    compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
         exclude group: "org.springframework.boot"
     }
-
 
     /*
      * Metrics
@@ -100,6 +132,13 @@ dependencies {
     compile "io.dropwizard.metrics:metrics-servlets:${dropwizard_metrics_version}"
     compile "io.dropwizard.metrics:metrics-graphite:${dropwizard_metrics_version}"
     compile "com.ryantenney.metrics:metrics-spring:${ryantenney_metrics_version}"
+
+    /*
+     * Prometheus - https://prometheus.io/docs
+     */
+    compile "io.prometheus:simpleclient:${prometheus_jvm_client_version}"
+    compile "io.prometheus:simpleclient_dropwizard:${prometheus_jvm_client_version}"
+    compile "io.prometheus:simpleclient_servlet:${prometheus_jvm_client_version}"
 
     /*
      * GUAVA
@@ -141,6 +180,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson_version}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson_version}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jackson_version}"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:${jackson_version}"
     compile 'org.yaml:snakeyaml:${snakeyaml_version}'
 
     /*
@@ -149,20 +189,11 @@ dependencies {
     compile "javax.inject:javax.inject:1"
 
     /*
-     * Jersey Spring Integration
-     */
-    compile("org.glassfish.jersey.ext:jersey-spring3:2.23.2") {
-        exclude module: 'spring-core'
-        exclude module: 'spring-beans'
-        exclude module: 'spring-web'
-    }
-
-    /*
      * Hibernate Validator
      */
     compile "org.hibernate:hibernate-validator:${hibernate_version}"
-    compile "javax.el:javax.el-api:2.2.4"
-    compile "org.glassfish.web:javax.el:2.2.4"
+    compile "javax.el:javax.el-api:3.0.0"
+    compile "org.glassfish:javax.el:3.0.0"
 
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
@@ -173,13 +204,12 @@ dependencies {
     compile "com.hazelcast:hazelcast-wm:${hazelcast_wm_version}"
     compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
 
-
     /*
      * EMBEDDED JETTY FOR LOCAL TESTING
      * TODO: Add support for Tomcat
      * TODO: Integrate with application plugin for standalone deployment
      */
-    compile "org.ow2.asm:asm:4.1"
+    compile "org.ow2.asm:asm:6.2"
     compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
     //TODO: Once GA version of jetty-jsp is released update version.
     //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1"
@@ -194,7 +224,7 @@ dependencies {
      * JAVAMAIL
      * Java email client.
      */
-    compile "org.jodd:jodd-mail:3.8.1"
+    compile "org.jodd:jodd-mail:5.0.7"
 
     /**
      * Cassandra
@@ -209,19 +239,14 @@ dependencies {
      */
 
     compile 'com.zaxxer:HikariCP:2.7.1'
-    compile 'org.postgresql:postgresql:42.1.4'
+    compile 'org.postgresql:postgresql:42.2.4'
 
     compile 'com.google.code.findbugs:jsr305:3.0.2'
-    compile 'javax.annotation:javax.annotation-api:1.3.1'
-    compile 'javax.validation:validation-api:2.0.0.Final'
+    compile 'javax.annotation:javax.annotation-api:1.3.2'
+    compile 'javax.validation:validation-api:2.0.1.Final'
 
-    /*
-     * Jars in lib folder, generally Hyperdex
-     */
     compile fileTree(dir: "lib/", include: "*.jar")
 
-    //compile "com.squareup.retrofit:retrofit:${retrofit_version}"
-    //compile "com.squareup.retrofit:retrofit-converters:${retrofit_version}"
 
     compile "com.squareup.retrofit2:retrofit:${retrofit2_version}"
 
@@ -236,32 +261,47 @@ dependencies {
      * TESTING
      */
     testCompile 'junit:junit:4.12'
-    testCompile "org.cassandraunit:cassandra-unit:3.1.3.2"
-
+    testCompile "org.cassandraunit:cassandra-unit:3.5.0.1"
+    testCompile "org.mockito:mockito-all:${mockito_version}"
 
     /*
      * TODO: The rest we depend on Loom API via Jar dependency is to avoid circular classpath problems in Eclipse.
      * Some day we'll either create a separate project or make a rhizome-client library based off retrofit
      * that loom-api and rhizome server tests can both depend on.
      */
-    if ( project.hasProperty('developmentMode') && project.developmentMode ) {
+    if (project.hasProperty('developmentMode') && project.developmentMode) {
         logger.quiet(project.name + " using project dependencies.")
         compile project(":rhizome-client")
+        testCompile(project(path: ":rhizome-client", configuration: "tests"))
     } else {
         logger.quiet(project.name + " using jar dependencies.")
         compile "com.openlattice:rhizome-client:${rhizome_client_version}"
+        testCompile "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
     }
 
-    compile 'com.auth0:auth0:1.5.0'
- }
+    compile "com.auth0:auth0:${project.auth0_version}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+}
 
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    ext.sourceCompatibility = JavaVersion.VERSION_1_8
-    ext.targetCompatibility = JavaVersion.VERSION_1_8
+    ext.sourceCompatibility = JavaVersion.VERSION_1_10
+    ext.targetCompatibility = JavaVersion.VERSION_1_10
 }
 
 install {
     configuration = configurations.published
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }

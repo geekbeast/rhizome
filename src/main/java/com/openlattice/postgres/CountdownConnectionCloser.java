@@ -21,6 +21,7 @@
 package com.openlattice.postgres;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -34,11 +35,24 @@ import org.slf4j.LoggerFactory;
 public class CountdownConnectionCloser {
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private static final Logger          logger   = LoggerFactory.getLogger( CountdownConnectionCloser.class );
-    private final Connection     connection;
     private final CountDownLatch latch;
 
+    public CountdownConnectionCloser( ResultSet rs, Connection connection, int count ) {
+        this.latch = new CountDownLatch( count );
+        executor.execute( () -> {
+            try {
+                latch.await();
+                rs.close();
+                connection.close();
+            } catch ( InterruptedException e ) {
+                logger.error( "Interrupted while waiting to close connection.", e );
+            } catch ( SQLException e ) {
+                logger.error( "Error while closing connection.", e );
+            }
+        } );
+    }
+
     public CountdownConnectionCloser( Connection connection, int count ) {
-        this.connection = connection;
         this.latch = new CountDownLatch( count );
         executor.execute( () -> {
             try {

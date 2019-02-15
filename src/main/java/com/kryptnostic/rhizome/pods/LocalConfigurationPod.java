@@ -41,19 +41,11 @@ public class LocalConfigurationPod {
 
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
-        return getRhizomeConfiguration();
+        return rhizomeConfiguration;
     }
 
     @Bean
     public JettyConfiguration jettyConfiguration() {
-        return getJettyConfiguration();
-    }
-
-    public static RhizomeConfiguration getRhizomeConfiguration() {
-        return rhizomeConfiguration;
-    }
-
-    public static JettyConfiguration getJettyConfiguration() {
         return jettyConfiguration;
     }
 }

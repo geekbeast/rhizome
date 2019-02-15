@@ -23,19 +23,9 @@ import com.kryptnostic.rhizome.pods.JettyContainerPod;
 import com.kryptnostic.rhizome.pods.LoamPod;
 import com.kryptnostic.rhizome.pods.MetricsPod;
 import com.kryptnostic.rhizome.startup.Requirement;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
+import io.prometheus.client.CollectorRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.DefaultServlet;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -44,6 +34,17 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Note: if using jetty, jetty creates an instance of this class with a no-arg constructor in order to call onStartup
@@ -59,8 +60,8 @@ public class Rhizome implements WebApplicationInitializer {
             .getLogger( Rhizome.class );
     private static final   String                                HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     protected static       AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected final AnnotationConfigWebApplicationContext context;
-    private         JettyLoam                             jetty;
+    protected final        AnnotationConfigWebApplicationContext context;
+    private                JettyLoam                             jetty;
 
     public Rhizome() {
         this( new Class<?>[] {} );
@@ -134,16 +135,12 @@ public class Rhizome implements WebApplicationInitializer {
         adminServlet.addMapping( "/admin/*" );
         adminServlet.setInitParameter( "show-jvm-metrics", "true" );
 
-        /*
-         * Jersey Servlet For lovers of the JAX-RS standard.
-         */
-
-        ServletRegistration.Dynamic jerseyDispatcher = servletContext.addServlet(
-                "defaultJerseyServlet",
-                new ServletContainer() );
-        jerseyDispatcher.setInitParameter( "javax.ws.rs.Application", RhizomeApplication.class.getName() );
-        jerseyDispatcher.setLoadOnStartup( 1 );
-        jerseyDispatcher.addMapping( "/health/*" );
+        ServletRegistration.Dynamic prometheusServlet = servletContext.addServlet(
+                "prometheus",
+                new io.prometheus.client.exporter.MetricsServlet( CollectorRegistry.defaultRegistry )
+        );
+        prometheusServlet.setLoadOnStartup( 1 );
+        prometheusServlet.addMapping( "/prometheus/*" );
 
         /*
          * Atmosphere Servlet
@@ -206,7 +203,8 @@ public class Rhizome implements WebApplicationInitializer {
         boolean awsProfile = false;
         boolean localProfile = false;
         for ( String profile : activeProfiles ) {
-            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile ) ) {
+            if ( StringUtils.equals( Profiles.AWS_CONFIGURATION_PROFILE, profile )
+                    || StringUtils.equals( Profiles.AWS_TESTING_PROFILE, profile ) ) {
                 awsProfile = true;
                 logger.info( "Using AWS profile for configuration." );
             }
@@ -243,7 +241,8 @@ public class Rhizome implements WebApplicationInitializer {
             }
         } finally {
             rhizomeContext = null;
-            if ( context.isActive() && startupRequirementsSatisfied( context ) ) {
+
+            if ( context.isActive() && context.isRunning() && startupRequirementsSatisfied( context ) ) {
                 showBanner();
             }
             startupLock.unlock();

@@ -29,6 +29,7 @@ import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.CountdownConnectionCloser;
 import com.openlattice.postgres.KeyIterator;
@@ -83,6 +84,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         this.hds = hds;
         this.mapName = mapName;
         this.batchSize = batchSize;
+        initMapstore();
         this.keyColumns = initKeyColumns();
         this.valueColumns = initValueColumns();
         this.batchCapacity = batchSize * getSelectInParameterCount();
@@ -97,6 +99,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         this.selectByKeyQuery = buildSelectByKeyQuery();
         this.selectInQuery = buildSelectInQuery();
     }
+
+    protected void initMapstore() {}
 
     protected final List<PostgresColumnDefinition> keyColumns() {
         return keyColumns;
@@ -263,8 +267,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
             stmt.setFetchSize( 50000 );
             final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
             return () -> StreamUtil
-                    .stream( () -> new KeyIterator<K>( rs,
-                            new CountdownConnectionCloser( connection, 1 ), this::mapToKey ) )
+                    .stream( () -> new KeyIterator<>( rs,
+                            new CountdownConnectionCloser( rs, connection, 1 ), this::mapToKey ) )
                     .peek( key -> logger.debug( "Key to load: {}", key ) )
                     .iterator();
         } catch ( SQLException e ) {
@@ -276,6 +280,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     @Override
     public MapStoreConfig getMapStoreConfig() {
         return new MapStoreConfig()
+                .setInitialLoadMode( InitialLoadMode.EAGER )
                 .setImplementation( this )
                 .setEnabled( true )
                 .setWriteDelaySeconds( 0 );

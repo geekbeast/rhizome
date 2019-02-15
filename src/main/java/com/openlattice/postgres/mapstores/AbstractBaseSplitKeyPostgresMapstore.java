@@ -21,6 +21,7 @@
 package com.openlattice.postgres.mapstores;
 
 import com.codahale.metrics.annotation.Timed;
+import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
@@ -38,6 +39,11 @@ public abstract class AbstractBaseSplitKeyPostgresMapstore<K, K2, V>
         extends AbstractPostgresMapstore2<K, Map<K2, V>> {
 
     public AbstractBaseSplitKeyPostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
+        this( mapName, table, hds, BATCH_SIZE );
+    }
+
+    //Hack for late initialization
+    protected AbstractBaseSplitKeyPostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds, Object lateinit ) {
         this( mapName, table, hds, BATCH_SIZE );
     }
 

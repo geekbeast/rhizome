@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile( Profiles.AWS_CONFIGURATION_PROFILE )
+@Profile( { Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
 public class AwsAuth0Pod {
     @Inject
     private AmazonLaunchConfiguration awsConfig;

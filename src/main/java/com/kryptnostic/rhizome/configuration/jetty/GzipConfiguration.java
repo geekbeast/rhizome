@@ -1,14 +1,12 @@
 package com.kryptnostic.rhizome.configuration.jetty;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.http.MediaType;
 
 public class GzipConfiguration {
     protected static final String       GZIP_ENABLED_PROPERTY       = "enabled";
@@ -19,7 +17,7 @@ public class GzipConfiguration {
             .asList( new String[] { "application/json", "text/html",
                     "text/plain", "text/xml", "application/xhtml+xml", "text/css", "application/javascript",
                     "image/svg+xml",
-                    MediaType.APPLICATION_OCTET_STREAM } );
+                    MediaType.APPLICATION_OCTET_STREAM_VALUE } );
     protected static final List<String> GZIP_METHODS                = Arrays
             .asList( new String[] { "GET", "DELETE", "POST", "PUT" } );
 

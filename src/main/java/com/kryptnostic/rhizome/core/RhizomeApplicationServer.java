@@ -17,7 +17,7 @@ import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConf
 import com.kryptnostic.rhizome.startup.Requirement;
 
 public class RhizomeApplicationServer {
-    private final AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();;
+    private final AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();
     private final List<Class<?>>                     additionalPods = new ArrayList<>();
     public static final Class<?>[]                   DEFAULT_PODS   = new Class<?>[] {
             RegistryBasedHazelcastInstanceConfigurationPod.class, HazelcastPod.class,

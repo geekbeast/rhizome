@@ -29,14 +29,13 @@ import com.kryptnostic.rhizome.emails.configuration.MailServiceConfiguration;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
- *
  */
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger( EmailService.class );
 
-    private Session             session;
+    private Session    session;
     @SuppressWarnings( "rawtypes" )
-    private SmtpServer          smtpServer;
+    private SmtpServer smtpServer;
 
     @Inject
     public EmailService( ConfigurationService configService ) throws IOException {
@@ -46,8 +45,6 @@ public class EmailService {
 
     /**
      * Updates email server preferences, including username and password, as well as the message templates.
-     *
-     * @param config
      */
     @Subscribe
     public void updateMailConfiguration( MailServiceConfiguration config ) {
@@ -67,13 +64,17 @@ public class EmailService {
         } );
 
         if ( Boolean.parseBoolean( config.getStartTtlsEnable() ) ) {
-            smtpServer = SmtpSslServer
-                    .create( config.getSmtpHost(), Integer.parseInt( config.getSmtpPort() ) )
-                    .authenticateWith( config.getSmtpAuth(), config.getPassword() );
+            smtpServer = SmtpSslServer.create()
+                    .host( config.getSmtpHost() )
+                    .port( Integer.parseInt( config.getSmtpPort() ) )
+                    .auth( config.getSmtpAuth(), config.getPassword() )
+                    .buildSmtpMailServer();
         } else {
-            smtpServer = SmtpSslServer
-                    .create( config.getSmtpHost(), Integer.parseInt( config.getSmtpPort() ) )
-                    .authenticateWith( config.getSmtpAuth(), config.getPassword() );
+            smtpServer = SmtpSslServer.create()
+                    .host( config.getSmtpHost() )
+                    .port(Integer.parseInt( config.getSmtpPort() ) )
+                    .auth( config.getSmtpAuth(), config.getPassword() )
+                    .buildSmtpMailServer();
         }
 
     }
@@ -95,11 +96,13 @@ public class EmailService {
     public void sendMessage( Email email ) {
         sendManyMessages( Arrays.asList( email ) );
     }
-    
+
     @Async
     public void sendManyMessages( Collection<Email> emails ) {
         SendMailSession session = smtpServer.createSession();
-        emails.forEach( email -> { session.sendMail( email ); }  );
+        emails.forEach( email -> {
+            session.sendMail( email );
+        } );
         session.close();
     }
 }

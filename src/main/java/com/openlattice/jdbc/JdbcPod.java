@@ -28,6 +28,8 @@ import com.kryptnostic.rhizome.pods.MetricsPod;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.inject.Inject;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -64,4 +66,10 @@ public class JdbcPod {
         }
     }
 
+    @Bean
+    public Jdbi jdbi() {
+        Jdbi jdbi = Jdbi.create( hikariDataSource() );
+        jdbi.installPlugin( new SqlObjectPlugin() );
+        return jdbi;
+    }
 }

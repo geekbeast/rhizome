@@ -69,6 +69,11 @@ public class SetStreamSerializers {
         return (OrderedUUIDSet) processEntries( set, size, in );
     }
 
+    public static void fastUUIDSetDeserialize( ObjectDataInput in, Set<UUID> out) throws IOException {
+        final int size = in.readInt();
+        processEntries( out, size, in );
+    }
+
     public static UUIDSet fastUUIDSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
         UUIDSet set = new UUIDSet( size );
@@ -124,6 +129,16 @@ public class SetStreamSerializers {
     public static Set<String> fastStringSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
         Set<String> items = Sets.newHashSetWithExpectedSize( size );
+        for ( int i = 0; i < size; i++ ) {
+            items.add( in.readUTF() );
+        }
+        return items;
+    }
+
+
+    public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
+        int size = in.readInt();
+        LinkedHashSet<String> items = new LinkedHashSet<>( size );
         for ( int i = 0; i < size; i++ ) {
             items.add( in.readUTF() );
         }
