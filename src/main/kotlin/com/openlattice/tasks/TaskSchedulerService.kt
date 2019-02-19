@@ -24,7 +24,6 @@ package com.openlattice.tasks
 import com.hazelcast.core.HazelcastInstance
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
-import javax.inject.Inject
 
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
 
@@ -33,8 +32,9 @@ const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class TaskSchedulerService(
-        private val context: ApplicationContext,
-        private val tasks: Set<HazelcastFixedRateTask<*>>,
+        context: ApplicationContext,
+        tasks: Set<HazelcastFixedRateTask<*>>,
+        private val initializers: Set<HazelcastInitializationTask<*>>,
         hazelcast: HazelcastInstance
 ) {
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
@@ -44,7 +44,7 @@ class TaskSchedulerService(
         private val logger = LoggerFactory.getLogger(TaskSchedulerService::class.java)
 
         @JvmStatic
-        fun <T : HazelcastTaskDependencies> getTaskDependencies(dependency: Class<T>): T {
+        private fun <T : HazelcastTaskDependencies> getTaskDependencies(dependency: Class<T>): T {
             try {
                 return context.getBean(dependency)
             } catch (ex: Exception) {
@@ -64,6 +64,19 @@ class TaskSchedulerService(
         setContext(context)
         tasks.forEach { task ->
             executor.scheduleAtFixedRate(task, task.getInitialDelay(), task.getPeriod(), task.getTimeUnit())
+        }
+
+        initializers.forEach { initializer ->
+            executor.schedule(initializer, initializer.getInitialDelay(), initializer.getTimeUnit())
+        }
+    }
+
+    interface HazelcastDependencyAwareTask<T : HazelcastTaskDependencies> {
+        fun getDependenciesClass(): Class<out T>
+
+        @JvmDefault
+        fun getDependency(): T {
+            return TaskSchedulerService.getTaskDependencies(getDependenciesClass())
         }
     }
 }

@@ -22,6 +22,7 @@
 package com.openlattice.tasks.pods
 
 import com.openlattice.tasks.HazelcastFixedRateTask
+import com.openlattice.tasks.HazelcastInitializationTask
 import com.openlattice.tasks.HazelcastTaskDependencies
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -32,7 +33,8 @@ import java.util.concurrent.TimeUnit
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 
-internal const val NO_OP_TASK_NAME = "_rhizome:no-op"
+internal const val NO_OP_TASK_NAME = "_rhizome:task:no-op"
+internal const val NO_OP_INITIALIZER_NAME = "_rhizome:initializer:no-op"
 
 @Configuration
 internal class TaskSchedulerBootstrapPod {
@@ -41,7 +43,35 @@ internal class TaskSchedulerBootstrapPod {
         return NoOpFixedRateTask()
     }
 
-    class NoOpFixedRateTask : HazelcastFixedRateTask {
+    @Bean
+    fun getNoOpInitializerTask(): NoOpInitializerTask {
+        return NoOpInitializerTask()
+    }
+
+    class NoOpInitializerTask : HazelcastInitializationTask<NoOpFixedRateTaskDependency> {
+        override fun getName(): String {
+            return NO_OP_INITIALIZER_NAME
+        }
+
+        override fun getDependenciesClass(): Class<out NoOpFixedRateTaskDependency> {
+            return NoOpFixedRateTaskDependency::class.java
+        }
+
+        override fun run() {
+
+        }
+
+        override fun getInitialDelay(): Long {
+            return 0
+        }
+
+        override fun getTimeUnit(): TimeUnit {
+            return TimeUnit.MILLISECONDS
+        }
+    }
+
+    class NoOpFixedRateTask : HazelcastFixedRateTask<NoOpFixedRateTaskDependency> {
+
         override fun getInitialDelay(): Long {
             return 0
         }
@@ -54,7 +84,7 @@ internal class TaskSchedulerBootstrapPod {
             return TimeUnit.MILLISECONDS
         }
 
-        override fun getDependencies(): Class<out HazelcastTaskDependencies> {
+        override fun getDependenciesClass(): Class<out NoOpFixedRateTaskDependency> {
             return NoOpFixedRateTaskDependency::class.java
         }
 
@@ -68,8 +98,5 @@ internal class TaskSchedulerBootstrapPod {
 
     }
 
-    class NoOpFixedRateTaskDependency : HazelcastTaskDependencies {
-
-    }
-
+    class NoOpFixedRateTaskDependency : HazelcastTaskDependencies
 }

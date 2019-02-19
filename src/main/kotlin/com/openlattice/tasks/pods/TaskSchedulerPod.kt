@@ -23,6 +23,7 @@ package com.openlattice.tasks.pods
 
 import com.hazelcast.core.HazelcastInstance
 import com.openlattice.tasks.HazelcastFixedRateTask
+import com.openlattice.tasks.HazelcastInitializationTask
 import com.openlattice.tasks.HazelcastTaskDependencies
 import com.openlattice.tasks.TaskSchedulerService
 import org.slf4j.LoggerFactory
@@ -49,7 +50,10 @@ class TaskSchedulerPod {
     private lateinit var hazelcastInstance: HazelcastInstance
 
     @Inject
-    private lateinit var tasks: MutableSet<HazelcastFixedRateTask>
+    private lateinit var tasks: MutableSet<HazelcastFixedRateTask<*>>
+
+    @Inject
+    private lateinit var initializers: MutableSet<HazelcastInitializationTask<*>>
 
     @Inject
     private lateinit var dependencies: MutableSet<HazelcastTaskDependencies>
@@ -77,12 +81,20 @@ class TaskSchedulerPod {
         val validTasks = tasks.filter { it.name != NO_OP_TASK_NAME }
 
         validTasks.forEach { task ->
-            if (!dependenciesMap.contains(task.getDependencies())) {
+            if (!dependenciesMap.contains(task.getDependenciesClass())) {
                 logger.error("Dependencies missing for task {}", task.name)
                 throw IllegalStateException("Dependencies missing for task ${task.name}")
             }
         }
 
-        return TaskSchedulerService(context, validTasks.toSet(), hazelcastInstance)
+        val validInitializers = initializers.filter { it.name != NO_OP_INITIALIZER_NAME }
+        validInitializers.forEach { initializer ->
+            if (!dependenciesMap.contains(initializer.getDependenciesClass())) {
+                logger.error("Dependencies missing for initializer {}", initializer.name)
+                throw IllegalStateException("Dependencies missing for initializer ${initializer.name}")
+            }
+        }
+
+        return TaskSchedulerService(context, validTasks.toSet(), validInitializers.toSet(), hazelcastInstance)
     }
 }
