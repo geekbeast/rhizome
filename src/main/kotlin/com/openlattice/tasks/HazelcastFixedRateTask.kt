@@ -28,9 +28,15 @@ import java.util.concurrent.TimeUnit
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-interface HazelcastFixedRateTask : Runnable, NamedTask {
+interface HazelcastFixedRateTask<T : HazelcastTaskDependencies> : Runnable, NamedTask {
     fun getInitialDelay(): Long
     fun getPeriod(): Long
     fun getTimeUnit(): TimeUnit
-    fun getDependencies(): Class<out HazelcastTaskDependencies>
+
+    @JvmDefault
+    fun getDependency(): T {
+        return TaskSchedulerService.getTaskDependencies(getDependenciesClass())
+    }
+
+    fun getDependenciesClass(): Class<out T>
 }

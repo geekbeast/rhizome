@@ -34,7 +34,7 @@ const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
  */
 class TaskSchedulerService(
         private val context: ApplicationContext,
-        private val tasks: Set<HazelcastFixedRateTask>,
+        private val tasks: Set<HazelcastFixedRateTask<*>>,
         hazelcast: HazelcastInstance
 ) {
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
@@ -42,6 +42,7 @@ class TaskSchedulerService(
     companion object {
         private lateinit var context: ApplicationContext
         private val logger = LoggerFactory.getLogger(TaskSchedulerService::class.java)
+
         @JvmStatic
         fun <T : HazelcastTaskDependencies> getTaskDependencies(dependency: Class<T>): T {
             try {
