@@ -57,7 +57,7 @@ class TaskSchedulerPod {
     @Bean
     fun taskSchedulerService(): TaskSchedulerService {
         val dependenciesMap = dependencies
-                .filter { it is TaskSchedulerBootstrapPod.NoOpFixedRateTaskDependency }
+                .filter { it !is TaskSchedulerBootstrapPod.NoOpFixedRateTaskDependency }
                 .groupBy { it.javaClass }
                 .mapValues {
                     if (it.value.size > 1) {
@@ -74,13 +74,15 @@ class TaskSchedulerPod {
                     }
                 }
 
-        val validTasks = tasks.forEach { task ->
+        val validTasks = tasks.filter { it.name != NO_OP_TASK_NAME }
+
+        validTasks.forEach { task ->
             if (!dependenciesMap.contains(task.getDependencies())) {
                 logger.error("Dependencies missing for task {}", task.name)
                 throw IllegalStateException("Dependencies missing for task ${task.name}")
             }
         }
 
-        return TaskSchedulerService(context, tasks.filter { it.name != NO_OP_TASK_NAME }.toSet(), hazelcastInstance)
+        return TaskSchedulerService(context, validTasks.toSet(), hazelcastInstance)
     }
 }
