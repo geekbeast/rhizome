@@ -37,7 +37,6 @@ class TaskSchedulerService(
         private val tasks: Set<HazelcastFixedRateTask>,
         hazelcast: HazelcastInstance
 ) {
-    @Inject
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
 
     companion object {
