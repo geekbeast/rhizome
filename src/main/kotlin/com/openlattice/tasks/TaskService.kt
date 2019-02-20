@@ -57,11 +57,13 @@ class TaskService(
                 .forEach { initializer ->
                     val sw = Stopwatch.createStarted()
 
-                    val urn = submitted[initializer.name] ?: executor.schedule(
-                            initializer,
-                            initializer.getInitialDelay(),
-                            initializer.getTimeUnit()
-                    ).handler.toUrn()
+                    val urn = submitted.getOrPut(initializer.name) {
+                        executor.schedule(
+                                initializer,
+                                initializer.getInitialDelay(),
+                                initializer.getTimeUnit()
+                        ).handler.toUrn()
+                    }
 
                     //By always retrieving the task we can ensure that we wait for initialization tasks kicked
                     //off by different nodes at startup
@@ -86,11 +88,14 @@ class TaskService(
 
     private val taskFutures = tasks
             .map { task ->
-                val urn = submitted[task.name] ?: executor.scheduleAtFixedRate(
-                        task,
-                        task.getInitialDelay(),
-                        task.getPeriod(),
-                        task.getTimeUnit()).handler.toUrn()
+                val urn = submitted.getOrPut(task.name) {
+                    executor.scheduleAtFixedRate(
+                            task,
+                            task.getInitialDelay(),
+                            task.getPeriod(),
+                            task.getTimeUnit()
+                    ).handler.toUrn()
+                }
                 logger.info(
                         "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
                         task.name,
