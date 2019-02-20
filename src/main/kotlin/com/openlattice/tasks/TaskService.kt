@@ -23,10 +23,14 @@ package com.openlattice.tasks
 
 import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.scheduledexecutor.DuplicateTaskException
+import com.hazelcast.scheduledexecutor.IScheduledFuture
+import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import java.util.concurrent.TimeUnit
 
+const val SUBMITTED_TASKS = "_rhizome:submitted-tasks"
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
 private val logger = LoggerFactory.getLogger(TaskService::class.java)
 
@@ -42,6 +46,7 @@ class TaskService(
         hazelcast: HazelcastInstance
 ) {
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
+    private val submitted = hazelcast.getMap<String, String>(SUBMITTED_TASKS)
 
     init {
 //        TaskSchedulerGlobalContext.setApplicationContext(context)
@@ -51,7 +56,16 @@ class TaskService(
                 .toSortedSet()
                 .forEach { initializer ->
                     val sw = Stopwatch.createStarted()
-                    val f = executor.schedule(initializer, initializer.getInitialDelay(), initializer.getTimeUnit())
+
+                    val urn = submitted[initializer.name] ?: executor.schedule(
+                            initializer,
+                            initializer.getInitialDelay(),
+                            initializer.getTimeUnit()
+                    ).handler.toUrn()
+
+                    //By always retrieving the task we can ensure that we wait for initialization tasks kicked
+                    //off by different nodes at startup
+                    val f: IScheduledFuture<*> = executor.getScheduledFuture<Any>(ScheduledTaskHandler.of(urn))
 
                     logger.info(
                             "Scheduled initializer {} with initialDelay {} and period {} in time unit",
@@ -70,16 +84,22 @@ class TaskService(
                 }
     }
 
-    private val taskFutures = tasks.map { task ->
-        executor.scheduleAtFixedRate(task, task.getInitialDelay(), task.getPeriod(), task.getTimeUnit())
-        logger.info(
-                "Scheduled task {} with initialDelay {} and period {} in time unit",
-                task.name,
-                task.getInitialDelay(),
-                task.getPeriod(),
-                task.getTimeUnit()
-        )
-    }
+    private val taskFutures = tasks
+            .map { task ->
+                val urn = submitted[task.name] ?: executor.scheduleAtFixedRate(
+                        task,
+                        task.getInitialDelay(),
+                        task.getPeriod(),
+                        task.getTimeUnit()).handler.toUrn()
+                logger.info(
+                        "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
+                        task.name,
+                        task.getInitialDelay(),
+                        task.getPeriod(),
+                        task.getTimeUnit(),
+                        urn
+                )
+            }
 
     companion object {
         private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
