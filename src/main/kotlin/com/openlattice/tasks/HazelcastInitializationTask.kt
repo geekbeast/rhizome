@@ -29,9 +29,23 @@ import java.util.concurrent.TimeUnit
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T> {
+interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Comparable<HazelcastInitializationTask<*>> {
     fun getInitialDelay(): Long
-    fun getTimeUnit(): TimeUnit
+    @JvmDefault
+    fun getTimeUnit(): TimeUnit {
+        return TimeUnit.MILLISECONDS
+    }
 
+    /**
+     * Returns the list of task that this task must happen after
+     */
+    fun after(): Set<Class<out HazelcastInitializationTask<*>>>
 
+    override fun compareTo(other: HazelcastInitializationTask<*>): Int {
+        return when {
+            other == this -> 0
+            after().contains( other.javaClass ) -> 1
+            else -> -1
+        }
+    }
 }

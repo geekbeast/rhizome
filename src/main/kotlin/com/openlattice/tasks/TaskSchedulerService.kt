@@ -21,9 +21,11 @@
 
 package com.openlattice.tasks
 
+import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
+import java.util.concurrent.TimeUnit
 
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
 
@@ -38,6 +40,44 @@ class TaskSchedulerService(
         hazelcast: HazelcastInstance
 ) {
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
+
+    init {
+        setContext(context)
+
+        //We sort the initializers before running to make sure that initialization task are run in the correct order.
+        initializers
+                .toSortedSet()
+                .forEach { initializer ->
+                    val sw = Stopwatch.createStarted()
+                    val f = executor.schedule(initializer, initializer.getInitialDelay(), initializer.getTimeUnit())
+
+                    logger.info(
+                            "Scheduled initializer {} with initialDelay {} and period {} in time unit",
+                            initializer.name,
+                            initializer.getInitialDelay(),
+                            initializer.getTimeUnit()
+                    )
+
+                    f.get()
+
+                    logger.info(
+                            "Coompleted execution of initializer {} in {} millis",
+                            initializer.name,
+                            sw.elapsed(TimeUnit.MILLISECONDS)
+                    )
+                }
+    }
+
+    private val taskFutures = tasks.map { task ->
+        executor.scheduleAtFixedRate(task, task.getInitialDelay(), task.getPeriod(), task.getTimeUnit())
+        logger.info(
+                "Scheduled task {} with initialDelay {} and period {} in time unit",
+                task.name,
+                task.getInitialDelay(),
+                task.getPeriod(),
+                task.getTimeUnit()
+        )
+    }
 
     companion object {
         private lateinit var context: ApplicationContext
@@ -57,17 +97,6 @@ class TaskSchedulerService(
             if (!::context.isInitialized) {
                 context = appContext
             }
-        }
-    }
-
-    init {
-        setContext(context)
-        tasks.forEach { task ->
-            executor.scheduleAtFixedRate(task, task.getInitialDelay(), task.getPeriod(), task.getTimeUnit())
-        }
-
-        initializers.forEach { initializer ->
-            executor.schedule(initializer, initializer.getInitialDelay(), initializer.getTimeUnit())
         }
     }
 

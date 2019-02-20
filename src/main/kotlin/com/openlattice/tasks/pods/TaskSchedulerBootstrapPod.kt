@@ -49,6 +49,10 @@ internal class TaskSchedulerBootstrapPod {
     }
 
     class NoOpInitializerTask : HazelcastInitializationTask<NoOpFixedRateTaskDependency> {
+        override fun after(): Set<Class<out HazelcastInitializationTask<*>>> {
+            return setOf()
+        }
+
         override fun getName(): String {
             return NO_OP_INITIALIZER_NAME
         }
