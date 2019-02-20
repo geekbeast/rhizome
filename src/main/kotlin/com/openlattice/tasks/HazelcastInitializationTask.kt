@@ -23,28 +23,38 @@ package com.openlattice.tasks
 
 import com.hazelcast.scheduledexecutor.NamedTask
 import com.openlattice.tasks.TaskSchedulerService.HazelcastDependencyAwareTask
+import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Comparable<HazelcastInitializationTask<*>> {
+interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Comparable<HazelcastInitializationTask<*>>, Serializable {
     fun getInitialDelay(): Long
+
     @JvmDefault
     fun getTimeUnit(): TimeUnit {
         return TimeUnit.MILLISECONDS
     }
+
+    @JvmDefault
+    override fun run() {
+        initialize(getDependency())
+    }
+
+    fun initialize(dependencies: T)
 
     /**
      * Returns the list of task that this task must happen after
      */
     fun after(): Set<Class<out HazelcastInitializationTask<*>>>
 
+    @JvmDefault
     override fun compareTo(other: HazelcastInitializationTask<*>): Int {
         return when {
             other == this -> 0
-            after().contains( other.javaClass ) -> 1
+            after().contains(other.javaClass) -> 1
             else -> -1
         }
     }

@@ -60,7 +60,7 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.withType(Test) {
-    options.compilerArgs+= [ "--add-modules java.se",
+    jvmArgs += [ "--add-modules java.se",
                              "--add-exports java.base/jdk.internal.ref=ALL-UNNAMED",
                              "--add-opens java.base/java.lang=ALL-UNNAMED",
                              "--add-opens java.base/java.nio=ALL-UNNAMED",

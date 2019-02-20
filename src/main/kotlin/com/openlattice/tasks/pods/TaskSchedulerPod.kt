@@ -60,9 +60,9 @@ class TaskSchedulerPod {
 
     @Bean
     fun taskSchedulerService(): TaskSchedulerService {
-        val dependenciesMap = dependencies
-                .filter { it !is TaskSchedulerBootstrapPod.NoOpFixedRateTaskDependency }
-                .groupBy { it.javaClass }
+        val dependenciesMap : Map<Class<*>, HazelcastTaskDependencies> = dependencies
+                .filter { it !is TaskSchedulerBootstrapPod.NoOpDependencies }
+                .groupBy { it.javaClass as Class<*> }
                 .mapValues {
                     if (it.value.size > 1) {
                         logger.error(
@@ -95,6 +95,12 @@ class TaskSchedulerPod {
             }
         }
 
-        return TaskSchedulerService(context, validTasks.toSet(), validInitializers.toSet(), hazelcastInstance)
+        return TaskSchedulerService(
+                context,
+                dependenciesMap,
+                validTasks.toSet(),
+                validInitializers.toSet(),
+                hazelcastInstance
+        )
     }
 }

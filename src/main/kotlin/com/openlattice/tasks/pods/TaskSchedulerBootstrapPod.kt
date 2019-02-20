@@ -48,7 +48,16 @@ internal class TaskSchedulerBootstrapPod {
         return NoOpInitializerTask()
     }
 
-    class NoOpInitializerTask : HazelcastInitializationTask<NoOpFixedRateTaskDependency> {
+    @Bean
+    fun getNoOpDependencies(): NoOpDependencies {
+        return NoOpDependencies()
+    }
+
+    class NoOpInitializerTask : HazelcastInitializationTask<NoOpDependencies> {
+        override fun initialize(dependencies: NoOpDependencies) {
+
+        }
+
         override fun after(): Set<Class<out HazelcastInitializationTask<*>>> {
             return setOf()
         }
@@ -57,12 +66,8 @@ internal class TaskSchedulerBootstrapPod {
             return NO_OP_INITIALIZER_NAME
         }
 
-        override fun getDependenciesClass(): Class<out NoOpFixedRateTaskDependency> {
-            return NoOpFixedRateTaskDependency::class.java
-        }
-
-        override fun run() {
-
+        override fun getDependenciesClass(): Class<out NoOpDependencies> {
+            return NoOpDependencies::class.java
         }
 
         override fun getInitialDelay(): Long {
@@ -74,7 +79,7 @@ internal class TaskSchedulerBootstrapPod {
         }
     }
 
-    class NoOpFixedRateTask : HazelcastFixedRateTask<NoOpFixedRateTaskDependency> {
+    class NoOpFixedRateTask : HazelcastFixedRateTask<NoOpDependencies> {
 
         override fun getInitialDelay(): Long {
             return 0
@@ -88,8 +93,8 @@ internal class TaskSchedulerBootstrapPod {
             return TimeUnit.MILLISECONDS
         }
 
-        override fun getDependenciesClass(): Class<out NoOpFixedRateTaskDependency> {
-            return NoOpFixedRateTaskDependency::class.java
+        override fun getDependenciesClass(): Class<out NoOpDependencies> {
+            return NoOpDependencies::class.java
         }
 
         override fun run() {
@@ -102,5 +107,5 @@ internal class TaskSchedulerBootstrapPod {
 
     }
 
-    class NoOpFixedRateTaskDependency : HazelcastTaskDependencies
+    class NoOpDependencies : HazelcastTaskDependencies
 }

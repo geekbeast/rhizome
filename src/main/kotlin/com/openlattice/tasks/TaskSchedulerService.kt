@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContext
 import java.util.concurrent.TimeUnit
 
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
+private val logger = LoggerFactory.getLogger(TaskSchedulerService::class.java)
 
 /**
  *
@@ -35,6 +36,7 @@ const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
  */
 class TaskSchedulerService(
         context: ApplicationContext,
+        dependenciesMap: Map<Class<*>, HazelcastTaskDependencies>,
         tasks: Set<HazelcastFixedRateTask<*>>,
         private val initializers: Set<HazelcastInitializationTask<*>>,
         hazelcast: HazelcastInstance
@@ -42,8 +44,8 @@ class TaskSchedulerService(
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
 
     init {
-        setContext(context)
-
+//        TaskSchedulerGlobalContext.setApplicationContext(context)
+        dependencies = dependenciesMap
         //We sort the initializers before running to make sure that initialization task are run in the correct order.
         initializers
                 .toSortedSet()
@@ -80,24 +82,7 @@ class TaskSchedulerService(
     }
 
     companion object {
-        private lateinit var context: ApplicationContext
-        private val logger = LoggerFactory.getLogger(TaskSchedulerService::class.java)
-
-        @JvmStatic
-        private fun <T : HazelcastTaskDependencies> getTaskDependencies(dependency: Class<T>): T {
-            try {
-                return context.getBean(dependency)
-            } catch (ex: Exception) {
-                logger.error("Encountered error while trying to retrieve h")
-                throw ex
-            }
-        }
-
-        private fun setContext(appContext: ApplicationContext) {
-            if (!::context.isInitialized) {
-                context = appContext
-            }
-        }
+        private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
     }
 
     interface HazelcastDependencyAwareTask<T : HazelcastTaskDependencies> {
@@ -105,7 +90,10 @@ class TaskSchedulerService(
 
         @JvmDefault
         fun getDependency(): T {
-            return TaskSchedulerService.getTaskDependencies(getDependenciesClass())
+//            return TaskSchedulerGlobalContext.getTaskDependencies(getDependenciesClass())
+            return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
+                    "Unable to find dependency ${getDependenciesClass().canonicalName}"
+            )) as T
         }
     }
 }

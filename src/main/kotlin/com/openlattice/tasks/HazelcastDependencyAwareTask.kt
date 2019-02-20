@@ -21,16 +21,15 @@
 
 package com.openlattice.tasks
 
-import com.hazelcast.scheduledexecutor.NamedTask
-import com.openlattice.tasks.TaskSchedulerService.HazelcastDependencyAwareTask
-import java.util.concurrent.TimeUnit
-
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-interface HazelcastFixedRateTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T> {
-    fun getInitialDelay(): Long
-    fun getPeriod(): Long
-    fun getTimeUnit(): TimeUnit
+interface HazelcastDependencyAwareTask<T : HazelcastTaskDependencies> {
+    fun getDependenciesClass(): Class<out T>
+
+    @JvmDefault
+    fun getDependency(): T {
+        return TaskSchedulerGlobalContext.getTaskDependencies(getDependenciesClass())
+    }
 }
