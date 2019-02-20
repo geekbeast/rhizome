@@ -25,7 +25,7 @@ import com.hazelcast.core.HazelcastInstance
 import com.openlattice.tasks.HazelcastFixedRateTask
 import com.openlattice.tasks.HazelcastInitializationTask
 import com.openlattice.tasks.HazelcastTaskDependencies
-import com.openlattice.tasks.TaskSchedulerService
+import com.openlattice.tasks.TaskService
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -59,7 +59,7 @@ class TaskSchedulerPod {
     private lateinit var dependencies: MutableSet<HazelcastTaskDependencies>
 
     @Bean
-    fun taskSchedulerService(): TaskSchedulerService {
+    fun taskSchedulerService(): TaskService {
         val dependenciesMap : Map<Class<*>, HazelcastTaskDependencies> = dependencies
                 .filter { it !is TaskSchedulerBootstrapPod.NoOpDependencies }
                 .groupBy { it.javaClass as Class<*> }
@@ -95,7 +95,7 @@ class TaskSchedulerPod {
             }
         }
 
-        return TaskSchedulerService(
+        return TaskService(
                 context,
                 dependenciesMap,
                 validTasks.toSet(),

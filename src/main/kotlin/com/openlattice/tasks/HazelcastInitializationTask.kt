@@ -22,7 +22,7 @@
 package com.openlattice.tasks
 
 import com.hazelcast.scheduledexecutor.NamedTask
-import com.openlattice.tasks.TaskSchedulerService.HazelcastDependencyAwareTask
+import com.openlattice.tasks.TaskService.HazelcastDependencyAwareTask
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
 

@@ -28,13 +28,13 @@ import org.springframework.context.ApplicationContext
 import java.util.concurrent.TimeUnit
 
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
-private val logger = LoggerFactory.getLogger(TaskSchedulerService::class.java)
+private val logger = LoggerFactory.getLogger(TaskService::class.java)
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-class TaskSchedulerService(
+class TaskService(
         context: ApplicationContext,
         dependenciesMap: Map<Class<*>, HazelcastTaskDependencies>,
         tasks: Set<HazelcastFixedRateTask<*>>,
@@ -90,7 +90,6 @@ class TaskSchedulerService(
 
         @JvmDefault
         fun getDependency(): T {
-//            return TaskSchedulerGlobalContext.getTaskDependencies(getDependenciesClass())
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
