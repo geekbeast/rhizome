@@ -70,10 +70,11 @@ class TaskService(
                     val f: IScheduledFuture<*> = executor.getScheduledFuture<Any>(ScheduledTaskHandler.of(urn))
 
                     logger.info(
-                            "Scheduled initializer {} with initialDelay {} and period {} in time unit",
+                            "Waiting on initializer {} with initialDelay {} and period {} in time unit (urn = {})",
                             initializer.name,
                             initializer.getInitialDelay(),
-                            initializer.getTimeUnit()
+                            initializer.getTimeUnit(),
+                            urn
                     )
 
                     f.get()
