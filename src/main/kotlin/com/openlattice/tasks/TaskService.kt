@@ -116,10 +116,10 @@ class TaskService(
 
             return if (ancestorsOfA.contains(a.javaClass) && ancestorsOfB.contains(b.javaClass)) {
                 logger.error(
-                        "Detected cycle in task graph. ${a.canonicalName} must happen after ${b.canonicalName} and vice-versa."
+                        "Detected cycle in task graph. ${a.javaClass.canonicalName} must happen after ${b.javaClass.canonicalName} and vice-versa."
                 )
                 throw IllegalStateException(
-                        "Detected cycle in task graph. ${a.canonicalName} must happen after ${b.canonicalName} and vice-versa."
+                        "Detected cycle in task graph. ${a.javaClass.canonicalName} must happen after ${b.javaClass.canonicalName} and vice-versa."
                 )
             } else if (ancestorsOfA.contains(b.javaClass)) {
                 //1 argument is greater than second argument as it must be initialized after
