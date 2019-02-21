@@ -25,8 +25,8 @@ import com.openlattice.controllers.util.ApiExceptions
 
 
 data class ErrorDTO(
-        @JsonProperty("error") private val error: ApiExceptions,
-        @JsonProperty("message") private val message: String) {
+        @JsonProperty("error") val error: ApiExceptions,
+        @JsonProperty("message") val message: String) {
     override fun toString(): String {
         return "ErrorDTO [error=$error, message=$message=]";
     }
