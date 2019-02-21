@@ -56,30 +56,36 @@ class TaskService(
                 .forEach { initializer ->
                     val sw = Stopwatch.createStarted()
 
-                    val urn = submitted.getOrPut(initializer.name) {
-                        executor.schedule(
-                                initializer,
+
+                    if (initializer.isRunOnceAcrossCluster()) {
+                        val urn = submitted.getOrPut(initializer.name) {
+                            executor.schedule(
+                                    initializer,
+                                    initializer.getInitialDelay(),
+                                    initializer.getTimeUnit()
+                            ).handler.toUrn()
+                        }
+                        //By always retrieving the task we can ensure that we wait for initialization tasks kicked
+                        //off by different nodes at startup
+                        val f: IScheduledFuture<*> = executor.getScheduledFuture<Any>(ScheduledTaskHandler.of(urn))
+
+                        logger.info(
+                                "Waiting on initializer {} with initialDelay {} and period {} in time unit (urn = {})",
+                                initializer.name,
                                 initializer.getInitialDelay(),
-                                initializer.getTimeUnit()
-                        ).handler.toUrn()
+                                initializer.getTimeUnit(),
+                                urn
+                        )
+
+                        f.get()
+
+
+                    } else {
+                        initializer.run()
                     }
 
-                    //By always retrieving the task we can ensure that we wait for initialization tasks kicked
-                    //off by different nodes at startup
-                    val f: IScheduledFuture<*> = executor.getScheduledFuture<Any>(ScheduledTaskHandler.of(urn))
-
                     logger.info(
-                            "Waiting on initializer {} with initialDelay {} and period {} in time unit (urn = {})",
-                            initializer.name,
-                            initializer.getInitialDelay(),
-                            initializer.getTimeUnit(),
-                            urn
-                    )
-
-                    f.get()
-
-                    logger.info(
-                            "Coompleted execution of initializer {} in {} millis",
+                            "Completed execution of initializer {} in {} millis",
                             initializer.name,
                             sw.elapsed(TimeUnit.MILLISECONDS)
                     )

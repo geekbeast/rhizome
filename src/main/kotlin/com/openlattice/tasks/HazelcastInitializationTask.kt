@@ -50,13 +50,8 @@ interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable,
      */
     fun after(): Set<Class<out HazelcastInitializationTask<*>>>
 
-//    Comparable<HazelcastInitializationTask<*>>,
-//    @JvmDefault
-//    override fun compareTo(other: HazelcastInitializationTask<*>): Int {
-//        return when {
-//            other == this -> 0
-//            after().contains(other.javaClass) -> 1
-//            else -> -1
-//        }
-//    }
+    @JvmDefault
+    fun isRunOnceAcrossCluster(): Boolean {
+        return false
+    }
 }
