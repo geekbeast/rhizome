@@ -52,6 +52,6 @@ interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable,
 
     @JvmDefault
     fun isRunOnceAcrossCluster(): Boolean {
-        return false
+        return true
     }
 }

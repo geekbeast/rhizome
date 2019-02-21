@@ -90,6 +90,11 @@ class TaskService(
                             sw.elapsed(TimeUnit.MILLISECONDS)
                     )
                 }
+
+        logger.info("***********************************************************************")
+        logger.info("***                 INITIALIZATION TASK COMPLETED                   ***")
+        logger.info("***********************************************************************")
+        logger.info("***********************************************************************")
     }
 
     private val taskFutures = tasks
