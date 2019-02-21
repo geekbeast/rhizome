@@ -20,6 +20,6 @@
 
 package com.openlattice.controllers.exceptions
 
-class AclKeyConflictException(message: String):RuntimeException(message) {
+class UniqueIdConflictException(message: String):RuntimeException(message) {
     private val serialVersionUID = -3630252810504431087L
 }
