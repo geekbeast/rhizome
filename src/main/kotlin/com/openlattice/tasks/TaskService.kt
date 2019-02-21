@@ -101,20 +101,22 @@ class TaskService(
     ) : Comparator<HazelcastInitializationTask<*>> {
         private val initMap = initializers.map { (it.javaClass as Class<*>) to it }.toMap()
         private val ancestorMap = mutableMapOf<Class<*>, MutableSet<Class<*>>>()
+
+        init {
+            initializers.forEach { initializer ->
+                ancestorMap.getOrPut(initializer.javaClass) {
+                    initializer.after().flatMap { clazz: Class<*> ->
+                        ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
+                    }.toMutableSet()
+
+                }
+            }
+        }
+
         override fun compare(a: HazelcastInitializationTask<*>, b: HazelcastInitializationTask<*>): Int {
-            val ancestorsOfA = ancestorMap.getOrPut(a.javaClass) {
-                a.after().flatMap { clazz: Class<*> ->
-                    ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
-                }.toMutableSet()
-            }
-
-            val ancestorsOfB = ancestorMap.getOrPut(b.javaClass) {
-                b.after().flatMap { clazz: Class<*> ->
-                    ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
-                }.toMutableSet()
-            }
-
-            return if (ancestorsOfA.contains(a.javaClass) && ancestorsOfB.contains(b.javaClass)) {
+            val ancestorsOfA = ancestorMap.getValue(a.javaClass)
+            val ancestorsOfB = ancestorMap.getValue(b.javaClass)
+            return if (ancestorsOfA.contains(b.javaClass) && ancestorsOfB.contains(a.javaClass)) {
                 logger.error(
                         "Detected cycle in task graph. ${a.javaClass.canonicalName} must happen after ${b.javaClass.canonicalName} and vice-versa."
                 )
