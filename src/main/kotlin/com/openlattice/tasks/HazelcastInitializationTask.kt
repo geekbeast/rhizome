@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Comparable<HazelcastInitializationTask<*>>, Serializable {
+interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Serializable {
     fun getInitialDelay(): Long
 
     @JvmDefault
@@ -50,12 +50,13 @@ interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable,
      */
     fun after(): Set<Class<out HazelcastInitializationTask<*>>>
 
-    @JvmDefault
-    override fun compareTo(other: HazelcastInitializationTask<*>): Int {
-        return when {
-            other == this -> 0
-            after().contains(other.javaClass) -> 1
-            else -> -1
-        }
-    }
+//    Comparable<HazelcastInitializationTask<*>>,
+//    @JvmDefault
+//    override fun compareTo(other: HazelcastInitializationTask<*>): Int {
+//        return when {
+//            other == this -> 0
+//            after().contains(other.javaClass) -> 1
+//            else -> -1
+//        }
+//    }
 }

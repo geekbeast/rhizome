@@ -48,7 +48,7 @@ class TaskService(
         dependencies = dependenciesMap
         //We sort the initializers before running to make sure that initialization task are run in the correct order.
         initializers
-                .toSortedSet()
+                .toSortedSet(TaskComparator(initializers))
                 .forEach { initializer ->
                     val sw = Stopwatch.createStarted()
                     val f = executor.schedule(initializer, initializer.getInitialDelay(), initializer.getTimeUnit())
@@ -93,6 +93,58 @@ class TaskService(
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
+        }
+    }
+
+    class TaskComparator(
+            initializers: Set<HazelcastInitializationTask<*>>
+    ) : Comparator<HazelcastInitializationTask<*>> {
+        private val initMap = initializers.map { (it.javaClass as Class<*>) to it }.toMap()
+        private val ancestorMap = mutableMapOf<Class<*>, MutableSet<Class<*>>>()
+        override fun compare(a: HazelcastInitializationTask<*>, b: HazelcastInitializationTask<*>): Int {
+            val ancestorsOfA = ancestorMap.getOrPut(a.javaClass) {
+                a.after().flatMap { clazz: Class<*> ->
+                    ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
+                }.toMutableSet()
+            }
+
+            val ancestorsOfB = ancestorMap.getOrPut(b.javaClass) {
+                b.after().flatMap { clazz: Class<*> ->
+                    ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
+                }.toMutableSet()
+            }
+
+            return if (ancestorsOfA.contains(a.javaClass) && ancestorsOfB.contains(b.javaClass)) {
+                logger.error(
+                        "Detected cycle in task graph. ${a.canonicalName} must happen after ${b.canonicalName} and vice-versa."
+                )
+                throw IllegalStateException(
+                        "Detected cycle in task graph. ${a.canonicalName} must happen after ${b.canonicalName} and vice-versa."
+                )
+            } else if (ancestorsOfA.contains(b.javaClass)) {
+                //1 argument is greater than second argument as it must be initialized after
+                1
+            } else if (ancestorsOfB.contains(a.javaClass)) {
+                //1 argument is less than second argument as it must be initialized before
+                -1
+            } else {
+                //Order of these two tasks does not matter
+                0
+            }
+        }
+
+
+        private fun expandAncestors(initial: Class<*>): Set<Class<*>> {
+            val ancestors = mutableSetOf<Class<*>>()
+            ancestors += initial
+            var current = setOf(initial)
+            while (current.isNotEmpty()) {
+                current = current.flatMap {
+                    initMap.getValue(it).after()
+                }.toSet()
+                ancestors += current
+            }
+            return ancestors
         }
     }
 }
