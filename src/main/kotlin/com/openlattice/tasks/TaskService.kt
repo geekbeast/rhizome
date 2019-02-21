@@ -169,7 +169,7 @@ class TaskService(
                 current = current.flatMap {
                     try {
                         initMap.getValue(it).after()
-                    } catch (ex: NoSuchElementException) {
+                    } catch (ex: java.util.NoSuchElementException) {
                         logger.error("Missing dependency: {}", it.canonicalName)
                         throw ex
                     }
