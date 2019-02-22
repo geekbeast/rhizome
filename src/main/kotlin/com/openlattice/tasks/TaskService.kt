@@ -91,6 +91,13 @@ class TaskService(
 
 
                     } else {
+                        logger.info(
+                                "Waiting on initializer {} with initialDelay {} and period {} in time unit (not hazelcast scheduled)",
+                                initializer.name,
+                                initializer.getInitialDelay(),
+                                initializer.getTimeUnit()
+                        )
+
                         initializer.run()
                     }
 
