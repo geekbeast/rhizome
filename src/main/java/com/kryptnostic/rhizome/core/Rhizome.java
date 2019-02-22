@@ -262,7 +262,7 @@ public class Rhizome implements WebApplicationInitializer {
         jetty.start();
     }
 
-    public void wilt() throws BeansException, Exception {
+    public void wilt() throws Exception {
         jetty.stop();
         context.close();
     }
