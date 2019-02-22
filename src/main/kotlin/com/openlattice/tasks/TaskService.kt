@@ -26,8 +26,11 @@ import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.scheduledexecutor.DuplicateTaskException
 import com.hazelcast.scheduledexecutor.IScheduledFuture
 import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
+import com.kryptnostic.rhizome.startup.Requirement
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
+import java.lang.Exception
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 const val SUBMITTED_TASKS = "_rhizome:submitted-tasks"
@@ -45,6 +48,13 @@ class TaskService(
         private val initializers: Set<HazelcastInitializationTask<*>>,
         hazelcast: HazelcastInstance
 ) {
+    companion object {
+        private val latch = CountDownLatch(1)
+        private val initializersCompletedRequirements = InitializersCompletedRequirements()
+        private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
+
+    }
+
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
     private val submitted = hazelcast.getMap<String, String>(SUBMITTED_TASKS)
 
@@ -95,6 +105,7 @@ class TaskService(
         logger.info("***                 INITIALIZATION TASK COMPLETED                   ***")
         logger.info("***********************************************************************")
         logger.info("***********************************************************************")
+        latch.countDown()
     }
 
     private val taskFutures = tasks
@@ -117,8 +128,8 @@ class TaskService(
                 )
             }
 
-    companion object {
-        private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
+    fun getInitializersCompletedRequirements(): Requirement {
+        return initializersCompletedRequirements
     }
 
     interface HazelcastDependencyAwareTask<T : HazelcastTaskDependencies> {
@@ -130,6 +141,23 @@ class TaskService(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
         }
+    }
+
+    private class InitializersCompletedRequirements : Requirement {
+        override fun getDescription(): String {
+            return "All initializers have completed executing!"
+        }
+
+        override fun isSatisfied(): Boolean {
+            return try {
+                latch.await()
+                true
+            } catch (ex: Exception) {
+                logger.error("Unable to satisfy startup requirement.", ex)
+                false
+            }
+        }
+
     }
 
     class TaskComparator(
