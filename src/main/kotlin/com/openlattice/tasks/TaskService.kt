@@ -51,7 +51,6 @@ class TaskService(
         private val latch = CountDownLatch(1)
         private val initializersCompletedRequirements = InitializersCompletedRequirements()
         private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
-        private val startupLatch = CountDownLatch(1)
 
     }
 
@@ -144,7 +143,7 @@ class TaskService(
 
         @JvmDefault
         fun getDependency(): T {
-            startupLatch.await()
+            latch.await()
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
