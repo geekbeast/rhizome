@@ -23,7 +23,6 @@ package com.openlattice.tasks
 
 import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
-import com.hazelcast.scheduledexecutor.DuplicateTaskException
 import com.hazelcast.scheduledexecutor.IScheduledFuture
 import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
 import com.kryptnostic.rhizome.startup.Requirement
@@ -144,6 +143,7 @@ class TaskService(
 
         @JvmDefault
         fun getDependency(): T {
+            latch.await()
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
