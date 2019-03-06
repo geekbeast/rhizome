@@ -49,9 +49,9 @@ class TaskService(
 ) {
     companion object {
         private val latch = CountDownLatch(1)
+        private val startupLatch = CountDownLatch(1)
         private val initializersCompletedRequirements = InitializersCompletedRequirements()
         private lateinit var dependencies: Map<Class<*>, HazelcastTaskDependencies>
-
     }
 
     private val executor = hazelcast.getScheduledExecutorService(HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME)
@@ -59,6 +59,7 @@ class TaskService(
 
     init {
         dependencies = dependenciesMap
+        startupLatch.countDown()
         //We sort the initializers before running to make sure that initialization task are run in the correct order.
         initializers
                 .toSortedSet(TaskComparator(initializers))
@@ -143,7 +144,7 @@ class TaskService(
 
         @JvmDefault
         fun getDependency(): T {
-            latch.await()
+            startupLatch.await()
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
                     "Unable to find dependency ${getDependenciesClass().canonicalName}"
             )) as T
