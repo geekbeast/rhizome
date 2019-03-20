@@ -15,6 +15,8 @@ import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConf
 import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
 import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
+import com.openlattice.retrofit.RhizomeRetrofitCallException;
+import com.openlattice.retrofit.RhizomeRetrofitCallFailedException;
 import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
@@ -83,11 +85,16 @@ public class RhizomeTests {
         TestConfiguration actual = api.getTestConfigurationSecuredAdmin();
     }
 
-    @Test
+    @Test(expected = RhizomeRetrofitCallException.class )
     public void testGetFooEndpoint() {
         SimpleControllerAPI api = adapter.create( SimpleControllerAPI.class );
-        TestConfiguration actual = api.getTestConfigurationSecuredFoo();
-        Assert.assertNull( actual );
+        try {
+            TestConfiguration actual = api.getTestConfigurationSecuredFoo();
+        } catch ( RhizomeRetrofitCallException ex) {
+            Assert.assertEquals( HttpStatus.FORBIDDEN.value(), ex.getCode());
+            throw ex;
+        }
+        
     }
 
     @Test
