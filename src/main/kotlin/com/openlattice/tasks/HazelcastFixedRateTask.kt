@@ -23,8 +23,10 @@ package com.openlattice.tasks
 
 import com.hazelcast.scheduledexecutor.NamedTask
 import com.openlattice.tasks.TaskService.HazelcastDependencyAwareTask
+import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
+private val logger = LoggerFactory.getLogger(HazelcastFixedRateTask::class.java)
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -33,4 +35,12 @@ interface HazelcastFixedRateTask<T : HazelcastTaskDependencies> : Runnable, Name
     fun getInitialDelay(): Long
     fun getPeriod(): Long
     fun getTimeUnit(): TimeUnit
+    fun runTask()
+    override fun run() {
+        try {
+            runTask()
+        } catch (ex:Exception) {
+            logger.error("Error occured while running fixed rate task.", ex)
+        }
+    }
 }
