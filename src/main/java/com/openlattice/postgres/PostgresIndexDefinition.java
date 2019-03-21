@@ -64,6 +64,8 @@ public interface PostgresIndexDefinition {
 
     PostgresIndexDefinition concurrent();
 
+    PostgresIndexDefinition notConcurrent();
+
     PostgresIndexDefinition ifNotExists();
 
     String sql();

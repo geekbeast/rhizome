@@ -136,6 +136,12 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
         return this;
     }
 
+    @Override
+    public PostgresIndexDefinition notConcurrent() {
+        concurrent = false;
+        return this;
+    }
+
     @Override public PostgresIndexDefinition ifNotExists() {
         checkState( name.isPresent(), "Name must be present for if not exists clause" );
         this.ifNotExists = true;

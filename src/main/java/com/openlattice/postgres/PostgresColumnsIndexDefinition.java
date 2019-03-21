@@ -46,7 +46,7 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     private boolean desc       = false;
 
     private boolean ifNotExists = false;
-    private boolean concurrent  = false;
+    private boolean concurrent  = true;
 
     public PostgresColumnsIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition... columns ) {
         checkState( checkNotNull( columns ).length > 0 );
@@ -145,6 +145,12 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
 
     @Override public PostgresIndexDefinition concurrent() {
         concurrent = true;
+        return this;
+    }
+
+    @Override
+    public PostgresIndexDefinition notConcurrent() {
+        concurrent = false;
         return this;
     }
 
