@@ -36,59 +36,54 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class BaseExceptionHandler {
     private val logger = LoggerFactory.getLogger(BaseExceptionHandler::class.java)
-    private val ERROR_MSG = ""
 
     @ExceptionHandler(NullPointerException::class, ResourceNotFoundException::class)
     fun handleNotFoundException(e: Exception): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
-        return if (e.message != null) {
-            ResponseEntity(ErrorsDTO(ApiExceptions.RESOURCE_NOT_FOUND_EXCEPTION, e.message!!), HttpStatus.NOT_FOUND)
-        } else ResponseEntity(HttpStatus.NOT_FOUND)
+        return handleException(e, HttpStatus.NOT_FOUND, ApiExceptions.RESOURCE_NOT_FOUND_EXCEPTION)
     }
 
     @ExceptionHandler(IllegalArgumentException::class, HttpMessageNotReadableException::class)
     fun handleIllegalArgumentException(e: Exception): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
-        return ResponseEntity(
-                ErrorsDTO(ApiExceptions.ILLEGAL_ARGUMENT_EXCEPTION, e.message!!),
-                HttpStatus.BAD_REQUEST)
+        return handleException(e, HttpStatus.BAD_REQUEST, ApiExceptions.ILLEGAL_ARGUMENT_EXCEPTION)
     }
 
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalStateException(e: Exception): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
-        return ResponseEntity(
-                ErrorsDTO(ApiExceptions.ILLEGAL_STATE_EXCEPTION, e.message!!),
-                HttpStatus.INTERNAL_SERVER_ERROR)
+        return handleException(e, HttpStatus.INTERNAL_SERVER_ERROR, ApiExceptions.ILLEGAL_STATE_EXCEPTION)
     }
 
     @ExceptionHandler(TypeExistsException::class)
     fun handleTypeExistsException(e: Exception): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
-        return ResponseEntity(
-                ErrorsDTO(ApiExceptions.TYPE_EXISTS_EXCEPTION, e.message!!),
-                HttpStatus.CONFLICT)
+        return handleException(e, HttpStatus.CONFLICT, ApiExceptions.TYPE_EXISTS_EXCEPTION)
     }
 
     @ExceptionHandler(ForbiddenException::class)
     fun handleUnauthorizedExceptions(e: ForbiddenException): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
-        return ResponseEntity(
-                ErrorsDTO(ApiExceptions.FORBIDDEN_EXCEPTION, e.message!!),
-                HttpStatus.UNAUTHORIZED)
+        return handleException(e, HttpStatus.UNAUTHORIZED, ApiExceptions.FORBIDDEN_EXCEPTION)
     }
 
     @ExceptionHandler(BatchException::class)
     fun handleBatchExceptions(e: BatchException): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
+        logger.error("", e)
         return ResponseEntity(e.getErrors(), e.getStatusCode())
     }
 
     @ExceptionHandler(Exception::class)
     fun handleOtherExceptions(e: Exception): ResponseEntity<ErrorsDTO> {
-        logger.error(ERROR_MSG, e)
+        return handleException(
+                e, HttpStatus.INTERNAL_SERVER_ERROR, ApiExceptions.OTHER_EXCEPTION, e.javaClass.simpleName + ": ")
+    }
+
+    private fun handleException(
+            e: Exception,
+            responseStatus: HttpStatus,
+            responseException: ApiExceptions,
+            prefixMessage: String = "",
+            postFixMessage: String = ""): ResponseEntity<ErrorsDTO> {
+        logger.error("", e)
+        val errorMessage = e.message ?: ""
         return ResponseEntity(
-                ErrorsDTO(ApiExceptions.OTHER_EXCEPTION, e.javaClass.simpleName + ": " + e.message),
-                HttpStatus.INTERNAL_SERVER_ERROR)
+                ErrorsDTO(responseException, prefixMessage + errorMessage + postFixMessage),
+                responseStatus)
     }
 }
