@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -110,6 +111,7 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     }
 
     @Override public PostgresIndexDefinition method( IndexMethod method ) {
+        checkArgument( !method.equals( IndexMethod.NONE ), "You cannot create an index of type NONE" );
         this.method = Optional.of( method );
         return this;
     }
