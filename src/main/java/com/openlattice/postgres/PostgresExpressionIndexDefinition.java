@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Used for specifying custom expression indexes. As the expression index is user provided we don't do any validation
- * unlike with column indexes.
+ * unlike with column indexes. Creates indexes concurrently by default.
  */
 public class PostgresExpressionIndexDefinition implements PostgresIndexDefinition {
     private final PostgresTableDefinition table;
@@ -45,7 +45,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
     private boolean desc       = false;
 
     private boolean ifNotExists = false;
-    private boolean concurrent  = false;
+    private boolean concurrent  = true;
 
     public PostgresExpressionIndexDefinition( PostgresTableDefinition table, String expression ) {
         this.table = table;
