@@ -37,8 +37,8 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     private final PostgresTableDefinition        table;
     private final List<PostgresColumnDefinition> columns;
 
-    private Optional<String>      name   = Optional.empty();
-    private Optional<IndexMethod> method = Optional.empty();
+    private Optional<String>    name   = Optional.empty();
+    private Optional<IndexType> method = Optional.empty();
 
     private boolean unique     = false;
     private boolean nullsFirst = false;
@@ -93,7 +93,7 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
         return name;
     }
 
-    @Override public Optional<IndexMethod> getMethod() {
+    @Override public Optional<IndexType> getMethod() {
         return method;
     }
 
@@ -110,8 +110,8 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
         return this;
     }
 
-    @Override public PostgresIndexDefinition method( IndexMethod method ) {
-        checkArgument( !method.equals( IndexMethod.NONE ), "You cannot create an index of type NONE" );
+    @Override public PostgresIndexDefinition method( IndexType method ) {
+        checkArgument( !method.equals( IndexType.NONE ), "You cannot create an index of type NONE" );
         this.method = Optional.of( method );
         return this;
     }

@@ -42,7 +42,7 @@ public interface PostgresIndexDefinition {
 
     Optional<String> getName();
 
-    Optional<IndexMethod> getMethod();
+    Optional<IndexType> getMethod();
 
     boolean isConcurrent();
 
@@ -50,7 +50,7 @@ public interface PostgresIndexDefinition {
 
     PostgresIndexDefinition name( String name );
 
-    PostgresIndexDefinition method( IndexMethod method );
+    PostgresIndexDefinition method( IndexType method );
 
     PostgresIndexDefinition unique();
 

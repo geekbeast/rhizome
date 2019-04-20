@@ -64,10 +64,9 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
                 .newHashMap( Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() ) );
         configs.putAll( queueConfigs );
         queueConfigurers.forEach( configurer -> {
-            QueueConfig config = configs.get( configurer.getQueueName() );
-            if ( config != null ) {
-                configurer.configure( config );
-            }
+            final QueueConfig config = configs
+                    .computeIfAbsent( configurer.getQueueName(), k -> new QueueConfig( k ).setBackupCount( 1 ) );
+            configurer.configure( config );
         } );
         return configs;
     }
@@ -86,7 +85,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
             //This ensures that Hazelcast will use the byte-code re-written beans instead of the mapstores directly
             //The metrics enabled flag can be overriden for debugging particular mapstores if stacktraces are too dirty
-            if( s.isMetricsEnabled() ) {
+            if ( s.isMetricsEnabled() ) {
                 s.getMapStoreConfig().setImplementation( s );
             }
             register( s.getMapConfig().getName(), s );

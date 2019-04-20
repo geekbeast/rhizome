@@ -35,8 +35,8 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
     private final PostgresTableDefinition table;
     private final String                  expression;
 
-    private Optional<String>      name   = Optional.empty();
-    private Optional<IndexMethod> method = Optional.empty();
+    private Optional<String>    name   = Optional.empty();
+    private Optional<IndexType> method = Optional.empty();
 
     private boolean unique     = false;
     private boolean nullsFirst = false;
@@ -80,7 +80,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
         return name;
     }
 
-    @Override public Optional<IndexMethod> getMethod() {
+    @Override public Optional<IndexType> getMethod() {
         return method;
     }
 
@@ -97,7 +97,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
         return this;
     }
 
-    @Override public PostgresIndexDefinition method( IndexMethod method ) {
+    @Override public PostgresIndexDefinition method( IndexType method ) {
         this.method = Optional.of( method );
         return this;
     }
