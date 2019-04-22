@@ -39,14 +39,16 @@ public class PostgresTableManager {
     private final        HikariDataSource                     hds;
     private final        Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
     private final        boolean                              citus;
+    private final        boolean                              initializeIndices;
 
     public PostgresTableManager( HikariDataSource hds ) {
-        this( hds, false );
+        this( hds, false, false );
     }
 
-    public PostgresTableManager( HikariDataSource hds, boolean citus ) {
+    public PostgresTableManager( HikariDataSource hds, boolean citus, boolean initializeIndices ) {
         this.citus = citus;
         this.hds = hds;
+        this.initializeIndices = initializeIndices;
     }
 
     public void registerTables( PostgresTableDefinition... tables ) throws SQLException {
@@ -79,18 +81,19 @@ public class PostgresTableManager {
                         }
                     }
 
-                    for ( PostgresIndexDefinition index : table.getIndexes() ) {
-                        String indexSql = index.sql();
-                        try ( Statement sci = conn.createStatement() ) {
-                            sci.execute( indexSql );
-                        } catch ( SQLException e ) {
-                            logger.info( "Failed to create index {} with query {} for table {}",
-                                    index,
-                                    indexSql,
-                                    table );
-                            throw e;
+                    if ( initializeIndices ) {
+                        for ( PostgresIndexDefinition index : table.getIndexes() ) {
+                            String indexSql = index.sql();
+                            try ( Statement sci = conn.createStatement() ) {
+                                sci.execute( indexSql );
+                            } catch ( SQLException e ) {
+                                logger.info( "Failed to create index {} with query {} for table {}",
+                                        index,
+                                        indexSql,
+                                        table );
+                                throw e;
+                            }
                         }
-
                     }
                 } catch ( SQLException e ) {
                     logger.info( "Failed to initialize postgres table {} with query {}",
@@ -99,6 +102,7 @@ public class PostgresTableManager {
                             e );
                     throw e;
                 }
+
             }
             activeTables.put( table.getName(), table );
         }
