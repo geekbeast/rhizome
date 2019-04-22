@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.configuration;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.geekbeast.configuration.postgres.PostgresConfiguration;
 import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
@@ -24,16 +25,14 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL            = "cors-access-control-allow-origin-url";
     protected static final String CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
+    protected static final String POSTGRES_CONFIGURATION                          = "postgres";
     protected static final String SPARK_CONFIGURATION_PROPERTY                    = "spark";
-    protected static final String HIKARI_CONFIGURATION_PROPERTY                   = "hikari";
     protected static final String CASSANDRA_CONFIGURATIONS_PROPERTY               = "cassandras";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
     protected static final String HAZELCAST_CONFIGURATION_PROPERTY                = "hazelcast";
     protected static final String NAME_PROPERTY                                   = "name";
-    protected static final String USING_CITUS_PROPERTY                            = "citus";
 
-    protected static final boolean                                       USING_CITUS_DEFAULT                = false;
     protected static final boolean                                       PERSISTENCE_ENABLED_DEFAULT        = true;
     protected static final boolean                                       SESSION_CLUSTERING_ENABLED_DEFAULT = false;
     private static final   long                                          serialVersionUID                   = -8444209890618166001L;
@@ -44,23 +43,26 @@ public class RhizomeConfiguration implements Configuration {
                     getClass() );
     protected final        boolean                                       persistData;
     protected final        boolean                                       sessionClusteringEnabled;
-    protected final        Boolean                                       usingCitus;
     protected final        String                                        corsAccessControlAllowOriginUrl;
     protected final        Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
     protected final        Optional<GraphiteConfiguration>               graphiteConfiguration;
+    protected final        Optional<PostgresConfiguration>               postgresConfiguration;
     @Deprecated
     protected final        Optional<CassandraConfiguration>              cassandraConfiguration;
+    @Deprecated
     protected final        Optional<CassandraConfigurations>             cassandraConfigurations;
     protected final        Optional<HazelcastConfiguration>              hazelcastConfiguration;
-    protected final        Optional<Properties>                          hikariConfiguration;
-    protected final        Optional<SparkConfiguration>                  sparkConfiguration;
-    protected final        String                                        name;
+
+    protected final Optional<SparkConfiguration> sparkConfiguration;
+
+    protected final String name;
 
     @JsonCreator
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
             @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL ) Optional<String> corsAccessControlAllowOriginUrl,
+            @JsonProperty( POSTGRES_CONFIGURATION ) Optional<PostgresConfiguration> postgresConfiguration,
             @Deprecated @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
                     Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY )
@@ -70,36 +72,19 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY )
                     Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration,
             @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig,
-            @JsonProperty( HIKARI_CONFIGURATION_PROPERTY ) Optional<Properties> hikariConfiguration,
-            @JsonProperty( USING_CITUS_PROPERTY ) Optional<Boolean> usingCitus,
             @JsonProperty( NAME_PROPERTY ) Optional<String> name ) {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
+        this.postgresConfiguration = postgresConfiguration;
         this.cassandraConfiguration = cassandraConfiguration;
         this.cassandraConfigurations = cassandraConfigurations;
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
         this.sparkConfiguration = sparkConfig;
-        this.hikariConfiguration = hikariConfiguration;
-        this.usingCitus = usingCitus.or( USING_CITUS_DEFAULT );
-        this.name = name.or( "rhizome" );
-    }
 
-    @Override public String toString() {
-        return "RhizomeConfiguration{" +
-                "persistData=" + persistData +
-                ", sessionClusteringEnabled=" + sessionClusteringEnabled +
-                ", corsAccessControlAllowOriginUrl='" + corsAccessControlAllowOriginUrl + '\'' +
-                ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration +
-                ", graphiteConfiguration=" + graphiteConfiguration +
-                ", cassandraConfiguration=" + cassandraConfiguration +
-                ", cassandraConfigurations=" + cassandraConfigurations +
-                ", hazelcastConfiguration=" + hazelcastConfiguration +
-                ", hikariConfiguration=" + hikariConfiguration +
-                ", sparkConfiguration=" + sparkConfiguration +
-                '}';
+        this.name = name.or( "rhizome" );
     }
 
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )
@@ -148,9 +133,9 @@ public class RhizomeConfiguration implements Configuration {
         return sparkConfiguration;
     }
 
-    @JsonProperty( HIKARI_CONFIGURATION_PROPERTY )
-    public Optional<Properties> getHikariConfiguration() {
-        return hikariConfiguration;
+    @JsonProperty( POSTGRES_CONFIGURATION )
+    public Optional<PostgresConfiguration> getPostgresConfiguration() {
+        return postgresConfiguration;
     }
 
     @JsonProperty( NAME_PROPERTY )
@@ -158,9 +143,20 @@ public class RhizomeConfiguration implements Configuration {
         return name;
     }
 
-    @JsonProperty( USING_CITUS_PROPERTY )
-    public Boolean isUsingCitus() {
-        return usingCitus;
+    @Override public String toString() {
+        return "RhizomeConfiguration{" +
+                "persistData=" + persistData +
+                ", sessionClusteringEnabled=" + sessionClusteringEnabled +
+                ", corsAccessControlAllowOriginUrl='" + corsAccessControlAllowOriginUrl + '\'' +
+                ", hazelcastSessionFilterConfiguration=" + hazelcastSessionFilterConfiguration +
+                ", graphiteConfiguration=" + graphiteConfiguration +
+                ", postgresConfiguration=" + postgresConfiguration +
+                ", cassandraConfiguration=" + cassandraConfiguration +
+                ", cassandraConfigurations=" + cassandraConfigurations +
+                ", hazelcastConfiguration=" + hazelcastConfiguration +
+                ", sparkConfiguration=" + sparkConfiguration +
+                ", name='" + name + '\'' +
+                '}';
     }
 
     @Override
