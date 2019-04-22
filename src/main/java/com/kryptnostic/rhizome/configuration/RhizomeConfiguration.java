@@ -25,7 +25,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL            = "cors-access-control-allow-origin-url";
     protected static final String CASSANDRA_CONFIGURATION_PROPERTY                = "cassandra";
-    protected static final String POSTGRES_CONFIGURATION                          = "postgresConfiguration";
+    protected static final String POSTGRES_CONFIGURATION                          = "postgres";
     protected static final String SPARK_CONFIGURATION_PROPERTY                    = "spark";
     protected static final String CASSANDRA_CONFIGURATIONS_PROPERTY               = "cassandras";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
