@@ -48,7 +48,8 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
     private final static String AUTHORIZATION_HEADER = "Authorization";
     private final static String AUTHORIZATION_COOKIE = AUTHORIZATION_HEADER.toLowerCase();
     private final static String BEARER_PREFIX        = "Bearer";
-    private final static String CSRF_COOKIE          = "csrfToken";
+    private final static String CSRF_COOKIE          = "ol_csrf_token";
+    private final static String CSRF_PARAM           = "csrfToken";
 
     @Override
     public SecurityContext loadContext( HttpRequestResponseHolder requestResponseHolder ) {
@@ -81,7 +82,7 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
         } else {
             authorizationInfo = getRequestCookie( request, AUTHORIZATION_COOKIE );
             final String csrfTokenFromCookie = getRequestCookie( request, CSRF_COOKIE );
-            final String csrfTokenFromParams = request.getParameter( CSRF_COOKIE );
+            final String csrfTokenFromParams = request.getParameter( CSRF_PARAM );
             if ( csrfTokenFromCookie == null || csrfTokenFromParams == null ) {
                 return null;
             }
