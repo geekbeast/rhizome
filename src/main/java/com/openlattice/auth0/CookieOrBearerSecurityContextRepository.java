@@ -48,7 +48,7 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
     private final static String AUTHORIZATION_HEADER = "Authorization";
     private final static String AUTHORIZATION_COOKIE = AUTHORIZATION_HEADER.toLowerCase();
     private final static String BEARER_PREFIX        = "Bearer";
-    private final static String CSRF_COOKIE          = "ol_csrf_token";
+    private final static String CSRF_COOKIE          = "csrfToken";
 
     @Override
     public SecurityContext loadContext( HttpRequestResponseHolder requestResponseHolder ) {
