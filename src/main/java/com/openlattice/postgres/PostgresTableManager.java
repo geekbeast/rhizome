@@ -34,10 +34,13 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresTableManager {
-    private static final Logger                               logger       = LoggerFactory
+    private static final Logger                               logger                                = LoggerFactory
             .getLogger( PostgresTableManager.class );
+
+    private static final String                               INVALID_TABLE_DEFINITION_SQL_STATE    = "42P16";
+
     private final        HikariDataSource                     hds;
-    private final        Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
+    private final        Map<String, PostgresTableDefinition> activeTables                          = new HashMap<>();
     private final        boolean                              citus;
     private final        boolean                              initializeIndices;
 
@@ -66,17 +69,23 @@ public class PostgresTableManager {
                     sctq.execute( table.createTableQuery() );
 
                     if ( citus ) {
-                        //Creating the distributed table must be done before creating any indeices.
+                        //Creating the distributed table must be done before creating any indices.
                         if ( table instanceof CitusDistributedTableDefinition ) {
                             logger.info( "Creating distributed table {}.", table.getName() );
                             try ( Statement ddstmt = conn.createStatement() ) {
                                 ddstmt.execute( ( (CitusDistributedTableDefinition) table )
                                         .createDistributedTableQuery() );
                             } catch ( SQLException ddex ) {
-                                logger.error( "Unable to distribute table {}. Cause: {}",
-                                        table.getName(),
-                                        ddex.getMessage(),
-                                        ddex );
+                                if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
+                                        && ddex.getMessage()
+                                        .contains( "table \"" + table.getName() + "\" is already distributed" ) ) {
+                                    logger.info( "Table {} is already distributed.", table.getName() );
+                                } else {
+                                    logger.error( "Unable to distribute table {}. Cause: {}",
+                                            table.getName(),
+                                            ddex.getMessage(),
+                                            ddex );
+                                }
                             }
                         }
                     }
