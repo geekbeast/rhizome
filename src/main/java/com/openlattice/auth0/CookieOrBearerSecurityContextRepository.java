@@ -22,12 +22,6 @@ package com.openlattice.auth0;
 
 import com.auth0.spring.security.api.BearerSecurityContextRepository;
 import com.auth0.spring.security.api.authentication.PreAuthenticatedAuthenticationJsonWebToken;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +30,26 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class CookieOrBearerSecurityContextRepository extends BearerSecurityContextRepository {
-    private final static Logger logger               = LoggerFactory
-            .getLogger( CookieOrBearerSecurityContextRepository.class );
+
+    private final static Logger logger = LoggerFactory.getLogger( CookieOrBearerSecurityContextRepository.class );
+
     //Header name is case-insensitive so we use same for consistency with front-end
     private final static String AUTHORIZATION_HEADER = "Authorization";
     private final static String AUTHORIZATION_COOKIE = AUTHORIZATION_HEADER.toLowerCase();
+    private final static String BEARER_PREFIX        = "Bearer";
+    private final static String CSRF_COOKIE          = "ol_csrf_token";
+    private final static String CSRF_PARAM           = "csrfToken";
 
     @Override
     public SecurityContext loadContext( HttpRequestResponseHolder requestResponseHolder ) {
@@ -68,25 +73,6 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
     }
 
     private String tokenFromRequest( HttpServletRequest request ) {
-        //        final String value = request.getHeader( "Authorization" );
-        //
-        //        if ( value == null || !value.toLowerCase().startsWith( "bearer" ) ) {
-        //            return null;
-        //        }
-        //
-        //        String[] parts = value.split( " " );
-        //
-        //        if ( parts.length < 2 ) {
-        //            return null;
-        //        }
-        //
-        //        return parts[ 1 ].trim();
-        //
-        //        final String authorizationHeader = httpRequest.getHeader( "authorization" );
-        //
-        //        if ( authorizationHeader == null && authorizationCookie == null ) {
-        //            return null;
-        //        }
 
         final String authorizationInfo;
         final String authorizationHeader = getAuthorizationTokenFromHeader( request );
@@ -94,10 +80,18 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
         if ( authorizationHeader != null ) {
             authorizationInfo = authorizationHeader;
         } else {
-            authorizationInfo = getAuthorizationTokenFromCookie( request );
+            authorizationInfo = getRequestCookie( request, AUTHORIZATION_COOKIE );
+            final String csrfTokenFromCookie = getRequestCookie( request, CSRF_COOKIE );
+            final String csrfTokenFromParams = request.getParameter( CSRF_PARAM );
+            if ( csrfTokenFromCookie == null || csrfTokenFromParams == null ) {
+                return null;
+            }
+            if ( !StringUtils.equals( csrfTokenFromCookie, csrfTokenFromParams ) ) {
+                return null;
+            }
         }
 
-        if ( authorizationInfo == null || !authorizationInfo.toLowerCase().startsWith( "bearer" ) ) {
+        if ( authorizationInfo == null || !authorizationInfo.startsWith( BEARER_PREFIX ) ) {
             return null;
         }
 
@@ -109,21 +103,18 @@ public class CookieOrBearerSecurityContextRepository extends BearerSecurityConte
             return null;
         }
 
-        //        final String scheme = parts[ 0 ];
-        //        final String credentials = parts[ 1 ];
-
         return parts[ 1 ];
     }
 
-    private static String getAuthorizationTokenFromCookie( HttpServletRequest request ) {
+    private static String getRequestCookie( HttpServletRequest request, String targetCookie ) {
         Cookie[] cookies = request.getCookies();
         if ( cookies != null ) {
             for ( Cookie cookie : request.getCookies() ) {
-                if ( StringUtils.equals( cookie.getName(), AUTHORIZATION_COOKIE ) ) {
+                if ( StringUtils.equals( cookie.getName(), targetCookie ) ) {
                     try {
                         return URLDecoder.decode( cookie.getValue(), StandardCharsets.UTF_8.name() );
                     } catch ( UnsupportedEncodingException e ) {
-                        logger.error( "Unable to decode authorization cookie. " );
+                        logger.error( "Unable to decode {} cookie.", targetCookie );
                     }
                 }
             }
