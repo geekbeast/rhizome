@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.configuration.hazelcast;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -11,30 +12,33 @@ import java.util.Optional;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class HazelcastConfiguration {
-    public static final String  DEFAULT_GROUP_NAME    = "rhizome-dev";
-    public static final String  DEFAULT_INSTANCE_NAME = "rhizome-default";
-    public static final String  DEFAULT_PASSWORD      = "reticulating splines";
-    public static final int     DEFAULT_PORT          = 5701;
-    public static final boolean DEFAULT_SERVER_ROLE   = true;
-    private static final String REPLICATION_FACTOR   = "replication-factor";
-    private static final String SEED_NODES_PROPERTY  = "seed-nodes";
-    private static final String NAME_PROPERTY        = "instance-name";
-    private static final String GROUP_PROPERTY       = "group";
-    private static final String PASSWORD_PROPERTY    = "password";
-    private static final String PORT_PROPERTY        = "port";
-    private static final String SERVER_ROLE_PROPERTY = "server";
-    private static final String SCHEDULED_EXECUTOR   = "scheduled-executor";
-    private static final List<String> SEED_DEFAULT               = ImmutableList.of( "127.0.0.1" );
-    private static final int          REPLICATION_FACTOR_DEFAULT = 2;
+    public static final    String       DEFAULT_GROUP_NAME         = "rhizome-dev";
+    public static final    String       DEFAULT_INSTANCE_NAME      = "rhizome-default";
+    public static final    String       DEFAULT_PASSWORD           = "reticulating splines";
+    public static final    int          DEFAULT_PORT               = 5701;
+    public static final    boolean      DEFAULT_SERVER_ROLE        = true;
+    private static final   String       REPLICATION_FACTOR         = "replication-factor";
+    private static final   String       SEED_NODES_PROPERTY        = "seed-nodes";
+    private static final   String       NAME_PROPERTY              = "instance-name";
+    private static final   String       GROUP_PROPERTY             = "group";
+    private static final   String       PASSWORD_PROPERTY          = "password";
+    private static final   String       PORT_PROPERTY              = "port";
+    private static final   String       SERVER_ROLE_PROPERTY       = "server";
+    private static final   String       SCHEDULED_EXECUTOR         = "scheduled-executor";
+    protected static final String       CP_MEMBER_COUNT_PROPERTY   = "cp-member-count";
+    private static final   List<String> SEED_DEFAULT               = ImmutableList.of( "127.0.0.1" );
+    private static final   int          REPLICATION_FACTOR_DEFAULT = 2;
+    protected static final Integer      CP_MEMBER_COUNT_DEFAULT    = 3;
 
-    private final List<String>                      hazelcastSeedNodes;
-    private final int                               replicationFactor;
-    private final String                            instanceName;
-    private final String                            group;
-    private final String                            password;
-    private final int                               port;
-    private final boolean                           server;
+    private final List<String>                             hazelcastSeedNodes;
+    private final int                                      replicationFactor;
+    private final String                                   instanceName;
+    private final String                                   group;
+    private final String                                   password;
+    private final int                                      port;
+    private final boolean                                  server;
     private final Optional<ScheduledExecutorConfiguration> scheduledExecutor;
+    private final Integer                                  cpMemberCount;
 
     @JsonCreator
     public HazelcastConfiguration(
@@ -45,7 +49,8 @@ public class HazelcastConfiguration {
             @JsonProperty( SERVER_ROLE_PROPERTY ) Optional<Boolean> role,
             @JsonProperty( SEED_NODES_PROPERTY ) Optional<List<String>> hazelcastSeedNodes,
             @JsonProperty( REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
-            @JsonProperty( SCHEDULED_EXECUTOR ) Optional<ScheduledExecutorConfiguration> scheduledExecutor ) {
+            @JsonProperty( SCHEDULED_EXECUTOR ) Optional<ScheduledExecutorConfiguration> scheduledExecutor,
+            @JsonProperty( CP_MEMBER_COUNT_PROPERTY ) Optional<Integer> cpMemberCount ) {
 
         this.group = group.orElse( DEFAULT_GROUP_NAME );
         this.password = password.orElse( DEFAULT_PASSWORD );
@@ -55,6 +60,7 @@ public class HazelcastConfiguration {
         this.replicationFactor = replicationFactor.orElse( REPLICATION_FACTOR_DEFAULT );
         this.instanceName = instanceName.orElse( DEFAULT_INSTANCE_NAME );
         this.scheduledExecutor = scheduledExecutor;
+        this.cpMemberCount = cpMemberCount.orElse( CP_MEMBER_COUNT_DEFAULT );
     }
 
     @JsonProperty( SEED_NODES_PROPERTY )
@@ -90,6 +96,11 @@ public class HazelcastConfiguration {
     @JsonProperty( SERVER_ROLE_PROPERTY )
     public boolean isServer() {
         return server;
+    }
+
+    @JsonProperty( CP_MEMBER_COUNT_PROPERTY )
+    public Integer getCpMemberCount() {
+        return cpMemberCount;
     }
 
     @JsonProperty( SCHEDULED_EXECUTOR )
