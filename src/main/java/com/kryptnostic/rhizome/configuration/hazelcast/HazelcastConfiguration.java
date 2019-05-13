@@ -99,7 +99,7 @@ public class HazelcastConfiguration {
     }
 
     @JsonProperty( CP_MEMBER_COUNT_PROPERTY )
-    public Integer getCpMemberCount() {
+    public Integer getCPMemberCount() {
         return cpMemberCount;
     }
 

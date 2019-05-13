@@ -72,7 +72,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .setQueueConfigs( getQueueConfigs( config.getQueueConfig( "default" ) ) )
                     .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
 
-            config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCpMemberCount() );
+            config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCPMemberCount() );
             return config;
         }
         return null;
