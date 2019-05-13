@@ -39,11 +39,11 @@ public class PostgresTableManager {
 
     private static final String INVALID_TABLE_DEFINITION_SQL_STATE = "42P16";
 
-    private final HikariDataSource hds;
+    private final HikariDataSource                     hds;
     private final Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
-    private final boolean citus;
-    private final boolean initializeIndices;
-    private final boolean initializeTables;
+    private final boolean                              citus;
+    private final boolean                              initializeIndices;
+    private final boolean                              initializeTables;
 
     public PostgresTableManager( HikariDataSource hds ) {
         this( hds, false, false, false );
@@ -65,36 +65,36 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
-        if( !initializeTables ) {
-            return;
-        }
+        
         logger.info( "Processing postgres table registrations." );
         for ( PostgresTableDefinition table : tables ) {
-             if ( activeTables.containsKey( table.getName() ) ) {
+            if ( activeTables.containsKey( table.getName() ) ) {
                 logger.debug( "Table {} has already been registered and initialized... skipping", table );
             } else {
                 logger.debug( "Processed postgres table registration for table {}", table.getName() );
 
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
-                    sctq.execute( table.createTableQuery() );
+                    if ( initializeTables ) {
+                        sctq.execute( table.createTableQuery() );
 
-                    if ( citus ) {
-                        //Creating the distributed table must be done before creating any indices.
-                        if ( table instanceof CitusDistributedTableDefinition ) {
-                            logger.info( "Creating distributed table {}.", table.getName() );
-                            try ( Statement ddstmt = conn.createStatement() ) {
-                                ddstmt.execute( ( (CitusDistributedTableDefinition) table )
-                                        .createDistributedTableQuery() );
-                            } catch ( SQLException ddex ) {
-                                if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
-                                        && ddex.getMessage()
-                                        .contains( "table \"" + table.getName() + "\" is already distributed" ) ) {
-                                    logger.info( "Table {} is already distributed.", table.getName() );
-                                } else {
-                                    logger.error( "Unable to distribute table {}. Cause: {}",
-                                            table.getName(),
-                                            ddex.getMessage(),
-                                            ddex );
+                        if ( citus ) {
+                            //Creating the distributed table must be done before creating any indices.
+                            if ( table instanceof CitusDistributedTableDefinition ) {
+                                logger.info( "Creating distributed table {}.", table.getName() );
+                                try ( Statement ddstmt = conn.createStatement() ) {
+                                    ddstmt.execute( ( (CitusDistributedTableDefinition) table )
+                                            .createDistributedTableQuery() );
+                                } catch ( SQLException ddex ) {
+                                    if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
+                                            && ddex.getMessage()
+                                            .contains( "table \"" + table.getName() + "\" is already distributed" ) ) {
+                                        logger.info( "Table {} is already distributed.", table.getName() );
+                                    } else {
+                                        logger.error( "Unable to distribute table {}. Cause: {}",
+                                                table.getName(),
+                                                ddex.getMessage(),
+                                                ddex );
+                                    }
                                 }
                             }
                         }
