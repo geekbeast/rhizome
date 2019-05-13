@@ -58,7 +58,8 @@ public class PostgresPod {
             final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
             PostgresTableManager ptm = new PostgresTableManager( hds,
                     pgConfig.getUsingCitus(),
-                    pgConfig.getInitializeIndices() );
+                    pgConfig.getInitializeIndices(),
+                    pgConfig.getInitializeTables() );
             if ( spt != null ) {
                 ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
             }

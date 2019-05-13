@@ -35,5 +35,6 @@ private const val INITIALIZE_INDICES_PROPERTY = "initialize-indices"
 data class PostgresConfiguration(
         @JsonProperty(HIKARI_CONFIGURATION_PROPERTY) val hikariConfiguration: Properties,
         @JsonProperty(USING_CITUS_PROPERTY) val usingCitus: Boolean = false,
-        @JsonProperty(INITIALIZE_INDICES_PROPERTY) val initializeIndices: Boolean = true
+        @JsonProperty(INITIALIZE_INDICES_PROPERTY) val initializeIndices: Boolean = true,
+        @JsonProperty("initialize-tables") val initializeTables: Boolean = true
 )

@@ -34,24 +34,30 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresTableManager {
-    private static final Logger                               logger                                = LoggerFactory
+    private static final Logger logger = LoggerFactory
             .getLogger( PostgresTableManager.class );
 
-    private static final String                               INVALID_TABLE_DEFINITION_SQL_STATE    = "42P16";
+    private static final String INVALID_TABLE_DEFINITION_SQL_STATE = "42P16";
 
-    private final        HikariDataSource                     hds;
-    private final        Map<String, PostgresTableDefinition> activeTables                          = new HashMap<>();
-    private final        boolean                              citus;
-    private final        boolean                              initializeIndices;
+    private final HikariDataSource hds;
+    private final Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
+    private final boolean citus;
+    private final boolean initializeIndices;
+    private final boolean initializeTables;
 
     public PostgresTableManager( HikariDataSource hds ) {
-        this( hds, false, false );
+        this( hds, false, false, false );
     }
 
-    public PostgresTableManager( HikariDataSource hds, boolean citus, boolean initializeIndices ) {
+    public PostgresTableManager(
+            HikariDataSource hds,
+            boolean citus,
+            boolean initializeIndices,
+            boolean initializeTables ) {
         this.citus = citus;
         this.hds = hds;
         this.initializeIndices = initializeIndices;
+        this.initializeTables = initializeTables;
     }
 
     public void registerTables( PostgresTableDefinition... tables ) throws SQLException {
@@ -59,12 +65,16 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
+        if( !initializeTables ) {
+            return;
+        }
         logger.info( "Processing postgres table registrations." );
         for ( PostgresTableDefinition table : tables ) {
-            if ( activeTables.containsKey( table.getName() ) ) {
+             if ( activeTables.containsKey( table.getName() ) ) {
                 logger.debug( "Table {} has already been registered and initialized... skipping", table );
             } else {
                 logger.debug( "Processed postgres table registration for table {}", table.getName() );
+
                 try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
                     sctq.execute( table.createTableQuery() );
 
