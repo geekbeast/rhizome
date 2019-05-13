@@ -65,7 +65,7 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
-        
+
         logger.info( "Processing postgres table registrations." );
         for ( PostgresTableDefinition table : tables ) {
             if ( activeTables.containsKey( table.getName() ) ) {

@@ -117,22 +117,26 @@ class TaskService(
 
     private val taskFutures = tasks
             .map { task ->
-                val urn = submitted.getOrPut(task.name) {
-                    executor.scheduleAtFixedRate(
-                            task,
+                try {
+                    val urn = submitted.getOrPut(task.name) {
+                        executor.scheduleAtFixedRate(
+                                task,
+                                task.getInitialDelay(),
+                                task.getPeriod(),
+                                task.getTimeUnit()
+                        ).handler.toUrn()
+                    }
+                    logger.info(
+                            "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
+                            task.name,
                             task.getInitialDelay(),
                             task.getPeriod(),
-                            task.getTimeUnit()
-                    ).handler.toUrn()
+                            task.getTimeUnit(),
+                            urn
+                    )
+                } catch (ex: Exception) {
+                    logger.error("Unable to schedule task ${task.name}.", ex)
                 }
-                logger.info(
-                        "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
-                        task.name,
-                        task.getInitialDelay(),
-                        task.getPeriod(),
-                        task.getTimeUnit(),
-                        urn
-                )
             }
 
     fun getInitializersCompletedRequirements(): Requirement {
