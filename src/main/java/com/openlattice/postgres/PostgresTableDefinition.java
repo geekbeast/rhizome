@@ -136,7 +136,14 @@ public class PostgresTableDefinition implements TableDefinition {
     @Override
     public String createTableQuery() {
         validate();
-        StringBuilder ctb = new StringBuilder( "CREATE TABLE " );
+        StringBuilder ctb = new StringBuilder( "CREATE " );
+
+        if ( unlogged ) {
+            ctb.append( "UNLOGGED " );
+        }
+
+        ctb.append( "TABLE " );
+
         if ( ifNotExists ) {
             ctb.append( " IF NOT EXISTS " );
         }
