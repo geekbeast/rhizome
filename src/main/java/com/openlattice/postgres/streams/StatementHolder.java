@@ -75,7 +75,7 @@ public class StatementHolder implements Closeable {
     @Override public void close() throws IOException {
         try {
             for ( ResultSet rs : otherResultSets ) {
-                resultSet.close();
+                rs.close();
             }
 
             for ( Statement s : otherStatements ) {
