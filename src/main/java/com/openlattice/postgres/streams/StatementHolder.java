@@ -21,26 +21,43 @@
 
 package com.openlattice.postgres.streams;
 
+import com.google.common.collect.ImmutableList;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import javax.xml.transform.Result;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class StatementHolder implements Closeable {
-    private final Connection connection;
-    private final Statement  statement;
-    private final ResultSet  resultSet;
-    private       boolean    open = true;
+    private final Connection      connection;
+    private final Statement       statement;
+    private final ResultSet       resultSet;
+    private final List<Statement> otherStatements;
+    private final List<ResultSet> otherResultSets;
+    private       boolean         open = true;
 
-    public StatementHolder( Connection connection, Statement ps, ResultSet resultSet ) {
+    public StatementHolder( Connection connection, Statement statement, ResultSet resultSet ) {
+        this( connection, statement, resultSet, ImmutableList.of(), ImmutableList.of() );
+    }
+
+    public StatementHolder(
+            Connection connection,
+            Statement statement,
+            ResultSet resultSet,
+            List<Statement> otherStatements,
+            List<ResultSet> otherResultSets ) {
         this.connection = connection;
-        this.statement = ps;
+        this.statement = statement;
         this.resultSet = resultSet;
+        this.otherStatements = otherStatements;
+        this.otherResultSets = otherResultSets;
     }
 
     public Connection getConnection() {
@@ -57,6 +74,14 @@ public class StatementHolder implements Closeable {
 
     @Override public void close() throws IOException {
         try {
+            for ( ResultSet rs : otherResultSets ) {
+                resultSet.close();
+            }
+
+            for ( Statement s : otherStatements ) {
+                s.close();
+            }
+
             resultSet.close();
             statement.close();
             connection.close();

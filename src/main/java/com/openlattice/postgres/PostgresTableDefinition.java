@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class PostgresTableDefinition implements TableDefinition {
     protected static final Logger logger = LoggerFactory.getLogger( PostgresTableDefinition.class );
 
-    private final String name;
+    private final String                                  name;
     private final LinkedHashSet<PostgresColumnDefinition> primaryKey = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresColumnDefinition> columns    = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresColumnDefinition> unique     = new LinkedHashSet<>();
@@ -51,6 +51,7 @@ public class PostgresTableDefinition implements TableDefinition {
 
     private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
 
+    private boolean unlogged;
     private boolean ifNotExists = true;
 
     public PostgresTableDefinition( String name ) {
@@ -66,6 +67,11 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
+        return this;
+    }
+
+    public PostgresTableDefinition unlogged() {
+        this.unlogged = true;
         return this;
     }
 
