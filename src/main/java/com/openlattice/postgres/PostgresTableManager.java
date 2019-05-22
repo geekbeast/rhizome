@@ -86,11 +86,10 @@ public class PostgresTableManager {
                                             .createDistributedTableQuery() );
                                 } catch ( SQLException ddex ) {
                                     if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
-                                            && ddex.getMessage()
-                                            .contains( "table \"" + table.getName() + "\" is already distributed" ) ) {
-                                        logger.info( "Table {} is already distributed.", table.getName() );
+                                            && ddex.getMessage().matches( "ERROR: table \"?" + table.getName() + "\"? is already distributed" ) ) {
+                                        logger.warn( "Table {} is already distributed.", table.getName() );
                                     } else {
-                                        logger.error( "Unable to distribute table {}. Cause: {}",
+                                        logger.debug( "Unable to distribute table {}. Cause: {}",
                                                 table.getName(),
                                                 ddex.getMessage(),
                                                 ddex );
