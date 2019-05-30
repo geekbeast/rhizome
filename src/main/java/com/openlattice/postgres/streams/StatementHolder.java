@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
@@ -50,7 +52,7 @@ public class StatementHolder implements Closeable {
     private final long            longRunningQueryLimit;
     private       boolean         open = true;
 
-    public StatementHolder( Connection connection, Statement statement, ResultSet resultSet ) {
+    public StatementHolder( Connection connection, Statement statement, @Nullable ResultSet resultSet ) {
         this( connection,
                 statement,
                 resultSet,
@@ -105,12 +107,14 @@ public class StatementHolder implements Closeable {
             }
 
             final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
-            if ( elapsed > LONG_RUNNING_QUERY_LIMIT_MILLIS ) {
+            if ( elapsed > longRunningQueryLimit ) {
                 logger.warn( "The following SQL query took {} ms: {}", elapsed, statement.toString() );
             }
 
             sw.stop();
-            resultSet.close();
+            if ( resultSet != null ) {
+                resultSet.close();
+            }
             statement.close();
             connection.close();
             open = false;
