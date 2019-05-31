@@ -52,6 +52,15 @@ public class StatementHolder implements Closeable {
     private final long            longRunningQueryLimit;
     private       boolean         open = true;
 
+    public StatementHolder( Connection connection, Statement statement ) {
+        this( connection,
+                statement,
+                null,
+                ImmutableList.of(),
+                ImmutableList.of(),
+                LONG_RUNNING_QUERY_LIMIT_MILLIS );
+    }
+
     public StatementHolder( Connection connection, Statement statement, @Nullable ResultSet resultSet ) {
         this( connection,
                 statement,
