@@ -21,14 +21,15 @@
 package com.openlattice.postgres;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -38,6 +39,7 @@ public class PostgresTableManager {
             .getLogger( PostgresTableManager.class );
 
     private static final String INVALID_TABLE_DEFINITION_SQL_STATE = "42P16";
+    private static final String ALREADY_DISTRIBUTED_ERROR_MSG = " is already distributed";
 
     private final HikariDataSource                     hds;
     private final Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
@@ -86,7 +88,7 @@ public class PostgresTableManager {
                                             .createDistributedTableQuery() );
                                 } catch ( SQLException ddex ) {
                                     if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
-                                            && ddex.getMessage().matches( "ERROR: table \"?" + table.getName() + "\"? is already distributed" ) ) {
+                                            && ddex.getMessage().contains( ALREADY_DISTRIBUTED_ERROR_MSG ) ) {
                                         logger.warn( "Table {} is already distributed.", table.getName() );
                                     } else {
                                         logger.debug( "Unable to distribute table {}. Cause: {}",
