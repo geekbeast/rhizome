@@ -23,6 +23,9 @@ package com.openlattice.postgres.streams;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
@@ -31,8 +34,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -105,7 +106,7 @@ public class StatementHolder implements Closeable {
             }
 
             final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
-            if ( elapsed > LONG_RUNNING_QUERY_LIMIT_MILLIS ) {
+            if ( elapsed > this.longRunningQueryLimit) {
                 logger.warn( "The following SQL query took {} ms: {}", elapsed, statement.toString() );
             }
 

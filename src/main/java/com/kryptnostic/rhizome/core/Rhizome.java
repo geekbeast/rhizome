@@ -239,8 +239,14 @@ public class Rhizome implements WebApplicationInitializer {
                 // For now we assume just AWS as an alternate to a local profile.
                 startJetty( rhizomeContext.getBean( JettyConfiguration.class ) );
             }
+        } catch ( Exception e ) {
+            logger.error( "Something went wrong during startup", e );
         } finally {
             rhizomeContext = null;
+
+            if ( !this.jetty.getServer().isStarted() ) {
+                logger.warn( "Jetty has not started." );
+            }
 
             if ( context.isActive() && context.isRunning() && startupRequirementsSatisfied( context ) ) {
                 showBanner();
