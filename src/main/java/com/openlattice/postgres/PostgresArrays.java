@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -69,7 +70,6 @@ public class PostgresArrays {
         return (String[]) rs.getArray( column ).getArray();
     }
 
-
     public static Long[] getLongArray( ResultSet rs, String column ) throws SQLException {
         return (Long[]) rs.getArray( column ).getArray();
     }
@@ -78,7 +78,12 @@ public class PostgresArrays {
         return (UUID[][]) rs.getArray( column ).getArray();
     }
 
-    public static UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {
-          return (UUID[]) rs.getArray( column ).getArray();
+    public static @Nullable UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {
+        final var arr = rs.getArray( column );
+        if ( arr == null ) {
+            return null;
+        } else {
+            return (UUID[]) rs.getArray( column ).getArray();
+        }
     }
 }
