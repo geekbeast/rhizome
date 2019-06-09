@@ -95,28 +95,29 @@ public class StatementHolder implements Closeable {
         return resultSet;
     }
 
-    @Override public void close() throws IOException {
+    @Override
+    public void close() {
+        otherResultSets.forEach( this::safeTryClose );
+        otherStatements.forEach( this::safeTryClose );
+
+        final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
+        if ( elapsed > this.longRunningQueryLimit ) {
+            logger.warn( "The following SQL query took {} ms: {}", elapsed, statement.toString() );
+        }
+
+        sw.stop();
+        safeTryClose( resultSet );
+        safeTryClose( statement );
+        safeTryClose( connection );
+
+        open = false;
+    }
+
+    private void safeTryClose( AutoCloseable obj ) {
         try {
-            for ( ResultSet rs : otherResultSets ) {
-                rs.close();
-            }
-
-            for ( Statement s : otherStatements ) {
-                s.close();
-            }
-
-            final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
-            if ( elapsed > this.longRunningQueryLimit) {
-                logger.warn( "The following SQL query took {} ms: {}", elapsed, statement.toString() );
-            }
-
-            sw.stop();
-            resultSet.close();
-            statement.close();
-            connection.close();
-            open = false;
-        } catch ( SQLException e ) {
-            throw new IOException( "Unable to close sql objects", e );
+            obj.close();
+        } catch ( Exception e ) {
+            logger.error( "Unable to close obj {}", obj, e );
         }
     }
 

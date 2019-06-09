@@ -110,11 +110,7 @@ public class PostgresIterable<T> implements Iterable<T> {
             executor.execute( () -> {
                 while ( rsh.isOpen() ) {
                     if ( System.currentTimeMillis() > expiration || !notExhausted ) {
-                        try {
-                            rsh.close();
-                        } catch ( IOException e ) {
-                            logger.error( "Unable to close statement holder.", e );
-                        }
+                        rsh.close();
                     } else {
                         try {
                             Thread.sleep( timeoutMillis );
@@ -153,11 +149,7 @@ public class PostgresIterable<T> implements Iterable<T> {
                 throw new NoSuchElementException( "Unable to retrieve next element from result set." );
             } finally {
                 if ( !notExhausted ) {
-                    try {
-                        rsh.close();
-                    } catch ( IOException e ) {
-                        logger.error( "Error while closing result set." );
-                    }
+                    rsh.close();
                 }
 
                 lock.unlock();
@@ -166,7 +158,7 @@ public class PostgresIterable<T> implements Iterable<T> {
             return nextElem;
         }
 
-        @Override public void close() throws IOException {
+        @Override public void close() {
             rsh.close();
         }
     }
