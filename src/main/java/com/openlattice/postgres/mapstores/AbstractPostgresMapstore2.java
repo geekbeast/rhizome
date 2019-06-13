@@ -47,7 +47,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfRegisteringMapStore<K, V> {
-    public static final int BATCH_SIZE = 1 << 12;
+    public static final int BATCH_SIZE = 1 << 12; // 4096
 
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -223,14 +223,21 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
             Iterator<K> kIterator = keys.iterator();
             while ( kIterator.hasNext() ) {
-
-                for ( int parameterIndex = 1;
-                        parameterIndex <= batchCapacity;
+                int parameterIndex = 1;
+                for ( ; parameterIndex <= batchCapacity;
                         parameterIndex = bind( selectIn, key, parameterIndex ) ) {
-                    //For now if we run out of keys, key binding the same key over and over again to pad it out
-                    //In the future we should null out the parameter using postgres data type info in table.
                     if ( kIterator.hasNext() ) {
                         key = kIterator.next();
+                    } else {
+                        break;
+                    }
+                }
+                // Pad the rest of the batch with empty values
+                if ( !kIterator.hasNext() ){
+                    for ( ; parameterIndex <= batchCapacity; ){
+                        for ( PostgresColumnDefinition col : keyColumns ) {
+                            selectIn.setObject( parameterIndex++, col.getDatatype().asNonMatchingValue());
+                        }
                     }
                 }
                 try ( ResultSet results = selectIn.executeQuery() ) {
