@@ -80,7 +80,9 @@ public enum PostgresDatatype {
                     UUID_ARRAY,
                     UUID_ARRAY_ARRAY,
                     TEXT_ARRAY,
-                    BOOLEAN_ARRAY );
+                    DATE_ARRAY,
+                    BOOLEAN_ARRAY,
+                    BYTEA_ARRAY );
 
     public String sql() {
         switch ( this ) {
