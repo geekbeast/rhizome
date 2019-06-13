@@ -46,7 +46,7 @@ class BasePostgresIterable<T>(
 
 }
 
-abstract class StatementHolderSupplier(
+class StatementHolderSupplier(
         val hds: HikariDataSource, val sql: String,
         val fetchSize: Int = 0,
         val autoCommit: Boolean = fetchSize > 0
