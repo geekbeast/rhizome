@@ -68,7 +68,7 @@ public enum PostgresDatatype {
     TIMETZ,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
-    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY,JSONB;
+    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY,JSONB, TIMETZ_ARRAY;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
             .of( BYTEA_ARRAY,
@@ -82,7 +82,8 @@ public enum PostgresDatatype {
                     TEXT_ARRAY,
                     DATE_ARRAY,
                     BOOLEAN_ARRAY,
-                    BYTEA_ARRAY );
+                    BYTEA_ARRAY,
+                    TIMETZ_ARRAY);
 
     public String sql() {
         switch ( this ) {
