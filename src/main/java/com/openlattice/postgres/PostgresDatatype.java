@@ -79,7 +79,8 @@ public enum PostgresDatatype {
                     TIMESTAMPTZ_ARRAY,
                     UUID_ARRAY,
                     UUID_ARRAY_ARRAY,
-                    TEXT_ARRAY );
+                    TEXT_ARRAY,
+                    BOOLEAN_ARRAY );
 
     public String sql() {
         switch ( this ) {
