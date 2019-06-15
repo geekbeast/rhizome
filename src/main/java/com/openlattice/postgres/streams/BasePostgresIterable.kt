@@ -47,9 +47,11 @@ class BasePostgresIterable<T>(
 }
 
 open class StatementHolderSupplier(
-        val hds: HikariDataSource, val sql: String,
+        val hds: HikariDataSource,
+        val sql: String,
         val fetchSize: Int = 0,
-        val autoCommit: Boolean = fetchSize > 0
+        val autoCommit: Boolean = fetchSize > 0,
+        private val longRunningQueryLimit: Long = 0
 ) : Supplier<StatementHolder> {
     init {
         check(fetchSize >= 0) { "Fetch-size must be nonnegative." }
@@ -58,7 +60,7 @@ open class StatementHolderSupplier(
         }
     }
 
-    protected val logger = LoggerFactory.getLogger(javaClass)
+    protected val logger = LoggerFactory.getLogger(javaClass)!!
 
     open fun execute(statement: Statement): ResultSet {
         return statement.executeQuery(sql)
@@ -87,18 +89,21 @@ open class StatementHolderSupplier(
             connection.autoCommit = oldAutoCommit
         }
 
-        return StatementHolder(connection, statement, rs)
+        return if (longRunningQueryLimit == 0L) {
+            StatementHolder(connection, statement, rs)
+        } else {
+            StatementHolder(connection, statement, rs, longRunningQueryLimit)
+        }
     }
 }
 
-abstract class PreparedStatementHolderSupplier(
+class PreparedStatementHolderSupplier(
         hds: HikariDataSource,
         sql: String,
-        fetchSize: Int,
-        autoCommit: Boolean
+        fetchSize: Int = 0,
+        autoCommit: Boolean = fetchSize > 0,
+        val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
-    open abstract fun bind(ps: PreparedStatement)
-
     open fun execute(ps: PreparedStatement): ResultSet {
         return ps.executeQuery()
     }

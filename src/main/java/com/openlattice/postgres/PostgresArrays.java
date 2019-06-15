@@ -58,6 +58,10 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values.toArray( new Long[ 0 ] ) );
     }
 
+    public static Array createLongArray( Connection connection, Integer[] values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values );
+    }
+
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( String[]::new ) );
     }
