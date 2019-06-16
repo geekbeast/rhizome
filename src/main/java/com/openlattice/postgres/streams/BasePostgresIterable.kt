@@ -21,7 +21,7 @@ import java.util.stream.Stream
  */
 class BasePostgresIterable<T>(
         private val rsh: Supplier<StatementHolder>,
-        private val mapper: java.util.function.Function<ResultSet, T>
+        private val mapper: (ResultSet) -> T
 ) : Iterable<T> {
 
     private val logger = LoggerFactory.getLogger(PostgresIterable::class.java)
@@ -42,8 +42,6 @@ class BasePostgresIterable<T>(
     fun stream(): Stream<T> {
         return StreamUtil.stream(this)
     }
-
-
 }
 
 open class StatementHolderSupplier(
@@ -117,7 +115,8 @@ class PreparedStatementHolderSupplier(
 
 class PostgresIterator<T> @Throws(SQLException::class)
 @JvmOverloads constructor(
-        private val rsh: StatementHolder, private val mapper: java.util.function.Function<ResultSet, T>,
+        private val rsh: StatementHolder,
+        private val mapper: (ResultSet) -> T,
         private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS
 ) : Iterator<T>, AutoCloseable, Closeable {
     companion object {
@@ -173,7 +172,7 @@ class PostgresIterator<T> @Throws(SQLException::class)
         try {
             lock.lock()
             checkState(hasNext(), "There are no more items remaining in the stream.")
-            nextElem = mapper.apply(rs)
+            nextElem = mapper(rs)
             notExhausted = rs.next()
         } catch (e: SQLException) {
             logger.error("Unable to retrieve next element from result set.", e)

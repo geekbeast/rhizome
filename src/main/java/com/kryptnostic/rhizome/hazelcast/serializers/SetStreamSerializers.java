@@ -1,16 +1,16 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
-import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
 import com.openlattice.rhizome.hazelcast.UUIDSet;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class SetStreamSerializers {
 
@@ -24,11 +24,6 @@ public class SetStreamSerializers {
 
     /**
      * This method is useful for re-using static serialization helpers to write out set elements.
-     * 
-     * @param out
-     * @param elements
-     * @param c
-     * @throws IOException
      */
     public static <T> void serialize(
             ObjectDataOutput out,
@@ -69,7 +64,7 @@ public class SetStreamSerializers {
         return (OrderedUUIDSet) processEntries( set, size, in );
     }
 
-    public static void fastUUIDSetDeserialize( ObjectDataInput in, Set<UUID> out) throws IOException {
+    public static void fastUUIDSetDeserialize( ObjectDataInput in, Set<UUID> out ) throws IOException {
         final int size = in.readInt();
         processEntries( out, size, in );
     }
@@ -118,6 +113,16 @@ public class SetStreamSerializers {
         return set;
     }
 
+    public static void fastOrderedStringSetSerializeAsArray( ObjectDataOutput out, Set<String> object )
+            throws IOException {
+        out.writeUTFArray( object.toArray( new String[ 0 ] ) );
+    }
+
+    public static Set<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
+        final var arr = in.readUTFArray();
+        return new LinkedHashSet<>( Arrays.asList( arr ) );
+    }
+
     public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
         int size = Iterables.size( object );
         out.writeInt( size );
@@ -134,7 +139,6 @@ public class SetStreamSerializers {
         }
         return items;
     }
-
 
     public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
