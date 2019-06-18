@@ -66,7 +66,7 @@ public class PostgresIterable<T> implements Iterable<T> {
     public PostgresIterator<T> iterator() {
         try {
             return new PostgresIterator<>( rsh.get(), mapper );
-        } catch ( SQLException | IOException e ) {
+        } catch ( SQLException e ) {
             logger.error( "Error creating postgres stream iterator." );
             throw new IllegalStateException( "Unable to instantiate postgres iterator.", e );
         }
@@ -90,12 +90,12 @@ public class PostgresIterable<T> implements Iterable<T> {
         private              long                   expiration;
         private              boolean                notExhausted;
 
-        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper ) throws IOException, SQLException {
+        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper ) throws SQLException {
             this( rsh, mapper, DEFAULT_TIMEOUT_MILLIS );
         }
 
         public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper, long timeoutMillis )
-                throws SQLException, IOException {
+                throws SQLException {
             this.rsh = rsh;
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
