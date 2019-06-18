@@ -102,11 +102,7 @@ class PreparedStatementHolderSupplier(
         autoCommit: Boolean = fetchSize > 0,
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
-<<<<<<< Updated upstream
-=======
-    abstract fun bind(ps: PreparedStatement)
 
->>>>>>> Stashed changes
     open fun execute(ps: PreparedStatement): ResultSet {
         return ps.executeQuery()
     }
