@@ -82,6 +82,10 @@ public class PostgresArrays {
         return (String[]) rs.getArray( column ).getArray();
     }
 
+    public static Integer[] getIntArray( ResultSet rs, String column ) throws SQLException {
+        return (Integer[]) rs.getArray( column ).getArray();
+    }
+
     public static Long[] getLongArray( ResultSet rs, String column ) throws SQLException {
         return (Long[]) rs.getArray( column ).getArray();
     }
