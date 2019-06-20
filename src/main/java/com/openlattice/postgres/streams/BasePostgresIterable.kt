@@ -53,7 +53,7 @@ open class StatementHolderSupplier(
 ) : Supplier<StatementHolder> {
     init {
         check(fetchSize >= 0) { "Fetch-size must be nonnegative." }
-        check(((!autoCommit) && (fetchSize > 0)) || autoCommit) {
+        check(((autoCommit) && (fetchSize > 0)) || (fetchSize == 0)) {
             "Auto-commit cannot be disabled if fetch size > 0."
         }
     }
