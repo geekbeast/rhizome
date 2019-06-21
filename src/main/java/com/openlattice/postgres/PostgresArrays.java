@@ -78,6 +78,14 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( new String[ 0 ] ) );
     }
 
+    public static Array createBooleanArray( Connection connection, Collection<Boolean> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BOOLEAN.sql(), values.toArray( new Boolean[ 0 ] ) );
+    }
+
+    public static Array createShortArray( Connection connection, Collection<Short> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.SMALLINT.sql(), values.toArray( new Short[ 0 ] ) );
+    }
+
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
         return (String[]) rs.getArray( column ).getArray();
     }
