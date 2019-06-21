@@ -3,13 +3,11 @@ package com.openlattice.postgres.streams
 import com.dataloom.streams.StreamUtil
 import com.google.common.base.Preconditions.checkState
 import com.zaxxer.hikari.HikariDataSource
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.IOException
 import java.sql.*
-import java.util.NoSuchElementException
-import java.util.concurrent.ConcurrentHashMap
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Supplier
@@ -103,8 +101,8 @@ class PreparedStatementHolderSupplier(
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
 
-    open fun execute(ps: PreparedStatement): ResultSet {
-        return ps.executeQuery()
+    override fun execute(ps: Statement): ResultSet {
+        return (ps as PreparedStatement).executeQuery()
     }
 
     override fun buildStatement(connection: Connection): Statement {
