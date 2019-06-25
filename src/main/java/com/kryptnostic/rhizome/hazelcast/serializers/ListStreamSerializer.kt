@@ -28,7 +28,7 @@ abstract class ListStreamSerializer<T : MutableList<E>, E>(clazz: Class<T>) : Co
         val size = input.readInt()
         val obj = newInstanceWithExpectedSize(size)
         for (i in 0 until size) {
-            obj[i] = readSingleElement(input)
+            obj.add(i, readSingleElement(input))
         }
         return obj
     }
