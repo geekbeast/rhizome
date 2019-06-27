@@ -18,7 +18,7 @@
  *
  *
  */
-package com.kryptnostic.rhizome.hazelcast.serializers
+package com.openlattice.hazelcast.serializers
 
 import com.hazelcast.nio.ObjectDataInput
 
