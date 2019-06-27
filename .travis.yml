@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk10
+  - openjdk11
 install:
   - git fetch --tags
   - git describe --tags
