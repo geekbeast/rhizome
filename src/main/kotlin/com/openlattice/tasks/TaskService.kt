@@ -182,7 +182,7 @@ class TaskService(
             initializers.forEach { initializer ->
                 ancestorMap.getOrPut(initializer.javaClass) {
                     initializer.after().flatMap { clazz: Class<*> ->
-                        ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() }
+                        ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() } + clazz
                     }.toMutableSet()
 
                 }
