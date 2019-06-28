@@ -16,13 +16,12 @@ import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
 import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
 import com.openlattice.retrofit.RhizomeRetrofitCallException;
-import com.openlattice.retrofit.RhizomeRetrofitCallFailedException;
 import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.RandomStringGenerator;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -153,7 +152,7 @@ public class RhizomeTests {
         TestConfiguration configuration = api.getTestConfiguration();
         Assert.assertNull( configuration );
         expected = new TestConfiguration(
-                RandomStringUtils.random( 10 ),
+                new RandomStringGenerator.Builder().build().generate( 10 ),
                 Optional.<String>absent() );
         TestConfiguration actual = api.setTestConfiguration( expected );
         Assert.assertEquals( expected, actual );
