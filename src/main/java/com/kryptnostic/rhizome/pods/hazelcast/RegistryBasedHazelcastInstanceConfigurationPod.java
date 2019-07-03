@@ -34,7 +34,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     private static final Set<QueueConfigurer>                                 queueConfigurers   = Sets.newHashSet();
 
     @Override
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected Collection<SerializerConfig> serializerConfigs() {
         final Multiset<Integer> typeIds = HashMultiset.create();
 
         Set<SerializerConfig> configs = serializerRegistry.entrySet()
@@ -54,12 +54,12 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     @Override
-    protected Map<String, MapConfig> getMapConfigs() {
+    protected Map<String, MapConfig> mapConfigs() {
         return Maps.transformEntries( mapRegistry, ( k, v ) -> v.getMapConfig() );
     }
 
     @Override
-    protected Map<String, QueueConfig> getQueueConfigs( Map<String, QueueConfig> queueConfigs ) {
+    protected Map<String, QueueConfig> queueConfigs( Map<String, QueueConfig> queueConfigs ) {
         Map<String, QueueConfig> configs = Maps
                 .newHashMap( Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() ) );
         configs.putAll( queueConfigs );
