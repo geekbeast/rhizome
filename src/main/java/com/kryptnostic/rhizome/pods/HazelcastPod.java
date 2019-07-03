@@ -71,7 +71,7 @@ public class HazelcastPod {
 
     @Bean
     public HazelcastClientProvider hazelcastClientProvider() {
-        return new HazelcastClientProvider( rhizomeConfiguration.getHazelcastClients().or( ImmutableMap::of ) );
+        return new HazelcastClientProvider( rhizomeConfiguration.getHazelcastClients().or( ImmutableMap::of ), serializationConfig );
     }
 
     @Bean
