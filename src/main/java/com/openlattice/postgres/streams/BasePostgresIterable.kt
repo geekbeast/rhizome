@@ -3,13 +3,11 @@ package com.openlattice.postgres.streams
 import com.dataloom.streams.StreamUtil
 import com.google.common.base.Preconditions.checkState
 import com.zaxxer.hikari.HikariDataSource
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.IOException
 import java.sql.*
-import java.util.NoSuchElementException
-import java.util.concurrent.ConcurrentHashMap
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Supplier
@@ -21,7 +19,7 @@ import java.util.stream.Stream
  */
 class BasePostgresIterable<T>(
         private val rsh: Supplier<StatementHolder>,
-        private val mapper: java.util.function.Function<ResultSet, T>
+        private val mapper: (ResultSet) -> T
 ) : Iterable<T> {
 
     private val logger = LoggerFactory.getLogger(PostgresIterable::class.java)
@@ -42,8 +40,6 @@ class BasePostgresIterable<T>(
     fun stream(): Stream<T> {
         return StreamUtil.stream(this)
     }
-
-
 }
 
 open class StatementHolderSupplier(
@@ -55,7 +51,7 @@ open class StatementHolderSupplier(
 ) : Supplier<StatementHolder> {
     init {
         check(fetchSize >= 0) { "Fetch-size must be nonnegative." }
-        check(((!autoCommit) && (fetchSize > 0)) || autoCommit) {
+        check(((autoCommit) && (fetchSize > 0)) || (fetchSize == 0)) {
             "Auto-commit cannot be disabled if fetch size > 0."
         }
     }
@@ -83,7 +79,10 @@ open class StatementHolderSupplier(
             execute(statement)
         } catch (ex: Exception) {
             logger.error("Error while executing sql: {}. The following exception was thrown: ", sql, ex)
-            connection.rollback()
+            if ( !connection.autoCommit ){
+                connection.rollback()
+                logger.error("Rolled back the offending commit ")
+            }
             throw ex
         } finally {
             connection.autoCommit = oldAutoCommit
@@ -104,8 +103,9 @@ class PreparedStatementHolderSupplier(
         autoCommit: Boolean = fetchSize > 0,
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
-    open fun execute(ps: PreparedStatement): ResultSet {
-        return ps.executeQuery()
+
+    override fun execute(ps: Statement): ResultSet {
+        return (ps as PreparedStatement).executeQuery()
     }
 
     override fun buildStatement(connection: Connection): Statement {
@@ -117,7 +117,8 @@ class PreparedStatementHolderSupplier(
 
 class PostgresIterator<T> @Throws(SQLException::class)
 @JvmOverloads constructor(
-        private val rsh: StatementHolder, private val mapper: java.util.function.Function<ResultSet, T>,
+        private val rsh: StatementHolder,
+        private val mapper: (ResultSet) -> T,
         private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS
 ) : Iterator<T>, AutoCloseable, Closeable {
     companion object {
@@ -173,7 +174,7 @@ class PostgresIterator<T> @Throws(SQLException::class)
         try {
             lock.lock()
             checkState(hasNext(), "There are no more items remaining in the stream.")
-            nextElem = mapper.apply(rs)
+            nextElem = mapper(rs)
             notExhausted = rs.next()
         } catch (e: SQLException) {
             logger.error("Unable to retrieve next element from result set.", e)

@@ -58,8 +58,16 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values.toArray( new Long[ 0 ] ) );
     }
 
-    public static Array createLongArray( Connection connection, Integer[] values ) throws SQLException {
+    public static Array createIntArray( Connection connection, Collection<Integer> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values.toArray( new Integer[ 0 ] ) );
+    }
+
+    public static Array createIntArray( Connection connection, Integer[] values ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values );
+    }
+
+    public static Array createLongArray( Connection connection, Long[] values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values );
     }
 
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
@@ -70,8 +78,20 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( new String[ 0 ] ) );
     }
 
+    public static Array createBooleanArray( Connection connection, Collection<Boolean> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BOOLEAN.sql(), values.toArray( new Boolean[ 0 ] ) );
+    }
+
+    public static Array createShortArray( Connection connection, Collection<Short> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.SMALLINT.sql(), values.toArray( new Short[ 0 ] ) );
+    }
+
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
         return (String[]) rs.getArray( column ).getArray();
+    }
+
+    public static Integer[] getIntArray( ResultSet rs, String column ) throws SQLException {
+        return (Integer[]) rs.getArray( column ).getArray();
     }
 
     public static Long[] getLongArray( ResultSet rs, String column ) throws SQLException {
