@@ -48,7 +48,6 @@ import java.util.EnumSet; /**
  *     <tr><td>timestamptz</td><td>8 bytes</td><td>	both date and time, with time zone</td><td>4713 BC to 5874897 AD, 1 microsecond resolution</td></tr>
  * </table>
  *
- * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  *
  */
 //@formatter:on
