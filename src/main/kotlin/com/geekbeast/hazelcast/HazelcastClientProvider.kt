@@ -7,6 +7,7 @@ import com.hazelcast.config.SerializationConfig
 import com.hazelcast.core.HazelcastInstance
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
 import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod
+import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.*
 
 /**
  *
@@ -17,13 +18,15 @@ data class HazelcastClientProvider(
         private val serializationConfig: SerializationConfig
 ) {
     init {
-        check(clients.values.all { !it.isServer }) { "Cannot specify server configuration for clients" }
+        clients.values.forEach { client ->
+            check( !client.isServer) { "Specified server = true for client config: $client" }
+        }
     }
 
     private val hazelcastClients = clients.mapValues { (name, clientConfig) ->
         HazelcastClient.newHazelcastClient(
                 ClientConfig()
-                        .setNetworkConfig(BaseHazelcastInstanceConfigurationPod.clientNetworkConfig(clientConfig))
+                        .setNetworkConfig(clientNetworkConfig(clientConfig))
                         .setGroupConfig(GroupConfig(clientConfig.group, clientConfig.password))
                         .setSerializationConfig(serializationConfig)
                         .setProperty("hazelcast.logging.type", "slf4j")
