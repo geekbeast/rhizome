@@ -1,7 +1,6 @@
 package com.openlattice.postgres.streams
 
 import com.dataloom.streams.StreamUtil
-import com.geekbeast.util.StopWatch
 import com.google.common.base.Preconditions.checkState
 import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
@@ -77,9 +76,7 @@ open class StatementHolderSupplier(
         statement.fetchSize = fetchSize
 
         val rs = try {
-            StopWatch("Executing query $sql ").use {
-                execute(statement)
-            }
+            execute(statement)
         } catch (ex: Exception) {
             logger.error("Error while executing sql: {}. The following exception was thrown: ", sql, ex)
             if ( !connection.autoCommit ){
