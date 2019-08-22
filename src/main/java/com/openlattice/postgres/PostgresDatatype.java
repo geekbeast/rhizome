@@ -48,12 +48,12 @@ import java.util.EnumSet; /**
  *     <tr><td>timestamptz</td><td>8 bytes</td><td>	both date and time, with time zone</td><td>4713 BC to 5874897 AD, 1 microsecond resolution</td></tr>
  * </table>
  *
- * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  *
  */
 //@formatter:on
 public enum PostgresDatatype {
-    SMALLINT, SMALLINT_ARRAY,
+    SMALLINT,
+    SMALLINT_ARRAY,
     INTEGER, INTEGER_ARRAY,
     BIGINT, BIGINT_ARRAY,
     DECIMAL,
@@ -61,14 +61,15 @@ public enum PostgresDatatype {
     DOUBLE, DOUBLE_ARRAY,
     SERIAL,
     BIGSERIAL,
-    BYTEA,
-    BOOLEAN,
-    DATE,
-    TIME,
-    TIMETZ,
+    BYTEA, BYTEA_ARRAY,
+    BOOLEAN, BOOLEAN_ARRAY,
+    DATE, DATE_ARRAY,
+    TIME, TIME_ARRAY,
+    TIMETZ, TIMETZ_ARRAY,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
-    TEXT, TEXT_ARRAY, DATE_ARRAY, BOOLEAN_ARRAY, BYTEA_ARRAY,JSONB;
+    TEXT, TEXT_ARRAY,
+    JSONB;
 
     private static final EnumSet<PostgresDatatype> ARRAY_TYPES = EnumSet
             .of( BYTEA_ARRAY,
@@ -79,7 +80,12 @@ public enum PostgresDatatype {
                     TIMESTAMPTZ_ARRAY,
                     UUID_ARRAY,
                     UUID_ARRAY_ARRAY,
-                    TEXT_ARRAY );
+                    TEXT_ARRAY,
+                    DATE_ARRAY,
+                    BOOLEAN_ARRAY,
+                    BYTEA_ARRAY,
+                    TIME_ARRAY,
+                    TIMETZ_ARRAY );
 
     public String sql() {
         switch ( this ) {

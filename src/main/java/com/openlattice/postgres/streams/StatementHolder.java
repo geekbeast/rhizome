@@ -23,17 +23,14 @@ package com.openlattice.postgres.streams;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -96,21 +93,24 @@ public class StatementHolder implements Closeable {
     }
 
     @Override
-    public void close() {
-        otherResultSets.forEach( this::safeTryClose );
-        otherStatements.forEach( this::safeTryClose );
+    public synchronized void close() {
+        if ( open ) {
+            otherResultSets.forEach( this::safeTryClose );
+            otherStatements.forEach( this::safeTryClose );
 
-        final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
-        if ( elapsed > this.longRunningQueryLimit ) {
-            logger.warn( "The following SQL query took {} ms: {}", elapsed, statement.toString() );
+            final var elapsed = sw.elapsed( TimeUnit.MILLISECONDS );
+            if ( elapsed > this.longRunningQueryLimit ) {
+                logger.warn( "The following statement was involved in a long lived connection that took {} ms: {}",
+                        elapsed,
+                        statement.toString() );
+            }
+
+            sw.stop();
+            safeTryClose( resultSet );
+            safeTryClose( statement );
+            safeTryClose( connection );
+            open = false;
         }
-
-        sw.stop();
-        safeTryClose( resultSet );
-        safeTryClose( statement );
-        safeTryClose( connection );
-
-        open = false;
     }
 
     private void safeTryClose( AutoCloseable obj ) {
