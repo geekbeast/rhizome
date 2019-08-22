@@ -149,7 +149,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         try ( Connection connection = hds.getConnection(); PreparedStatement deleteRow = prepareDelete( connection ) ) {
             bind( deleteRow, key );
             deleteRow.executeUpdate();
-            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during delete for key {} in map {}.", key, mapName, e );
         }
@@ -166,7 +165,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
                 deleteRow.addBatch();
             }
             deleteRow.executeBatch();
-            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during delete all for key {} in map {}", key, mapName, e );
         }

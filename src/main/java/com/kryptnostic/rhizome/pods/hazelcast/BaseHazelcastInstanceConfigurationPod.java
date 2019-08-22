@@ -67,10 +67,10 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
                     .setProperty( "hazelcast.map.load.chunk.size","100000" )
                     .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
-                    .setSerializationConfig( getSerializationConfig() )
-                    .setMapConfigs( getMapConfigs() )
-                    .setQueueConfigs( getQueueConfigs( config.getQueueConfig( "default" ) ) )
-                    .setNetworkConfig( getNetworkConfig( hzConfiguration ) );
+                    .setSerializationConfig( serializationConfig() )
+                    .setMapConfigs( mapConfigs() )
+                    .setQueueConfigs( queueConfigs( config.getQueueConfig( "default" ) ) )
+                    .setNetworkConfig( networkConfig( hzConfiguration ) );
 
             config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCPMemberCount() );
             return config;
@@ -84,10 +84,10 @@ public class BaseHazelcastInstanceConfigurationPod {
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
-        SerializationConfig serializationConfig = getSerializationConfig();
+        SerializationConfig serializationConfig = serializationConfig();
         logger.info( "Registering the following serializers: {}", serializationConfig );
         return hzConfiguration.isServer() ? null : new ClientConfig()
-                .setNetworkConfig( getClientNetworkConfig( hzConfiguration ) )
+                .setNetworkConfig( clientNetworkConfig( hzConfiguration ) )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( serializationConfig )
                 .setProperty( "hazelcast.logging.type", "slf4j" );
@@ -95,45 +95,45 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     @Bean
-    public SerializationConfig getSerializationConfig() {
+    public SerializationConfig serializationConfig() {
         SerializationConfig config = new SerializationConfig()
-                .setSerializerConfigs( getSerializerConfigs() )
+                .setSerializerConfigs( serializerConfigs() )
                 .setAllowUnsafe( true )
                 .setUseNativeByteOrder( true );
         return config;
     }
 
-    protected Map<String, MapConfig> getMapConfigs() {
+    protected Map<String, MapConfig> mapConfigs() {
         return ImmutableMap.of();
     }
 
-    protected Map<String, QueueConfig> getQueueConfigs( QueueConfig defaultConfig ) {
-        return getQueueConfigs( ImmutableMap.of( "default", defaultConfig ) );
+    protected Map<String, QueueConfig> queueConfigs( QueueConfig defaultConfig ) {
+        return queueConfigs( ImmutableMap.of( "default", defaultConfig ) );
     }
 
-    protected Map<String, QueueConfig> getQueueConfigs( Map<String, QueueConfig> configs ) {
+    protected Map<String, QueueConfig> queueConfigs( Map<String, QueueConfig> configs ) {
         return ImmutableMap.copyOf( configs );
     }
 
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected Collection<SerializerConfig> serializerConfigs() {
         return ImmutableList.of();
     }
 
-    protected static TcpIpConfig getTcpIpConfig( List<String> nodes ) {
+    public static TcpIpConfig tcpIpConfig( List<String> nodes ) {
         return new TcpIpConfig().setMembers( nodes ).setEnabled( true );
     }
 
-    protected static ClientNetworkConfig getClientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+    public static ClientNetworkConfig clientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
         return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
     }
 
-    protected static NetworkConfig getNetworkConfig( HazelcastConfiguration hzConfiguration ) {
+    protected static NetworkConfig networkConfig( HazelcastConfiguration hzConfiguration ) {
         return new NetworkConfig().setPort( hzConfiguration.getPort() ).setJoin(
                 getJoinConfig( hzConfiguration.getHazelcastSeedNodes() ) );
     }
 
     protected static JoinConfig getJoinConfig( List<String> nodes ) {
         return new JoinConfig().setMulticastConfig( new MulticastConfig().setEnabled( false ).setLoopbackModeEnabled(
-                false ) ).setTcpIpConfig( getTcpIpConfig( nodes ) );
+                false ) ).setTcpIpConfig( tcpIpConfig( nodes ) );
     }
 }

@@ -6,6 +6,7 @@ import java.util.Random;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
+import com.openlattice.hazelcast.serializers.SetStreamSerializer;
 
 public class SetStreamSerializerTest extends AbstractStreamSerializerTest<StreamSerializer<TestSet>, TestSet> {
 
