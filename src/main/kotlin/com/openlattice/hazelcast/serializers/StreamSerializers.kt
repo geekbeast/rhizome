@@ -1,11 +1,11 @@
-package com.kryptnostic.rhizome.hazelcast.serializers
+package com.openlattice.hazelcast.serializers
 
 import com.google.common.collect.Maps
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
 import java.util.*
 
-class RhizomeKotlinUtils {
+class StreamSerializers {
     companion object {
         @JvmStatic
         fun serializeUUIDUUIDMap( out: ObjectDataOutput, map: Map<UUID, UUID> ) {
