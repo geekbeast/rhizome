@@ -79,7 +79,10 @@ open class StatementHolderSupplier(
             execute(statement)
         } catch (ex: Exception) {
             logger.error("Error while executing sql: {}. The following exception was thrown: ", sql, ex)
-            connection.rollback()
+            if ( !connection.autoCommit ){
+                connection.rollback()
+                logger.error("Rolled back the offending commit ")
+            }
             throw ex
         } finally {
             connection.autoCommit = oldAutoCommit

@@ -12,6 +12,7 @@ import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
+import java.util.Map;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
     protected static final String HAZELCAST_CONFIGURATION_PROPERTY                = "hazelcast";
+    protected static final String HAZELCAST_CLIENTS_PROPERTY                      = "hazelcast-clients";
     protected static final String NAME_PROPERTY                                   = "name";
 
     protected static final boolean                                       PERSISTENCE_ENABLED_DEFAULT        = true;
@@ -51,7 +53,9 @@ public class RhizomeConfiguration implements Configuration {
     protected final        Optional<CassandraConfiguration>              cassandraConfiguration;
     @Deprecated
     protected final        Optional<CassandraConfigurations>             cassandraConfigurations;
-    protected final        Optional<HazelcastConfiguration>              hazelcastConfiguration;
+
+    protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
+    protected final Optional<Map<String, HazelcastConfiguration>> hazelcastClients;
 
     protected final Optional<SparkConfiguration> sparkConfiguration;
 
@@ -72,7 +76,9 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY )
                     Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration,
             @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig,
-            @JsonProperty( NAME_PROPERTY ) Optional<String> name ) {
+            @JsonProperty( NAME_PROPERTY ) Optional<String> name,
+            @JsonProperty( HAZELCAST_CLIENTS_PROPERTY )
+                    Optional<Map<String, HazelcastConfiguration>> hazelcastClients ) {
         this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
         this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
@@ -83,7 +89,7 @@ public class RhizomeConfiguration implements Configuration {
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
         this.sparkConfiguration = sparkConfig;
-
+        this.hazelcastClients = hazelcastClients;
         this.name = name.or( "rhizome" );
     }
 
@@ -136,6 +142,11 @@ public class RhizomeConfiguration implements Configuration {
     @JsonProperty( POSTGRES_CONFIGURATION )
     public Optional<PostgresConfiguration> getPostgresConfiguration() {
         return postgresConfiguration;
+    }
+
+    @JsonProperty(HAZELCAST_CLIENTS_PROPERTY)
+    public Optional<Map<String, HazelcastConfiguration>> getHazelcastClients() {
+        return hazelcastClients;
     }
 
     @JsonProperty( NAME_PROPERTY )
