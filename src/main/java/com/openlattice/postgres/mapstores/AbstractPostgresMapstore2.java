@@ -21,7 +21,6 @@
 package com.openlattice.postgres.mapstores;
 
 import com.codahale.metrics.annotation.Timed;
-import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
@@ -29,10 +28,10 @@ import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.openlattice.postgres.CountdownConnectionCloser;
-import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
+import com.openlattice.postgres.streams.PostgresIterable;
+import com.openlattice.postgres.streams.StatementHolder;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -251,21 +250,29 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     @Override public Iterable<K> loadAllKeys() {
         logger.info( "Starting load all keys for map {}", mapName );
-        try {
-            Connection connection = hds.getConnection();
-            connection.setAutoCommit( false );
-            Statement stmt = connection.createStatement();
-            stmt.setFetchSize( 50000 );
-            final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
-            return () -> StreamUtil
-                    .stream( () -> new KeyIterator<>( rs,
-                            new CountdownConnectionCloser( rs, connection, 1 ), this::mapToKey ) )
-                    .peek( key -> logger.debug( "Key to load: {}", key ) )
-                    .iterator();
-        } catch ( SQLException e ) {
-            logger.error( "Unable to acquire connection load all keys for map {}", mapName, e );
-            return null;
-        }
+        return new PostgresIterable<>(
+                () -> {
+                    try {
+                        Connection connection = hds.getConnection();
+                        connection.setAutoCommit( false );
+                        Statement stmt = connection.createStatement();
+                        stmt.setFetchSize( 50_000 );
+                        ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
+                        return new StatementHolder( connection, stmt, rs );
+                    } catch ( SQLException e ) {
+                        logger.error( "Unable to load all keys", e );
+                        throw new IllegalStateException( "Unable to load all keys.", e );
+                    }
+                },
+                rs -> {
+                    try {
+                        return mapToKey( rs );
+                    } catch ( SQLException e ) {
+                        logger.error( "Unable to read keys for map {}.", mapName, e);
+                        throw new IllegalStateException( "Unable to read keys.", e );
+                    }
+                }
+        );
     }
 
     @Override

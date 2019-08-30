@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
+@Deprecated( since = "Use PostgresIterable instead" )
 public class CountdownConnectionCloser {
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private static final Logger          logger   = LoggerFactory.getLogger( CountdownConnectionCloser.class );

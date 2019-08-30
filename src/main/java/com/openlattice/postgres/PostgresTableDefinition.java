@@ -305,7 +305,7 @@ public class PostgresTableDefinition implements TableDefinition {
                     .filter( c -> !this.columns.contains( c ) )
                     .map( PostgresColumnDefinition::getName )
                     .collect( Collectors.toList() );
-            String errMsg = "Table is missing requested columns: " + String.valueOf( missingColumns );
+            String errMsg = "Table is missing requested columns: " + missingColumns;
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
