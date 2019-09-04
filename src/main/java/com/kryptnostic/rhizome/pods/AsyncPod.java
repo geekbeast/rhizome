@@ -47,7 +47,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
         int minPoolSize = 4;
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize( minPoolSize );
-        executor.setMaxPoolSize( Math.max( minPoolSize, Runtime.getRuntime().availableProcessors() );
+        executor.setMaxPoolSize( Math.max( minPoolSize, Runtime.getRuntime().availableProcessors()));
         logger.info("Setting MaxPoolSize to " + executor.getMaxPoolSize());
         executor.setThreadNamePrefix( "rhizome-offshoot-" );
         executor.initialize();
