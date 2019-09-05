@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import javax.annotation.Nullable;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -27,7 +28,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -54,20 +54,24 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( new UUID[ 0 ] ) );
     }
 
+    public static Array createUuidArray( Connection connection, UUID...id ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.UUID.sql(), id );
+    }
+
     public static Array createLongArray( Connection connection, Collection<Long> values ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values.toArray( new Long[ 0 ] ) );
+    }
+
+    public static Array createIntArray( Connection connection, Integer...value ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), value );
     }
 
     public static Array createIntArray( Connection connection, Collection<Integer> values ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values.toArray( new Integer[ 0 ] ) );
     }
 
-    public static Array createIntArray( Connection connection, Integer[] values ) throws SQLException {
-        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values );
-    }
-
-    public static Array createLongArray( Connection connection, Long[] values ) throws SQLException {
-        return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values );
+    public static Array createLongArray( Connection connection, Long...value ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), value );
     }
 
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
@@ -76,6 +80,10 @@ public class PostgresArrays {
 
     public static Array createTextArray( Connection connection, Collection<String> ids ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( new String[ 0 ] ) );
+    }
+
+    public static Array createTextArray( Connection connection, String...text ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.TEXT.sql(), text );
     }
 
     public static Array createBooleanArray( Connection connection, Collection<Boolean> values ) throws SQLException {
