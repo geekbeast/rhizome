@@ -30,8 +30,10 @@ import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
+import com.openlattice.postgres.streams.BasePostgresIterable;
 import com.openlattice.postgres.streams.PostgresIterable;
 import com.openlattice.postgres.streams.StatementHolder;
+import com.openlattice.postgres.streams.StatementHolderSupplier;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -250,20 +252,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     @Override public Iterable<K> loadAllKeys() {
         logger.info( "Starting load all keys for map {}", mapName );
-        return new PostgresIterable<>(
-                () -> {
-                    try {
-                        Connection connection = hds.getConnection();
-                        connection.setAutoCommit( false );
-                        Statement stmt = connection.createStatement();
-                        stmt.setFetchSize( 50_000 );
-                        ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
-                        return new StatementHolder( connection, stmt, rs );
-                    } catch ( SQLException e ) {
-                        logger.error( "Unable to load all keys", e );
-                        throw new IllegalStateException( "Unable to load all keys.", e );
-                    }
-                },
+        return new BasePostgresIterable<>(
+                new StatementHolderSupplier( hds, selectAllKeysQuery, 50_000, false, 0L),
                 rs -> {
                     try {
                         return mapToKey( rs );
