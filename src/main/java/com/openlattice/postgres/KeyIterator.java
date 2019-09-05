@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-@Deprecated( since = "Use PostgresIterable instead" )
+@Deprecated( since = "Use Base/PostgresIterable instead" )
 public class KeyIterator<T> implements Iterator<T> {
     private static final Logger logger = LoggerFactory.getLogger( KeyIterator.class );
     private final ResultSet                 rs;
