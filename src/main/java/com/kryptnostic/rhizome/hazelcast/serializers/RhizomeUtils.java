@@ -11,10 +11,10 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
@@ -70,7 +70,7 @@ public class RhizomeUtils {
         public static <T> Optional<T> deserializeToOptional(
                 ObjectDataInput in,
                 IoPerformingFunction<ObjectDataInput, T> deserializer ) throws IOException {
-            Optional<T> object = Optional.absent();
+            Optional<T> object = Optional.empty();
             if ( in.readBoolean() ) {
                 object = Optional.of( deserializer.apply( in ) );
             }
