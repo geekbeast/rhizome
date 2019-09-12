@@ -19,7 +19,7 @@
  *
  */
 
-package com.kryptnostic.rhizome.hazelcast.serializers
+package com.openlattice.hazelcast.serializers
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.LinkedHashMultimap
@@ -27,6 +27,7 @@ import com.google.common.collect.Multimaps
 import com.google.common.collect.SetMultimap
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
+import com.kryptnostic.rhizome.hazelcast.serializers.AbstractUUIDStreamSerializer
 import java.util.*
 
 /**
