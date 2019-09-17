@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
@@ -21,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class RhizomeUtils {
