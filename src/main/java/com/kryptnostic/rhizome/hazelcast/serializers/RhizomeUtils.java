@@ -69,7 +69,7 @@ public class RhizomeUtils {
         public static <T> Optional<T> deserializeToOptional(
                 ObjectDataInput in,
                 IoPerformingFunction<ObjectDataInput, T> deserializer ) throws IOException {
-            Optional<T> object = Optional.absent();
+            Optional<T> object = Optional.empty();
             if ( in.readBoolean() ) {
                 object = Optional.of( deserializer.apply( in ) );
             }
