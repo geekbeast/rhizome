@@ -1,5 +1,16 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
+import com.google.common.primitives.Ints;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
+import com.openlattice.rhizome.hazelcast.UUIDSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -9,20 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
-
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.io.Resources;
-import com.google.common.primitives.Ints;
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
-import com.openlattice.rhizome.hazelcast.UUIDSet;
+import java.util.Set;
 
 public class RhizomeUtils {
 
