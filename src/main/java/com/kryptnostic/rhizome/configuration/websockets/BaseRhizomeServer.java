@@ -1,10 +1,9 @@
 package com.kryptnostic.rhizome.configuration.websockets;
 
-import org.springframework.beans.BeansException;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-
 import com.kryptnostic.rhizome.core.Rhizome;
 import com.kryptnostic.rhizome.pods.LoamPod;
+import org.springframework.beans.BeansException;
+import org.springframework.context.support.AbstractApplicationContext;
 
 public class BaseRhizomeServer {
     private final Rhizome rhizome;
@@ -29,7 +28,7 @@ public class BaseRhizomeServer {
         rhizome.wilt();
     }
 
-    public AnnotationConfigWebApplicationContext getContext() {
+    public AbstractApplicationContext getContext() {
         return rhizome.getContext();
     }
 }
