@@ -69,7 +69,11 @@ class BaseExceptionHandler {
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleOtherExceptions(e: Exception): ResponseEntity<ErrorsDTO> {
+    fun handleOtherExceptions(e: Exception): ResponseEntity<ErrorsDTO>? {
+        if ( e is org.eclipse.jetty.io.EofException ){
+            logger.error("Client closed connection", e)
+            return null
+        }
         return handleException(
                 e, HttpStatus.INTERNAL_SERVER_ERROR, ApiExceptions.OTHER_EXCEPTION, e.javaClass.simpleName + ": ")
     }
@@ -82,9 +86,6 @@ class BaseExceptionHandler {
             postFixMessage: String = ""): ResponseEntity<ErrorsDTO> {
         logger.error("", e)
         val errorMessage = e.message ?: ""
-        if ( e is org.eclipse.jetty.io.EofException ){
-            logger.error("Client closed connection", e)
-        }
         return ResponseEntity(
                 ErrorsDTO(responseException, prefixMessage + errorMessage + postFixMessage),
                 responseStatus)
