@@ -47,13 +47,13 @@ open class StatementHolderSupplier(
         val hds: HikariDataSource,
         val sql: String,
         val fetchSize: Int = 0,
-        val autoCommit: Boolean = fetchSize > 0,
+        val autoCommit: Boolean = (fetchSize == 0),
         private val longRunningQueryLimit: Long = 0
 ) : Supplier<StatementHolder> {
     init {
         check(fetchSize >= 0) { "Fetch-size must be nonnegative." }
-        check(((autoCommit) && (fetchSize > 0)) || (fetchSize == 0)) {
-            "Auto-commit cannot be disabled if fetch size > 0."
+        check(((!autoCommit) && (fetchSize > 0)) || (fetchSize == 0)) {
+            "Auto-commit must be false if fetch size > 0."
         }
     }
 
@@ -102,7 +102,7 @@ class PreparedStatementHolderSupplier(
         hds: HikariDataSource,
         sql: String,
         fetchSize: Int = 0,
-        autoCommit: Boolean = fetchSize > 0,
+        autoCommit: Boolean = (fetchSize == 0),
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
 
