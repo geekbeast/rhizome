@@ -82,6 +82,9 @@ class BaseExceptionHandler {
             postFixMessage: String = ""): ResponseEntity<ErrorsDTO> {
         logger.error("", e)
         val errorMessage = e.message ?: ""
+        if ( e is org.eclipse.jetty.io.EofException ){
+            logger.error("Client closed connection", e)
+        }
         return ResponseEntity(
                 ErrorsDTO(responseException, prefixMessage + errorMessage + postFixMessage),
                 responseStatus)
