@@ -35,7 +35,6 @@ class BasePostgresIterable<T>(
             logger.error("Error creating postgres stream iterator.")
             throw IllegalStateException("Unable to instantiate postgres iterator.", e)
         }
-
     }
 
     fun stream(): Stream<T> {
@@ -70,7 +69,6 @@ open class StatementHolderSupplier(
 
     override fun get(): StatementHolder {
         val connection = hds.connection //okay to fail + propagate
-        val oldAutoCommit = connection.autoCommit
         connection.autoCommit = autoCommit
 
         val statement = buildStatement(connection) //okay to fail + propagate
@@ -86,8 +84,6 @@ open class StatementHolderSupplier(
                 logger.error("Rolled back the offending commit ")
             }
             throw ex
-        } finally {
-            connection.autoCommit = oldAutoCommit
         }
 
         return if (longRunningQueryLimit == 0L) {
