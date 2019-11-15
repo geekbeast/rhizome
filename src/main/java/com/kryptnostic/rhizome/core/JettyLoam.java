@@ -54,6 +54,7 @@ public class JettyLoam implements Loam {
         WebAppContext context = new WebAppContext();
         if ( config.getContextConfiguration().isPresent() ) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
+
             context.setContextPath( contextConfig.getPath() );
             context.setResourceBase( contextConfig.getResourceBase() );
             context.setParentLoaderPriority( contextConfig.isParentLoaderPriority() );
