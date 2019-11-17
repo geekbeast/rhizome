@@ -30,9 +30,7 @@ import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
- */
+
 public final class StreamUtil {
     private static final Logger logger = LoggerFactory.getLogger( StreamUtil.class );
 

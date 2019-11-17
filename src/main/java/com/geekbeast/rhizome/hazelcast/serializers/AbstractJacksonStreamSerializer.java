@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.serializers;
+package com.geekbeast.rhizome.hazelcast.serializers;
 
 import java.io.IOException;
 
@@ -23,16 +23,12 @@ public abstract class AbstractJacksonStreamSerializer<T> implements SelfRegister
 
     @Override
     public void write( ObjectDataOutput out, T object ) throws IOException {
-        byte[] bytes = mapper.writeValueAsBytes( object );
-        out.writeInt( bytes.length );
-        out.write( bytes );
+        out.writeByteArray( mapper.writeValueAsBytes( object ) );
     }
 
     @Override
     public T read( ObjectDataInput in ) throws IOException {
-        byte[] bytes = new byte[ in.readInt() ];
-        in.readFully( bytes );
-        return mapper.readValue( bytes, clazz );
+        return mapper.readValue( in.readByteArray(), clazz );
     }
 
     @Override
