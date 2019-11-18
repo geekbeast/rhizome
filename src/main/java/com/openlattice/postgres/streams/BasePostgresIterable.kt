@@ -3,7 +3,7 @@ package com.openlattice.postgres.streams
 import com.dataloom.streams.StreamUtil
 import com.google.common.base.Preconditions.checkState
 import com.zaxxer.hikari.HikariDataSource
-import org.graalvm.compiler.core.common.SuppressFBWarnings
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.IOException

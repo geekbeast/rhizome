@@ -8,9 +8,9 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
-//    id 'com.github.spotbugs' version '1.6.3'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.40'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.40'
+    id 'com.github.spotbugs' version '2.0.1'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.50'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.50'
     id 'org.jetbrains.dokka' version '0.9.18'
 }
 
@@ -27,9 +27,9 @@ apply plugin: 'kotlin'
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"\
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
-/*
+
 spotbugs {
-    toolVersion = '3.1.5'
+    toolVersion = '3.1.12'
 }
 
 tasks.withType(com.github.spotbugs.SpotBugsTask) {
@@ -37,8 +37,9 @@ tasks.withType(com.github.spotbugs.SpotBugsTask) {
         xml.enabled = false
         html.enabled = true
     }
+    ignoreFailures = true
 }
-*/
+
 
 run {
     if (System.getProperty("exec.args") != null) {
@@ -92,6 +93,13 @@ jacoco {
 
 
 dependencies {
+    //Spotbugs
+    spotbugsPlugins "com.h3xstream.findsecbugs:findsecbugs-plugin:${findsecbugs_version}"
+    compileOnly "net.jcip:jcip-annotations:${jcip_version}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs_annotations_version}"
+    testCompileOnly "net.jcip:jcip-annotations:${jcip_version}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs_annotations_version}"
+
     /*
      * AWS
      */
