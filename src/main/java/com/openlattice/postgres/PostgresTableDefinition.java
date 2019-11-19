@@ -50,7 +50,8 @@ public class PostgresTableDefinition implements TableDefinition {
     private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
 
     private boolean unlogged;
-    private boolean ifNotExists = true;
+    private boolean ifNotExists         = true;
+    private boolean overwriteOnConflict = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
@@ -65,6 +66,11 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
+        return this;
+    }
+
+    public PostgresTableDefinition overwriteOnConflict() {
+        this.overwriteOnConflict = true;
         return this;
     }
 
@@ -214,16 +220,6 @@ public class PostgresTableDefinition implements TableDefinition {
         return updateQuery( whereToUpdate, columnsToUpdate, true );
     }
 
-    private static String getBindParamsForCols( Collection<PostgresColumnDefinition> columns, boolean isBindingWhere ) {
-        String joinString = isBindingWhere ? " and " : ", ";
-        return columns.stream().map( column -> {
-            String eq = column.getDatatype().equals( PostgresDatatype.JSONB ) ?
-                    " = ?::jsonb " :
-                    " = ? ";
-            return column.getName() + eq;
-        } ).collect( Collectors.joining( joinString ) );
-    }
-
     public String updateQuery(
             List<PostgresColumnDefinition> whereToUpdate,
             List<PostgresColumnDefinition> columnsToUpdate,
@@ -250,7 +246,7 @@ public class PostgresTableDefinition implements TableDefinition {
                     .filter( c -> !this.columns.contains( c ) )
                     .map( PostgresColumnDefinition::getName )
                     .collect( Collectors.toList() );
-            String errMsg = "Table " + getName() + "is missing requested columns: " + String.valueOf( missingColumns );
+            String errMsg = "Table " + getName() + "is missing requested columns: " + missingColumns;
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
@@ -411,5 +407,20 @@ public class PostgresTableDefinition implements TableDefinition {
         result = 31 * result + ( unique != null ? unique.hashCode() : 0 );
         result = 31 * result + ( ifNotExists ? 1 : 0 );
         return result;
+    }
+
+    private String getBindParamsForCols(
+            Collection<PostgresColumnDefinition> columns,
+            boolean isBindingWhere ) {
+        String joinString = isBindingWhere ? " and " : ", ";
+        return columns.stream().map( column -> {
+            if ( overwriteOnConflict ) {
+                return column.getName() + " = EXCLUDED." + column.getName();
+            }
+            String eq = column.getDatatype().equals( PostgresDatatype.JSONB ) ?
+                    " = ?::jsonb " :
+                    " = ? ";
+            return column.getName() + eq;
+        } ).collect( Collectors.joining( joinString ) );
     }
 }
