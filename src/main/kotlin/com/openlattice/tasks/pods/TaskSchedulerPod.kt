@@ -22,6 +22,7 @@
 package com.openlattice.tasks.pods
 
 import com.hazelcast.core.HazelcastInstance
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
 import com.kryptnostic.rhizome.startup.Requirement
 import com.openlattice.tasks.HazelcastFixedRateTask
 import com.openlattice.tasks.HazelcastInitializationTask
@@ -32,9 +33,10 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
 
-
+const val STARTUP_LOCK = "_TSS_STARTUP_LOCK_"
 private val logger = LoggerFactory.getLogger(TaskSchedulerBootstrapPod::class.java)
 
 /**
@@ -51,6 +53,9 @@ class TaskSchedulerPod {
     private lateinit var hazelcastInstance: HazelcastInstance
 
     @Inject
+    private lateinit var rhizomeConfiguration: RhizomeConfiguration
+
+    @Inject
     private lateinit var tasks: MutableSet<HazelcastFixedRateTask<*>>
 
     @Inject
@@ -61,52 +66,62 @@ class TaskSchedulerPod {
 
     @Bean
     fun taskSchedulerService(): TaskService {
-        val dependenciesMap : Map<Class<*>, HazelcastTaskDependencies> = dependencies
-                .filter { it !is TaskSchedulerBootstrapPod.NoOpDependencies }
-                .groupBy { it.javaClass as Class<*> }
-                .mapValues {
-                    if (it.value.size > 1) {
-                        logger.error(
-                                "Encountered {} dependencies of type {}. Please resolve ambiguity.",
-                                it.value.size,
-                                it.key.canonicalName
-                        )
-                        throw IllegalStateException(
-                                "Encountered ${it.value.size} dependencies of type ${it.key.canonicalName}. Please resolve ambiguity."
-                        )
-                    } else {
-                        it.value.first()
+        val startupLock = if( rhizomeConfiguration.hazelcastConfiguration.get().cpMemberCount >=3 ) {
+            hazelcastInstance.cpSubsystem.getLock(STARTUP_LOCK)
+        } else ReentrantLock()
+        return try {
+            logger.info("Attempting to acquire startup lock for task scheduler service.")
+            startupLock.lock()
+            logger.info("Acquired startup lock for task scheduler service.")
+            val dependenciesMap: Map<Class<*>, HazelcastTaskDependencies> = dependencies
+                    .filter { it !is TaskSchedulerBootstrapPod.NoOpDependencies }
+                    .groupBy { it.javaClass as Class<*> }
+                    .mapValues {
+                        if (it.value.size > 1) {
+                            logger.error(
+                                    "Encountered {} dependencies of type {}. Please resolve ambiguity.",
+                                    it.value.size,
+                                    it.key.canonicalName
+                            )
+                            throw IllegalStateException(
+                                    "Encountered ${it.value.size} dependencies of type ${it.key.canonicalName}. Please resolve ambiguity."
+                            )
+                        } else {
+                            it.value.first()
+                        }
                     }
+
+            val validTasks = tasks.filter { it.name != NO_OP_TASK_NAME }
+
+            validTasks.forEach { task ->
+                if (!dependenciesMap.contains(task.getDependenciesClass())) {
+                    logger.error("Dependencies missing for task {}", task.name)
+                    throw IllegalStateException("Dependencies missing for task ${task.name}")
                 }
-
-        val validTasks = tasks.filter { it.name != NO_OP_TASK_NAME }
-
-        validTasks.forEach { task ->
-            if (!dependenciesMap.contains(task.getDependenciesClass())) {
-                logger.error("Dependencies missing for task {}", task.name)
-                throw IllegalStateException("Dependencies missing for task ${task.name}")
             }
-        }
 
-        val validInitializers = initializers.filter { it.name != NO_OP_INITIALIZER_NAME }
-        validInitializers.forEach { initializer ->
-            if (!dependenciesMap.contains(initializer.getDependenciesClass())) {
-                logger.error("Dependencies missing for initializer {}", initializer.name)
-                throw IllegalStateException("Dependencies missing for initializer ${initializer.name}")
+            val validInitializers = initializers.filter { it.name != NO_OP_INITIALIZER_NAME }
+            validInitializers.forEach { initializer ->
+                if (!dependenciesMap.contains(initializer.getDependenciesClass())) {
+                    logger.error("Dependencies missing for initializer {}", initializer.name)
+                    throw IllegalStateException("Dependencies missing for initializer ${initializer.name}")
+                }
             }
-        }
 
-        return TaskService(
-                context,
-                dependenciesMap,
-                validTasks.toSet(),
-                validInitializers.toSet(),
-                hazelcastInstance
-        )
+            TaskService(
+                    context,
+                    dependenciesMap,
+                    validTasks.toSet(),
+                    validInitializers.toSet(),
+                    hazelcastInstance
+            )
+        } finally {
+            startupLock.unlock()
+        }
     }
 
     @Bean
-    fun initializersCompletedRequirement() : Requirement {
+    fun initializersCompletedRequirement(): Requirement {
         return taskSchedulerService().getInitializersCompletedRequirements()
     }
 }

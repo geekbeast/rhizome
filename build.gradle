@@ -192,6 +192,7 @@ dependencies {
      */
     compile "org.apache.commons:commons-collections4:${commons_collections4_version}"
     compile "commons-io:commons-io:${commonsio_version}"
+    compile "commons-validator:commons-validator:${commonsvalidator_version}"
     compile "org.apache.commons:commons-lang3:${commonsLang_version}"
     compile "commons-codec:commons-codec:${commons_codec_version}"
     testCompile "org.apache.commons:commons-text:${commonsText_version}"

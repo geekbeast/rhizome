@@ -6,6 +6,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
 import java.io.IOException;
+import javax.validation.constraints.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,8 +49,12 @@ public abstract class AbstractStreamSerializerTest<T extends StreamSerializer<D>
         if ( inputObject instanceof Object[] || outputObject instanceof Object[] ) {
             Assert.assertArrayEquals( (Object[]) inputObject, (Object[]) outputObject );
         } else {
-            Assert.assertEquals( inputObject, outputObject );
+            testOutput( inputObject, outputObject );
         }
+    }
+
+    public void testOutput( @NotNull  D inputObject, @NotNull  D outputObject ) {
+        Assert.assertEquals( inputObject, outputObject );
     }
 
 }
