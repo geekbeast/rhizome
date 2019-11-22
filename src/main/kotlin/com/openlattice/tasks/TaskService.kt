@@ -129,6 +129,8 @@ class TaskService(
         logger.info("***********************************************************************")
         logger.info("***********************************************************************")
 
+        latch.countDown()
+
     }
 
     private val taskFutures = tasks
