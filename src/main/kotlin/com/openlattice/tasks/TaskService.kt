@@ -25,12 +25,13 @@ import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.scheduledexecutor.IScheduledFuture
 import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
+import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
 import com.kryptnostic.rhizome.startup.Requirement
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
-import java.lang.Exception
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 const val SUBMITTED_TASKS = "_rhizome:submitted-tasks"
 const val HAZELCAST_SCHEDULED_TASKS_EXECUTOR_NAME = "hazelcast_scheduled_tasks"
@@ -47,6 +48,9 @@ class TaskService(
         private val initializers: Set<HazelcastInitializationTask<*>>,
         hazelcast: HazelcastInstance
 ) {
+    @Inject
+    private lateinit var rhizomeConfiguration: RhizomeConfiguration
+
     companion object {
         private val latch = CountDownLatch(1)
         private val startupLatch = CountDownLatch(1)
@@ -60,7 +64,9 @@ class TaskService(
     init {
         dependencies = dependenciesMap
         startupLatch.countDown()
+        
         //We sort the initializers before running to make sure that initialization task are run in the correct order.
+
         initializers
                 .toSortedSet(TaskComparator(initializers))
                 .forEach { initializer ->
@@ -108,11 +114,14 @@ class TaskService(
                     )
                 }
 
+
+
+
         logger.info("***********************************************************************")
         logger.info("***                 INITIALIZATION TASK COMPLETED                   ***")
         logger.info("***********************************************************************")
         logger.info("***********************************************************************")
-        latch.countDown()
+
     }
 
     private val taskFutures = tasks
@@ -181,7 +190,7 @@ class TaskService(
         init {
             initializers.forEach { initializer ->
                 ancestorMap.getOrPut(initializer.javaClass) {
-                   initializer.after().flatMap { clazz: Class<*> ->
+                    initializer.after().flatMap { clazz: Class<*> ->
                         ancestorMap.getOrPut(clazz) { expandAncestors(clazz).toMutableSet() } + clazz
                     }.toMutableSet()
                 }
