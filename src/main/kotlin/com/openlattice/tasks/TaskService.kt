@@ -82,7 +82,7 @@ class TaskService(
                                     initializer.getTimeUnit()
                             )
                             val maybeUrn = task.handler.toUrn()
-                            submitted.put(initializer.name, maybeUrn)
+                            submitted[initializer.name] = maybeUrn
                             maybeUrn
                         } catch (ex: DuplicateTaskException) {
                             logger.info("Duplicate task registration detected.")
