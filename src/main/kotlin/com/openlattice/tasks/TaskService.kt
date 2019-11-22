@@ -23,6 +23,7 @@ package com.openlattice.tasks
 
 import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.scheduledexecutor.DuplicateTaskException
 import com.hazelcast.scheduledexecutor.IScheduledFuture
 import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
@@ -64,7 +65,7 @@ class TaskService(
     init {
         dependencies = dependenciesMap
         startupLatch.countDown()
-        
+
         //We sort the initializers before running to make sure that initialization task are run in the correct order.
 
         initializers
@@ -74,12 +75,18 @@ class TaskService(
 
 
                     if (initializer.isRunOnceAcrossCluster()) {
-                        val urn = submitted.getOrPut(initializer.name) {
-                            executor.schedule(
+                        val urn = try {
+                            val task = executor.schedule(
                                     initializer,
                                     initializer.getInitialDelay(),
                                     initializer.getTimeUnit()
-                            ).handler.toUrn()
+                            )
+                            val maybeUrn = task.handler.toUrn()
+                            submitted.put(initializer.name, maybeUrn)
+                            maybeUrn
+                        } catch (ex: DuplicateTaskException) {
+                            logger.info("Duplicate task registration detected.")
+                            submitted.getValue(initializer.name)
                         }
                         //By always retrieving the task we can ensure that we wait for initialization tasks kicked
                         //off by different nodes at startup
