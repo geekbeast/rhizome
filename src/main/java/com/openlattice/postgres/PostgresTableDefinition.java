@@ -414,7 +414,7 @@ public class PostgresTableDefinition implements TableDefinition {
             boolean isBindingWhere ) {
         String joinString = isBindingWhere ? " and " : ", ";
         return columns.stream().map( column -> {
-            if ( overwriteOnConflict ) {
+            if ( overwriteOnConflict && !isBindingWhere ) {
                 return column.getName() + " = EXCLUDED." + column.getName();
             }
             String eq = column.getDatatype().equals( PostgresDatatype.JSONB ) ?
