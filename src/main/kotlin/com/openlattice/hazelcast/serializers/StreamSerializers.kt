@@ -1,9 +1,9 @@
 package com.openlattice.hazelcast.serializers
 
+import com.google.common.collect.Maps
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
 import java.util.*
-import com.google.common.collect.Maps as Maps1
 
 class StreamSerializers {
     companion object {
@@ -61,7 +61,7 @@ class StreamSerializers {
         }
 
         @JvmStatic
-        fun deserializeUUIDUUIDMap( `in`: ObjectDataInput, map: MutableMap<UUID, UUID> = Maps1.newLinkedHashMap() ): Map<UUID, UUID> {
+        fun deserializeUUIDUUIDMap( `in`: ObjectDataInput, map: MutableMap<UUID, UUID> = Maps.newLinkedHashMap() ): Map<UUID, UUID> {
             val keysMost    = `in`.readLongArray()
             val keysLeast   = `in`.readLongArray()
 

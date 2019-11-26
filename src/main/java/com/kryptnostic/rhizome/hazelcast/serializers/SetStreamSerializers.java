@@ -1,7 +1,6 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
@@ -119,14 +118,6 @@ public class SetStreamSerializers {
     public static void fastOrderedStringSetSerializeAsArray( ObjectDataOutput out, Set<String> object )
             throws IOException {
         out.writeUTFArray( object.toArray( new String[ 0 ] ) );
-    }
-
-    public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
-        int size = Iterators.size( object.iterator() );
-        out.writeInt( size );
-        for ( String item : object ) {
-            out.writeUTF( item );
-        }
     }
 
     public static void fastStringSetSerialize( ObjectDataOutput out, Collection<String> object ) throws IOException {
