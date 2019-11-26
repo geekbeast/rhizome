@@ -1,13 +1,16 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
 import com.openlattice.rhizome.hazelcast.UUIDSet;
+
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -118,14 +121,16 @@ public class SetStreamSerializers {
         out.writeUTFArray( object.toArray( new String[ 0 ] ) );
     }
 
-    public static Set<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
-        final var arr = in.readUTFArray();
-        return new LinkedHashSet<>( Arrays.asList( arr ) );
+    public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
+        int size = Iterators.size( object.iterator() );
+        out.writeInt( size );
+        for ( String item : object ) {
+            out.writeUTF( item );
+        }
     }
 
-    public static void fastStringSetSerialize( ObjectDataOutput out, Iterable<String> object ) throws IOException {
-        int size = Iterables.size( object );
-        out.writeInt( size );
+    public static void fastStringSetSerialize( ObjectDataOutput out, Collection<String> object ) throws IOException {
+        out.writeInt( object.size() );
         for ( String item : object ) {
             out.writeUTF( item );
         }
@@ -138,6 +143,11 @@ public class SetStreamSerializers {
             items.add( in.readUTF() );
         }
         return items;
+    }
+
+    public static Set<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
+        final var arr = in.readUTFArray();
+        return new LinkedHashSet<>( Arrays.asList( arr ) );
     }
 
     public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
