@@ -11,6 +11,9 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -18,8 +21,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is not thread safe.
@@ -129,7 +130,7 @@ public class CassandraTableBuilder {
     public List<String> build() {
         List<Supplier<Stream<String>>> queries = Arrays
                 .<Supplier<Stream<String>>>asList(
-                        () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
+                        () -> Stream.of( this.buildCreateTableQuery() ),
                         this::buildRegularIndexQueries,
                         this::buildFullCollectionIndexQueries,
                         this::buildSasiIndexQueries );
