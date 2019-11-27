@@ -21,6 +21,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -90,7 +91,7 @@ public class EmailService {
     }
 
     public void sendMessage( Email email ) {
-        sendManyMessages( Arrays.asList( email ) );
+        sendManyMessages( Collections.singletonList( email ) );
     }
 
     @Async
