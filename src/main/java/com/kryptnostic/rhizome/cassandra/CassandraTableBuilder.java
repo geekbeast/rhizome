@@ -324,11 +324,11 @@ public class CassandraTableBuilder {
     private StringBuilder appendColumnDefs(
             StringBuilder builder,
             ColumnDef[] columns ) {
-        for ( int i = 0; i < columns.length; ++i ) {
+        for ( ColumnDef column : columns ) {
             builder
-                    .append( columns[ i ].cql() )
+                    .append( column.cql() )
                     .append( " " )
-                    .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( column.getType( typeResolver ).toString() )
                     .append( "," );
         }
         return builder;
@@ -337,11 +337,11 @@ public class CassandraTableBuilder {
     private StringBuilder appendStaticColumnDefs(
             StringBuilder builder,
             ColumnDef[] columns ) {
-        for ( int i = 0; i < columns.length; ++i ) {
+        for ( ColumnDef column : columns ) {
             builder
-                    .append( columns[ i ].cql() )
+                    .append( column.cql() )
                     .append( " " )
-                    .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( column.getType( typeResolver ).toString() )
                     .append( " STATIC" )
                     .append( "," );
         }
