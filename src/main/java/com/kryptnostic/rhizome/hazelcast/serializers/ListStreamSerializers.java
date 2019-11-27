@@ -2,8 +2,9 @@ package com.kryptnostic.rhizome.hazelcast.serializers;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.openlattice.rhizome.hazelcast.DelegatedUUIDList;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
+import com.openlattice.rhizome.hazelcast.DelegatedUUIDList;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -23,14 +24,22 @@ public class ListStreamSerializers {
         return processEntriesToArray( size, in );
     }
 
-    private static List<UUID> processEntries( int size, ObjectDataInput in ) throws IOException {
-        long[] least = in.readLongArray();
-        long[] most = in.readLongArray();
-        UUID[] uuids = new UUID[ size ];
-        for ( int i = 0; i < size; i++ ) {
-            uuids[ i ] = new UUID( most[ i ], least[ i ] );
+    public static void fastUUIDListSerialize( ObjectDataOutput out, List<UUID> target ) throws IOException {
+        long[] least = new long[ target.size() ];
+        long[] most = new long[ target.size() ];
+        int i = 0;
+        for ( UUID uuid : target ) {
+            least[ i ] = uuid.getLeastSignificantBits();
+            most[ i ] = uuid.getMostSignificantBits();
+            i++;
         }
-        return Arrays.asList( uuids );
+        out.writeInt( i );
+        out.writeLongArray( least );
+        out.writeLongArray( most );
+    }
+
+    private static List<UUID> processEntries( int size, ObjectDataInput in ) throws IOException {
+        return Arrays.asList( processEntriesToArray(size, in) );
     }
 
     private static UUID[] processEntriesToArray( int size, ObjectDataInput in ) throws IOException {
@@ -53,7 +62,7 @@ public class ListStreamSerializers {
 
         @Override
         public void write( ObjectDataOutput out, DelegatedUUIDList object ) throws IOException {
-            SetStreamSerializers.fastUUIDSetSerialize( out, object );
+            ListStreamSerializers.fastUUIDListSerialize( out, object );
         }
 
         @Override
