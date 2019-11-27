@@ -1,10 +1,9 @@
 package com.kryptnostic.rhizome.pods;
 
 import com.geekbeast.hazelcast.HazelcastClientProvider;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.config.SerializationConfig;
-import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
+
 import java.util.Properties;
 
 import javax.inject.Inject;

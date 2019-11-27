@@ -13,7 +13,7 @@ import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
 import java.util.Map;
-import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
