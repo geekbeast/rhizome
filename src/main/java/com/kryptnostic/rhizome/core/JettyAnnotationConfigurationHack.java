@@ -39,7 +39,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
             List<ServletContainerInitializer> scis ) throws Exception {
         if ( scis == null || scis.isEmpty() ) return; // nothing to do
 
-        final List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+        final List<ContainerInitializer> initializers = new ArrayList<>();
         context.setAttribute( CONTAINER_INITIALIZERS, initializers );
 
         for ( ServletContainerInitializer service : scis ) {

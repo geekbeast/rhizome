@@ -40,11 +40,11 @@ public class PagedRequestKey<K> {
     }
 
     public static <K> PagedRequestKey<K> nextPage( PagingState pagingState ) {
-        return new PagedRequestKey<K>( pagingState );
+        return new PagedRequestKey<>( pagingState );
     }
 
     public static <K> PagedRequestKey<K> initialPage( K key, int pageSize, int pageOffset ) {
-        return new PagedRequestKey<K>( key, pageSize, pageOffset );
+        return new PagedRequestKey<>( key, pageSize, pageOffset );
     }
 
     public K getKey() {
