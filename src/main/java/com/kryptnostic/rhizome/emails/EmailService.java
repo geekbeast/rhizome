@@ -1,9 +1,15 @@
 package com.kryptnostic.rhizome.emails;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Properties;
+import com.google.common.eventbus.Subscribe;
+import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
+import com.kryptnostic.rhizome.emails.configuration.MailServiceConfiguration;
+import jodd.mail.Email;
+import jodd.mail.SendMailSession;
+import jodd.mail.SmtpServer;
+import jodd.mail.SmtpSslServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.inject.Inject;
 import javax.mail.Message;
@@ -13,19 +19,9 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import jodd.mail.Email;
-import jodd.mail.SendMailSession;
-import jodd.mail.SmtpServer;
-import jodd.mail.SmtpSslServer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-
-import com.google.common.eventbus.Subscribe;
-import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
-import com.kryptnostic.rhizome.emails.configuration.MailServiceConfiguration;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Properties;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;

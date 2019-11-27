@@ -44,13 +44,13 @@ public class FieldMapping<T> {
     }
 
     public String getCql() {
-        String cql = "(";
+        StringBuilder cql = new StringBuilder("(");
         int i = 0;
 
         for ( Entry<String, BasicFieldType> entry : types.entrySet() ) {
-            cql += entry.getKey() + " " + entry.getValue().getCql() + ( types.size() == ++i ? ")" : "," );
+            cql.append(entry.getKey()).append(" ").append(entry.getValue().getCql()) .append( types.size() == ++i ? ")" : "," );
         }
 
-        return cql;
+        return cql.toString();
     }
 }

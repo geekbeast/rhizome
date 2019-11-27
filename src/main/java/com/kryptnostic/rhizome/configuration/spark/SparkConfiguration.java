@@ -1,11 +1,5 @@
 package com.kryptnostic.rhizome.configuration.spark;
 
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -13,6 +7,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class SparkConfiguration {
 
@@ -97,7 +96,7 @@ public class SparkConfiguration {
     @JsonProperty( JAR_LOCATIONS_PROPERTY )
     public String[] getJarLocations() {
         Preconditions.checkState( jarLocations.stream().allMatch( StringUtils::isNotBlank ), "Invalid jars provided." );
-        return jarLocations.toArray( new String[ jarLocations.size() ] );
+        return jarLocations.toArray( new String[ 0 ] );
     }
 
     @JsonProperty( SPARK_APP_NAME_PROPERTY )
