@@ -25,10 +25,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.dataloom.streams.StreamUtil;
 import java.io.Closeable;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;

@@ -22,7 +22,6 @@
 package com.openlattice.tasks.pods
 
 import com.hazelcast.core.HazelcastInstance
-import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
 import com.kryptnostic.rhizome.startup.Requirement
 import com.openlattice.tasks.HazelcastFixedRateTask
 import com.openlattice.tasks.HazelcastInitializationTask

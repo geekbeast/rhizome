@@ -1,6 +1,5 @@
 package com.kryptnostic.rhizome.pods.hazelcast;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -21,15 +20,17 @@ import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import javax.inject.Inject;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This pod provides a basic hazelcast configuration without stream serializers, map stores, or queue stores. If
@@ -79,7 +80,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     public ClientConfig getHazelcastClientConfiguration() {
-        Optional<HazelcastConfiguration> maybeConfiguration = rhizomeConfiguration.getHazelcastConfiguration();
+        java.util.Optional<HazelcastConfiguration> maybeConfiguration = rhizomeConfiguration.getHazelcastConfiguration();
         Preconditions.checkArgument(
                 maybeConfiguration.isPresent(),
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );

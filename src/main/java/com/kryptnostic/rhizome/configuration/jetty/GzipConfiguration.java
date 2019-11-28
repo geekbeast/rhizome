@@ -2,11 +2,12 @@ package com.kryptnostic.rhizome.configuration.jetty;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import org.springframework.http.MediaType;
+
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.http.MediaType;
+import java.util.Optional;
 
 public class GzipConfiguration {
     protected static final String       GZIP_ENABLED_PROPERTY       = "enabled";
@@ -30,10 +31,10 @@ public class GzipConfiguration {
             @JsonProperty( GZIP_ENABLED_PROPERTY ) Optional<Boolean> gzipEnabled,
             @JsonProperty( GZIP_CONTENT_TYPES_PROPERTY ) Optional<List<String>> contentTypes,
             @JsonProperty( GZIP_METHODS_PROPERTY ) Optional<List<String>> methods ) {
-        this.gzipEnabled = gzipEnabled.or( GZIP_ENABLED_DEFAULT );
+        this.gzipEnabled = gzipEnabled.orElse( GZIP_ENABLED_DEFAULT );
         if ( this.gzipEnabled ) {
-            this.gzipContentTypes = contentTypes.or( GZIP_CONTENT_TYPES );
-            this.gzipMethods = methods.or( GZIP_METHODS );
+            this.gzipContentTypes = contentTypes.orElse( GZIP_CONTENT_TYPES );
+            this.gzipMethods = methods.orElse( GZIP_METHODS );
         } else {
             this.gzipContentTypes = ImmutableList.of();
         }

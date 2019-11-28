@@ -6,8 +6,7 @@ import com.hazelcast.config.GroupConfig
 import com.hazelcast.config.SerializationConfig
 import com.hazelcast.core.HazelcastInstance
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
-import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod
-import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.*
+import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.clientNetworkConfig
 
 /**
  *

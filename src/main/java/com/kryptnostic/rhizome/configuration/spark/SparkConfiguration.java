@@ -1,18 +1,18 @@
 package com.kryptnostic.rhizome.configuration.spark;
 
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Optional;
 
 public class SparkConfiguration {
 
@@ -54,23 +54,23 @@ public class SparkConfiguration {
             @JsonProperty( AmazonConfiguration.AWS_REGION_PROPERTY ) Optional<String> region,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY ) Optional<String> tagKey,
             @JsonProperty( AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY ) Optional<String> tagValue ) {
-        this.sparkPort = port.or( PORT_DEFAULT );
-        this.appName = app.or( APP_NAME_DEFAULT );
-        this.jarLocations = jars.or( JAR_LOCATIONS_DEFAULT );
-        this.local = local.or( LOCAL_DEFAULT );
-        this.sparkWorkingDirectory = workingDir.or( WORKING_DIR_DEFAULT );
+        this.sparkPort = port.orElse( PORT_DEFAULT );
+        this.appName = app.orElse( APP_NAME_DEFAULT );
+        this.jarLocations = jars.orElse( JAR_LOCATIONS_DEFAULT );
+        this.local = local.orElse( LOCAL_DEFAULT );
+        this.sparkWorkingDirectory = workingDir.orElse( WORKING_DIR_DEFAULT );
 
-        this.provider = provider.orNull();
+        this.provider = provider.orElse( null );
         if ( "aws".equalsIgnoreCase( this.provider ) ) {
             this.sparkMasters = Lists.transform(
                     AmazonConfiguration.getNodesWithTagKeyAndValueInRegion( this.region,
                             tagKey,
                             tagValue,
                             logger ),
-                    ( input ) -> input.getHostAddress() );
-            this.region = region.or( AmazonConfiguration.AWS_REGION_DEFAULT );
+                    InetAddress::getHostAddress );
+            this.region = region.orElse( AmazonConfiguration.AWS_REGION_DEFAULT );
         } else {
-            this.sparkMasters = masters.or( MASTER_DEFAULT );
+            this.sparkMasters = masters.orElse( MASTER_DEFAULT );
         }
     }
 
@@ -97,7 +97,7 @@ public class SparkConfiguration {
     @JsonProperty( JAR_LOCATIONS_PROPERTY )
     public String[] getJarLocations() {
         Preconditions.checkState( jarLocations.stream().allMatch( StringUtils::isNotBlank ), "Invalid jars provided." );
-        return jarLocations.toArray( new String[ jarLocations.size() ] );
+        return jarLocations.toArray( new String[ 0 ] );
     }
 
     @JsonProperty( SPARK_APP_NAME_PROPERTY )

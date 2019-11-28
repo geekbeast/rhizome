@@ -28,6 +28,6 @@ data class ErrorDTO(
         @JsonProperty("error") val error: ApiExceptions,
         @JsonProperty("message") val message: String) {
     override fun toString(): String {
-        return "ErrorDTO [error=$error, message=$message=]";
+        return "ErrorDTO [error=$error, message=$message=]"
     }
 }

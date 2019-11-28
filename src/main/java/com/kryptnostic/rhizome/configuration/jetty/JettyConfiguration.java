@@ -3,11 +3,12 @@ package com.kryptnostic.rhizome.configuration.jetty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.Configuration;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
+
+import java.util.Optional;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -34,14 +35,14 @@ public class JettyConfiguration implements Configuration {
 
     protected final Optional<String>                 keymanagerPassword;
     protected final int                              maxThreads;
-    protected final boolean                          securityEnabled;
-    protected final boolean                          defaultServletEnabled;
-    protected final Optional<ConnectorConfiguration> webConnectorConfiguration;
-    protected final Optional<ConnectorConfiguration> serviceConnectorConfiguration;
-    protected final Optional<ContextConfiguration>   contextConfiguration;
-    protected final Optional<KeystoreConfiguration>  keystoreConfiguration;
-    protected final Optional<KeystoreConfiguration>  truststoreConfiguration;
-    protected final Optional<GzipConfiguration>      gzipConfiguration;
+    protected final boolean                               securityEnabled;
+    protected final boolean                               defaultServletEnabled;
+    protected final Optional<ConnectorConfiguration>      webConnectorConfiguration;
+    protected final Optional<ConnectorConfiguration>      serviceConnectorConfiguration;
+    protected final Optional<ContextConfiguration>        contextConfiguration;
+    protected final Optional<KeystoreConfiguration>       keystoreConfiguration;
+    protected final Optional<KeystoreConfiguration>       truststoreConfiguration;
+    protected final Optional<GzipConfiguration> gzipConfiguration;
 
     @JsonCreator
     public JettyConfiguration(
@@ -53,22 +54,21 @@ public class JettyConfiguration implements Configuration {
             @JsonProperty( CONTEXT_CONFIGURATION_PROPERTY ) Optional<ContextConfiguration> contextConfiguration,
             @JsonProperty( KEYSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> keystoreConfiguration,
             @JsonProperty( TRUSTSTORE_CONFIGURATION_PROPERTY ) Optional<KeystoreConfiguration> truststoreConfiguration,
-            @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) Optional<GzipConfiguration> gzipConfiguration,
+            @JsonProperty( GZIP_CONFIGURATION_PROPERTY ) java.util.Optional<GzipConfiguration> gzipConfiguration,
             @JsonProperty( SECURITY_ENABLE_PROPERTY ) Optional<Boolean> securityEnabled ) {
 
         this.webConnectorConfiguration = webConnectorConfiguration;
         this.serviceConnectorConfiguration = serviceConnectorConfiguration;
 
         this.keymanagerPassword = keymanagerPassword;
-        this.maxThreads = maxThreads.or( MAX_THREADS_DEFAULT );
-        ;
+        this.maxThreads = maxThreads.orElse( MAX_THREADS_DEFAULT );
 
         this.contextConfiguration = contextConfiguration;
         this.keystoreConfiguration = keystoreConfiguration;
         this.truststoreConfiguration = truststoreConfiguration;
         this.gzipConfiguration = gzipConfiguration;
-        this.securityEnabled = securityEnabled.or( false );
-        this.defaultServletEnabled = defaultServletEnabled.or( DEFAULT_SERVLET_ENABLED_DEFAULT );
+        this.securityEnabled = securityEnabled.orElse( false );
+        this.defaultServletEnabled = defaultServletEnabled.orElse( DEFAULT_SERVLET_ENABLED_DEFAULT );
     }
 
     public static ConfigurationKey key() {

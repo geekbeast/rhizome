@@ -21,7 +21,7 @@ public class ListenableHazelcastFuture<T> implements ListenableFuture<T> {
 
     @Override
     public void addListener( Runnable listener, Executor executor ) {
-        f.andThen( new ExecutionCallback<T>() {
+        f.andThen( new ExecutionCallback<>() {
             @Override public void onResponse( T response ) {
                 listener.run();
             }

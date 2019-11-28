@@ -1,12 +1,5 @@
 package com.kryptnostic.rhizome.configuration.amazon;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-
 import com.amazonaws.services.ec2.AmazonEC2Async;
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
@@ -14,7 +7,13 @@ import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
-import com.google.common.base.Optional;
+import org.slf4j.Logger;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class AmazonConfiguration {
 
@@ -34,10 +33,10 @@ public class AmazonConfiguration {
                 .build();
         Filter tagKey = new Filter()
                 .withName( "tag-key" )
-                .withValues( nodeKey.orNull() );
+                .withValues( nodeKey.orElse( null ) );
         Filter tagValue = new Filter()
                 .withName( "tag-value" )
-                .withValues( nodeValue.orNull() );
+                .withValues( nodeValue.orElse( null ) );
         DescribeInstancesRequest req = new DescribeInstancesRequest().withFilters( tagKey, tagValue );
 
         DescribeInstancesResult describeInstances = ec2.describeInstances( req );

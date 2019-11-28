@@ -31,8 +31,6 @@ import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.openlattice.postgres.streams.BasePostgresIterable;
-import com.openlattice.postgres.streams.PostgresIterable;
-import com.openlattice.postgres.streams.StatementHolder;
 import com.openlattice.postgres.streams.StatementHolderSupplier;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;

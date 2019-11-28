@@ -1,7 +1,13 @@
 package com.kryptnostic.rhizome.core;
 
-import java.io.IOException;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.GzipConfiguration;
+import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
+import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -16,21 +22,15 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.core.io.ClassPathResource;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.common.base.Optional;
-import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.GzipConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
-import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
+import java.io.IOException;
+import java.util.Optional;
 
 public class JettyLoam implements Loam {
     private static final Logger                         logger = LoggerFactory.getLogger( JettyLoam.class );
@@ -43,7 +43,7 @@ public class JettyLoam implements Loam {
     }
 
     public JettyLoam( JettyConfiguration config ) throws IOException {
-        this( config, Optional.absent() );
+        this( config, Optional.empty() );
     }
 
     protected JettyLoam( JettyConfiguration config, Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration )
@@ -69,7 +69,7 @@ public class JettyLoam implements Loam {
         if ( config.isSecurityEnabled() ) {
             JettyAnnotationConfigurationHack.registerInitializer( RhizomeSecurity.class.getName() );
         }
-        context.setConfigurations( new org.eclipse.jetty.webapp.Configuration[] { configurationHack } );
+        context.setConfigurations( new Configuration[] { configurationHack } );
 
         // TODO: Make loaded servlet classes configurable
         // context.addServlet( JspServlet.class, "*.jsp" );
@@ -135,7 +135,7 @@ public class JettyLoam implements Loam {
             SslContextFactory contextFactory = new SslContextFactory();
 
             configureSslStores( contextFactory );
-            String certAlias = configuration.getCertificateAlias().or( "" );
+            String certAlias = configuration.getCertificateAlias().orElse( "" );
             if ( StringUtils.isNotBlank( certAlias ) ) {
                 contextFactory.setCertAlias( certAlias );
             }

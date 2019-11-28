@@ -20,7 +20,6 @@
 
 package com.kryptnostic.rhizome.pods.hazelcast;
 
-import com.hazelcast.config.Config;
 import com.hazelcast.config.QueueConfig;
 
 /**

@@ -8,18 +8,19 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Builder;
 import com.datastax.driver.core.querybuilder.Select.Where;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is not thread safe.
@@ -37,7 +38,7 @@ public class CassandraTableBuilder {
     protected ColumnDef[] sasi                  = new ColumnDef[] {};
     private Supplier<String> keyspace;
     protected boolean                       ifNotExists       = false;
-    private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
+    private Function<ColumnDef, DataType> typeResolver      = ColumnDef::getType;
     private int                           replicationFactor = 2;
     // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
     // beginning would work for now.
@@ -94,7 +95,7 @@ public class CassandraTableBuilder {
     }
 
     public CassandraTableBuilder sasi( ColumnDef... columns ) {
-        if ( Iterables.any( Arrays.asList( columns ), col -> col.getType().isCollection() ) ) {
+        if ( Arrays.asList( columns ).stream().anyMatch( col -> col.getType().isCollection() ) ) {
             throw new IllegalArgumentException( "Cannot create sasi index on collection columns" );
         }
         this.sasi = columns;
@@ -129,7 +130,7 @@ public class CassandraTableBuilder {
     public List<String> build() {
         List<Supplier<Stream<String>>> queries = Arrays
                 .<Supplier<Stream<String>>>asList(
-                        () -> Arrays.asList( this.buildCreateTableQuery() ).stream(),
+                        () -> Stream.of( this.buildCreateTableQuery() ),
                         this::buildRegularIndexQueries,
                         this::buildFullCollectionIndexQueries,
                         this::buildSasiIndexQueries );
@@ -261,7 +262,7 @@ public class CassandraTableBuilder {
         return insertQuery.values( cols, bindMarkers );
     }
 
-    public com.datastax.driver.core.querybuilder.Delete buildDeleteQuery() {
+    public Delete buildDeleteQuery() {
 
         Delete del;
         if ( keyspace != null ) {
@@ -272,18 +273,18 @@ public class CassandraTableBuilder {
         return del;
     }
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPrimaryKeyQuery() {
+    public Delete.Where buildDeleteByPrimaryKeyQuery() {
         return buildDeleteByColumnsQuery( primaryKeyColumnDefs() );
     }
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPartitionKeyQuery() {
+    public Delete.Where buildDeleteByPartitionKeyQuery() {
         return buildDeleteByColumnsQuery( partitionKeyColumnDefs() );
     }
 
-    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByColumnsQuery( Stream<ColumnDef> selectedCols ) {
+    private Delete.Where buildDeleteByColumnsQuery( Stream<ColumnDef> selectedCols ) {
 
         Delete del = buildDeleteQuery();
-        com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
+        Delete.Where w = del.where();
         selectedCols.map( ColumnDef::eq ).forEach( w::and );
         return w;
     }
@@ -324,11 +325,11 @@ public class CassandraTableBuilder {
     private StringBuilder appendColumnDefs(
             StringBuilder builder,
             ColumnDef[] columns ) {
-        for ( int i = 0; i < columns.length; ++i ) {
+        for ( ColumnDef column : columns ) {
             builder
-                    .append( columns[ i ].cql() )
+                    .append( column.cql() )
                     .append( " " )
-                    .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( column.getType( typeResolver ).toString() )
                     .append( "," );
         }
         return builder;
@@ -337,11 +338,11 @@ public class CassandraTableBuilder {
     private StringBuilder appendStaticColumnDefs(
             StringBuilder builder,
             ColumnDef[] columns ) {
-        for ( int i = 0; i < columns.length; ++i ) {
+        for ( ColumnDef column : columns ) {
             builder
-                    .append( columns[ i ].cql() )
+                    .append( column.cql() )
                     .append( " " )
-                    .append( columns[ i ].getType( typeResolver ).toString() )
+                    .append( column.getType( typeResolver ).toString() )
                     .append( " STATIC" )
                     .append( "," );
         }
@@ -352,7 +353,7 @@ public class CassandraTableBuilder {
             StringBuilder builder,
             ColumnDef[] clustering,
             ColumnDef[] desc ) {
-        Set<String> descNames = Arrays.stream( desc ).map( col -> col.cql() ).collect( Collectors.toSet() );
+        Set<String> descNames = Arrays.stream( desc ).map( ColumnDef::cql ).collect( Collectors.toSet() );
 
         int len = clustering.length - 1;
         for ( int i = 0; i < len; i++ ) {
@@ -368,7 +369,7 @@ public class CassandraTableBuilder {
     }
 
     public Optional<String> getKeyspace() {
-        return Optional.fromNullable( keyspace.get() );
+        return Optional.ofNullable( keyspace.get() );
     }
 
     private static Function<ColumnDef, String> createRegularSecondaryIndexQueryFunction(

@@ -25,7 +25,7 @@ public abstract class SetContainsAnyEntryProcessor<T> extends AbstractRhizomeEnt
         if ( value == null || value.isEmpty() ) {
             return null;
         }
-        return Boolean.valueOf( !Sets.intersection( value, objectsToCheck ).isEmpty() );
+        return !Sets.intersection( value, objectsToCheck ).isEmpty();
     }
 
 }

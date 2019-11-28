@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.configuration.postgres.PostgresConfiguration;
-import com.google.common.base.Optional;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfiguration;
 import com.kryptnostic.rhizome.configuration.cassandra.CassandraConfigurations;
@@ -12,10 +11,11 @@ import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.kryptnostic.rhizome.configuration.spark.SparkConfiguration;
-import java.util.Map;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -38,21 +38,21 @@ public class RhizomeConfiguration implements Configuration {
     protected static final boolean                                       PERSISTENCE_ENABLED_DEFAULT        = true;
     protected static final boolean                                       SESSION_CLUSTERING_ENABLED_DEFAULT = false;
     private static final   long                                          serialVersionUID                   = -8444209890618166001L;
-    protected static       ConfigurationKey                              key                                = new SimpleConfigurationKey(
+    protected static ConfigurationKey                                        key                                = new SimpleConfigurationKey(
             "rhizome.yaml" );
-    protected final        Logger                                        logger                             = LoggerFactory
+    protected final  Logger                                                  logger                             = LoggerFactory
             .getLogger(
                     getClass() );
-    protected final        boolean                                       persistData;
-    protected final        boolean                                       sessionClusteringEnabled;
-    protected final        String                                        corsAccessControlAllowOriginUrl;
-    protected final        Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
-    protected final        Optional<GraphiteConfiguration>               graphiteConfiguration;
-    protected final        Optional<PostgresConfiguration>               postgresConfiguration;
+    protected final  boolean                                                 persistData;
+    protected final  boolean                                                 sessionClusteringEnabled;
+    protected final  String                                                  corsAccessControlAllowOriginUrl;
+    protected final  Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
+    protected final  Optional<GraphiteConfiguration>               graphiteConfiguration;
+    protected final  Optional<PostgresConfiguration>               postgresConfiguration;
     @Deprecated
-    protected final        Optional<CassandraConfiguration>              cassandraConfiguration;
+    protected final  Optional<CassandraConfiguration>                        cassandraConfiguration;
     @Deprecated
-    protected final        Optional<CassandraConfigurations>             cassandraConfigurations;
+    protected final  Optional<CassandraConfigurations>             cassandraConfigurations;
 
     protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<Map<String, HazelcastConfiguration>> hazelcastClients;
@@ -65,23 +65,26 @@ public class RhizomeConfiguration implements Configuration {
     public RhizomeConfiguration(
             @JsonProperty( PERSISTENCE_ENABLED_PROPERTY ) Optional<Boolean> persistData,
             @JsonProperty( SESSION_CLUSTERING_ENABLED_PROPERTY ) Optional<Boolean> sessionClusteringEnabled,
-            @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL ) Optional<String> corsAccessControlAllowOriginUrl,
+            @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL )
+                    Optional<String> corsAccessControlAllowOriginUrl,
             @JsonProperty( POSTGRES_CONFIGURATION ) Optional<PostgresConfiguration> postgresConfiguration,
             @Deprecated @JsonProperty( CASSANDRA_CONFIGURATION_PROPERTY )
                     Optional<CassandraConfiguration> cassandraConfiguration,
             @JsonProperty( CASSANDRA_CONFIGURATIONS_PROPERTY )
                     Optional<CassandraConfigurations> cassandraConfigurations,
-            @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY ) Optional<GraphiteConfiguration> graphiteConfiguration,
-            @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY ) Optional<HazelcastConfiguration> hazelcastConfiguration,
+            @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY )
+                    Optional<GraphiteConfiguration> graphiteConfiguration,
+            @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY )
+                    Optional<HazelcastConfiguration> hazelcastConfiguration,
             @JsonProperty( HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY )
                     Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration,
             @JsonProperty( SPARK_CONFIGURATION_PROPERTY ) Optional<SparkConfiguration> sparkConfig,
             @JsonProperty( NAME_PROPERTY ) Optional<String> name,
             @JsonProperty( HAZELCAST_CLIENTS_PROPERTY )
                     Optional<Map<String, HazelcastConfiguration>> hazelcastClients ) {
-        this.persistData = persistData.or( PERSISTENCE_ENABLED_DEFAULT );
-        this.sessionClusteringEnabled = sessionClusteringEnabled.or( SESSION_CLUSTERING_ENABLED_DEFAULT );
-        this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.or( "" );
+        this.persistData = persistData.orElse( PERSISTENCE_ENABLED_DEFAULT );
+        this.sessionClusteringEnabled = sessionClusteringEnabled.orElse( SESSION_CLUSTERING_ENABLED_DEFAULT );
+        this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.orElse( "" );
         this.postgresConfiguration = postgresConfiguration;
         this.cassandraConfiguration = cassandraConfiguration;
         this.cassandraConfigurations = cassandraConfigurations;
@@ -90,7 +93,7 @@ public class RhizomeConfiguration implements Configuration {
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
         this.sparkConfiguration = sparkConfig;
         this.hazelcastClients = hazelcastClients;
-        this.name = name.or( "rhizome" );
+        this.name = name.orElse( "rhizome" );
     }
 
     @JsonProperty( PERSISTENCE_ENABLED_PROPERTY )

@@ -9,11 +9,11 @@ public final class Mappers {
     private Mappers() {}
     
     public static <V> SimpleValueMapper<V> newMapper( Class<V> clazz, ObjectMapper mapper ) {
-        return new SimpleValueMapper<V>( clazz, mapper );
+        return new SimpleValueMapper<>( clazz, mapper );
     }
 
     public static <V> SimpleValueMapper<V> newMapper( Class<V> clazz ) {
-        return new SimpleValueMapper<V>( clazz );
+        return new SimpleValueMapper<>( clazz );
     }
     
     public static StringValueMapper newStringMapper() {

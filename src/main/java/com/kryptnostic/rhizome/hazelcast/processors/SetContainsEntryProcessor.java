@@ -29,7 +29,7 @@ public abstract class SetContainsEntryProcessor<T> extends AbstractRhizomeEntryP
         if ( value == null || value.isEmpty() ) {
             return null;
         }
-        return Boolean.valueOf( value.contains( getObject() ) );
+        return value.contains( getObject() );
     }
 
 }

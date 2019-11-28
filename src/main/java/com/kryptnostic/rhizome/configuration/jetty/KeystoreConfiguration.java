@@ -2,8 +2,9 @@ package com.kryptnostic.rhizome.configuration.jetty;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+
+import java.util.Optional;
 
 public class KeystoreConfiguration {
     private static final String PATH_PROPERTY     = "path";
@@ -18,7 +19,7 @@ public class KeystoreConfiguration {
             @JsonProperty( PASSWORD_PROPERTY ) String storePassword ) {
         Preconditions.checkNotNull( storePassword, "Keystore password cannot be null." );
 
-        this.storePath = storePath.or( "" );
+        this.storePath = storePath.orElse( "" );
         this.storePassword = storePassword;
     }
 
