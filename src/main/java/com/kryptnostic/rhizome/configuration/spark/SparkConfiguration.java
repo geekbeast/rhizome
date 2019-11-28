@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,7 +67,7 @@ public class SparkConfiguration {
                             tagKey,
                             tagValue,
                             logger ),
-                    ( input ) -> input.getHostAddress() );
+                    InetAddress::getHostAddress );
             this.region = region.orElse( AmazonConfiguration.AWS_REGION_DEFAULT );
         } else {
             this.sparkMasters = masters.orElse( MASTER_DEFAULT );

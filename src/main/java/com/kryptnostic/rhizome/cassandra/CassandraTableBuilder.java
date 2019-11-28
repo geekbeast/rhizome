@@ -38,7 +38,7 @@ public class CassandraTableBuilder {
     protected ColumnDef[] sasi                  = new ColumnDef[] {};
     private Supplier<String> keyspace;
     protected boolean                       ifNotExists       = false;
-    private Function<ColumnDef, DataType> typeResolver      = c -> c.getType();
+    private Function<ColumnDef, DataType> typeResolver      = ColumnDef::getType;
     private int                           replicationFactor = 2;
     // array of clustering columns with clustering order DESC. Only contiguous subarray of clustering columns from the
     // beginning would work for now.
@@ -353,7 +353,7 @@ public class CassandraTableBuilder {
             StringBuilder builder,
             ColumnDef[] clustering,
             ColumnDef[] desc ) {
-        Set<String> descNames = Arrays.stream( desc ).map( col -> col.cql() ).collect( Collectors.toSet() );
+        Set<String> descNames = Arrays.stream( desc ).map( ColumnDef::cql ).collect( Collectors.toSet() );
 
         int len = clustering.length - 1;
         for ( int i = 0; i < len; i++ ) {

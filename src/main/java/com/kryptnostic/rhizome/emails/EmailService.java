@@ -97,9 +97,7 @@ public class EmailService {
     @Async
     public void sendManyMessages( Collection<Email> emails ) {
         SendMailSession session = smtpServer.createSession();
-        emails.forEach( email -> {
-            session.sendMail( email );
-        } );
+        emails.forEach( session::sendMail );
         session.close();
     }
 }

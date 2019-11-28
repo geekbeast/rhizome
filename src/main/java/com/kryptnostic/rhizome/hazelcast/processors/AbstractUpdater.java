@@ -37,11 +37,11 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T>
     }
 
     protected BiFunction<V, T, Boolean> removeFunction() {
-        return ( objectCollection, object ) -> objectCollection.remove( object );
+        return Collection::remove;
     }
 
     protected BiFunction<V, T, Boolean> addFunction() {
-        return ( objectCollection, object ) -> objectCollection.add( object );
+        return Collection::add;
     }
 
     @Override
