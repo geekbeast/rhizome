@@ -2,7 +2,8 @@ package com.kryptnostic.rhizome.configuration.graphite;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt; 
@@ -29,10 +30,10 @@ public class GraphiteConfiguration {
             @JsonProperty( GRAPHITE_PORT_PROPERTY ) Optional<Integer> graphitePort,
             @JsonProperty( GRAPHITE_GLOBAL_PREFIX_PROPERTY ) Optional<String> graphiteGlobalPrefix,
             @JsonProperty( GRAPHITE_ENABLE_CONSOLE_REPORTING ) Optional<Boolean> consoleEnabled ) {
-        this.graphiteHost = graphiteHost.or( GRAPHITE_HOST_DEFAULT );
-        this.graphitePort = graphitePort.or( GRAPHITE_PORT_DEFAULT );
-        this.graphiteGlobalPrefix = graphiteGlobalPrefix.or( GRAPHITE_GLOBAL_PREFIX_DEFAULT );
-        this.consoleEnabled = consoleEnabled.or( false );
+        this.graphiteHost = graphiteHost.orElse( GRAPHITE_HOST_DEFAULT );
+        this.graphitePort = graphitePort.orElse( GRAPHITE_PORT_DEFAULT );
+        this.graphiteGlobalPrefix = graphiteGlobalPrefix.orElse( GRAPHITE_GLOBAL_PREFIX_DEFAULT );
+        this.consoleEnabled = consoleEnabled.orElse( false );
     }
 
     @JsonProperty( GRAPHITE_HOST_PROPERTY )

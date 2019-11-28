@@ -1,18 +1,19 @@
 package com.kryptnostic.rhizome.configuration.servlets;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Optional;
 
 public class DispatcherServletConfiguration {
     private final String            servletName;
     private final String[]          mappings;
     private final Optional<Integer> loadOnStartup;
-    private final List<Class<?>> pods = new ArrayList<>();
+    private final List<Class<?>>    pods = new ArrayList<>();
 
     // Rhizome calls registerDispatcherServlets to all DispatcherServletConfigurations that are @Beans inside a Pod
     // registered to Rhizome
@@ -29,7 +30,7 @@ public class DispatcherServletConfiguration {
         }
         this.servletName = servletName;
         this.mappings = mappings;
-        this.loadOnStartup = Optional.fromNullable( loadOnStartup );
+        this.loadOnStartup = Optional.ofNullable( loadOnStartup );
         this.pods.addAll( Preconditions.checkNotNull( pods, "Pods cannot be null." ) );
     }
 

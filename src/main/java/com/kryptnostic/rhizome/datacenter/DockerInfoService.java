@@ -1,12 +1,11 @@
 package com.kryptnostic.rhizome.datacenter;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
 
 public class DockerInfoService {
 

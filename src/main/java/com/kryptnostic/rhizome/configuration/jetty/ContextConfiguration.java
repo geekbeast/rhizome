@@ -1,12 +1,12 @@
 package com.kryptnostic.rhizome.configuration.jetty;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Optional;
 
 @JsonIgnoreProperties(
     ignoreUnknown = false )
@@ -36,7 +36,7 @@ public class ContextConfiguration {
         this.descriptor = descriptor;
         this.resourceBase = resourceBase;
         this.path = path;
-        this.parentLoaderPriority = parentLoaderPriority.or( PARENT_LOADER_PRIORITY_DEFAULT );
+        this.parentLoaderPriority = parentLoaderPriority.orElse( PARENT_LOADER_PRIORITY_DEFAULT );
     }
 
     @JsonProperty( DESCRIPTOR_PROPERTY )

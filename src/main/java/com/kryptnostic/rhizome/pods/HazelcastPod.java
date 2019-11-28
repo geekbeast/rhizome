@@ -2,22 +2,11 @@ package com.kryptnostic.rhizome.pods;
 
 import com.geekbeast.hazelcast.HazelcastClientProvider;
 import com.google.common.collect.ImmutableMap;
-import com.hazelcast.config.SerializationConfig;
-
-import java.util.Properties;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import com.google.common.base.Optional;
 import com.google.common.eventbus.AsyncEventBus;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -31,6 +20,14 @@ import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationCon
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
 import com.kryptnostic.rhizome.configuration.service.RhizomeConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.inject.Inject;
+import java.util.Optional;
+import java.util.Properties;
 
 @Configuration
 public class HazelcastPod {
@@ -70,7 +67,7 @@ public class HazelcastPod {
 
     @Bean
     public HazelcastClientProvider hazelcastClientProvider() {
-        return new HazelcastClientProvider( rhizomeConfiguration.getHazelcastClients().or( ImmutableMap::of ), serializationConfig );
+        return new HazelcastClientProvider( rhizomeConfiguration.getHazelcastClients().orElseGet( ImmutableMap::of ), serializationConfig );
     }
 
     @Bean
@@ -110,7 +107,7 @@ public class HazelcastPod {
             return null;
         }
         HazelcastSessionFilterConfiguration filterConfig = rhizomeConfiguration.getHazelcastSessionFilterConfiguration()
-                .orNull();
+                .orElse( null );
         if ( filterConfig == null ) {
             return null;
         }

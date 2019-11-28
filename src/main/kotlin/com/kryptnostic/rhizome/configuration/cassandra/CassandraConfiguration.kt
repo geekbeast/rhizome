@@ -3,12 +3,12 @@ package com.kryptnostic.rhizome.configuration.cassandra
 import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.driver.core.ProtocolOptions
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.kryptnostic.rhizome.configuration.amazon.AmazonConfiguration
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.net.UnknownHostException
+import java.util.*
 
 data class CassandraConfiguration(
         @JsonProperty(CASSANDRA_COMPRESSION_PROPERTY) val compression: ProtocolOptions.Compression = COMPRESSION_DEFAULT,
@@ -21,8 +21,8 @@ data class CassandraConfiguration(
         @JsonProperty(CASSANDRA_CONSISTENCY_LEVEL_PROPERTY) val consistencyLevel: ConsistencyLevel = CONSISTENCY_LEVEL_DEFAULT,
         @JsonProperty(AmazonConfiguration.PROVIDER_PROPERTY) val provider: String? = null,
         @JsonProperty(AmazonConfiguration.AWS_REGION_PROPERTY) val region: String = AmazonConfiguration.AWS_REGION_DEFAULT,
-        @JsonProperty(AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY) val tagKey: Optional<String> = Optional.absent(),
-        @JsonProperty(AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY) val tagValue: Optional<String> = Optional.absent() ) {
+        @JsonProperty(AmazonConfiguration.AWS_NODE_TAG_KEY_PROPERTY) val tagKey: Optional<String> = Optional.empty(),
+        @JsonProperty(AmazonConfiguration.AWS_NODE_TAG_VALUE_PROPERTY) val tagValue: Optional<String> = Optional.empty() ) {
 
     var cassandraSeedNodes = listOf<InetAddress>()
 

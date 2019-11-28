@@ -1,11 +1,11 @@
 package com.kryptnostic.rhizome.configuration.jetty;
 
-import java.util.Random;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
+import java.util.Random;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -58,19 +58,19 @@ public class ConnectorConfiguration {
         if ( httpPort.isPresent() && httpPort.get() == 0 ) {
             this.httpPort = HTTP_PORT_DEFAULT + r.nextInt( 50 );
         } else {
-            this.httpPort = httpPort.or( HTTP_PORT_DEFAULT );
+            this.httpPort = httpPort.orElse( HTTP_PORT_DEFAULT );
         }
 
         if ( httpsPort.isPresent() && httpsPort.get() == 0 ) {
             this.httpsPort = SSL_PORT_DEFAULT + r.nextInt( 50 );
         } else {
-            this.httpsPort = httpsPort.or( SSL_PORT_DEFAULT );
+            this.httpsPort = httpsPort.orElse( SSL_PORT_DEFAULT );
         }
 
-        this.useSSL = useSSL.or( USE_SSL_DEFAULT );
-        this.requireSSL = requireSSL.or( REQUIRE_SSL_DEFAULT );
-        this.needClientAuth = needClientAuth.or( NEED_CLIENT_AUTH_DEFAULT );
-        this.wantClientAuth = wantClientAuth.or( WANT_CLIENT_AUTH_DEFAULT );
+        this.useSSL = useSSL.orElse( USE_SSL_DEFAULT );
+        this.requireSSL = requireSSL.orElse( REQUIRE_SSL_DEFAULT );
+        this.needClientAuth = needClientAuth.orElse( NEED_CLIENT_AUTH_DEFAULT );
+        this.wantClientAuth = wantClientAuth.orElse( WANT_CLIENT_AUTH_DEFAULT );
         this.certificateAlias = certificateAlias;
     }
 

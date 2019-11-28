@@ -1,11 +1,11 @@
 package com.kryptnostic.rhizome.configuration.hazelcast;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Optional;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -70,16 +70,16 @@ public class HazelcastSessionFilterConfiguration {
             @JsonProperty( INSTANCE_NAME_PROPERTY ) Optional<String> instanceName,
             @JsonProperty( SHUTDOWN_ON_DESTROY_PROPERTY ) Optional<Boolean> shutdownOnDestroy ) {
 
-        this.clientConfigLocation = clientConfigLocation.or( CLIENT_CONFIG_LOCATION_DEFAULT );
-        this.useClient = useClient.or( USE_CLIENT_DEFAULT );
-        this.mapName = mapName.or( MAP_NAME_DEFAULT );
-        this.stickySession = stickySession.or( STICKY_SESSION_DEFAULT );
-        this.cookieName = cookieName.or( COOKIE_NAME_DEFAULT );
-        this.cookieSecure = cookieSecure.or( COOKIE_SECURE_DEFAULT );
-        this.cookieHttpOnly = cookieHttpOnly.or( COOKIE_HTTP_ONLY_DEFAULT );
-        this.debug = debug.or( DEBUG_DEFAULT );
-        this.instanceName = instanceName.or( INSTANCE_NAME_DEFAULT );
-        this.shutdownOnDestroy = shutdownOnDestroy.or( SHUTDOWN_ON_DESTROY_DEFAULT );
+        this.clientConfigLocation = clientConfigLocation.orElse( CLIENT_CONFIG_LOCATION_DEFAULT );
+        this.useClient = useClient.orElse( USE_CLIENT_DEFAULT );
+        this.mapName = mapName.orElse( MAP_NAME_DEFAULT );
+        this.stickySession = stickySession.orElse( STICKY_SESSION_DEFAULT );
+        this.cookieName = cookieName.orElse( COOKIE_NAME_DEFAULT );
+        this.cookieSecure = cookieSecure.orElse( COOKIE_SECURE_DEFAULT );
+        this.cookieHttpOnly = cookieHttpOnly.orElse( COOKIE_HTTP_ONLY_DEFAULT );
+        this.debug = debug.orElse( DEBUG_DEFAULT );
+        this.instanceName = instanceName.orElse( INSTANCE_NAME_DEFAULT );
+        this.shutdownOnDestroy = shutdownOnDestroy.orElse( SHUTDOWN_ON_DESTROY_DEFAULT );
 
         Preconditions.checkArgument( !StringUtils.isWhitespace( this.clientConfigLocation ) );
         Preconditions.checkArgument( !StringUtils.isWhitespace( this.mapName ) );

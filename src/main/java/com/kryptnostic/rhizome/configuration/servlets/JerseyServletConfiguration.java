@@ -1,7 +1,8 @@
 package com.kryptnostic.rhizome.configuration.servlets;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
+
+import java.util.Optional;
 
 public class JerseyServletConfiguration {
     private static final String     SERVLET_NAME_PROPERTY      = "servlet-name";

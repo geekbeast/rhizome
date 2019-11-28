@@ -8,7 +8,6 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Builder;
 import com.datastax.driver.core.querybuilder.Select.Where;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.NotImplementedException;
@@ -16,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -262,7 +262,7 @@ public class CassandraTableBuilder {
         return insertQuery.values( cols, bindMarkers );
     }
 
-    public com.datastax.driver.core.querybuilder.Delete buildDeleteQuery() {
+    public Delete buildDeleteQuery() {
 
         Delete del;
         if ( keyspace != null ) {
@@ -273,18 +273,18 @@ public class CassandraTableBuilder {
         return del;
     }
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPrimaryKeyQuery() {
+    public Delete.Where buildDeleteByPrimaryKeyQuery() {
         return buildDeleteByColumnsQuery( primaryKeyColumnDefs() );
     }
 
-    public com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByPartitionKeyQuery() {
+    public Delete.Where buildDeleteByPartitionKeyQuery() {
         return buildDeleteByColumnsQuery( partitionKeyColumnDefs() );
     }
 
-    private com.datastax.driver.core.querybuilder.Delete.Where buildDeleteByColumnsQuery( Stream<ColumnDef> selectedCols ) {
+    private Delete.Where buildDeleteByColumnsQuery( Stream<ColumnDef> selectedCols ) {
 
         Delete del = buildDeleteQuery();
-        com.datastax.driver.core.querybuilder.Delete.Where w = del.where();
+        Delete.Where w = del.where();
         selectedCols.map( ColumnDef::eq ).forEach( w::and );
         return w;
     }
@@ -369,7 +369,7 @@ public class CassandraTableBuilder {
     }
 
     public Optional<String> getKeyspace() {
-        return Optional.fromNullable( keyspace.get() );
+        return Optional.ofNullable( keyspace.get() );
     }
 
     private static Function<ColumnDef, String> createRegularSecondaryIndexQueryFunction(

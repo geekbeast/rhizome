@@ -23,6 +23,7 @@ package com.kryptnostic.rhizome.cassandra;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
     public CassandraMaterializedViewBuilder(
             CassandraTableBuilder base,
             String name ) {
-        super( base.getKeyspace().orNull(), name );
+        super( base.getKeyspace().orElse( null ), name );
         this.base = base;
         this.name = name;
     }
@@ -72,7 +73,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
 
         StringBuilder query = new StringBuilder( "CREATE MATERIALIZED VIEW " )
                 .append( ifNotExists ? "IF NOT EXISTS " : "" )
-                .append( base.getKeyspace().transform( ks -> ks + "." + name ).or( name ) )
+                .append( base.getKeyspace().map( ks -> ks + "." + name ).orElse( name ) )
                 .append( " AS\n" )
                 .append( "SELECT " );
 
@@ -81,7 +82,7 @@ public class CassandraMaterializedViewBuilder extends CassandraTableBuilder {
 
         query
                 .append( "\nFROM " )
-                .append( base.getKeyspace().transform( ks -> ks + "." + base.getName() ).or( base.getName() ) )
+                .append( base.getKeyspace().map( ks -> ks + "." + base.getName() ).orElse( base.getName() ) )
                 .append( "\nWHERE " );
 
         query.append( primaryKeyColumns()
