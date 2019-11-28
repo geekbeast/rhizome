@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RhizomeUtils {
 
@@ -165,7 +166,7 @@ public class RhizomeUtils {
     public static class Pods {
         public static Class<?>[] concatenate( Class<?>[]... podSets ) {
             Iterable<Class<?>> concatenatedPods = Iterables.<Class<?>> concat(
-                    Iterables.transform( Arrays.<Class<?>[]> asList( podSets ), Arrays::asList ) );
+                    Arrays.<Class<?>[]>asList( podSets ).stream().map( Arrays::asList ).collect( Collectors.toList() ) );
             return Iterables.toArray( concatenatedPods, Class.class );
         }
     }

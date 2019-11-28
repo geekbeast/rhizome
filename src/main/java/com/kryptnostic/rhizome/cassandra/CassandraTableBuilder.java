@@ -95,7 +95,7 @@ public class CassandraTableBuilder {
     }
 
     public CassandraTableBuilder sasi( ColumnDef... columns ) {
-        if ( Iterables.any( Arrays.asList( columns ), col -> col.getType().isCollection() ) ) {
+        if ( Arrays.asList( columns ).stream().anyMatch( col -> col.getType().isCollection() ) ) {
             throw new IllegalArgumentException( "Cannot create sasi index on collection columns" );
         }
         this.sasi = columns;
