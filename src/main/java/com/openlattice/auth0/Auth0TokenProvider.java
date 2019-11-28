@@ -26,15 +26,16 @@ import com.auth0.json.auth.TokenHolder;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.openlattice.authentication.Auth0Configuration;
+
 import java.util.concurrent.TimeUnit;
 
 public class Auth0TokenProvider {
     private static final int RETRY_MILLIS = 30000;
 
-    private final AuthAPI          auth0Api;
-    private final String           managementApiUrl;
-    private final Supplier<String> tokenUpdater;
-    private       Supplier<String> token;
+    private final AuthAPI                             auth0Api;
+    private final String                              managementApiUrl;
+    private final Supplier<String>                    tokenUpdater;
+    private       java.util.function.Supplier<String> token;
 
     public Auth0TokenProvider( Auth0Configuration auth0Configuration ) {
         this.auth0Api = new AuthAPI(
