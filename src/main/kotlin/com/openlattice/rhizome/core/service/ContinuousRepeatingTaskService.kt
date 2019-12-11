@@ -23,38 +23,30 @@ package com.openlattice.rhizome.core.service
 
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.HazelcastInstance
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 internal const val DEFAULT_BATCH_TIMEOUT_MILLIS = 120_000L
 
-/**
- * Performs realtime linking of individuals as they are integrated ino the system.
- */
-@Component
-abstract class ContinuousRepeatingTaskService<T: Any>
-(
+abstract class ContinuousRepeatingTaskService<T: Any>(
         private val executor: ListeningExecutorService,
-        private val hazelcastInstance: HazelcastInstance,
-        private val queueName: String,
-        private val lockingMapName: String,
-        private val parallelism: Int,
+        hazelcastInstance: HazelcastInstance,
+        private val logger: Logger,
+        queueName: String,
+        lockingMapName: String,
+        parallelism: Int,
         private val chunkSize: Int,
         private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
 ) {
-    companion object {
-        private val logger = LoggerFactory.getLogger(ContinuousRepeatingTaskService::class.java)
-    }
-
-    private val locks = hazelcastInstance.getMap<T, Long>(lockingMapName )
+    private val locks = hazelcastInstance.getMap<T, Long>(lockingMapName)
     private val candidates = hazelcastInstance.getQueue<T>(queueName)
     private val limiter = Semaphore(parallelism)
 
     private val enqueuer = executor.submit {
         try {
+            startupChecks()
             while (true) {
                 sourceSet()
                         .filter {
@@ -82,16 +74,18 @@ abstract class ContinuousRepeatingTaskService<T: Any>
                         }
             }
         } catch (ex: Exception) {
-            logger.info("Encountered error while updating candidates for linking.", ex)
+            logger.info("Encountered error while updating candidates for task.", ex)
         }
     }
+
+    abstract fun startupChecks()
 
     abstract fun operate(candidate: T)
 
     abstract fun sourceSet() : Sequence<T>
 
     @Suppress("UNUSED")
-    private val linkingWorker = executor.submit {
+    private val taskWorker = executor.submit {
         generateSequence { candidates.take() }
                 .map { candidate ->
                     limiter.acquire()
