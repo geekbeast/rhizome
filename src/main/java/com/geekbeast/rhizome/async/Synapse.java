@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.async;
+package com.geekbeast.rhizome.async;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

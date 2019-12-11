@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.async;
+package com.geekbeast.rhizome.async;
 
 public interface AlwaysPublishToHazelcast {
 

@@ -12,7 +12,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.web.WebFilter;
-import com.kryptnostic.rhizome.async.Synapse;
+import com.geekbeast.rhizome.async.Synapse;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;

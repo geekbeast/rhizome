@@ -10,11 +10,13 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NearCacheConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.config.TcpIpConfig;
+import com.hazelcast.internal.nearcache.NearCache;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
@@ -86,12 +88,15 @@ public class BaseHazelcastInstanceConfigurationPod {
                 "Hazelcast Configuration must be present to build hazelcast instance configuration." );
         HazelcastConfiguration hzConfiguration = maybeConfiguration.get();
         SerializationConfig serializationConfig = serializationConfig();
+
         logger.info( "Registering the following serializers: {}", serializationConfig );
+
         return hzConfiguration.isServer() ? null : new ClientConfig()
                 .setNetworkConfig( clientNetworkConfig( hzConfiguration ) )
                 .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                 .setSerializationConfig( serializationConfig )
-                .setProperty( "hazelcast.logging.type", "slf4j" );
+                .setProperty( "hazelcast.logging.type", "slf4j" )
+                .setNearCacheConfigMap( nearCacheConfigs() );
 
     }
 
@@ -102,6 +107,12 @@ public class BaseHazelcastInstanceConfigurationPod {
                 .setAllowUnsafe( true )
                 .setUseNativeByteOrder( true );
         return config;
+    }
+
+
+    protected Map<String, NearCacheConfig> nearCacheConfigs() {
+        //As of Hz 3.12 there is no default near cache. If it is added in the future we may have to handle default case
+        return ImmutableMap.of();
     }
 
     protected Map<String, MapConfig> mapConfigs() {
