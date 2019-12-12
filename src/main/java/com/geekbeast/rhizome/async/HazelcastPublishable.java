@@ -1,4 +1,4 @@
-package com.kryptnostic.rhizome.async;
+package com.geekbeast.rhizome.async;
 
 /**
  * This interface makes it easy to publish messages to Hazelcast. 
