@@ -28,7 +28,8 @@ apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
 spotbugs {
-    toolVersion = '3.1.12'
+    reportLevel = 'high'
+    toolVersion = "${spotbugs_annotations_version}"
 }
 
 tasks.withType(com.github.spotbugs.SpotBugsTask) {
