@@ -40,6 +40,7 @@ public class AwsAuth0Pod {
     private AmazonS3 s3;
 
     @Bean
+    @Profile({ Profiles.AWS_CONFIGURATION_PROFILE, Profiles.AWS_TESTING_PROFILE } )
     public Auth0Configuration auth0Configuration() {
         return ResourceConfigurationLoader.loadConfigurationFromS3( s3,
                 awsConfig.getBucket(),
