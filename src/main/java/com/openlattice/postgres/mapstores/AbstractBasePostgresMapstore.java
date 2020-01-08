@@ -35,6 +35,10 @@ import java.util.Map.Entry;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgresMapstore2<K, V> {
 
+    public AbstractBasePostgresMapstore(TypedMapIdentifier<K, V> identifier, PostgresTableDefinition table, HikariDataSource hds) {
+        this( identifier.name(), table, hds );
+    }
+
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this( mapName, table, hds, BATCH_SIZE );
     }
