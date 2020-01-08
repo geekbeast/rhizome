@@ -26,7 +26,7 @@ import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
 import java.io.IOException
 
 abstract class CollectionStreamSerializer<T : Collection<E>, E> protected constructor(private val clazz: Class<T>)
-    : SelfRegisteringStreamSerializer<T> {
+    : TestableSelfRegisteringStreamSerializer<T> {
 
     @Throws(IOException::class)
     override fun write(output: ObjectDataOutput, obj: T) {
