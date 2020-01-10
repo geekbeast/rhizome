@@ -45,36 +45,36 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
     private val limiter = Semaphore(parallelism)
 
     private val enqueuer = executor.submit {
-        try {
-            startupChecks()
-            while (true) {
+        startupChecks()
+        while (true) {
+            try {
                 sourceSet()
-                        .filter {
-                            val expiration = lockOrGetExpiration(it)
-                            logger.debug(
-                                    "Considering candidate {} with expiration {} at {}",
-                                    it,
-                                    expiration,
-                                    Instant.now().toEpochMilli()
-                            )
-                            if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
-                                logger.info("Refreshing expiration for {}", it)
-                                //Assume original lock holder died, probably somewhat unsafe
-                                refreshExpiration(it)
-                                true
-                            } else expiration == null
-                        }
-                        .chunked(chunkSize)
-                        .forEach { keys ->
-                            candidates.addAll(keys)
-                            logger.info(
-                                    "Queued entities needing processing {}.",
-                                    keys
-                            )
-                        }
+                    .filter {
+                        val expiration = lockOrGetExpiration(it)
+                        logger.debug(
+                                "Considering candidate {} with expiration {} at {}",
+                                it,
+                                expiration,
+                                Instant.now().toEpochMilli()
+                        )
+                        if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
+                            logger.info("Refreshing expiration for {}", it)
+                            //Assume original lock holder died, probably somewhat unsafe
+                            refreshExpiration(it)
+                            true
+                        } else expiration == null
+                    }
+                    .chunked(chunkSize)
+                    .forEach { keys ->
+                        candidates.addAll(keys)
+                        logger.info(
+                                "Queued entities needing processing {}.",
+                                keys
+                        )
+                    }
+            } catch (ex: Exception) {
+                logger.info("Encountered error while enqueuing candidates for task.", ex)
             }
-        } catch (ex: Exception) {
-            logger.info("Encountered error while updating candidates for task.", ex)
         }
     }
 
