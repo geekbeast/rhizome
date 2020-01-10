@@ -7,6 +7,7 @@ import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.startup.Requirement;
+import com.openlattice.auth0.Auth0Pod;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class RhizomeApplicationServer {
     private final        List<Class<?>>                     additionalPods = new ArrayList<>();
     public static final  Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
             AsyncPod.class,
+            Auth0Pod.class,
             ConfigurationPod.class,
             HazelcastPod.class,
             RegistryBasedHazelcastInstanceConfigurationPod.class };
