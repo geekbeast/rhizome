@@ -110,7 +110,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     protected Map<String, QueueConfig> queueConfigs( QueueConfig defaultConfig ) {
-        return queueConfigs( ImmutableMap.of( "default", defaultConfig ) );
+        return queueConfigs( ImmutableMap.of( defaultQueueName, defaultConfig ) );
     }
 
     protected Map<String, QueueConfig> queueConfigs( Map<String, QueueConfig> configs ) {
