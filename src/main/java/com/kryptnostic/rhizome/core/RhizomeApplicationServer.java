@@ -22,7 +22,6 @@ public class RhizomeApplicationServer {
     private final        List<Class<?>>                     additionalPods = new ArrayList<>();
     public static final  Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
             AsyncPod.class,
-            Auth0Pod.class,
             ConfigurationPod.class,
             HazelcastPod.class,
             RegistryBasedHazelcastInstanceConfigurationPod.class };
