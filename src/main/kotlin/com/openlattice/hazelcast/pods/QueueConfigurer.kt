@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017. OpenLattice, Inc
+ * Copyright (C) 2019. OpenLattice, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,15 @@
  *
  * You can contact the owner of the copyright at support@openlattice.com
  *
+ *
  */
+package com.openlattice.hazelcast.pods
 
-package com.kryptnostic.rhizome.pods.hazelcast;
+import com.hazelcast.config.QueueConfig
 
-import com.hazelcast.config.QueueConfig;
-
-/**
- * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
- */
-public interface QueueConfigurer {
-
-    void configure( QueueConfig config );
-
-    default String getQueueName() {
-        return "default";
+data class QueueConfigurer(val queueName: String, val configFun: (QueueConfig) -> Unit) {
+    fun configure(config: QueueConfig) {
+        config.name = queueName
+        configFun(config)
     }
 }
