@@ -5,18 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.config.JoinConfig;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MulticastConfig;
-import com.hazelcast.config.NearCacheConfig;
-import com.hazelcast.config.NetworkConfig;
-import com.hazelcast.config.QueueConfig;
-import com.hazelcast.config.SerializationConfig;
-import com.hazelcast.config.SerializerConfig;
-import com.hazelcast.config.TcpIpConfig;
-import com.hazelcast.internal.nearcache.NearCache;
+import com.hazelcast.config.*;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationContainer;
@@ -45,6 +34,7 @@ import java.util.Optional;
 @Import( { HazelcastPod.class, ConfigurationPod.class } )
 public class BaseHazelcastInstanceConfigurationPod {
     private static final Logger logger = LoggerFactory.getLogger( BaseHazelcastInstanceConfigurationPod.class );
+    public static final String defaultQueueName = "default";
 
     @Inject
     protected RhizomeConfiguration rhizomeConfiguration;
@@ -72,7 +62,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
                     .setSerializationConfig( serializationConfig() )
                     .setMapConfigs( mapConfigs() )
-                    .setQueueConfigs( queueConfigs( config.getQueueConfig( "default" ) ) )
+                    .setQueueConfigs( queueConfigs( config.getQueueConfig( defaultQueueName ) ) )
                     .setNetworkConfig( networkConfig( hzConfiguration ) );
 
             config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCPMemberCount() );
@@ -120,7 +110,7 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     protected Map<String, QueueConfig> queueConfigs( QueueConfig defaultConfig ) {
-        return queueConfigs( ImmutableMap.of( "default", defaultConfig ) );
+        return queueConfigs( ImmutableMap.of( defaultQueueName, defaultConfig ) );
     }
 
     protected Map<String, QueueConfig> queueConfigs( Map<String, QueueConfig> configs ) {
