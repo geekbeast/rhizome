@@ -23,7 +23,6 @@ package com.openlattice.rhizome.core.service
 
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.HazelcastInstance
-import com.openlattice.rhizome.hazelcast.ChunkedQueueSequence
 import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
@@ -81,23 +80,23 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
 
     abstract fun startupChecks()
 
-    abstract fun operate(candidate: List<T>)
+    abstract fun operate(candidate: T)
 
     abstract fun sourceSet() : Sequence<T>
 
     @Suppress("UNUSED")
     private val taskWorker = executor.submit {
-        ChunkedQueueSequence<T>( candidates, 100 )
-                .map { candidatesChunk ->
+        generateSequence { candidates.take() }
+                .map { candidate ->
                     limiter.acquire()
                     executor.submit {
                         try {
-                            logger.info("Operating on {}", candidatesChunk)
-                            operate(candidatesChunk)
+                            logger.info("Operating on {}", candidate)
+                            operate(candidate)
                         } catch (ex: Exception) {
-                            logger.error("Unable to operate on $candidatesChunk. ", ex)
+                            logger.error("Unable to operate on $candidate. ", ex)
                         } finally {
-                            locks.delete(candidatesChunk)
+                            locks.delete(candidate)
                             limiter.release()
                         }
                     }
