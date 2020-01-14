@@ -132,18 +132,13 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
     }
 
     /**
-     * @return Null if locked, expiration in millis otherwise.
+     * Refreshes the candidate's timeout in the locking map
      */
     fun refreshExpiration(candidate: T) {
         try {
             locks.lock(candidate)
 
-            locks.putIfAbsent(
-                    candidate,
-                    Instant.now().plusMillis(batchTimeout).toEpochMilli(),
-                    batchTimeout,
-                    TimeUnit.MILLISECONDS
-            )
+            lockOrGetExpiration(candidate)
         } finally {
             locks.unlock(candidate)
         }
