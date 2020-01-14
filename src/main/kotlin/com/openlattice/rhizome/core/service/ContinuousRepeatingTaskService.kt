@@ -23,6 +23,7 @@ package com.openlattice.rhizome.core.service
 
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.HazelcastInstance
+import com.kryptnostic.rhizome.pods.HazelcastPod
 import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
@@ -44,69 +45,79 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
     private val candidates = hazelcastInstance.getQueue<T>(queueName)
     private val limiter = Semaphore(parallelism)
 
-    private val enqueuer = executor.submit {
-        startupChecks()
-        while (true) {
-            try {
-                sourceSequence()
-                    .filter {
-                        val expiration = lockOrGetExpiration(it)
-                        logger.debug(
-                                "Considering candidate {} with expiration {} at {}",
-                                it,
-                                expiration,
-                                Instant.now().toEpochMilli()
-                        )
-                        if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
-                            logger.info("Refreshing expiration for {}", it)
-                            //Assume original lock holder died, probably somewhat unsafe
-                            refreshExpiration(it)
-                            true
-                        } else expiration == null
-                    }.chunked(fillChunkSize)
-                    .forEach { keys ->
-                        candidates.addAll(keys)
-                        logger.info(
-                                "Queued entities needing processing {}.",
-                                keys
-                        )
-                    }
-            } catch (ex: Exception) {
-                logger.info("Encountered error while enqueuing candidates for task.", ex)
+    private val enqueuer = if ( enqueuerEnabledCheck() ) {
+        executor.submit {
+            while (true) {
+                try {
+                    sourceSequence()
+                            .filter {
+                                val expiration = lockOrGetExpiration(it)
+                                HazelcastPod.logger.debug(
+                                        "Considering candidate {} with expiration {} at {}",
+                                        it,
+                                        expiration,
+                                        Instant.now().toEpochMilli()
+                                )
+                                if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
+                                    HazelcastPod.logger.info("Refreshing expiration for {}", it)
+                                    //Assume original lock holder died, probably somewhat unsafe
+                                    refreshExpiration(it)
+                                    true
+                                } else expiration == null
+                            }.chunked(fillChunkSize)
+                            .forEach { keys ->
+                                candidates.addAll(keys)
+                                HazelcastPod.logger.info(
+                                        "Queued entities needing processing {}.",
+                                        keys
+                                )
+                            }
+                } catch (ex: Exception) {
+                    HazelcastPod.logger.info("Encountered error while enqueuing candidates for task.", ex)
+                }
             }
         }
+    } else {
+        logger.info("Skipping task as it is not enabled.")
+        null
     }
 
-    abstract fun startupChecks()
+    private val worker = if ( enqueuerEnabledCheck() ) {
+        executor.submit {
+            while ( true ) {
+                try {
+                    generateSequence { candidates.take() }
+                            .map { candidate ->
+                                limiter.acquire()
+                                executor.submit {
+                                    try {
+                                        logger.info("Operating on {}", candidate)
+                                        operate(candidate)
+                                    } catch (ex: Exception) {
+                                        logger.error("Unable to operate on $candidate. ", ex)
+                                    } finally {
+                                        locks.delete(candidate)
+                                        limiter.release()
+                                    }
+                                }
+                            }.forEach { it.get() }
+                } catch ( ex: Exception) {
+                    logger.info("Encountered error while operating on candidates.", ex )
+                }
+            }
+        }
+    } else {
+        logger.info("Skipping task as it is not enabled.")
+        null
+    }
+
+    abstract fun enqueuerEnabledCheck(): Boolean
+
+    abstract fun workerEnabledCheck(): Boolean
 
     abstract fun operate(candidate: T)
 
     abstract fun sourceSequence() : Sequence<T>
-
-    @Suppress("UNUSED")
-    private val taskWorker = executor.submit {
-        while ( true ) {
-            try {
-                generateSequence { candidates.take() }
-                        .map { candidate ->
-                            limiter.acquire()
-                            executor.submit {
-                                try {
-                                    logger.info("Operating on {}", candidate)
-                                    operate(candidate)
-                                } catch (ex: Exception) {
-                                    logger.error("Unable to operate on $candidate. ", ex)
-                                } finally {
-                                    locks.delete(candidate)
-                                    limiter.release()
-                                }
-                            }
-                        }.forEach { it.get() }
-            } catch ( ex: Exception) {
-                logger.info("Encountered error while operating on candidates.", ex )
-            }
-        }
-    }
 
     /**
      * @return Null if locked, expiration in millis otherwise.
