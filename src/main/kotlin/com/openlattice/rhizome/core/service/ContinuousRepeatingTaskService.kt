@@ -78,7 +78,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
             }
         }
     } else {
-        logger.info("Skipping task as it is not enabled.")
+        logger.info("Skipping enqueue task as it is not enabled.")
         null
     }
 
@@ -107,7 +107,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
             }
         }
     } else {
-        logger.info("Skipping task as it is not enabled.")
+        logger.info("Skipping worker task as it is not enabled.")
         null
     }
 
