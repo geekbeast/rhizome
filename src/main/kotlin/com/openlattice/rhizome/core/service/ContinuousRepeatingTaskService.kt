@@ -43,6 +43,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
 ) {
     private val limiter = Semaphore(parallelism)
 
+    @Suppress("UNUSED")
     private val enqueuer = if ( enqueuerEnabledCheck() ) {
         executor.submit {
             while (true) {
@@ -80,7 +81,8 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         null
     }
 
-    private val worker = if ( enqueuerEnabledCheck() ) {
+    @Suppress("UNUSED")
+    private val worker = if ( workerEnabledCheck() ) {
         executor.submit {
             while ( true ) {
                 try {
