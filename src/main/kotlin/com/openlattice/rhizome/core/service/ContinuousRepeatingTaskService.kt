@@ -85,21 +85,27 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
 
     @Suppress("UNUSED")
     private val taskWorker = executor.submit {
-        generateSequence { candidates.take() }
-                .map { candidate ->
-                    limiter.acquire()
-                    executor.submit {
-                        try {
-                            logger.info("Operating on {}", candidate)
-                            operate(candidate)
-                        } catch (ex: Exception) {
-                            logger.error("Unable to operate on $candidate. ", ex)
-                        } finally {
-                            locks.delete(candidate)
-                            limiter.release()
-                        }
-                    }
-                }.forEach { it.get() }
+        while ( true ) {
+            try {
+                generateSequence { candidates.take() }
+                        .map { candidate ->
+                            limiter.acquire()
+                            executor.submit {
+                                try {
+                                    logger.info("Operating on {}", candidate)
+                                    operate(candidate)
+                                } catch (ex: Exception) {
+                                    logger.error("Unable to operate on $candidate. ", ex)
+                                } finally {
+                                    locks.delete(candidate)
+                                    limiter.release()
+                                }
+                            }
+                        }.forEach { it.get() }
+            } catch ( ex: Exception) {
+                logger.info("Encountered error while operating on candidates.", ex )
+            }
+        }
     }
 
     /**
