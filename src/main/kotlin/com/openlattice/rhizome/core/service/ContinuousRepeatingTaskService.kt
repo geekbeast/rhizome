@@ -23,7 +23,6 @@ package com.openlattice.rhizome.core.service
 
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.HazelcastInstance
-import com.kryptnostic.rhizome.pods.HazelcastPod
 import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
@@ -52,14 +51,14 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
                     sourceSequence()
                             .filter {
                                 val expiration = lockOrGetExpiration(it)
-                                HazelcastPod.logger.debug(
+                                logger.debug(
                                         "Considering candidate {} with expiration {} at {}",
                                         it,
                                         expiration,
                                         Instant.now().toEpochMilli()
                                 )
                                 if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
-                                    HazelcastPod.logger.info("Refreshing expiration for {}", it)
+                                    logger.info("Refreshing expiration for {}", it)
                                     //Assume original lock holder died, probably somewhat unsafe
                                     refreshExpiration(it)
                                     true
@@ -67,13 +66,13 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
                             }.chunked(fillChunkSize)
                             .forEach { keys ->
                                 candidates.addAll(keys)
-                                HazelcastPod.logger.info(
+                                logger.info(
                                         "Queued entities needing processing {}.",
                                         keys
                                 )
                             }
                 } catch (ex: Exception) {
-                    HazelcastPod.logger.info("Encountered error while enqueuing candidates for task.", ex)
+                    logger.info("Encountered error while enqueuing candidates for task.", ex)
                 }
             }
         }
