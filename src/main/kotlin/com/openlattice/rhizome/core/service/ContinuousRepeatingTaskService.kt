@@ -22,7 +22,8 @@ package com.openlattice.rhizome.core.service
  */
 
 import com.google.common.util.concurrent.ListeningExecutorService
-import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.core.IMap
+import com.hazelcast.core.IQueue
 import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
@@ -30,18 +31,16 @@ import java.util.concurrent.TimeUnit
 
 internal const val DEFAULT_BATCH_TIMEOUT_MILLIS = 120_000L
 
-abstract class ContinuousRepeatingTaskService<T: Any>(
+abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
-        hazelcastInstance: HazelcastInstance,
         private val logger: Logger,
-        queueName: String,
-        lockingMapName: String,
+        private val candidateQueue: IQueue<T>,
+        private val lockingMap: IMap<K, Long>,
         parallelism: Int,
+        private val candidateLockFunc: (T) -> K,
         private val fillChunkSize: Int = 0,
         private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
 ) {
-    private val locks = hazelcastInstance.getMap<T, Long>(lockingMapName)
-    private val candidates = hazelcastInstance.getQueue<T>(queueName)
     private val limiter = Semaphore(parallelism)
 
     private val enqueuer = if ( enqueuerEnabledCheck() ) {
@@ -65,7 +64,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
                                 } else expiration == null
                             }.chunked(fillChunkSize)
                             .forEach { keys ->
-                                candidates.addAll(keys)
+                                candidateQueue.addAll(keys)
                                 logger.info(
                                         "Queued entities needing processing {}.",
                                         keys
@@ -85,7 +84,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
         executor.submit {
             while ( true ) {
                 try {
-                    generateSequence { candidates.take() }
+                    generateSequence { candidateQueue.take() }
                             .map { candidate ->
                                 limiter.acquire()
                                 executor.submit {
@@ -95,7 +94,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
                                     } catch (ex: Exception) {
                                         logger.error("Unable to operate on $candidate. ", ex)
                                     } finally {
-                                        locks.delete(candidate)
+                                        lockingMap.delete(candidate)
                                         limiter.release()
                                     }
                                 }
@@ -122,8 +121,8 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
      * @return Null if locked, expiration in millis otherwise.
      */
     fun lockOrGetExpiration(candidate: T): Long? {
-        return locks.putIfAbsent(
-                candidate,
+        return lockingMap.putIfAbsent(
+                candidateLockFunc(candidate),
                 Instant.now().plusMillis(batchTimeout).toEpochMilli(),
                 batchTimeout,
                 TimeUnit.MILLISECONDS
@@ -135,11 +134,11 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
      */
     fun refreshExpiration(candidate: T) {
         try {
-            locks.lock(candidate)
+            lockingMap.lock(candidateLockFunc(candidate))
 
             lockOrGetExpiration(candidate)
         } finally {
-            locks.unlock(candidate)
+            lockingMap.unlock(candidateLockFunc(candidate))
         }
     }
 }
