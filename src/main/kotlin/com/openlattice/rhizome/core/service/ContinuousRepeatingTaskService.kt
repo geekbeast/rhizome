@@ -1,7 +1,7 @@
 package com.openlattice.rhizome.core.service
 
 /*
- * Copyright (C) 2018. OpenLattice, Inc.
+ * Copyright (C) 2020. OpenLattice, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
         queueName: String,
         lockingMapName: String,
         parallelism: Int,
-        private val chunkSize: Int,
+        private val fillChunkSize: Int = 0,
         private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
 ) {
     private val locks = hazelcastInstance.getMap<T, Long>(lockingMapName)
@@ -48,7 +48,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
         startupChecks()
         while (true) {
             try {
-                sourceSet()
+                sourceSequence()
                     .filter {
                         val expiration = lockOrGetExpiration(it)
                         logger.debug(
@@ -63,8 +63,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
                             refreshExpiration(it)
                             true
                         } else expiration == null
-                    }
-                    .chunked(chunkSize)
+                    }.chunked(fillChunkSize)
                     .forEach { keys ->
                         candidates.addAll(keys)
                         logger.info(
@@ -82,7 +81,7 @@ abstract class ContinuousRepeatingTaskService<T: Any>(
 
     abstract fun operate(candidate: T)
 
-    abstract fun sourceSet() : Sequence<T>
+    abstract fun sourceSequence() : Sequence<T>
 
     @Suppress("UNUSED")
     private val taskWorker = executor.submit {
