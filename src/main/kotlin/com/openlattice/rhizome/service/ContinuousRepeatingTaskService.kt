@@ -24,7 +24,6 @@ package com.openlattice.rhizome.service
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.IMap
 import com.hazelcast.core.IQueue
-import org.slf4j.Logger
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -32,7 +31,6 @@ internal const val DEFAULT_BATCH_TIMEOUT_MILLIS = 120_000L
 
 final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
-        private val logger: Logger,
         private val candidateQueue: IQueue<T>,
         private val statusMap: IMap<K, QueueState>,
         parallelism: Int,
@@ -41,6 +39,7 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         private val task: ContinuousRepeatableTask<T, K>
 ) {
     private val limiter = Semaphore(parallelism)
+    private val logger = task.getLogger()
 
     @Suppress("UNUSED")
     private val enqueuer = if ( task.enqueuerEnabledCheck() ) {
