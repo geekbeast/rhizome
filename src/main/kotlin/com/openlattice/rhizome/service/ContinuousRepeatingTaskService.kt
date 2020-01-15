@@ -30,24 +30,24 @@ import java.util.concurrent.TimeUnit
 
 internal const val DEFAULT_BATCH_TIMEOUT_MILLIS = 120_000L
 
-abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
+final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
         private val logger: Logger,
         private val candidateQueue: IQueue<T>,
         private val statusMap: IMap<K, QueueState>,
         parallelism: Int,
-        private val candidateLockFunc: (T) -> K,
         private val fillChunkSize: Int = 0,
-        private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
+        private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS,
+        private val task: ContinuousRepeatableTask<T, K>
 ) {
     private val limiter = Semaphore(parallelism)
 
     @Suppress("UNUSED")
-    private val enqueuer = if ( enqueuerEnabledCheck() ) {
+    private val enqueuer = if ( task.enqueuerEnabledCheck() ) {
         executor.submit {
             while (true) {
                 try {
-                    sourceSequence()
+                    task.sourceSequence()
                             .filter {
                                 logger.debug("Queueing candidate {}", it)
                                 filterEnqueued( it )
@@ -67,7 +67,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
     }
 
     @Suppress("UNUSED")
-    private val worker = if ( workerEnabledCheck() ) {
+    private val worker = if ( task.workerEnabledCheck() ) {
         executor.submit {
             while ( true ) {
                 try {
@@ -78,7 +78,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
                         executor.submit {
                             try {
                                 logger.info("Operating on {}", candidate)
-                                operate(candidate)
+                                task.operate(candidate)
                             } catch (ex: Exception) {
                                 logger.error("Unable to operate on $candidate. ", ex)
                             } finally {
@@ -99,19 +99,11 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         null
     }
 
-    abstract fun enqueuerEnabledCheck(): Boolean
-
-    abstract fun workerEnabledCheck(): Boolean
-
-    abstract fun operate(candidate: T)
-
-    abstract fun sourceSequence() : Sequence<T>
-
     /**
      * @return Boolean indicating whether candidate was successfully queued
      */
     fun filterEnqueued( candidate: T ): Boolean {
-        return statusMap.putIfAbsent(candidateLockFunc(candidate), QueueState.QUEUED) != null
+        return statusMap.putIfAbsent(task.candidateLockFunction(candidate), QueueState.QUEUED) != null
     }
 
     /**
@@ -124,7 +116,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         var take: T = candidateQueue.take()
 
         while ( invalid ) {
-            val statusKey = candidateLockFunc( take )
+            val statusKey = task.candidateLockFunction( take )
             val currStatus = statusMap.get(statusKey)
             when( currStatus ){
                 QueueState.NOT_QUEUED, // weird state as this is never added to the statusMap
@@ -140,7 +132,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         }
 
         statusMap.put(
-                candidateLockFunc( take ),
+                task.candidateLockFunction( take ),
                 QueueState.PROCESSING,
                 batchTimeout,
                 TimeUnit.MILLISECONDS
@@ -149,7 +141,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
     }
 
     fun finishedProcessing( candidate: T ) {
-        statusMap.delete( candidateLockFunc( candidate ))
+        statusMap.delete( task.candidateLockFunction( candidate ))
     }
 }
 
