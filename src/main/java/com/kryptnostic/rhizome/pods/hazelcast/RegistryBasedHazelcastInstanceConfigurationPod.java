@@ -70,8 +70,9 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
                 .newHashMap( Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() ) );
         configs.putAll( queueConfigs );
         queueConfigurers.forEach( configurer -> {
-            final QueueConfig config = configs
-                    .computeIfAbsent( configurer.getQueueName(), k -> new QueueConfig( k ).setBackupCount( 1 ) );
+            final QueueConfig config = configs.computeIfAbsent( configurer.getQueueName(),
+                    k -> new QueueConfig( k ).setBackupCount( 1 )
+            );
             configurer.configure( config );
         } );
         return configs;
@@ -133,16 +134,15 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             logger.info( "No near cache configurers detected." );
         }
 
-        this.nearCacheConfigs.addAll( nearCacheConfigs );
+        RegistryBasedHazelcastInstanceConfigurationPod.nearCacheConfigs.addAll( nearCacheConfigs );
     }
 
-    @Autowired(
-            required = false )
+    @Autowired( required = false )
     public void configureQueues( Set<QueueConfigurer> queueConfigurers ) {
         if ( queueConfigurers.isEmpty() ) {
             logger.info( "No queue configurers detected." );
         }
-        this.queueConfigurers.addAll( queueConfigurers );
+        RegistryBasedHazelcastInstanceConfigurationPod.queueConfigurers.addAll( queueConfigurers );
     }
 
     public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {

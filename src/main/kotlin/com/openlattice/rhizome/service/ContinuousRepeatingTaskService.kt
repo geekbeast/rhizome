@@ -1,4 +1,4 @@
-package com.openlattice.rhizome.core.service
+package com.openlattice.rhizome.service
 
 /*
  * Copyright (C) 2020. OpenLattice, Inc.
@@ -24,6 +24,7 @@ package com.openlattice.rhizome.core.service
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.IMap
 import com.hazelcast.core.IQueue
+import com.hazelcast.map.listener.EntryEvictedListener
 import org.slf4j.Logger
 import java.time.Instant
 import java.util.concurrent.Semaphore
@@ -35,13 +36,20 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
         private val logger: Logger,
         private val candidateQueue: IQueue<T>,
-        private val lockingMap: IMap<K, Long>,
+        private val statusMap: IMap<K, QueueState>,
         parallelism: Int,
         private val candidateLockFunc: (T) -> K,
         private val fillChunkSize: Int = 0,
         private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
 ) {
     private val limiter = Semaphore(parallelism)
+
+    init {
+        statusMap.addEntryListener(EntryEvictedListener<K, QueueState> {
+            logger.info("Key ${it.key} with expiration got evicted at ${Instant.now().toEpochMilli()}")
+            statusMap.put( it.key, QueueState.NOT_QUEUED )
+        }, true)
+    }
 
     @Suppress("UNUSED")
     private val enqueuer = if ( enqueuerEnabledCheck() ) {
@@ -50,34 +58,20 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
                 try {
                     sourceSequence()
                             .filter {
-                                val expiration = lockOrGetExpiration(it)
-                                logger.debug(
-                                        "Considering candidate {} with expiration {} at {}",
-                                        it,
-                                        expiration,
-                                        Instant.now().toEpochMilli()
-                                )
-                                if (expiration != null && Instant.now().toEpochMilli() >= expiration) {
-                                    logger.info("Refreshing expiration for {}", it)
-                                    //Assume original lock holder died, probably somewhat unsafe
-                                    refreshExpiration(it)
-                                    true
-                                } else expiration == null
-                            }.chunked(fillChunkSize)
-                            .forEach { keys ->
-                                candidateQueue.addAll(keys)
-                                logger.info(
-                                        "Queued entities needing processing {}.",
-                                        keys
-                                )
+                                logger.debug("Queueing candidate {}", it)
+                                filterEnqueued( it )
+                            }
+                            .chunked(fillChunkSize)
+                            .forEach {
+                                candidateQueue.addAll(it)
                             }
                 } catch (ex: Exception) {
-                    logger.info("Encountered error while enqueuing candidates for task.", ex)
+                    logger.info("Encountered error while enqueuing candidates for $javaClass task.", ex)
                 }
             }
         }
     } else {
-        logger.info("Skipping enqueue task as it is not enabled.")
+        logger.info("Skipping $javaClass enqueue task as it is not enabled.")
         null
     }
 
@@ -86,7 +80,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         executor.submit {
             while ( true ) {
                 try {
-                    generateSequence { candidateQueue.take() }
+                    generateSequence { dequeue() }
                             .map { candidate ->
                                 limiter.acquire()
                                 executor.submit {
@@ -96,7 +90,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
                                     } catch (ex: Exception) {
                                         logger.error("Unable to operate on $candidate. ", ex)
                                     } finally {
-                                        lockingMap.delete(candidate)
+                                        finishedProcessing( candidate )
                                         limiter.release()
                                     }
                                 }
@@ -107,7 +101,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
             }
         }
     } else {
-        logger.info("Skipping worker task as it is not enabled.")
+        logger.info("Skipping $javaClass worker task as it is not enabled.")
         null
     }
 
@@ -120,28 +114,48 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
     abstract fun sourceSequence() : Sequence<T>
 
     /**
-     * @return Null if locked, expiration in millis otherwise.
+     * @return Boolean indicating whether candidate was successfully queued
      */
-    fun lockOrGetExpiration(candidate: T): Long? {
-        return lockingMap.putIfAbsent(
-                candidateLockFunc(candidate),
-                Instant.now().plusMillis(batchTimeout).toEpochMilli(),
-                batchTimeout,
-                TimeUnit.MILLISECONDS
-        )
+    fun filterEnqueued( candidate: T ): Boolean {
+        return statusMap.putIfAbsent(candidateLockFunc(candidate), QueueState.QUEUED) != null
     }
 
     /**
-     * Refreshes the candidate's timeout in the locking map
+     * Take()s from candidateQueue continuously until an element with QueueState.QUEUED is returned
+     * Updates the QueueState in statusMap to QueueState.PROCESSING with a timeout
+     * @return T the candidate taken from candidateQueue
      */
-    fun refreshExpiration(candidate: T) {
-        try {
-            lockingMap.lock(candidateLockFunc(candidate))
+    fun dequeue(): T {
+        var invalid = true
+        var take: T = candidateQueue.take()
 
-            lockOrGetExpiration(candidate)
-        } finally {
-            lockingMap.unlock(candidateLockFunc(candidate))
+        while ( invalid ) {
+            val statusKey = candidateLockFunc( take )
+            val currStatus = statusMap.get(statusKey)
+            when( currStatus ){
+                QueueState.NOT_QUEUED, // Timed out
+                    QueueState.PROCESSING, // already being processed
+                    null -> { // no status in the map. How did you get here?
+                        logger.error("Dequeued candidate $take with QueueState $currStatus")
+                        take = candidateQueue.take()
+                    }
+                QueueState.QUEUED -> { // continue happy path
+                    invalid = false
+                }
+            }
         }
+
+        statusMap.put(
+                candidateLockFunc( take ),
+                QueueState.PROCESSING,
+                batchTimeout,
+                TimeUnit.MILLISECONDS
+        )
+        return take
+    }
+
+    fun finishedProcessing( candidate: T ) {
+        statusMap.delete( candidateLockFunc( candidate ))
     }
 }
 
