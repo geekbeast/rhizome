@@ -94,7 +94,9 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
                                         limiter.release()
                                     }
                                 }
-                            }.forEach { it.get() }
+                            }.forEach { job ->
+                                job.get( batchTimeout, TimeUnit.MILLISECONDS )
+                            }
                 } catch ( ex: Exception) {
                     logger.info("Encountered error while operating on candidates.", ex )
                 }
