@@ -1,11 +1,13 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
+import com.google.common.collect.Lists;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.openlattice.rhizome.hazelcast.DelegatedUUIDList;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +16,39 @@ import java.util.UUID;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
 public class ListStreamSerializers {
+
+    public static <T> void serialize(
+            ObjectDataOutput out,
+            List<T> elements,
+            IoPerformingBiConsumer<ObjectDataOutput, T> c
+    ) throws IOException {
+        out.writeInt(elements.size());
+        for (T elem : elements) {
+            c.accept( out, elem );
+        }
+    }
+
+    public static <T> List<T> deserialize(ObjectDataInput in, IoPerformingFunction<ObjectDataInput, T> f)
+        throws IOException {
+        int size = in.readInt();
+        return deserialize(in, Lists.newArrayListWithExpectedSize( size ), size, f);
+    }
+
+    public static <T, L extends List<T>> L deserialize(
+            ObjectDataInput in,
+            L list,
+            int size,
+            IoPerformingFunction<ObjectDataInput, T> f
+    ) throws IOException {
+        for ( int i = 0; i < size; i++ ) {
+            T elem = f.apply( in );
+            if ( elem != null ) {
+                list.add( elem );
+            }
+        }
+        return list;
+    }
+
     public static List<UUID> fastUUIDListDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
         return processEntries( size, in );
