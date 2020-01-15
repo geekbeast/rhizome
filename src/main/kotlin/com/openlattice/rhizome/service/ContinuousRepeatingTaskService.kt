@@ -24,9 +24,7 @@ package com.openlattice.rhizome.service
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.IMap
 import com.hazelcast.core.IQueue
-import com.hazelcast.map.listener.EntryEvictedListener
 import org.slf4j.Logger
-import java.time.Instant
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -43,13 +41,6 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS
 ) {
     private val limiter = Semaphore(parallelism)
-
-    init {
-        statusMap.addEntryListener(EntryEvictedListener<K, QueueState> {
-            logger.info("Key ${it.key} with expiration got evicted at ${Instant.now().toEpochMilli()}")
-            statusMap.put( it.key, QueueState.NOT_QUEUED )
-        }, true)
-    }
 
     @Suppress("UNUSED")
     private val enqueuer = if ( enqueuerEnabledCheck() ) {
@@ -80,23 +71,24 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
         executor.submit {
             while ( true ) {
                 try {
-                    generateSequence { dequeue() }
-                            .map { candidate ->
-                                limiter.acquire()
-                                executor.submit {
-                                    try {
-                                        logger.info("Operating on {}", candidate)
-                                        operate(candidate)
-                                    } catch (ex: Exception) {
-                                        logger.error("Unable to operate on $candidate. ", ex)
-                                    } finally {
-                                        finishedProcessing( candidate )
-                                        limiter.release()
-                                    }
-                                }
-                            }.forEach { job ->
-                                job.get( batchTimeout, TimeUnit.MILLISECONDS )
+                    generateSequence {
+                        dequeue()
+                    }.map { candidate ->
+                        limiter.acquire()
+                        executor.submit {
+                            try {
+                                logger.info("Operating on {}", candidate)
+                                operate(candidate)
+                            } catch (ex: Exception) {
+                                logger.error("Unable to operate on $candidate. ", ex)
+                            } finally {
+                                finishedProcessing( candidate )
+                                limiter.release()
                             }
+                        }
+                    }.forEach { job ->
+                        job.get( batchTimeout, TimeUnit.MILLISECONDS )
+                    }
                 } catch ( ex: Exception) {
                     logger.info("Encountered error while operating on candidates.", ex )
                 }
@@ -135,7 +127,7 @@ abstract class ContinuousRepeatingTaskService<T: Any, K: Any>(
             val statusKey = candidateLockFunc( take )
             val currStatus = statusMap.get(statusKey)
             when( currStatus ){
-                QueueState.NOT_QUEUED, // Timed out
+                QueueState.NOT_QUEUED, // weird state as this is never added to the statusMap
                     QueueState.PROCESSING, // already being processed
                     null -> { // no status in the map. How did you get here?
                         logger.error("Dequeued candidate $take with QueueState $currStatus")
