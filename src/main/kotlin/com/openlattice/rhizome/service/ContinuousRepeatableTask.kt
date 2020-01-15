@@ -15,4 +15,6 @@ interface ContinuousRepeatableTask<T, K> {
     fun candidateLockFunction(candidate: T) : K
 
     fun getLogger(): Logger
+
+    fun getTimeoutMillis() : Long
 }

@@ -27,15 +27,12 @@ import com.hazelcast.core.IQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-internal const val DEFAULT_BATCH_TIMEOUT_MILLIS = 120_000L
-
 final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
         private val candidateQueue: IQueue<T>,
         private val statusMap: IMap<K, QueueState>,
         parallelism: Int,
         private val fillChunkSize: Int = 0,
-        private val batchTimeout: Long = DEFAULT_BATCH_TIMEOUT_MILLIS,
         private val task: ContinuousRepeatableTask<T, K>
 ) {
     private val limiter = Semaphore(parallelism)
@@ -86,7 +83,7 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
                             }
                         }
                     }.forEach { job ->
-                        job.get( batchTimeout, TimeUnit.MILLISECONDS )
+                        job.get( task.getTimeoutMillis(), TimeUnit.MILLISECONDS )
                     }
                 } catch ( ex: Exception) {
                     logger.info("Encountered error while operating on candidates.", ex )
@@ -133,7 +130,7 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         statusMap.put(
                 task.candidateLockFunction( take ),
                 QueueState.PROCESSING,
-                batchTimeout,
+                task.getTimeoutMillis(),
                 TimeUnit.MILLISECONDS
         )
         return take

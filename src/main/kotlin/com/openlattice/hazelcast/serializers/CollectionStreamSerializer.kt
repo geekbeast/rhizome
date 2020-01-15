@@ -22,7 +22,6 @@ package com.openlattice.hazelcast.serializers
 
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
-import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
 import java.io.IOException
 
 abstract class CollectionStreamSerializer<T : Collection<E>, E> protected constructor(private val clazz: Class<T>)
