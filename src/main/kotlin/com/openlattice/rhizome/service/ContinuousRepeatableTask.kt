@@ -17,4 +17,6 @@ interface ContinuousRepeatableTask<T, K> {
     fun getLogger(): Logger
 
     fun getTimeoutMillis() : Long
+
+    fun getTaskClass() : Class<Any>
 }

@@ -143,7 +143,7 @@ public class SetStreamSerializers {
 
     public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
         int size = in.readInt();
-        LinkedHashSet<String> items = new LinkedHashSet<>( size );
+        LinkedHashSet<String> items = Sets.newLinkedHashSetWithExpectedSize( size );
         for ( int i = 0; i < size; i++ ) {
             items.add( in.readUTF() );
         }

@@ -31,21 +31,23 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         private val executor: ListeningExecutorService,
         private val candidateQueue: IQueue<T>,
         private val statusMap: IMap<K, QueueState>,
-        parallelism: Int,
-        private val fillChunkSize: Int = 0,
-        private val task: ContinuousRepeatableTask<T, K>
+        private val task: ContinuousRepeatableTask<T, K>,
+        parallelism: Int = Runtime.getRuntime().availableProcessors(),
+        private val fillChunkSize: Int = 1
 ) {
     private val limiter = Semaphore(parallelism)
     private val logger = task.getLogger()
+    private val className = task.getTaskClass()
 
     @Suppress("UNUSED")
     private val enqueuer = if ( task.enqueuerEnabledCheck() ) {
+        logger.info("Starting enqueuer task for $className ")
         executor.submit {
             while (true) {
                 try {
                     task.sourceSequence()
                             .filter {
-                                logger.debug("Queueing candidate {}", it)
+                                logger.info("Queueing candidate {}", it)
                                 filterEnqueued( it )
                             }
                             .chunked(fillChunkSize)
@@ -53,12 +55,12 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
                                 candidateQueue.addAll(it)
                             }
                 } catch (ex: Exception) {
-                    logger.info("Encountered error while enqueuing candidates for $javaClass task.", ex)
+                    logger.info("Encountered error while enqueuing candidates for $className task.", ex)
                 }
             }
         }
     } else {
-        logger.info("Skipping $javaClass enqueue task as it is not enabled.")
+        logger.info("Skipping $className enqueue task as it is not enabled.")
         null
     }
 
@@ -91,7 +93,7 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
             }
         }
     } else {
-        logger.info("Skipping $javaClass worker task as it is not enabled.")
+        logger.info("Skipping $className worker task as it is not enabled.")
         null
     }
 
@@ -140,4 +142,3 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         statusMap.delete( task.candidateLockFunction( candidate ))
     }
 }
-
