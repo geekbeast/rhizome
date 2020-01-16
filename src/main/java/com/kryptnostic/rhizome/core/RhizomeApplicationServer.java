@@ -7,6 +7,7 @@ import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.kryptnostic.rhizome.startup.Requirement;
+import com.openlattice.auth0.Auth0Pod;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.ArrayList;

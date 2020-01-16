@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.NearCacheConfig;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.nio.serialization.Serializer;
@@ -15,7 +16,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.openlattice.hazelcast.pods.QueueConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +35,9 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
             .newConcurrentMap();
-    private static final Set<QueueConfigurer>                                 queueConfigurers   = Sets.newHashSet();
+
+    private static final Set<QueueConfigurer> queueConfigurers = Sets.newHashSet();
+    private static final Set<NearCacheConfig> nearCacheConfigs = Sets.newHashSet();
 
     @Override
     protected Collection<SerializerConfig> serializerConfigs() {
@@ -69,6 +75,13 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             configurer.configure( config );
         } );
         return configs;
+    }
+
+    @Override
+    protected Map<String, NearCacheConfig> nearCacheConfigs() {
+        return nearCacheConfigs
+                .stream()
+                .collect( Collectors.toMap( NearCacheConfig::getName, Function.identity() ) );
     }
 
     /*
@@ -112,6 +125,15 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         for ( SelfRegisteringStreamSerializer<?> s : serializers ) {
             serializerRegistry.put( s.getClazz(), s );
         }
+    }
+
+    @Autowired( required = false )
+    public void configureNearCaches( Set<NearCacheConfig> nearCacheConfigs ) {
+        if ( nearCacheConfigs.isEmpty() ) {
+            logger.info( "No near cache configurers detected." );
+        }
+
+        this.nearCacheConfigs.addAll( nearCacheConfigs );
     }
 
     @Autowired(
