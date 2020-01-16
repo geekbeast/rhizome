@@ -1,19 +1,15 @@
 package com.openlattice.hazelcast.serializers
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
+import org.apache.commons.lang3.RandomUtils
 
 abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStreamSerializer<T> {
 
+    protected val enumArray = enumCache.getOrPut(clazz) { this.clazz.enumConstants as Array<Enum<*>> } as Array<T>
+
     companion object {
-        private val enumCache: LoadingCache<Class<out Enum<*>>, Array<out Enum<*>>> = CacheBuilder.newBuilder().build(
-                CacheLoader.from { key ->
-                    key!!.enumConstants
-                }
-        )
+        private val enumCache: MutableMap<Class<*>, Array<Enum<*>>> = mutableMapOf()
 
         @JvmStatic
         fun serialize(out: ObjectDataOutput, `object`: Enum<*>) {
@@ -23,7 +19,7 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
         @JvmStatic
         fun <K: Enum<K>> deserialize(targetClass: Class<out K>, `in`: ObjectDataInput): K {
             val ord = `in`.readInt()
-            return enumCache.get(targetClass)[ord] as K
+            return enumCache.getValue(targetClass)[ord] as K
         }
     }
 
@@ -33,5 +29,9 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
 
     override fun read(`in`: ObjectDataInput): T {
         return deserialize(clazz, `in`)
+    }
+
+    override fun generateTestValue(): T {
+        return enumArray[RandomUtils.nextInt(0, enumArray.size)]
     }
 }
