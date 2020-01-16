@@ -33,49 +33,49 @@ import java.util.concurrent.TimeUnit
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-class LocalAuth0TokenProvider(auth0Configuration: Auth0Configuration) : Auth0TokenProvider {
-    private val tokenUpdater: Supplier<String>
-    private var token: java.util.function.Supplier<String>? = null
-    override fun getManagementApiUrl(): String {
-        return managementApiUrl
-    }
-
-    fun getTokenUpdater(): Supplier<String> {
-        return tokenUpdater
-    }
-
-    override fun getToken(): String {
-        return token!!.get()
-    }
-
-    companion object {
-        private const val RETRY_MILLIS = 30000
-    }
-
-    init {
-        managementApiUrl = auth0Configuration.managementApiUrl
-        tokenUpdater = label@ Supplier {
-            try {
-                val holder = auth0Api.requestToken(
-                        managementApiUrl
-                ).execute()
-                val expiresInMillis = holder.expiresIn * 1000 / 2
-                token = Suppliers.memoizeWithExpiration(
-                        getTokenUpdater(),
-                        expiresInMillis,
-                        TimeUnit.MILLISECONDS
-                )
-                return@label holder.accessToken
-            } catch (e: Auth0Exception) {
-                token = Suppliers.memoizeWithExpiration(
-                        getTokenUpdater(),
-                        RETRY_MILLIS.toLong(),
-                        TimeUnit.MILLISECONDS
-                )
-                return@label ""
-            }
-        }
-        // kick off the initial token request
-        tokenUpdater.get()
-    }
-}
+//class LocalAuth0TokenProvider(auth0Configuration: Auth0Configuration) : Auth0TokenProvider {
+//    private val tokenUpdater: Supplier<String>
+//    private var token: java.util.function.Supplier<String>? = null
+//    override fun getManagementApiUrl(): String {
+//        return managementApiUrl
+//    }
+//
+//    fun getTokenUpdater(): Supplier<String> {
+//        return tokenUpdater
+//    }
+//
+//    override fun getToken(): String {
+//        return token!!.get()
+//    }
+//
+//    companion object {
+//        private const val RETRY_MILLIS = 30000
+//    }
+//
+//    init {
+//        managementApiUrl = auth0Configuration.managementApiUrl
+//        tokenUpdater = label@ Supplier {
+//            try {
+//                val holder = auth0Api.requestToken(
+//                        managementApiUrl
+//                ).execute()
+//                val expiresInMillis = holder.expiresIn * 1000 / 2
+//                token = Suppliers.memoizeWithExpiration(
+//                        getTokenUpdater(),
+//                        expiresInMillis,
+//                        TimeUnit.MILLISECONDS
+//                )
+//                return@label holder.accessToken
+//            } catch (e: Auth0Exception) {
+//                token = Suppliers.memoizeWithExpiration(
+//                        getTokenUpdater(),
+//                        RETRY_MILLIS.toLong(),
+//                        TimeUnit.MILLISECONDS
+//                )
+//                return@label ""
+//            }
+//        }
+//        // kick off the initial token request
+//        tokenUpdater.get()
+//    }
+//}
