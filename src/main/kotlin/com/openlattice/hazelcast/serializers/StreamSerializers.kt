@@ -76,6 +76,33 @@ class StreamSerializers {
         }
 
         @JvmStatic
+        fun serializeStringStringMap(out: ObjectDataOutput, map: Map<String, String> ) {
+            val pairs = arrayOfNulls<String>(map.size * 2)
+
+            for ( ( i, entry ) in map.entries.withIndex() ) {
+                pairs[ i ]   = entry.key
+                pairs[ i + map.size ]   = entry.value
+            }
+
+            out.writeInt( map.size )
+            out.writeUTFArray( pairs )
+        }
+
+        @JvmStatic
+        fun deserializeStringStringMap( `in`: ObjectDataInput): Map<String, String> {
+            val size = `in`.readInt()
+            val map = Maps.newLinkedHashMapWithExpectedSize<String, String>( size )
+
+            val pairs = `in`.readUTFArray()
+
+            for (index in 0 until size) {
+                map.put( pairs[index], pairs[index + size] )
+            }
+
+            return map
+        }
+
+        @JvmStatic
         fun <K, V> serializeMap(out: ObjectDataOutput, `object`: Map<K, V>, keyWritingFun: (K) -> Unit, valWritingFun: (V) -> Unit ) {
             out.writeInt(`object`.size)
             for ( entry in `object`.entries ) {
@@ -133,6 +160,44 @@ class StreamSerializers {
                 map[k1] = innerMap
             }
             return map
+        }
+
+        @JvmStatic
+        inline fun <T> serializeMaybeValue(out: ObjectDataOutput, value: T?, write: (ObjectDataOutput) -> Unit ) {
+            if ( value == null ){
+                out.writeBoolean( false )
+                return
+            }
+            out.writeBoolean( true )
+            write( out )
+        }
+
+        @JvmStatic
+        inline fun <T> deserializeMaybeValue(`in`: ObjectDataInput, read: (ObjectDataInput) -> T ): T? {
+            val maybePresent = `in`.readBoolean()
+            if ( !maybePresent ){
+                return null
+            }
+            return read( `in` )
+        }
+
+        @JvmStatic
+        inline fun <T> serializeOptionalValue(out: ObjectDataOutput, value: Optional<T>, write: (ObjectDataOutput) -> Unit ) {
+            if ( !value.isPresent ){
+                out.writeBoolean( false )
+                return
+            }
+            out.writeBoolean( true )
+            write( out )
+        }
+
+        @JvmStatic
+        inline fun <T> deserializeOptional(`in`: ObjectDataInput, read: (ObjectDataInput) -> T ): Optional<T> {
+            val maybePresent = `in`.readBoolean()
+            if ( !maybePresent ){
+                return Optional.empty()
+            }
+            return Optional.of( read( `in` ) )
         }
 
     }

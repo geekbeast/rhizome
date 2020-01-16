@@ -64,7 +64,6 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T>
                 addOrRemoveFunction = applyFunction();
                 break;
             default:
-                addOrRemoveFunction = null;
                 System.err.println( "Impossible, no operation specified in AbstractUpdater" );
                 return null;
         }
