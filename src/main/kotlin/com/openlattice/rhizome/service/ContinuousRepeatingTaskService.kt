@@ -66,6 +66,7 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
 
     @Suppress("UNUSED")
     private val worker = if ( task.workerEnabledCheck() ) {
+        logger.info("Starting worker task for $className ")
         executor.submit {
             while ( true ) {
                 try {
