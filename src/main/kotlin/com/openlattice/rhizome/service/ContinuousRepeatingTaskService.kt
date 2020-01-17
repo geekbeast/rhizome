@@ -48,7 +48,7 @@ final class ContinuousRepeatingTaskRunner<T: Any>(
                 try {
                     task.sourceSequence()
                             .filter {
-                                logger.info("Queueing candidate {}", it)
+                                logger.debug("Queueing candidate {}", it)
                                 filterEnqueued( it )
                             }.forEach {
                                 candidateQueue.put(it)
@@ -107,10 +107,13 @@ final class ContinuousRepeatingTaskRunner<T: Any>(
         return statusMap.putIfAbsent(candidate, QueueState.QUEUED) != null
     }
 
+    /**
+     * Return true for properly queued candidates
+     */
     private fun filterInvalidStates( candidate: T ): Boolean {
         val currStatus = statusMap.get( candidate )
         when( currStatus ){
-            QueueState.NOT_QUEUED, // weird state as this is never added to the statusMap
+            QueueState.NOT_QUEUED, // state that is never added to the statusMap
             QueueState.PROCESSING, // already being processed
             null -> { // no status in the map. How did you get here?
                 return false
