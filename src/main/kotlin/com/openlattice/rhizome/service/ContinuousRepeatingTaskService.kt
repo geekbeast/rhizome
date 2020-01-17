@@ -24,16 +24,17 @@ package com.openlattice.rhizome.service
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.hazelcast.core.IMap
 import com.hazelcast.core.IQueue
+import com.openlattice.rhizome.hazelcast.ChunkedQueueSequence
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
+final class ContinuousRepeatingTaskRunner<T: Any>(
         private val executor: ListeningExecutorService,
         private val candidateQueue: IQueue<T>,
-        private val statusMap: IMap<K, QueueState>,
-        private val task: ContinuousRepeatableTask<T, K>,
+        private val statusMap: IMap<T, QueueState>,
+        private val task: ContinuousRepeatableTask<T>,
         parallelism: Int = Runtime.getRuntime().availableProcessors(),
-        private val fillChunkSize: Int = 1
+        private val workerChunkSize: Int = 1
 ) {
     private val limiter = Semaphore(parallelism)
     private val logger = task.getLogger()
@@ -49,10 +50,8 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
                             .filter {
                                 logger.info("Queueing candidate {}", it)
                                 filterEnqueued( it )
-                            }
-                            .chunked(fillChunkSize)
-                            .forEach {
-                                candidateQueue.addAll(it)
+                            }.forEach {
+                                candidateQueue.put(it)
                             }
                 } catch (ex: Exception) {
                     logger.info("Encountered error while enqueuing candidates for $className task.", ex)
@@ -70,24 +69,27 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
         executor.submit {
             while ( true ) {
                 try {
-                    generateSequence {
-                        dequeue()
-                    }.map { candidate ->
-                        limiter.acquire()
-                        executor.submit {
-                            try {
-                                logger.info("Operating on {}", candidate)
-                                task.operate(candidate)
-                            } catch (ex: Exception) {
-                                logger.error("Unable to operate on $candidate. ", ex)
-                            } finally {
-                                finishedProcessing( candidate )
-                                limiter.release()
+                    ChunkedQueueSequence(candidateQueue, workerChunkSize)
+                            .map { candidateChunk ->
+                                candidateChunk.filter {
+                                    filterInvalidStates(it)
+                                }.map { candidate ->
+                                    limiter.acquire()
+                                    executor.submit {
+                                        try {
+                                            logger.info("Operating on {}", candidate)
+                                            task.operate(candidate)
+                                        } catch (ex: Exception) {
+                                            logger.error("Unable to operate on $candidate. ", ex)
+                                        } finally {
+                                            finishedProcessing(candidate)
+                                            limiter.release()
+                                        }
+                                    }
+                                }.forEach { job ->
+                                    job.get(task.getTimeoutMillis(), TimeUnit.MILLISECONDS)
+                                }
                             }
-                        }
-                    }.forEach { job ->
-                        job.get( task.getTimeoutMillis(), TimeUnit.MILLISECONDS )
-                    }
                 } catch ( ex: Exception) {
                     logger.info("Encountered error while operating on candidates.", ex )
                 }
@@ -101,45 +103,31 @@ final class ContinuousRepeatingTaskRunner<T: Any, K: Any>(
     /**
      * @return Boolean indicating whether candidate was successfully queued
      */
-    fun filterEnqueued( candidate: T ): Boolean {
-        return statusMap.putIfAbsent(task.candidateLockFunction(candidate), QueueState.QUEUED) != null
+    private fun filterEnqueued( candidate: T ): Boolean {
+        return statusMap.putIfAbsent(candidate, QueueState.QUEUED) != null
     }
 
-    /**
-     * Take()s from candidateQueue continuously until an element with QueueState.QUEUED is returned
-     * Updates the QueueState in statusMap to QueueState.PROCESSING with a timeout
-     * @return T the candidate taken from candidateQueue
-     */
-    fun dequeue(): T {
-        var invalid = true
-        var take: T = candidateQueue.take()
-
-        while ( invalid ) {
-            val statusKey = task.candidateLockFunction( take )
-            val currStatus = statusMap.get(statusKey)
-            when( currStatus ){
-                QueueState.NOT_QUEUED, // weird state as this is never added to the statusMap
-                    QueueState.PROCESSING, // already being processed
-                    null -> { // no status in the map. How did you get here?
-                        logger.error("Dequeued candidate $take with QueueState $currStatus")
-                        take = candidateQueue.take()
-                    }
-                QueueState.QUEUED -> { // continue happy path
-                    invalid = false
-                }
+    private fun filterInvalidStates( candidate: T ): Boolean {
+        val currStatus = statusMap.get( candidate )
+        when( currStatus ){
+            QueueState.NOT_QUEUED, // weird state as this is never added to the statusMap
+            QueueState.PROCESSING, // already being processed
+            null -> { // no status in the map. How did you get here?
+                return false
+            }
+            QueueState.QUEUED -> { // continue happy path
+                statusMap.put(
+                        candidate,
+                        QueueState.PROCESSING,
+                        task.getTimeoutMillis(),
+                        TimeUnit.MILLISECONDS
+                )
+                return true
             }
         }
-
-        statusMap.put(
-                task.candidateLockFunction( take ),
-                QueueState.PROCESSING,
-                task.getTimeoutMillis(),
-                TimeUnit.MILLISECONDS
-        )
-        return take
     }
 
-    fun finishedProcessing( candidate: T ) {
-        statusMap.delete( task.candidateLockFunction( candidate ))
+    private fun finishedProcessing( candidate: T ) {
+        statusMap.delete( candidate )
     }
 }
