@@ -8,7 +8,6 @@ import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
 import com.openlattice.rhizome.hazelcast.UUIDSet;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -138,7 +137,11 @@ public class SetStreamSerializers {
 
     public static Set<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
         final var arr = in.readUTFArray();
-        return new LinkedHashSet<>( Arrays.asList( arr ) );
+        LinkedHashSet<String> result = Sets.newLinkedHashSetWithExpectedSize( arr.length );
+        for ( String s : arr ) {
+            result.add(s);
+        }
+        return result;
     }
 
     public static LinkedHashSet<String> orderedFastStringSetDeserialize( ObjectDataInput in ) throws IOException {
