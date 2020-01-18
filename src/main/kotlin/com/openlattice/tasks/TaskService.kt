@@ -29,7 +29,6 @@ import com.hazelcast.scheduledexecutor.ScheduledTaskHandler
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
 import com.kryptnostic.rhizome.startup.Requirement
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -43,7 +42,6 @@ private val logger = LoggerFactory.getLogger(TaskService::class.java)
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class TaskService(
-        context: ApplicationContext,
         dependenciesMap: Map<Class<*>, HazelcastTaskDependencies>,
         tasks: Set<HazelcastFixedRateTask<*>>,
         private val initializers: Set<HazelcastInitializationTask<*>>,
@@ -93,7 +91,7 @@ class TaskService(
                         val f: IScheduledFuture<*> = executor.getScheduledFuture<Any>(ScheduledTaskHandler.of(urn))
 
                         logger.info(
-                                "Waiting on initializer {} with initialDelay {} and period {} in time unit (urn = {})",
+                                "Waiting on initializer {} with initialDelay {} in time unit {} (urn = {})",
                                 initializer.name,
                                 initializer.getInitialDelay(),
                                 initializer.getTimeUnit(),
@@ -105,7 +103,7 @@ class TaskService(
 
                     } else {
                         logger.info(
-                                "Waiting on initializer {} with initialDelay {} and period {} in time unit (not hazelcast scheduled)",
+                                "Waiting on initializer {} with initialDelay {} in time unit {} (not hazelcast scheduled)",
                                 initializer.name,
                                 initializer.getInitialDelay(),
                                 initializer.getTimeUnit()

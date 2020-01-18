@@ -100,7 +100,6 @@ class TaskSchedulerPod {
         }
 
         return TaskService(
-                context,
                 dependenciesMap,
                 validTasks.toSet(),
                 validInitializers.toSet(),
