@@ -30,7 +30,7 @@ public class RhizomeApplicationServer {
     }
 
     private RhizomeApplicationServer( Class<?>[] basePods, Class<?>... pods ) {
-        this.context.register( Pods.concatenate( basePods, pods ) );
+        context.register( Pods.concatenate( basePods, pods ) );
     }
 
     public void intercrop( Class<?>... pods ) {
