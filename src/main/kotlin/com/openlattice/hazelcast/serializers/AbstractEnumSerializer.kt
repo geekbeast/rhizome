@@ -3,13 +3,15 @@ package com.openlattice.hazelcast.serializers
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
 import org.apache.commons.lang3.RandomUtils
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStreamSerializer<T> {
 
-    protected val enumArray = enumCache.getOrPut(clazz) { this.clazz.enumConstants as Array<Enum<*>> } as Array<T>
+    protected val enumArray = enumCache.computeIfAbsent( clazz, { _-> this.clazz.enumConstants as Array<Enum<*>> } ) as Array<T>
 
     companion object {
-        private val enumCache: MutableMap<Class<*>, Array<Enum<*>>> = mutableMapOf()
+        private var enumCache: ConcurrentMap<Class<*>, Array<Enum<*>>> = ConcurrentHashMap()
 
         @JvmStatic
         fun serialize(out: ObjectDataOutput, `object`: Enum<*>) {
@@ -19,7 +21,7 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
         @JvmStatic
         fun <K: Enum<K>> deserialize(targetClass: Class<out K>, `in`: ObjectDataInput): K {
             val ord = `in`.readInt()
-            return enumCache.getValue(targetClass)[ord] as K
+            return enumCache.computeIfAbsent( targetClass, { key -> key.enumConstants as Array<Enum<*>> } )[ord] as K
         }
     }
 
@@ -28,7 +30,7 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
     }
 
     override fun read(`in`: ObjectDataInput): T {
-        return deserialize(clazz, `in`)
+        return enumArray[`in`.readInt()]
     }
 
     override fun generateTestValue(): T {
