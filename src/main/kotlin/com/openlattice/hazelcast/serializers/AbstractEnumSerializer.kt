@@ -30,7 +30,7 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
     }
 
     override fun read(`in`: ObjectDataInput): T {
-        return deserialize(clazz, `in`)
+        return enumArray[`in`.readInt()]
     }
 
     override fun generateTestValue(): T {
