@@ -8,7 +8,9 @@ import java.util.concurrent.ConcurrentMap
 
 abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStreamSerializer<T> {
 
-    protected val enumArray = enumCache.computeIfAbsent( clazz, { _-> this.clazz.enumConstants as Array<Enum<*>> } ) as Array<T>
+    protected val enumArray = enumCache.getOrPut( clazz ) { ->
+        this.clazz.enumConstants as Array<Enum<*>>
+    } as Array<T>
 
     companion object {
         private var enumCache: ConcurrentMap<Class<*>, Array<Enum<*>>> = ConcurrentHashMap()
@@ -21,7 +23,9 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
         @JvmStatic
         fun <K: Enum<K>> deserialize(targetClass: Class<out K>, `in`: ObjectDataInput): K {
             val ord = `in`.readInt()
-            return enumCache.computeIfAbsent( targetClass, { key -> key.enumConstants as Array<Enum<*>> } )[ord] as K
+            return (enumCache.computeIfAbsent( targetClass ) { key ->
+                key.enumConstants as Array<Enum<*>>
+            })[ord] as K
         }
     }
 
