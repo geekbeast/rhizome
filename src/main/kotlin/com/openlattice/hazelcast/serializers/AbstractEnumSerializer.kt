@@ -23,8 +23,8 @@ abstract class AbstractEnumSerializer<T: Enum<T>> : TestableSelfRegisteringStrea
         @JvmStatic
         fun <K: Enum<K>> deserialize(targetClass: Class<out K>, `in`: ObjectDataInput): K {
             val ord = `in`.readInt()
-            return (enumCache.computeIfAbsent( targetClass ) { key ->
-                key.enumConstants as Array<Enum<*>>
+            return (enumCache.getOrPut( targetClass ) { ->
+                targetClass.enumConstants as Array<Enum<*>>
             })[ord] as K
         }
     }
