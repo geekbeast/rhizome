@@ -143,7 +143,7 @@ class PostgresIterator<T> @Throws(SQLException::class)
         executor.execute {
             while (rsh.isOpen) {
                 if (System.currentTimeMillis() > expiration || !notExhausted) {
-                    logger.info("BasePostgresIterable is closing because it has expired, even though it is not exhausted.")
+                    logger.info("PostgresIterator is closing because it has expired, even though it is not exhausted.")
                     rsh.close()
                 } else {
                     try {
