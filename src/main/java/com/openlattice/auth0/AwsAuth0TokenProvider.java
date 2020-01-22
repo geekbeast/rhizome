@@ -21,7 +21,6 @@
 package com.openlattice.auth0;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
 
 import com.auth0.client.auth.AuthAPI;
