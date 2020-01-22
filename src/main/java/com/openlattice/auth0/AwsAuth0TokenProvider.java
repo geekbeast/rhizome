@@ -26,39 +26,37 @@ import com.auth0.json.auth.TokenHolder;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.openlattice.authentication.Auth0Configuration;
-
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AwsAuth0TokenProvider implements Auth0TokenProvider {
     private static final int RETRY_MILLIS = 30000;
 
-    private final AuthAPI                             auth0Api;
-    private final String                              managementApiUrl;
-    private final Supplier<String>                    tokenUpdater;
-    private       java.util.function.Supplier<String> token;
+    private final AuthAPI          auth0Api;
+    private final String           managementApiUrl;
+    private final Supplier<String> token;
+    private final Lock             tokenLock = new ReentrantLock();
 
 
     AwsAuth0TokenProvider( AuthAPI auth0Api, Auth0Configuration auth0Configuration ) {
         this.auth0Api = auth0Api;
         this.managementApiUrl = auth0Configuration.getManagementApiUrl();
 
-        tokenUpdater = () ->
-        {
+        token = () -> {
             try {
-                TokenHolder holder = auth0Api.requestToken( managementApiUrl ).execute();
-                long expiresInMillis = ( holder.getExpiresIn() * 1000 ) / 2;
-                token = Suppliers.memoizeWithExpiration( getTokenUpdater(), expiresInMillis, TimeUnit.MILLISECONDS );
-                return holder.getAccessToken();
+                final var tokenHolder = auth0Api.requestToken( managementApiUrl ).execute();;
+                long expiresInMillis = ( tokenHolder.getExpiresIn() * 1000 ) / 2;
+                tokenLock.lock();
+                token = Suppliers.memoizeWithExpiration( this, expiresInMillis, TimeUnit.MILLISECONDS );
+                return tokenHolder.getAccessToken();
+
             } catch ( Auth0Exception e ) {
-                token = Suppliers.memoizeWithExpiration( getTokenUpdater(), RETRY_MILLIS, TimeUnit.MILLISECONDS );
+                token = Suppliers.memoizeWithExpiration( token, RETRY_MILLIS, TimeUnit.MILLISECONDS );
                 return "";
             }
         };
-
-        // kick off the initial token request
-        tokenUpdater.get();
     }
-
 
     public AwsAuth0TokenProvider( Auth0Configuration auth0Configuration ) {
         this( new AuthAPI(
@@ -67,13 +65,11 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
                 auth0Configuration.getClientSecret()
         ), auth0Configuration );
     }
-    
+
+    private functio
+
     @Override public String getManagementApiUrl() {
         return managementApiUrl;
-    }
-
-    private Supplier<String> getTokenUpdater() {
-        return tokenUpdater;
     }
 
     @Override public String getToken() {

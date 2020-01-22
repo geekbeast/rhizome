@@ -5,6 +5,7 @@ import com.auth0.json.auth.TokenHolder
 import com.auth0.net.AuthRequest
 import com.openlattice.authentication.Auth0Configuration
 import org.apache.commons.lang3.RandomStringUtils
+import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.*
@@ -23,8 +24,9 @@ class AwsAuth0TokenProviderTest {
         val tokenHolder = Mockito.mock(TokenHolder::class.java)
 
         Mockito.`when`(tokenHolder.accessToken).then { RandomStringUtils.random(10) }
+        Mockito.`when`(tokenHolder.expiresIn).thenReturn(60 )
         Mockito.`when`(authRequest.execute()).thenReturn(tokenHolder)
-        Mockito.`when`(auth0Api.requestToken(audience)).thenReturn(authRequest)
+        Mockito.`when`(auth0Api.requestToken(managementApiUrl)).thenReturn(authRequest)
 
         val tokenProvider = AwsAuth0TokenProvider(auth0Api, Auth0Configuration(
                 audience,
@@ -34,6 +36,16 @@ class AwsAuth0TokenProviderTest {
                 Optional.empty(),
                 managementApiUrl
         ))
+
+        val v1 = tokenProvider.token
+        val v2 = tokenProvider.token
+        val v3 = tokenProvider.token
+        Thread.sleep(200);
+        val v4 = tokenProvider.token
+        val v5 = tokenProvider.token
+
+        Assert.assertTrue( v1==v2 )
+        Assert.assertTrue( v1!=v3 )
     }
 
 

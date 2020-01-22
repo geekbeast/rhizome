@@ -49,6 +49,7 @@ public class AuthenticationTest {
             clientId,
             clientSecret,
             ImmutableSet.of( authConfiguration ),
+            Optional.empty(),
             managementApiUrl );
     private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
     private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;
