@@ -37,13 +37,9 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
     private final Supplier<String>                    tokenUpdater;
     private       java.util.function.Supplier<String> token;
 
-    public AwsAuth0TokenProvider( Auth0Configuration auth0Configuration ) {
-        this.auth0Api = new AuthAPI(
-                auth0Configuration.getDomain(),
-                auth0Configuration.getClientId(),
-                auth0Configuration.getClientSecret()
-        );
 
+    AwsAuth0TokenProvider( AuthAPI auth0Api, Auth0Configuration auth0Configuration ) {
+        this.auth0Api = auth0Api;
         this.managementApiUrl = auth0Configuration.getManagementApiUrl();
 
         tokenUpdater = () ->
@@ -63,6 +59,15 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
         tokenUpdater.get();
     }
 
+
+    public AwsAuth0TokenProvider( Auth0Configuration auth0Configuration ) {
+        this( new AuthAPI(
+                auth0Configuration.getDomain(),
+                auth0Configuration.getClientId(),
+                auth0Configuration.getClientSecret()
+        ), auth0Configuration );
+    }
+    
     @Override public String getManagementApiUrl() {
         return managementApiUrl;
     }
