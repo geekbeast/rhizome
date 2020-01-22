@@ -45,11 +45,14 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
         this.auth0Api = auth0Api;
         this.managementApiUrl = auth0Configuration.getManagementApiUrl();
 
-        final var th = checkNotNull( getUpdatedTokenHolder(), "Token holder cannot be null." );
+        final var th = getUpdatedTokenHolder();
 
-        token = memoizeWithExpiration( th::getAccessToken,
-                getExpirationInMillis( th.getExpiresIn() ),
-                TimeUnit.MILLISECONDS );
+        //This avoids having to make another call for token after initial constuction
+        if( th != null ) {
+            token = memoizeWithExpiration( th::getAccessToken,
+                    getExpirationInMillis( th.getExpiresIn() ),
+                    TimeUnit.MILLISECONDS );
+        }
     }
 
     public AwsAuth0TokenProvider( Auth0Configuration auth0Configuration ) {
