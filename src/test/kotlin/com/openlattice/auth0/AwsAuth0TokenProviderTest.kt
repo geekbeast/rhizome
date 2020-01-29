@@ -9,13 +9,16 @@ import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class AwsAuth0TokenProviderTest {
-    @Test
+    @Test(timeout = 2000)
+    // timeout means deadlock in something
     fun testMemoization() {
         val managementApiUrl =  RandomStringUtils.random(10)
         val audience = RandomStringUtils.random(10)
@@ -27,15 +30,19 @@ class AwsAuth0TokenProviderTest {
         Mockito.`when`(tokenHolder.expiresIn).thenReturn(1 )
         Mockito.`when`(authRequest.execute()).thenReturn(tokenHolder)
         Mockito.`when`(auth0Api.requestToken(managementApiUrl)).thenReturn(authRequest)
-
-        val tokenProvider = AwsAuth0TokenProvider(auth0Api, Auth0Configuration(
-                audience,
-                RandomStringUtils.random(10),
-                RandomStringUtils.random(10),
-                setOf(),
-                Optional.empty(),
-                managementApiUrl
-        ))
+        val exec = Executors.newCachedThreadPool()
+        // construct the token provider on another thread in case there's a bug.
+        val tokenProvider = exec.submit(Callable<AwsAuth0TokenProvider> {
+            AwsAuth0TokenProvider(auth0Api, Auth0Configuration(
+                    audience,
+                    RandomStringUtils.random(10),
+                    RandomStringUtils.random(10),
+                    setOf(),
+                    Optional.empty(),
+                    managementApiUrl
+            ))
+        }).get()
+        exec.shutdownNow()
 
         val v1 = tokenProvider.token
         val v2 = tokenProvider.token
@@ -45,6 +52,4 @@ class AwsAuth0TokenProviderTest {
         Assert.assertTrue( v1==v2 )
         Assert.assertTrue( v1!=v3 )
     }
-
-
 }
