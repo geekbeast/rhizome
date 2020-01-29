@@ -20,17 +20,18 @@
 
 package com.openlattice.auth0;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Suppliers.memoizeWithExpiration;
-
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
 import com.google.common.base.Supplier;
 import com.openlattice.authentication.Auth0Configuration;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Suppliers.memoizeWithExpiration;
 
 public class AwsAuth0TokenProvider implements Auth0TokenProvider {
     private static final int RETRY_MILLIS = 30000;
@@ -66,7 +67,6 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
         tokenLock.lock();
         try {
             final var tokenHolder = auth0Api.requestToken( managementApiUrl ).execute();
-            tokenLock.lock();
             token = memoizeWithExpiration( this::getUpdatedToken,
                     getExpirationInMillis( tokenHolder.getExpiresIn() ),
                     TimeUnit.SECONDS );
