@@ -1,9 +1,7 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
-import com.openlattice.retrofit.RhizomeByteConverterFactory;
-import com.openlattice.retrofit.RhizomeCallAdapterFactory;
-import com.openlattice.retrofit.RhizomeJacksonConverterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
@@ -11,12 +9,14 @@ import com.google.common.base.Optional;
 import com.google.common.net.HttpHeaders;
 import com.kryptnostic.rhizome.core.Cutting;
 import com.kryptnostic.rhizome.core.Rhizome;
+import com.kryptnostic.rhizome.pods.ConfigurationLoaderPod;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
 import com.openlattice.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
-import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
+import com.openlattice.retrofit.RhizomeByteConverterFactory;
+import com.openlattice.retrofit.RhizomeCallAdapterFactory;
+import com.openlattice.retrofit.RhizomeJacksonConverterFactory;
 import com.openlattice.retrofit.RhizomeRetrofitCallException;
-import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.apache.commons.lang3.RandomUtils;
@@ -32,6 +32,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import retrofit2.Retrofit;
+
+import java.io.IOException;
 
 public class RhizomeTests {
     public static final byte[] TEST_BYTES = RandomUtils.nextBytes( 1 << 12 );
@@ -108,6 +110,7 @@ public class RhizomeTests {
     public static void plant() throws Exception {
         final String jwtToken = (String) AuthenticationTest.authenticate().getCredentials();
         rhizome = new Rhizome(
+                ConfigurationLoaderPod.class,
                 Auth0Pod.class,
                 Auth0SecurityTestPod.class,
                 DispatcherServletsPod.class,
