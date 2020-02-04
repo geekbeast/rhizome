@@ -1,13 +1,5 @@
 package com.kryptnostic.rhizome.configuration.service;
 
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -18,6 +10,13 @@ import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
+import com.kryptnostic.rhizome.pods.ConfigurationLoader;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
 
 public class RhizomeConfigurationService extends AbstractYamlConfigurationService implements
         MessageListener<Object> {
@@ -26,12 +25,15 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
 
     protected final IMap<ConfigurationKey, String> configurations;
     protected final ITopic<Object>                 configurationsTopic;
+    protected final ConfigurationLoader            configurationLoader;
 
     public RhizomeConfigurationService(
-            IMap<ConfigurationKey, String> configurations,
             ITopic<Object> configurationsTopic,
+            IMap<ConfigurationKey, String> configurations,
+            ConfigurationLoader configurationLoader,
             AsyncEventBus configurationUpdates ) {
         super( configurationUpdates );
+        this.configurationLoader = configurationLoader;
         this.configurationsTopic = configurationsTopic;
         this.configurations = Preconditions.checkNotNull( configurations, "Configurations map cannot be null." );
         configurationsTopic.addMessageListener( this );
@@ -74,7 +76,9 @@ public class RhizomeConfigurationService extends AbstractYamlConfigurationServic
 
         if ( s == null ) {
             logger.debug( "Configuration key {} value unavailable. Attempting to load from disk.", key );
-            s = ConfigurationService.StaticLoader.loadConfigurationFromResource( key, clazz );
+
+            s = configurationLoader.load( clazz );
+
         } else {
             return s;
         }

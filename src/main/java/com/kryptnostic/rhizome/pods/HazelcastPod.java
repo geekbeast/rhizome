@@ -1,6 +1,7 @@
 package com.kryptnostic.rhizome.pods;
 
 import com.geekbeast.hazelcast.HazelcastClientProvider;
+import com.geekbeast.rhizome.async.Synapse;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.AsyncEventBus;
 import com.hazelcast.client.HazelcastClient;
@@ -12,7 +13,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.web.WebFilter;
-import com.geekbeast.rhizome.async.Synapse;
 import com.kryptnostic.rhizome.configuration.ConfigurationConstants;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
@@ -51,6 +51,9 @@ public class HazelcastPod {
 
     @Inject
     private SerializationConfig serializationConfig;
+
+    @Inject
+    private ConfigurationLoader configurationLoader;
 
     @Bean
     public HazelcastInstance hazelcastInstance() {
@@ -98,7 +101,7 @@ public class HazelcastPod {
 
     @Bean
     public ConfigurationService configurationService() {
-        return new RhizomeConfigurationService( configurations(), configTopic(), dendrite );
+        return new RhizomeConfigurationService( configTopic(), configurations(), configurationLoader, dendrite );
     }
 
     @Bean
