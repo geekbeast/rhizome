@@ -5,9 +5,10 @@ public final class ConfigurationConstants {
     }
 
     public static final class Profiles {
-        public static final String AWS_CONFIGURATION_PROFILE   = "aws";
-        public static final String AWS_TESTING_PROFILE         = "awstest";
-        public static final String LOCAL_CONFIGURATION_PROFILE = "local";
+        public static final String AWS_CONFIGURATION_PROFILE        = "aws";
+        public static final String AWS_TESTING_PROFILE              = "awstest";
+        public static final String LOCAL_CONFIGURATION_PROFILE      = "local";
+        public static final String KUBERNETES_CONFIGURATION_PROFILE = "kubernetes";
 
         private Profiles() {
         }
