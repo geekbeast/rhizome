@@ -12,11 +12,6 @@ import com.google.common.io.Resources;
 public final class Keystores {
     private Keystores() {}
 
-    public static KeyStore loadKeystoreFromResource( String resource, char[] password ) throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException {
-        return loadKeystoreFromStream( Resources.getResource( resource ).openStream(), password );
-    }
-
     public static KeyStore loadKeystoreFromStream( InputStream in, char[] password )
             throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException {
         KeyStore ks = KeyStore.getInstance( "JKS" );
