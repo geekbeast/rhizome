@@ -136,7 +136,7 @@ public class SetStreamSerializers {
         return items;
     }
 
-    public static LinkedHashSet<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
+    public static LinkedHashSet<String> fastOrderedStringSetDeserializeFromArray( ObjectDataInput in ) throws IOException {
         final var arr = in.readUTFArray();
         return new LinkedHashSet<>( Arrays.asList( arr ) );
     }
