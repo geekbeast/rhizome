@@ -101,4 +101,20 @@ public enum PostgresDatatype {
                 return ARRAY_TYPES.contains( this ) ? name().replace( "_ARRAY", "[]" ) : name();
         }
     }
+
+    public static PostgresDatatype getEnum(String dataTypeInput ) {
+        switch ( dataTypeInput ) {
+            case "TIME WITHOUT TIME ZONE":
+                return TIME;
+            case "TIME WITH TIME ZONE":
+                return TIMETZ;
+            case "DOUBLE PRECISION":
+                return DOUBLE;
+            case "DOUBLE PRECISION[]":
+                return DOUBLE_ARRAY;
+            default:
+                return PostgresDatatype.valueOf( dataTypeInput );
+        }
+
+    }
 }
