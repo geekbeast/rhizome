@@ -21,12 +21,12 @@
 
 package com.openlattice.auth0;
 
-import com.google.common.base.Supplier;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public interface Auth0TokenProvider {
     String getManagementApiUrl();
+
     String getToken();
 }
