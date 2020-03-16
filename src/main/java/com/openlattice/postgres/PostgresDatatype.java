@@ -66,6 +66,7 @@ public enum PostgresDatatype {
     DATE, DATE_ARRAY,
     TIME, TIME_ARRAY,
     TIMETZ, TIMETZ_ARRAY,
+    TIMESTAMP,
     TIMESTAMPTZ, TIMESTAMPTZ_ARRAY,
     UUID, UUID_ARRAY, UUID_ARRAY_ARRAY,
     TEXT, TEXT_ARRAY,
@@ -114,6 +115,8 @@ public enum PostgresDatatype {
                 return DOUBLE_ARRAY;
             case "TIMESTAMP WITH TIME ZONE":
                 return TIMESTAMPTZ;
+            case "TIMESTAMP WITHOUT TIME ZONE":
+                return TIMESTAMP;
             default:
                 return PostgresDatatype.valueOf( dataTypeInput );
         }
