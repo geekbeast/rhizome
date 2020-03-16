@@ -112,6 +112,8 @@ public enum PostgresDatatype {
                 return DOUBLE;
             case "DOUBLE PRECISION[]":
                 return DOUBLE_ARRAY;
+            case "TIMESTAMP WITH TIME ZONE":
+                return TIMESTAMPTZ;
             default:
                 return PostgresDatatype.valueOf( dataTypeInput );
         }
