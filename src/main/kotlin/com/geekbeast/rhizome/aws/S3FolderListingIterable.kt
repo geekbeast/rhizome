@@ -34,15 +34,9 @@ class S3FolderIterator<T> @JvmOverloads constructor(
         mapper: (String) -> T
 ) : S3ListingIterator<T>(s3, bucket, folderPrefix, maxKeys, delimiter, mapper) {
 
-    override fun getBufferLength(): Int {
-        return result.commonPrefixes.size
-    }
+    override fun getBufferLength(): Int = result.commonPrefixes.size
 
-    override fun trimElement(nextElem: String): String {
-        return nextElem.removePrefix(folderPrefix).removeSuffix(delimiter)
-    }
+    override fun trimElement(nextElem: String) = nextElem.removePrefix(folderPrefix).removeSuffix(delimiter)
 
     override fun getElement(index: Int): String = result.commonPrefixes[index]
-
-
 }
