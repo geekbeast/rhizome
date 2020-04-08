@@ -29,59 +29,23 @@ class S3FolderListingIterable<T>(
  * This class will list
  */
 class S3FolderIterator<T> @JvmOverloads constructor(
-        private val s3: AmazonS3,
-        private val bucket: String,
-        private val folderPrefix: String,
-        private val maxKeys: Int = 1000,
-        private val delimiter: String = "/",
-        private val mapper: (String) -> T
-) : Iterator<T> {
-    private val lock = ReentrantLock()
-    private var continuationToken: String? = null
-    private var result = getNextListing()
-    private var index = 0
+        s3: AmazonS3,
+        bucket: String,
+        folderPrefix: String,
+        maxKeys: Int = 1000,
+        delimiter: String = "/",
+        mapper: (String) -> T
+) : S3ListingIterator<T>(s3, bucket, folderPrefix, maxKeys, delimiter, mapper) {
 
-    init {
-        continuationToken = result.nextContinuationToken
+    override fun getBufferLength(): Int {
+        return result.commonPrefixes.size
     }
 
-    override fun next(): T {
-        val nextElem = try {
-            lock.lock()
-            require(hasNext()) { "No element available." }
-            if (index == result.commonPrefixes.size) {
-                result = getNextListing()
-                continuationToken =  result.nextContinuationToken
-                index = 0
-            }
-            result.commonPrefixes[index++]
-        } finally {
-            lock.unlock()
-        }
-
-        return mapper(nextElem.removePrefix(folderPrefix).removeSuffix(delimiter))
+    override fun trimElement(nextElem: String): String {
+        return nextElem.removePrefix(folderPrefix).removeSuffix(delimiter)
     }
 
-    override fun hasNext(): Boolean {
-        return try {
-            lock.lock()
-            (index < result.commonPrefixes.size) || (continuationToken != null)
-        } finally {
-            lock.unlock()
-        }
-    }
+    override fun getElement(index: Int): String = result.commonPrefixes[index]
 
-    private fun getNextListing(): ListObjectsV2Result {
-        val request = ListObjectsV2Request()
-                .withBucketName(bucket)
-                .withPrefix(folderPrefix)
-                .withDelimiter(delimiter)
-                .withMaxKeys(maxKeys)
 
-        if (continuationToken != null) {
-            request.continuationToken = continuationToken
-        }
-
-        return s3.listObjectsV2(request)
-    }
 }
