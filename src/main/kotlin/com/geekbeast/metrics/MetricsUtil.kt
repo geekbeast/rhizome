@@ -3,10 +3,8 @@ package com.geekbeast.metrics
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.Timer
-import com.geekbeast.util.log
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
 
 /**
  * Extension functions for metric registry to make it easy to time and log operations.
