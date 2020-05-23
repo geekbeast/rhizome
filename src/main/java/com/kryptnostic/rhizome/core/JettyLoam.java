@@ -86,7 +86,7 @@ public class JettyLoam implements Loam {
          */
 
         classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
-                "com.kryptnostic.rhizome.core.JettyAnnotationConfigurationWorkaround");
+                "com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround");
 
         //This would enable standard AnnotationConfiguration processing by Jetty
         //classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
