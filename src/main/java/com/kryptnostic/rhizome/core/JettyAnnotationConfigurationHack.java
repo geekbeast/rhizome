@@ -36,7 +36,7 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
     @Override
     public void createServletContainerInitializerAnnotationHandlers(
             WebAppContext context,
-            List<ServletContainerInitializer> scis ) throws Exception {
+            List<ServletContainerInitializer> scis ) {
         if ( scis == null || scis.isEmpty() ) return; // nothing to do
 
         final List<ContainerInitializer> initializers = new ArrayList<>();
