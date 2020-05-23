@@ -158,23 +158,37 @@ public class JettyLoam implements Loam {
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
 
-            HttpConfiguration https_config = new HttpConfiguration( http_config );
+            final HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );
 
-            final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( http_config );
-            final var alpnServerConnectionFactory = new ALPNServerConnectionFactory();
-            alpnServerConnectionFactory.setDefaultProtocol( "h2" );
+            final ServerConnector ssl;
+            final SslConnectionFactory connectionFactory;
 
-            SslConnectionFactory connectionFactory = new SslConnectionFactory(
-                    contextFactory,
-                    alpnServerConnectionFactory.getProtocol() );
+            if( configuration.isHttp2Enabled() ) {
+                final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( http_config );
+                final var alpnServerConnectionFactory = new ALPNServerConnectionFactory();
+                alpnServerConnectionFactory.setDefaultProtocol( "h2" );
 
-            ServerConnector ssl = new ServerConnector(
-                    server,
-                    connectionFactory,
-                    alpnServerConnectionFactory,
-                    http2ServerConnectionFactory,
-                    new HttpConnectionFactory( https_config ) );
+                connectionFactory = new SslConnectionFactory(
+                        contextFactory,
+                        alpnServerConnectionFactory.getProtocol() );
+
+                ssl = new ServerConnector(
+                        server,
+                        connectionFactory,
+                        alpnServerConnectionFactory,
+                        http2ServerConnectionFactory,
+                        new HttpConnectionFactory( https_config ) );
+            } else {
+                connectionFactory = new SslConnectionFactory(
+                        contextFactory,
+                        "http/1.1" );
+
+                ssl = new ServerConnector(
+                        server,
+                        connectionFactory,
+                        new HttpConnectionFactory( https_config ) );
+            }
 
             // Jetty needs this twice, straight for the Jetty samples
             ssl.setPort( configuration.getHttpsPort() );

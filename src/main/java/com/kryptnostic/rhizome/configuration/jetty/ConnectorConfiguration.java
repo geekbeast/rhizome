@@ -28,7 +28,7 @@ public class ConnectorConfiguration {
     protected static final boolean WANT_CLIENT_AUTH_DEFAULT = false;
     protected static final boolean USE_SSL_DEFAULT          = false;
     protected static final boolean REQUIRE_SSL_DEFAULT      = false;
-    protected static final boolean HTTP2_ENABLED_DEFAULT    = false;
+    protected static final boolean HTTP2_ENABLED_DEFAULT    = true;
 
     protected final boolean          needClientAuth;
     protected final boolean          wantClientAuth;
