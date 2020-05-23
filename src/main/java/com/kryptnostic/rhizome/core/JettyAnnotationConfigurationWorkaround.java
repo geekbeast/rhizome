@@ -1,19 +1,11 @@
 package com.kryptnostic.rhizome.core;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContainerInitializer;
-import javax.servlet.annotation.HandlesTypes;
-
 
 import org.eclipse.jetty.annotations.AnnotationConfiguration;
-import org.eclipse.jetty.annotations.ClassInheritanceHandler;
-import org.eclipse.jetty.annotations.ContainerInitializerAnnotationHandler;
-import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
 import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
@@ -25,8 +17,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
  * 
  * @author Matthew Tamayo-Rios
  */
-public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
-    private static final Logger       LOG                    = Log.getLogger( JettyAnnotationConfigurationHack.class );
+public class JettyAnnotationConfigurationWorkaround extends AnnotationConfiguration {
+    private static final Logger       LOG                    = Log.getLogger( JettyAnnotationConfigurationWorkaround.class );
     private static final List<String> additionalInitializers = Lists.newArrayList();
 
     static {
