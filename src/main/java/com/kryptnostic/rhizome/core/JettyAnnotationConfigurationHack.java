@@ -37,65 +37,9 @@ public class JettyAnnotationConfigurationHack extends AnnotationConfiguration {
     public void createServletContainerInitializerAnnotationHandlers(
             WebAppContext context,
             List<ServletContainerInitializer> scis ) {
-        if ( scis == null || scis.isEmpty() ) return; // nothing to do
-
-        final List<ContainerInitializer> initializers = new ArrayList<>();
-        context.setAttribute( CONTAINER_INITIALIZERS, initializers );
-
-        for ( ServletContainerInitializer service : scis ) {
-            HandlesTypes annotation = service.getClass().getAnnotation( HandlesTypes.class );
-            ContainerInitializer initializer = null;
-            if ( annotation != null ) {
-                // There is a HandlesTypes annotation on the on the ServletContainerInitializer
-                Class<?>[] classes = annotation.value();
-                if ( classes != null ) {
-                    initializer = new ContainerInitializer( service, classes );
-                    /*
-                     * Add custom initializer as a work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176
-                     */
-                    for ( String t : additionalInitializers ) {
-                        initializer.addApplicableTypeName( t );
-                    }
-                    // If we haven't already done so, we need to register a handler that will
-                    // process the whole class hierarchy to satisfy the ServletContainerInitializer
-                    if ( context.getAttribute( CLASS_INHERITANCE_MAP ) == null ) {
-                        // MultiMap<String> map = new MultiMap<>();
-                        ConcurrentHashMap<String, Set<String>> map = new ClassInheritanceMap();
-                        context.setAttribute( CLASS_INHERITANCE_MAP, map );
-                        _classInheritanceHandler = new ClassInheritanceHandler( map );
-                    }
-
-                    for ( Class<?> c : classes ) {
-                        // The value of one of the HandlesTypes classes is actually an Annotation itself so
-                        // register a handler for it
-                        if ( c.isAnnotation() ) {
-                            if ( LOG.isDebugEnabled() )
-                                LOG.debug( "Registering annotation handler for " + c.getName() );
-                            _containerInitializerAnnotationHandlers.add( new ContainerInitializerAnnotationHandler(
-                                    initializer,
-                                    c ) );
-                        }
-                    }
-                } else {
-                    initializer = new ContainerInitializer( service, null );
-                    if ( LOG.isDebugEnabled() )
-                        LOG.debug( "No classes in HandlesTypes on initializer " + service.getClass() );
-                }
-            } else {
-                initializer = new ContainerInitializer( service, null );
-                if ( LOG.isDebugEnabled() ) LOG.debug( "No annotation on initializer " + service.getClass() );
-            }
-
-            initializers.add( initializer );
-        }
-
-        // add a bean to the context which will call the servletcontainerinitializers when appropriate
-        ServletContainerInitializersStarter starter = (ServletContainerInitializersStarter) context
-                .getAttribute( CONTAINER_INITIALIZER_STARTER );
-        if ( starter != null ) throw new IllegalStateException( "ServletContainerInitializersStarter already exists" );
-        starter = new ServletContainerInitializersStarter( context );
-        context.setAttribute( CONTAINER_INITIALIZER_STARTER, starter );
-        context.addBean( starter, true );
+        super.createServletContainerInitializerAnnotationHandlers( context, scis );
+        final List<ContainerInitializer> initializers = (List<ContainerInitializer>) context.getAttribute( CONTAINER_INITIALIZERS );
+        initializers.forEach( initializer -> additionalInitializers.forEach( initializer::addApplicableTypeName ) );
     }
 
     public static void registerInitializer( String className ) {
