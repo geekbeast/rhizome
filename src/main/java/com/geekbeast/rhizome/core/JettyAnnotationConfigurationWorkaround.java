@@ -1,6 +1,7 @@
-package com.kryptnostic.rhizome.core;
+package com.geekbeast.rhizome.core;
 
 import com.google.common.collect.Lists;
+import com.kryptnostic.rhizome.core.Rhizome;
 import java.util.List;
 
 import javax.servlet.ServletContainerInitializer;

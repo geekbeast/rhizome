@@ -22,7 +22,7 @@ package com.openlattice.auth0;
 
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.spring.security.api.JwtWebSecurityConfigurer;
-import com.kryptnostic.rhizome.core.JettyAnnotationConfigurationWorkaround;
+import com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround;
 import com.kryptnostic.rhizome.core.RhizomeSecurity;
 import com.openlattice.authentication.Auth0AuthenticationConfiguration;
 import com.openlattice.authentication.Auth0Configuration;

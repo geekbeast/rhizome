@@ -1,5 +1,6 @@
 package com.kryptnostic.rhizome.core;
 
+import com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
@@ -25,7 +26,6 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.Configuration.ClassList;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
