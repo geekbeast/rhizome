@@ -22,7 +22,7 @@ package com.openlattice.auth0;
 
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.spring.security.api.JwtWebSecurityConfigurer;
-import com.kryptnostic.rhizome.core.JettyAnnotationConfigurationHack;
+import com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround;
 import com.kryptnostic.rhizome.core.RhizomeSecurity;
 import com.openlattice.authentication.Auth0AuthenticationConfiguration;
 import com.openlattice.authentication.Auth0Configuration;
@@ -51,7 +51,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
 
     static {
-        JettyAnnotationConfigurationHack.registerInitializer( RhizomeSecurity.class.getCanonicalName() );
+        JettyAnnotationConfigurationWorkaround.registerInitializer( RhizomeSecurity.class.getCanonicalName() );
     }
 
     @Inject

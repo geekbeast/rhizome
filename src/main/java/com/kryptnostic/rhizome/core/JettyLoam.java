@@ -1,14 +1,18 @@
 package com.kryptnostic.rhizome.core;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround;
 import com.kryptnostic.rhizome.configuration.amazon.AmazonLaunchConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ConnectorConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.GzipConfiguration;
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
 import com.kryptnostic.rhizome.configuration.service.ConfigurationService;
+import java.io.IOException;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -22,23 +26,21 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.Configuration.ClassList;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.Optional;
-
 public class JettyLoam implements Loam {
-    private static final Logger                         logger = LoggerFactory.getLogger( JettyLoam.class );
-    protected final JettyConfiguration                  config;
-    private final Server                                server;
-    protected final Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration;
+    private static final String                              CLASSES = ".*/test-classes/.*,.*/classes/.*";
+    private static final Logger                              logger  = LoggerFactory.getLogger( JettyLoam.class );
+    protected final      JettyConfiguration                  config;
+    protected final      Optional<AmazonLaunchConfiguration> maybeAmazonLaunchConfiguration;
+    private final        Server                              server;
 
-    protected JettyLoam() throws JsonParseException, JsonMappingException, IOException {
+    protected JettyLoam() throws IOException {
         this( ConfigurationService.StaticLoader.loadConfiguration( JettyConfiguration.class ) );
     }
 
@@ -60,16 +62,9 @@ public class JettyLoam implements Loam {
             context.setParentLoaderPriority( contextConfig.isParentLoaderPriority() );
         }
 
-        /*
-         * Work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176 Probably need to report new bug as Jetty
-         * picks up the SpringContextInitializer, but cannot find Spring WebApplicationInitializer types, without the
-         * configuration hack.
-         */
-        JettyAnnotationConfigurationHack configurationHack = new JettyAnnotationConfigurationHack();
         if ( config.isSecurityEnabled() ) {
-            JettyAnnotationConfigurationHack.registerInitializer( RhizomeSecurity.class.getName() );
+            JettyAnnotationConfigurationWorkaround.registerInitializer( RhizomeSecurity.class.getName() );
         }
-        context.setConfigurations( new Configuration[] { configurationHack } );
 
         // TODO: Make loaded servlet classes configurable
         // context.addServlet( JspServlet.class, "*.jsp" );
@@ -78,10 +73,30 @@ public class JettyLoam implements Loam {
                 config.getMaxThreads(),
                 Math.min( config.getMaxThreads(), 100 ),
                 60000,
-                new BlockingArrayQueue<>( 6000 ));
+                new BlockingArrayQueue<>( 6000 ) );
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
-        server = new Server(threadPool);
+        server = new Server( threadPool );
 
+        final var classlist = ClassList.setServerDefault( server );
+
+        /*
+         * Work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176 Probably need to report new bug as
+         * as ContainerIncludeJarPattern seems to be working with limitations below. Continuing to use workaround
+         * due to finding less hacky way of doing implementing it.
+         */
+
+        classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                "com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround");
+
+        //This would enable standard AnnotationConfiguration processing by Jetty
+        //classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+        //        "org.eclipse.jetty.annotations.AnnotationConfiguration");
+
+        //This container jar pattern picks up the Rhizome servlet initializers, but not the RhizomeSecurity initializer
+        //context.setAttribute( "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*/classes/.*" );
+
+        //This container jar pattern picks up both Rhizome and RhizomeSecurity initializers, but does not allow filtering RhizomeSecurity initializer out
+        //context.setAttribute( "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*" );
 
         if ( config.getWebConnectorConfiguration().isPresent() ) {
             configureEndpoint( config.getWebConnectorConfiguration().get() );
@@ -112,18 +127,18 @@ public class JettyLoam implements Loam {
         this( ConfigurationService.StaticLoader.loadConfiguration( clazz ) );
     }
 
-    public static void main( String[] args ) throws Exception {
-        JettyLoam server = new JettyLoam();
-        server.start();
-        server.join();
-    }
-
     protected void configureEndpoint( ConnectorConfiguration configuration ) throws IOException {
         HttpConfiguration http_config = new HttpConfiguration();
 
         if ( !configuration.requireSSL() ) {
-            ServerConnector http = new ServerConnector( server, new HttpConnectionFactory( http_config ) );
+            final var http2CServerConnectionFactory = new HTTP2CServerConnectionFactory( http_config );
+            ServerConnector http = new ServerConnector( server,
+                    new HttpConnectionFactory( http_config ),
+                    http2CServerConnectionFactory
+            );
+
             http.setPort( configuration.getHttpPort() );
+
             server.addConnector( http );
         }
 
@@ -132,7 +147,7 @@ public class JettyLoam implements Loam {
             http_config.setSecureScheme( "https" );
             http_config.setSecurePort( configuration.getHttpsPort() );
 
-            SslContextFactory contextFactory = new SslContextFactory();
+            SslContextFactory contextFactory = new SslContextFactory.Server();
 
             configureSslStores( contextFactory );
             String certAlias = configuration.getCertificateAlias().orElse( "" );
@@ -143,18 +158,44 @@ public class JettyLoam implements Loam {
             contextFactory.setWantClientAuth( configuration.wantClientAuth() );
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
 
-            HttpConfiguration https_config = new HttpConfiguration( http_config );
+            final HttpConfiguration https_config = new HttpConfiguration( http_config );
             https_config.addCustomizer( new SecureRequestCustomizer() );
 
-            SslConnectionFactory connectionFactory = new SslConnectionFactory( contextFactory, "http/1.1" );
-            ServerConnector ssl = new ServerConnector( server, connectionFactory, new HttpConnectionFactory(
-                    https_config ) );
+            final ServerConnector ssl;
+            final SslConnectionFactory connectionFactory;
+
+            if( configuration.isHttp2Enabled() ) {
+                final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( http_config );
+                final var alpnServerConnectionFactory = new ALPNServerConnectionFactory();
+                alpnServerConnectionFactory.setDefaultProtocol( "h2" );
+
+                connectionFactory = new SslConnectionFactory(
+                        contextFactory,
+                        alpnServerConnectionFactory.getProtocol() );
+
+                ssl = new ServerConnector(
+                        server,
+                        connectionFactory,
+                        alpnServerConnectionFactory,
+                        http2ServerConnectionFactory,
+                        new HttpConnectionFactory( https_config ) );
+            } else {
+                connectionFactory = new SslConnectionFactory(
+                        contextFactory,
+                        "http/1.1" );
+
+                ssl = new ServerConnector(
+                        server,
+                        connectionFactory,
+                        new HttpConnectionFactory( https_config ) );
+            }
+
             // Jetty needs this twice, straight for the Jetty samples
             ssl.setPort( configuration.getHttpsPort() );
             server.addConnector( ssl );
         } else if ( ( configuration.requireSSL() || configuration.useSSL() )
                 && ( !config.getTruststoreConfiguration().isPresent()
-                        || !config.getKeystoreConfiguration().isPresent() ) ) {
+                || !config.getKeystoreConfiguration().isPresent() ) ) {
             logger.warn( "SSL Configuration is incomplete." );
         }
     }
@@ -197,6 +238,12 @@ public class JettyLoam implements Loam {
 
     @Override
     public synchronized void join() throws BeansException, InterruptedException {
+        server.join();
+    }
+
+    public static void main( String[] args ) throws Exception {
+        JettyLoam server = new JettyLoam();
+        server.start();
         server.join();
     }
 }

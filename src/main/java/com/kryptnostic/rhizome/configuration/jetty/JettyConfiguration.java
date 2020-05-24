@@ -13,41 +13,44 @@ import java.util.Optional;
 /**
  * @author Matthew Tamayo-Rios
  */
-@ReloadableConfiguration(uri="jetty.yaml")
+@ReloadableConfiguration( uri = "jetty.yaml" )
 public class JettyConfiguration implements Configuration {
-    private static final long                        serialVersionUID                        = 129440984814569272L;
+    protected static final String KEYMANAGER_PASSWORD_PROPERTY            = "keymanager-password";
+    protected static final String MAX_THREADS_PROPERTY                    = "max-threads";
+    protected static final String CONTEXT_CONFIGURATION_PROPERTY          = "context";
+    protected static final String KEYSTORE_CONFIGURATION_PROPERTY         = "keystore";
+    protected static final String TRUSTSTORE_CONFIGURATION_PROPERTY       = "truststore";
+    protected static final String WEB_ENDPOINT_CONFIGURATION_PROPERTY     = "web-endpoint";
+    protected static final String SERVICE_ENDPOINT_CONFIGURATION_PROPERTY = "service-endpoint";
+    protected static final String SECURITY_ENABLE_PROPERTY                = "security-enabled";
+    protected static final String GZIP_CONFIGURATION_PROPERTY             = "gzip";
+    protected static final String DEFAULT_SERVLET_ENABLED_PROPERTY        = "default-servlet-enabled";
 
-    protected static ConfigurationKey                key                                     = new SimpleConfigurationKey(
+    protected static final int     MAX_THREADS_DEFAULT             = 500;
+    protected static final boolean DEFAULT_SERVLET_ENABLED_DEFAULT = false;
+
+    private static final long serialVersionUID = 129440984814569272L;
+
+    protected static ConfigurationKey key = new SimpleConfigurationKey(
             "jetty.yaml" );
-
-    protected static final String                    KEYMANAGER_PASSWORD_PROPERTY            = "keymanager-password";
-    protected static final String                    MAX_THREADS_PROPERTY                    = "max-threads";
-    protected static final String                    CONTEXT_CONFIGURATION_PROPERTY          = "context";
-    protected static final String                    KEYSTORE_CONFIGURATION_PROPERTY         = "keystore";
-    protected static final String                    TRUSTSTORE_CONFIGURATION_PROPERTY       = "truststore";
-    protected static final String                    WEB_ENDPOINT_CONFIGURATION_PROPERTY     = "web-endpoint";
-    protected static final String                    SERVICE_ENDPOINT_CONFIGURATION_PROPERTY = "service-endpoint";
-    protected static final String                    SECURITY_ENABLE_PROPERTY                = "security-enabled";
-    protected static final String                    GZIP_CONFIGURATION_PROPERTY             = "gzip";
-    protected static final String                    DEFAULT_SERVLET_ENABLED_PROPERTY        = "default-servlet-enabled";
-    protected static final int                       MAX_THREADS_DEFAULT                     = 500;
-    protected static final boolean                   DEFAULT_SERVLET_ENABLED_DEFAULT         = false;
 
     protected final Optional<String>                 keymanagerPassword;
     protected final int                              maxThreads;
-    protected final boolean                               securityEnabled;
-    protected final boolean                               defaultServletEnabled;
-    protected final Optional<ConnectorConfiguration>      webConnectorConfiguration;
-    protected final Optional<ConnectorConfiguration>      serviceConnectorConfiguration;
-    protected final Optional<ContextConfiguration>        contextConfiguration;
-    protected final Optional<KeystoreConfiguration>       keystoreConfiguration;
-    protected final Optional<KeystoreConfiguration>       truststoreConfiguration;
-    protected final Optional<GzipConfiguration> gzipConfiguration;
+    protected final boolean                          securityEnabled;
+    protected final boolean                          defaultServletEnabled;
+    protected final Optional<ConnectorConfiguration> webConnectorConfiguration;
+    protected final Optional<ConnectorConfiguration> serviceConnectorConfiguration;
+    protected final Optional<ContextConfiguration>   contextConfiguration;
+    protected final Optional<KeystoreConfiguration>  keystoreConfiguration;
+    protected final Optional<KeystoreConfiguration>  truststoreConfiguration;
+    protected final Optional<GzipConfiguration>      gzipConfiguration;
 
     @JsonCreator
     public JettyConfiguration(
-            @JsonProperty( WEB_ENDPOINT_CONFIGURATION_PROPERTY ) Optional<ConnectorConfiguration> webConnectorConfiguration,
-            @JsonProperty( SERVICE_ENDPOINT_CONFIGURATION_PROPERTY ) Optional<ConnectorConfiguration> serviceConnectorConfiguration,
+            @JsonProperty( WEB_ENDPOINT_CONFIGURATION_PROPERTY )
+                    Optional<ConnectorConfiguration> webConnectorConfiguration,
+            @JsonProperty( SERVICE_ENDPOINT_CONFIGURATION_PROPERTY )
+                    Optional<ConnectorConfiguration> serviceConnectorConfiguration,
             @JsonProperty( MAX_THREADS_PROPERTY ) Optional<Integer> maxThreads,
             @JsonProperty( DEFAULT_SERVLET_ENABLED_PROPERTY ) Optional<Boolean> defaultServletEnabled,
             @JsonProperty( KEYMANAGER_PASSWORD_PROPERTY ) Optional<String> keymanagerPassword,
@@ -69,10 +72,6 @@ public class JettyConfiguration implements Configuration {
         this.gzipConfiguration = gzipConfiguration;
         this.securityEnabled = securityEnabled.orElse( false );
         this.defaultServletEnabled = defaultServletEnabled.orElse( DEFAULT_SERVLET_ENABLED_DEFAULT );
-    }
-
-    public static ConfigurationKey key() {
-        return key;
     }
 
     @Override
@@ -129,6 +128,10 @@ public class JettyConfiguration implements Configuration {
     @JsonProperty( MAX_THREADS_PROPERTY )
     public int getMaxThreads() {
         return maxThreads;
+    }
+
+    public static ConfigurationKey key() {
+        return key;
     }
 
 }

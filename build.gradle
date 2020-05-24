@@ -253,6 +253,8 @@ dependencies {
     compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
     compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
+    compile "org.eclipse.jetty:jetty-alpn-java-server:${jetty_version}"
+    compile "org.eclipse.jetty.http2:http2-server:${jetty_version}"
 
     compile "io.netty:netty-transport-native-epoll:${netty_epoll_version}:${netty_os_arch}"
 
@@ -316,6 +318,16 @@ dependencies {
     compile "com.auth0:auth0:${project.auth0_version}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+}
+
+tasks.withType(Test) {
+    jvmArgs += [ "--add-modules", "java.se",
+                 "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
+                 "--add-opens","java.base/java.lang=ALL-UNNAMED",
+                 "--add-opens","java.base/java.nio=ALL-UNNAMED",
+                 "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
+                 "--add-opens","java.management/sun.management=ALL-UNNAMED",
+                 "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
 }
 
 eclipse {
