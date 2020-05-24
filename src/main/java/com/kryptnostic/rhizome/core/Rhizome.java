@@ -299,7 +299,7 @@ public class Rhizome implements WebApplicationInitializer {
     static void showBannerIfStartedOrExit( AbstractApplicationContext context ) {
         checkState( context.isRunning(), "Application context is not running." );
         checkState( context.isActive(), "Application context is not active." );
-        checkState( startupRequirementsSatisfied( context ), "Startup requiremetns have not been met." );
+        checkState( startupRequirementsSatisfied( context ), "Startup requirements have not been met." );
 
         showBanner();
     }
