@@ -3,6 +3,7 @@ package com.kryptnostic.rhizome.core;
 import com.hazelcast.core.HazelcastInstance;
 import com.kryptnostic.rhizome.hazelcast.serializers.RhizomeUtils.Pods;
 import com.kryptnostic.rhizome.pods.AsyncPod;
+import com.kryptnostic.rhizome.pods.ConfigurationLoaderPod;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
 import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
@@ -14,16 +15,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.kryptnostic.rhizome.core.Rhizome.shoot;
-import static com.kryptnostic.rhizome.core.Rhizome.showBannerIfStarted;
+import static com.kryptnostic.rhizome.core.Rhizome.showBannerIfStartedOrExit;
 
 public class RhizomeApplicationServer {
-    private final        AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();
-    private final        List<Class<?>>                     additionalPods = new ArrayList<>();
-    public static final  Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
+    public static final Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
             AsyncPod.class,
             ConfigurationPod.class,
+            ConfigurationLoaderPod.class,
             HazelcastPod.class,
             RegistryBasedHazelcastInstanceConfigurationPod.class };
+    private final       AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();
+    private final       List<Class<?>>                     additionalPods = new ArrayList<>();
 
     public RhizomeApplicationServer( Class<?>... pods ) {
         this( DEFAULT_PODS, pods );
@@ -45,7 +47,8 @@ public class RhizomeApplicationServer {
         }
         context.refresh();
 
-        showBannerIfStarted( context );
+        showBannerIfStartedOrExit( context );
+
     }
 
     public void plowUnder() {

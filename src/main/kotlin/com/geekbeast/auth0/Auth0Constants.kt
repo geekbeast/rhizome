@@ -11,3 +11,13 @@ const val EMAIL_VERIFIED = "email_verified"
 const val NICKNAME = "nickname"
 const val APP_METADATA = "app_metadata"
 const val IDENTITIES = "identities"
+const val UPDATED_AT = "updated_at"
+
+/* Export job specific constants */
+const val FORMAT = "format"
+const val LIMIT = "limit"
+const val FIELDS = "fields"
+const val NAME = "name"
+const val STATUS = "status"
+const val ID = "id"
+const val LOCATION = "location"

@@ -1,14 +1,18 @@
 package com.kryptnostic.rhizome.core;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
+import com.geekbeast.rhizome.services.ServiceState;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.EventBus;
 import com.google.common.io.Resources;
 import com.hazelcast.web.SessionListener;
 import com.hazelcast.web.WebFilter;
@@ -51,7 +55,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * TODO: break out WebApplicationInitializer's onStartup to a different class because of Jetty issue
  */
 public class Rhizome implements WebApplicationInitializer {
-    protected static final Class<?>[]                            DEFAULT_SERVICE_PODS          = new Class<?>[] {
+    protected static final Class<?>[]                            REQUIRED_RHIZOME_PODS         = new Class<?>[] {
             ConfigurationPod.class,
             MetricsPod.class,
             AsyncPod.class };
@@ -60,8 +64,10 @@ public class Rhizome implements WebApplicationInitializer {
             .getLogger( Rhizome.class );
     private static final   String                                HAZELCAST_SESSION_FILTER_NAME = "hazelcastSessionFilter";
     protected static       AnnotationConfigWebApplicationContext rhizomeContext                = null;
-    protected final        AnnotationConfigWebApplicationContext context;
-    private                JettyLoam                             jetty;
+
+    protected final AnnotationConfigWebApplicationContext context;
+    private         JettyLoam                             jetty;
+    private         EventBus                              eventBus;
 
     public Rhizome() {
         this( new Class<?>[] {} );
@@ -100,6 +106,9 @@ public class Rhizome implements WebApplicationInitializer {
         RhizomeConfiguration configuration = rhizomeContext.getBean( RhizomeConfiguration.class );
         JettyConfiguration jettyConfiguration = rhizomeContext.getBean( JettyConfiguration.class );
 
+        /*
+         * Setup hazelcast to provide an IMap to back session storage.
+         */
         if ( configuration.isSessionClusteringEnabled() ) {
             FilterRegistration.Dynamic addFilter = servletContext.addFilter(
                     HAZELCAST_SESSION_FILTER_NAME,
@@ -127,13 +136,17 @@ public class Rhizome implements WebApplicationInitializer {
                 rhizomeContext.getBean( "getMetricRegistry", MetricRegistry.class ) );
 
         /*
-         *
+         * Setup metrics admin servlet
          */
 
         ServletRegistration.Dynamic adminServlet = servletContext.addServlet( "admin", AdminServlet.class );
         adminServlet.setLoadOnStartup( 1 );
         adminServlet.addMapping( "/admin/*" );
         adminServlet.setInitParameter( "show-jvm-metrics", "true" );
+
+        /*
+         * Setup prometheus servlet
+         */
 
         ServletRegistration.Dynamic prometheusServlet = servletContext.addServlet(
                 "prometheus",
@@ -199,6 +212,61 @@ public class Rhizome implements WebApplicationInitializer {
         }
     }
 
+    public void sprout( String... activeProfiles ) {
+        boolean awsProfile = shoot( context, activeProfiles );
+
+        /*
+         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2) switch in the correct singleton
+         * context 3) set back to null and release lock once Jetty has finished starting.
+         */
+        try {
+            startupLock.lock();
+            checkState(
+                    rhizomeContext == null,
+                    "Rhizome context should be null before startup of startup." );
+            rhizomeContext = context;
+            context.refresh();
+            eventBus = rhizomeContext.getBean( EventBus.class );
+            startJetty( awsProfile );
+        } catch ( Exception e ) {
+            logger.error( "Something went wrong during startup", e );
+            System.exit( 1 );
+        } finally {
+            rhizomeContext = null;
+            showBannerIfStartedOrExit( jetty, context );
+            startupLock.unlock();
+            eventBus.post( ServiceState.RUNNING );
+        }
+    }
+
+    protected void startJetty( boolean awsProfile ) throws Exception {
+        JettyConfiguration jettyConfig = Preconditions.checkNotNull( rhizomeContext.getBean( JettyConfiguration.class ),
+                "Jetty configuration cannot be null" );
+        if ( awsProfile ) {
+            this.jetty = new AwsJettyLoam( jettyConfig,
+                    Preconditions.checkNotNull( rhizomeContext.getBean( AmazonLaunchConfiguration.class ),
+                            "AwsConfig cannot be null" ) );
+        } else {
+            // For now we assume just AWS as an alternate to a local profile.
+            this.jetty = new JettyLoam( jettyConfig );
+        }
+
+        eventBus.post( ServiceState.JETTY_STARTING );
+
+        jetty.start();
+
+        eventBus.post( ServiceState.JETTY_STARTED );
+    }
+
+    public void wilt() throws Exception {
+        jetty.stop();
+        context.close();
+    }
+
+    public Class<?>[] getDefaultServicePods() {
+        return REQUIRED_RHIZOME_PODS;
+    }
+
     public static boolean shoot( AbstractApplicationContext context, String... activeProfiles ) {
         boolean awsProfile = false;
         boolean localProfile = false;
@@ -223,64 +291,17 @@ public class Rhizome implements WebApplicationInitializer {
         return awsProfile;
     }
 
-    public void sprout( String... activeProfiles ) {
-        boolean awsProfile = shoot( context, activeProfiles );
-
-        /*
-         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2) switch in the correct singleton
-         * context 3) set back to null and release lock once Jetty has finished starting.
-         */
-        try {
-            startupLock.lock();
-            Preconditions.checkState(
-                    rhizomeContext == null,
-                    "Rhizome context should be null before startup of startup." );
-            rhizomeContext = context;
-            context.refresh();
-            startJetty( awsProfile );
-        } catch ( Exception e ) {
-            logger.error( "Something went wrong during startup", e );
-        } finally {
-            rhizomeContext = null;
-
-            if ( !this.jetty.getServer().isStarted() ) {
-                logger.warn( "Jetty has not started." );
-            }
-
-            showBannerIfStarted( context );
-            startupLock.unlock();
-        }
+    static void showBannerIfStartedOrExit( JettyLoam jetty, AbstractApplicationContext context ) {
+        checkState( jetty.getServer().isStarted(), "Jetty server is not started." );
+        showBannerIfStartedOrExit( context );
     }
 
-    static void showBannerIfStarted(AbstractApplicationContext context ) {
-        if ( context.isActive() && context.isRunning() && startupRequirementsSatisfied( context ) ) {
-            showBanner();
-        }
-    }
+    static void showBannerIfStartedOrExit( AbstractApplicationContext context ) {
+        checkState( context.isRunning(), "Application context is not running." );
+        checkState( context.isActive(), "Application context is not active." );
+        checkState( startupRequirementsSatisfied( context ), "Startup requirements have not been met." );
 
-    protected void startJetty( boolean awsProfile ) throws Exception {
-        JettyConfiguration jettyConfig = Preconditions.checkNotNull( rhizomeContext.getBean( JettyConfiguration.class ),
-                        "Jetty configuration cannot be null" );
-        if ( awsProfile ) {
-            this.jetty = new AwsJettyLoam( jettyConfig,
-                    Preconditions.checkNotNull( rhizomeContext.getBean( AmazonLaunchConfiguration.class ),
-                            "AwsConfig cannot be null" ) );
-        } else {
-            // For now we assume just AWS as an alternate to a local profile.
-            this.jetty = new JettyLoam( jettyConfig );
-        }
-        jetty.start();
-    }
-
-    public void wilt() throws Exception {
-        jetty.stop();
-        context.close();
-    }
-
-    // This method is not static so it can be sub-classed and overridden.
-
-    public Class<?>[] getDefaultServicePods() {
-        return DEFAULT_SERVICE_PODS;
+        showBanner();
     }
 
     public static void showBanner() {

@@ -135,7 +135,7 @@ public class SetStreamSerializers {
         return items;
     }
 
-    public static Set<String> fastOrderedStringSetDeserializeAsArray( ObjectDataInput in ) throws IOException {
+    public static LinkedHashSet<String> fastOrderedStringSetDeserializeFromArray( ObjectDataInput in ) throws IOException {
         final var arr = in.readUTFArray();
         LinkedHashSet<String> result = Sets.newLinkedHashSetWithExpectedSize( arr.length );
         for ( String s : arr ) {

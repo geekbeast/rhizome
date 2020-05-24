@@ -60,7 +60,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     }
 
     @Bean
-    public AsyncEventBus localConfigurationUpdates() {
+    public AsyncEventBus eventBus() {
         return new AsyncEventBus( getAsyncExecutor() );
     }
 

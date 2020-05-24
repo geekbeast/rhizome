@@ -21,25 +21,31 @@
 package com.openlattice.auth0;
 
 import com.auth0.client.auth.AuthAPI;
+import com.kryptnostic.rhizome.pods.ConfigurationLoader;
 import com.openlattice.authentication.Auth0Configuration;
-import java.io.IOException;
-import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+
+import javax.inject.Inject;
+import java.io.IOException;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlatice.com&gt; Convenience class for automatically selecting the correct
  *         auth0 pod based on environment.
  */
 @Configuration
-@Import( { LocalAuth0Pod.class, AwsAuth0Pod.class } )
 public class Auth0Pod {
     @Inject
-    private Auth0Configuration auth0Configuration;
+    private ConfigurationLoader configurationLoader;
+
+    @Bean
+    public Auth0Configuration auth0Configuration() {
+        return configurationLoader.load( Auth0Configuration.class );
+    }
 
     @Bean
     public AuthAPI auth0() throws IOException {
+        Auth0Configuration auth0Configuration = auth0Configuration();
         return new AuthAPI( auth0Configuration.getDomain(),
                 auth0Configuration.getClientId(),
                 auth0Configuration.getClientSecret() );
