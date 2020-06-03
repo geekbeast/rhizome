@@ -2,6 +2,7 @@ package com.geekbeast.rhizome.hazelcast
 
 import com.google.common.collect.Maps
 import com.hazelcast.core.IMap
+import com.hazelcast.query.Predicate
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 
@@ -55,5 +56,20 @@ fun <K,V> mockHazelcastMap(keyClass:Class<K>, valueClass: Class<V>) : IMap<K,V> 
         backingMap.remove(k)
     }
 
+    Mockito.`when`(mock.entrySet(any(Predicate::class.java))).thenAnswer {
+        val p = it.arguments[0] as Predicate<K,V>
+        backingMap.asSequence().filter( p::apply ).toSet()
+    }
+
+    Mockito.`when`(mock.keySet(any(Predicate::class.java))).thenAnswer { it ->
+        val p = it.arguments[0] as Predicate<K,V>
+        backingMap.asSequence().filter( p::apply ).map{ entry -> entry.component1() }.toSet()
+    }
+
+    Mockito.`when`(mock.values(any(Predicate::class.java))).thenAnswer { it ->
+        val p = it.arguments[0] as Predicate<K,V>
+        backingMap.asSequence().filter( p::apply ).map{ entry -> entry.component1() }.toList()
+    }
+    
     return mock
 }
