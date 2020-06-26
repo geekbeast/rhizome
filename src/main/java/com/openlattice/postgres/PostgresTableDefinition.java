@@ -20,22 +20,24 @@
 
 package com.openlattice.postgres;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static com.hazelcast.util.Preconditions.checkNotNull;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static com.hazelcast.util.Preconditions.checkNotNull;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -43,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class PostgresTableDefinition implements TableDefinition {
     protected static final Logger logger = LoggerFactory.getLogger( PostgresTableDefinition.class );
 
-    private final String name;
+    private final String                                  name;
     private final LinkedHashSet<PostgresColumnDefinition> primaryKey = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresColumnDefinition> columns    = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresColumnDefinition> unique     = new LinkedHashSet<>();
@@ -51,7 +53,9 @@ public class PostgresTableDefinition implements TableDefinition {
 
     private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
 
-    private boolean ifNotExists = true;
+    private boolean unlogged;
+    private boolean ifNotExists         = true;
+    private boolean overwriteOnConflict = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
@@ -66,6 +70,16 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
+        return this;
+    }
+
+    public PostgresTableDefinition overwriteOnConflict() {
+        this.overwriteOnConflict = true;
+        return this;
+    }
+
+    public PostgresTableDefinition unlogged() {
+        this.unlogged = true;
         return this;
     }
 
@@ -130,7 +144,14 @@ public class PostgresTableDefinition implements TableDefinition {
     @Override
     public String createTableQuery() {
         validate();
-        StringBuilder ctb = new StringBuilder( "CREATE TABLE " );
+        StringBuilder ctb = new StringBuilder( "CREATE " );
+
+        if ( unlogged ) {
+            ctb.append( "UNLOGGED " );
+        }
+
+        ctb.append( "TABLE " );
+
         if ( ifNotExists ) {
             ctb.append( " IF NOT EXISTS " );
         }
@@ -168,19 +189,20 @@ public class PostgresTableDefinition implements TableDefinition {
     public String insertQuery( Optional<String> onConflict, List<PostgresColumnDefinition> requestedColumns ) {
         if ( this.columns.containsAll( requestedColumns ) ) {
             StringBuilder insertSql = new StringBuilder( "INSERT INTO " ).append( name );
+
+            Collection<PostgresColumnDefinition> insertCols = requestedColumns.isEmpty() ? columns : requestedColumns;
+
             if ( !requestedColumns.isEmpty() ) {
                 insertSql.append( " (" )
                         .append( requestedColumns.stream().map( PostgresColumnDefinition::getName )
                                 .collect( Collectors.joining( "," ) ) )
-                        .append( ") VALUES (" )
-                        .append( StringUtils.repeat( "?", ", ", requestedColumns.size() ) )
-                        .append( ") " );
-            } else {
-                //All columns
-                insertSql.append( " VALUES (" )
-                        .append( StringUtils.repeat( "?", ", ", columns.size() ) )
-                        .append( ") " );
+                        .append( ")" );
             }
+            insertSql.append( " VALUES (" )
+                    .append( insertCols.stream()
+                            .map( col -> col.getDatatype().equals( PostgresDatatype.JSONB ) ? "?::jsonb" : "?" )
+                            .collect( Collectors.joining( ", " ) ) )
+                    .append( ") " );
 
             onConflict.ifPresent( insertSql::append );
 
@@ -216,19 +238,10 @@ public class PostgresTableDefinition implements TableDefinition {
                 updateSql.append( name );
             }
 
-            updateSql.append( " SET " )
-                    .append( columnsToUpdate.stream()
-                            .map( PostgresColumnDefinition::getName )
-                            .map( columnName -> columnName + " = ? " )
-                            .collect( Collectors.joining( "," ) ) );
+            updateSql.append( " SET " ).append( getBindParamsForCols( columnsToUpdate, false ) );
 
             if ( notOnConflict ) {
-                updateSql
-                        .append( " WHERE " )
-                        .append( whereToUpdate.stream()
-                                .map( PostgresColumnDefinition::getName )
-                                .map( columnName -> columnName + " = ? " )
-                                .collect( Collectors.joining( " and " ) ) );
+                updateSql.append( " WHERE " ).append( getBindParamsForCols( whereToUpdate, true ) );
             }
 
             return updateSql.toString();
@@ -237,7 +250,7 @@ public class PostgresTableDefinition implements TableDefinition {
                     .filter( c -> !this.columns.contains( c ) )
                     .map( PostgresColumnDefinition::getName )
                     .collect( Collectors.toList() );
-            String errMsg = "Table " + getName() + "is missing requested columns: " + String.valueOf( missingColumns );
+            String errMsg = "Table " + getName() + "is missing requested columns: " + missingColumns;
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
@@ -249,11 +262,7 @@ public class PostgresTableDefinition implements TableDefinition {
         if ( this.columns.containsAll( whereToDelete ) ) {
             //TODO: Warn when where clause is unindexed and will trigger a table scan.
             StringBuilder deleteSql = new StringBuilder( "DELETE FROM " ).append( name );
-            deleteSql.append( " WHERE " )
-                    .append( whereToDelete.stream()
-                            .map( PostgresColumnDefinition::getName )
-                            .map( columnName -> columnName + " = ? " )
-                            .collect( Collectors.joining( " and " ) ) );
+            deleteSql.append( " WHERE " ).append( getBindParamsForCols( whereToDelete, true ) );
 
             return deleteSql.toString();
         } else {
@@ -288,11 +297,7 @@ public class PostgresTableDefinition implements TableDefinition {
             }
             selectSql.append( " FROM " ).append( name );
             if ( !whereToSelect.isEmpty() ) {
-                selectSql.append( " WHERE " )
-                        .append( whereToSelect.stream()
-                                .map( PostgresColumnDefinition::getName )
-                                .map( columnName -> columnName + " = ? " )
-                                .collect( Collectors.joining( " and " ) ) );
+                selectSql.append( " WHERE " ).append( getBindParamsForCols( whereToSelect, true ) );
             }
             return selectSql.toString();
         } else {
@@ -300,7 +305,7 @@ public class PostgresTableDefinition implements TableDefinition {
                     .filter( c -> !this.columns.contains( c ) )
                     .map( PostgresColumnDefinition::getName )
                     .collect( Collectors.toList() );
-            String errMsg = "Table is missing requested columns: " + String.valueOf( missingColumns );
+            String errMsg = "Table is missing requested columns: " + missingColumns;
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
@@ -406,5 +411,20 @@ public class PostgresTableDefinition implements TableDefinition {
         result = 31 * result + ( unique != null ? unique.hashCode() : 0 );
         result = 31 * result + ( ifNotExists ? 1 : 0 );
         return result;
+    }
+
+    private String getBindParamsForCols(
+            Collection<PostgresColumnDefinition> columns,
+            boolean isBindingWhere ) {
+        String joinString = isBindingWhere ? " and " : ", ";
+        return columns.stream().map( column -> {
+            if ( overwriteOnConflict && !isBindingWhere ) {
+                return column.getName() + " = EXCLUDED." + column.getName();
+            }
+            String eq = column.getDatatype().equals( PostgresDatatype.JSONB ) ?
+                    " = ?::jsonb " :
+                    " = ? ";
+            return column.getName() + eq;
+        } ).collect( Collectors.joining( joinString ) );
     }
 }

@@ -1,5 +1,16 @@
 package com.kryptnostic.rhizome.hazelcast.serializers;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
+import com.google.common.primitives.Ints;
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
+import com.openlattice.rhizome.hazelcast.UUIDSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -9,20 +20,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.io.Resources;
-import com.google.common.primitives.Ints;
-import com.hazelcast.nio.ObjectDataInput;
-import com.hazelcast.nio.ObjectDataOutput;
-import com.openlattice.rhizome.hazelcast.OrderedUUIDSet;
-import com.openlattice.rhizome.hazelcast.UUIDSet;
+import java.util.stream.Collectors;
 
 public class RhizomeUtils {
 
@@ -70,7 +70,7 @@ public class RhizomeUtils {
         public static <T> Optional<T> deserializeToOptional(
                 ObjectDataInput in,
                 IoPerformingFunction<ObjectDataInput, T> deserializer ) throws IOException {
-            Optional<T> object = Optional.absent();
+            Optional<T> object = Optional.empty();
             if ( in.readBoolean() ) {
                 object = Optional.of( deserializer.apply( in ) );
             }
@@ -166,7 +166,7 @@ public class RhizomeUtils {
     public static class Pods {
         public static Class<?>[] concatenate( Class<?>[]... podSets ) {
             Iterable<Class<?>> concatenatedPods = Iterables.<Class<?>> concat(
-                    Iterables.transform( Arrays.<Class<?>[]> asList( podSets ), podSet -> Arrays.asList( podSet ) ) );
+                    Arrays.<Class<?>[]>asList( podSets ).stream().map( Arrays::asList ).collect( Collectors.toList() ) );
             return Iterables.toArray( concatenatedPods, Class.class );
         }
     }

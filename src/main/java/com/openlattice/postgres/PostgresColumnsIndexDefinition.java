@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -36,8 +37,8 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     private final PostgresTableDefinition        table;
     private final List<PostgresColumnDefinition> columns;
 
-    private Optional<String>      name   = Optional.empty();
-    private Optional<IndexMethod> method = Optional.empty();
+    private Optional<String>    name   = Optional.empty();
+    private Optional<IndexType> method = Optional.empty();
 
     private boolean unique     = false;
     private boolean nullsFirst = false;
@@ -46,7 +47,7 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
     private boolean desc       = false;
 
     private boolean ifNotExists = false;
-    private boolean concurrent  = false;
+    private boolean concurrent  = true;
 
     public PostgresColumnsIndexDefinition( PostgresTableDefinition table, PostgresColumnDefinition... columns ) {
         checkState( checkNotNull( columns ).length > 0 );
@@ -92,7 +93,7 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
         return name;
     }
 
-    @Override public Optional<IndexMethod> getMethod() {
+    @Override public Optional<IndexType> getMethod() {
         return method;
     }
 
@@ -109,7 +110,8 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
         return this;
     }
 
-    @Override public PostgresIndexDefinition method( IndexMethod method ) {
+    @Override public PostgresIndexDefinition method( IndexType method ) {
+        checkArgument( !method.equals( IndexType.NONE ), "You cannot create an index of type NONE" );
         this.method = Optional.of( method );
         return this;
     }
@@ -145,6 +147,12 @@ public class PostgresColumnsIndexDefinition implements PostgresIndexDefinition {
 
     @Override public PostgresIndexDefinition concurrent() {
         concurrent = true;
+        return this;
+    }
+
+    @Override
+    public PostgresIndexDefinition notConcurrent() {
+        concurrent = false;
         return this;
     }
 

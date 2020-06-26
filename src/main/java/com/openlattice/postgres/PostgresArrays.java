@@ -20,6 +20,7 @@
 
 package com.openlattice.postgres;
 
+import javax.annotation.Nullable;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -53,8 +54,24 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.UUID.sql(), ids.toArray( new UUID[ 0 ] ) );
     }
 
+    public static Array createUuidArray( Connection connection, UUID...id ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.UUID.sql(), id );
+    }
+
     public static Array createLongArray( Connection connection, Collection<Long> values ) throws SQLException {
         return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), values.toArray( new Long[ 0 ] ) );
+    }
+
+    public static Array createIntArray( Connection connection, Integer...value ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), value );
+    }
+
+    public static Array createIntArray( Connection connection, Collection<Integer> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.INTEGER.sql(), values.toArray( new Integer[ 0 ] ) );
+    }
+
+    public static Array createLongArray( Connection connection, Long...value ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BIGINT.sql(), value );
     }
 
     public static Array createTextArray( Connection connection, Stream<String> ids ) throws SQLException {
@@ -65,10 +82,25 @@ public class PostgresArrays {
         return connection.createArrayOf( PostgresDatatype.TEXT.sql(), ids.toArray( new String[ 0 ] ) );
     }
 
+    public static Array createTextArray( Connection connection, String...text ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.TEXT.sql(), text );
+    }
+
+    public static Array createBooleanArray( Connection connection, Collection<Boolean> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.BOOLEAN.sql(), values.toArray( new Boolean[ 0 ] ) );
+    }
+
+    public static Array createShortArray( Connection connection, Collection<Short> values ) throws SQLException {
+        return connection.createArrayOf( PostgresDatatype.SMALLINT.sql(), values.toArray( new Short[ 0 ] ) );
+    }
+
     public static String[] getTextArray( ResultSet rs, String column ) throws SQLException {
         return (String[]) rs.getArray( column ).getArray();
     }
 
+    public static Integer[] getIntArray( ResultSet rs, String column ) throws SQLException {
+        return (Integer[]) rs.getArray( column ).getArray();
+    }
 
     public static Long[] getLongArray( ResultSet rs, String column ) throws SQLException {
         return (Long[]) rs.getArray( column ).getArray();
@@ -78,7 +110,12 @@ public class PostgresArrays {
         return (UUID[][]) rs.getArray( column ).getArray();
     }
 
-    public static UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {
-          return (UUID[]) rs.getArray( column ).getArray();
+    public static @Nullable UUID[] getUuidArray( ResultSet rs, String column ) throws SQLException {
+        final var arr = rs.getArray( column );
+        if ( arr == null ) {
+            return null;
+        } else {
+            return (UUID[]) rs.getArray( column ).getArray();
+        }
     }
 }

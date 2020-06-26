@@ -26,6 +26,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
 import java.util.Set;
 import javax.inject.Inject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,10 +52,19 @@ public class PostgresPod {
 
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
-        PostgresTableManager ptm = new PostgresTableManager( hds, rhizomeConfiguration.isUsingCitus() );
-        if ( spt != null ) {
-            ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
+
+        if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
+            final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
+            PostgresTableManager ptm = new PostgresTableManager( hds,
+                    pgConfig.getUsingCitus(),
+                    pgConfig.getInitializeIndices(),
+                    pgConfig.getInitializeTables() );
+            if ( spt != null ) {
+                ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
+            }
+            return ptm;
+        } else {
+            throw new IllegalStateException( "Postgres configuration enabled, but no configuration found." );
         }
-        return ptm;
     }
 }

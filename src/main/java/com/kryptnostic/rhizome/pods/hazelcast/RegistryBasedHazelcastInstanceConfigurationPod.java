@@ -6,16 +6,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.NearCacheConfig;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.nio.serialization.Serializer;
 import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
-import com.kryptnostic.rhizome.mapstores.SelfRegisteringQueueStore;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.openlattice.hazelcast.pods.QueueConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +32,12 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             .newConcurrentMap();
     private static final ConcurrentMap<String, SelfRegisteringMapStore<?, ?>> mapRegistry        = Maps
             .newConcurrentMap();
-    private static final ConcurrentMap<String, SelfRegisteringQueueStore<?>>  queueRegistry      = Maps
-            .newConcurrentMap();
-    private static final Set<QueueConfigurer>                                 queueConfigurers   = Sets.newHashSet();
+
+    private static final Set<QueueConfigurer> queueConfigurers = Sets.newHashSet();
+    private static final Set<NearCacheConfig> nearCacheConfigs = Sets.newHashSet();
 
     @Override
-    protected Collection<SerializerConfig> getSerializerConfigs() {
+    protected Collection<SerializerConfig> serializerConfigs() {
         final Multiset<Integer> typeIds = HashMultiset.create();
 
         Set<SerializerConfig> configs = serializerRegistry.entrySet()
@@ -54,22 +57,26 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
     }
 
     @Override
-    protected Map<String, MapConfig> getMapConfigs() {
+    protected Map<String, MapConfig> mapConfigs() {
         return Maps.transformEntries( mapRegistry, ( k, v ) -> v.getMapConfig() );
     }
 
     @Override
-    protected Map<String, QueueConfig> getQueueConfigs( Map<String, QueueConfig> queueConfigs ) {
-        Map<String, QueueConfig> configs = Maps
-                .newHashMap( Maps.transformEntries( queueRegistry, ( k, v ) -> v.getQueueConfig() ) );
-        configs.putAll( queueConfigs );
+    protected Map<String, QueueConfig> queueConfigs( Map<String, QueueConfig> queueConfigs ) {
+        Map<String, QueueConfig> configs = Maps.newHashMap( queueConfigs );
         queueConfigurers.forEach( configurer -> {
-            QueueConfig config = configs.get( configurer.getQueueName() );
-            if ( config != null ) {
-                configurer.configure( config );
-            }
+            final QueueConfig config = configs
+                    .computeIfAbsent( configurer.getQueueName(), k -> new QueueConfig( k ).setBackupCount( 1 ) );
+            configurer.configure( config );
         } );
         return configs;
+    }
+
+    @Override
+    protected Map<String, NearCacheConfig> nearCacheConfigs() {
+        return nearCacheConfigs
+                .stream()
+                .collect( Collectors.toMap( NearCacheConfig::getName, Function.identity() ) );
     }
 
     /*
@@ -86,21 +93,10 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
             //This ensures that Hazelcast will use the byte-code re-written beans instead of the mapstores directly
             //The metrics enabled flag can be overriden for debugging particular mapstores if stacktraces are too dirty
-            if( s.isMetricsEnabled() ) {
+            if ( s.isMetricsEnabled() ) {
                 s.getMapStoreConfig().setImplementation( s );
             }
             register( s.getMapConfig().getName(), s );
-        }
-    }
-
-    @Autowired(
-            required = false )
-    public void registerQueueStores( Set<SelfRegisteringQueueStore<?>> queueStores ) {
-        if ( queueStores.isEmpty() ) {
-            logger.warn( "No queue stores were configured." );
-        }
-        for ( SelfRegisteringQueueStore<?> s : queueStores ) {
-            queueRegistry.put( s.getQueueConfig().getName(), s );
         }
     }
 
@@ -115,6 +111,15 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         }
     }
 
+    @Autowired( required = false )
+    public void configureNearCaches( Set<NearCacheConfig> nearCacheConfigs ) {
+        if ( nearCacheConfigs.isEmpty() ) {
+            logger.info( "No near cache configurers detected." );
+        }
+
+        this.nearCacheConfigs.addAll( nearCacheConfigs );
+    }
+
     @Autowired(
             required = false )
     public void configureQueues( Set<QueueConfigurer> queueConfigurers ) {
@@ -122,11 +127,6 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
             logger.info( "No queue configurers detected." );
         }
         this.queueConfigurers.addAll( queueConfigurers );
-    }
-
-    public static void register( String queueName, SelfRegisteringQueueStore<?> queueStore ) {
-        Preconditions.checkNotNull( queueStore, "Cannot register null queue-store." );
-        queueRegistry.put( queueName, queueStore );
     }
 
     public static void register( String mapName, SelfRegisteringMapStore<?, ?> mapStore ) {

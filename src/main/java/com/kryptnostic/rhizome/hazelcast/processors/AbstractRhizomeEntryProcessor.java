@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import com.hazelcast.map.EntryBackupProcessor;
 import com.hazelcast.map.EntryProcessor;
 
+import javax.annotation.Nonnull;
+
 public abstract class AbstractRhizomeEntryProcessor<K, V, R>
         implements EntryProcessor<K, V>, EntryBackupProcessor<K, V> {
     private static final long serialVersionUID = 5060655249179605949L;
@@ -19,7 +21,7 @@ public abstract class AbstractRhizomeEntryProcessor<K, V, R>
     }
 
     @Override
-    public abstract R process( Map.Entry<K, V> entry );
+    public abstract R process( @Nonnull Map.Entry<K, V> entry );
 
     public AbstractRhizomeEntryProcessor( boolean applyOnBackup ) {
         this.applyOnBackup = applyOnBackup;

@@ -32,6 +32,7 @@ class CitusDistributedTableDefinition(
 ) : PostgresTableDefinition(name) {
     private lateinit var distributionColumn: PostgresColumnDefinition
     private var colocationColumn: Optional<PostgresTableDefinition> = Optional.empty()
+    private var unlogged = false
 
     fun colocationColumn(column: PostgresTableDefinition): CitusDistributedTableDefinition {
         this.colocationColumn = Optional.of(column)
@@ -50,6 +51,11 @@ class CitusDistributedTableDefinition(
         } else {
             "SELECT create_distributed_table('$name','${distributionColumn.name}')"
         }
+    }
+
+    override fun unlogged(): CitusDistributedTableDefinition {
+        super.unlogged()
+        return this
     }
 
     override fun addColumns(vararg columnsToAdd: PostgresColumnDefinition): CitusDistributedTableDefinition {

@@ -1,7 +1,8 @@
 language: java
 jdk:
-  - oraclejdk10
+  - openjdk11
 install:
+  - git fetch --unshallow
   - git fetch --tags
   - git describe --tags
 script: ./gradlew check --stacktrace --info

@@ -15,11 +15,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
-import com.openlattice.auth0.Auth0TokenProvider;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,6 +49,7 @@ public class AuthenticationTest {
             clientId,
             clientSecret,
             ImmutableSet.of( authConfiguration ),
+            Optional.empty(),
             managementApiUrl );
     private static final LoadingCache<AuthenticationTestRequestOptions, Authentication> authentications;
     private static final LoadingCache<AuthenticationTestRequestOptions, TokenHolder>    accessTokens;

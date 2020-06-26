@@ -20,40 +20,24 @@
 
 package com.openlattice.postgres.mapstores;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.codahale.metrics.annotation.Timed;
-import com.dataloom.streams.StreamUtil;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.MapMaker;
-import com.google.common.collect.Sets;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
-import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.openlattice.postgres.CountdownConnectionCloser;
-import com.openlattice.postgres.KeyIterator;
-import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public abstract class AbstractBasePostgresMapstore<K, V> extends AbstractPostgresMapstore2<K, V> {
+
+    public AbstractBasePostgresMapstore(TypedMapIdentifier<K, V> identifier, PostgresTableDefinition table, HikariDataSource hds) {
+        this( identifier.name(), table, hds );
+    }
 
     public AbstractBasePostgresMapstore( String mapName, PostgresTableDefinition table, HikariDataSource hds ) {
         this( mapName, table, hds, BATCH_SIZE );

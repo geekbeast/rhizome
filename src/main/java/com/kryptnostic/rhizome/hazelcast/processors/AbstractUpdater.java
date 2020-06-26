@@ -1,10 +1,10 @@
 package com.kryptnostic.rhizome.hazelcast.processors;
 
+import com.openlattice.rhizome.hazelcast.SetProxy;
+
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
-
-import com.openlattice.rhizome.hazelcast.SetProxy;
 
 public abstract class AbstractUpdater<K, V extends Collection<T>, T>
         extends AbstractRhizomeEntryProcessor<K, V, Void> {
@@ -28,26 +28,26 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T>
 
     public static <K, V extends Collection<T>, T> AbstractUpdater<K, Collection<T>, T> addToSetUpdater(
             Iterable<T> collection ) {
-        return new AddToSetEntryProcessor<K, T>( collection );
+        return new AddToSetEntryProcessor<>( collection );
     }
 
     public static <K, V extends Collection<T>, T> AbstractUpdater<K, Collection<T>, T> removeFromSetUpdater(
             Iterable<T> collection ) {
-        return new RemoveFromSetEntryProcessor<K, T>( collection );
+        return new RemoveFromSetEntryProcessor<>( collection );
     }
 
     protected BiFunction<V, T, Boolean> removeFunction() {
-        return ( objectCollection, object ) -> objectCollection.remove( object );
+        return Collection::remove;
     }
 
     protected BiFunction<V, T, Boolean> addFunction() {
-        return ( objectCollection, object ) -> objectCollection.add( object );
+        return Collection::add;
     }
 
     @Override
     public Void process( Entry<K, V> entry ) {
         V currentObjects = entry.getValue();
-        if ( !( currentObjects instanceof SetProxy<?, ?> ) && currentObjects == null ) {
+        if ( currentObjects == null ) {
             currentObjects = newEmptyCollection();
         }
 
@@ -64,7 +64,6 @@ public abstract class AbstractUpdater<K, V extends Collection<T>, T>
                 addOrRemoveFunction = applyFunction();
                 break;
             default:
-                addOrRemoveFunction = null;
                 System.err.println( "Impossible, no operation specified in AbstractUpdater" );
                 return null;
         }

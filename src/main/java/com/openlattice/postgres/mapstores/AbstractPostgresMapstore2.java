@@ -20,10 +20,7 @@
 
 package com.openlattice.postgres.mapstores;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.codahale.metrics.annotation.Timed;
-import com.dataloom.streams.StreamUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
@@ -31,25 +28,19 @@ import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
-import com.openlattice.postgres.CountdownConnectionCloser;
-import com.openlattice.postgres.KeyIterator;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
+import com.openlattice.postgres.streams.BasePostgresIterable;
+import com.openlattice.postgres.streams.StatementHolderSupplier;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.*;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -157,7 +148,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         try ( Connection connection = hds.getConnection(); PreparedStatement deleteRow = prepareDelete( connection ) ) {
             bind( deleteRow, key );
             deleteRow.executeUpdate();
-            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during delete for key {} in map {}.", key, mapName, e );
         }
@@ -174,7 +164,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
                 deleteRow.addBatch();
             }
             deleteRow.executeBatch();
-            connection.close();
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during delete all for key {} in map {}", key, mapName, e );
         }
@@ -261,20 +250,17 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     @Override public Iterable<K> loadAllKeys() {
         logger.info( "Starting load all keys for map {}", mapName );
-        try {
-            Connection connection = hds.getConnection();
-            Statement stmt = connection.createStatement();
-            stmt.setFetchSize( 50000 );
-            final ResultSet rs = stmt.executeQuery( selectAllKeysQuery );
-            return () -> StreamUtil
-                    .stream( () -> new KeyIterator<>( rs,
-                            new CountdownConnectionCloser( rs, connection, 1 ), this::mapToKey ) )
-                    .peek( key -> logger.debug( "Key to load: {}", key ) )
-                    .iterator();
-        } catch ( SQLException e ) {
-            logger.error( "Unable to acquire connection load all keys for map {}", mapName, e );
-            return null;
-        }
+        return new BasePostgresIterable<>(
+                new StatementHolderSupplier( hds, selectAllKeysQuery, 50_000, false, 0L),
+                rs -> {
+                    try {
+                        return mapToKey( rs );
+                    } catch ( SQLException e ) {
+                        logger.error( "Unable to read keys for map {}.", mapName, e);
+                        throw new IllegalStateException( "Unable to read keys.", e );
+                    }
+                }
+        );
     }
 
     @Override

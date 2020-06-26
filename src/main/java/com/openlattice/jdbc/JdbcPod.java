@@ -42,9 +42,9 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import( { ConfigurationPod.class, MetricsPod.class } )
 public class JdbcPod {
-    private static final Logger logger = LoggerFactory.getLogger( JdbcPod.class );
+    private static final Logger               logger = LoggerFactory.getLogger( JdbcPod.class );
     @Inject
-    private RhizomeConfiguration rhizomeConfiguration;
+    private              RhizomeConfiguration rhizomeConfiguration;
 
     @Inject
     private HealthCheckRegistry healthCheckRegistry;
@@ -54,8 +54,9 @@ public class JdbcPod {
 
     @Bean
     public HikariDataSource hikariDataSource() {
-        if ( rhizomeConfiguration.getHikariConfiguration().isPresent() ) {
-            HikariConfig hc = new HikariConfig( rhizomeConfiguration.getHikariConfiguration().get() );
+        if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
+            final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
+            HikariConfig hc = new HikariConfig( pgConfig.getHikariConfiguration() );
             logger.info( "JDBC URL = {}", hc.getJdbcUrl() );
             HikariDataSource hds = new HikariDataSource( hc );
             hds.setHealthCheckRegistry( healthCheckRegistry );

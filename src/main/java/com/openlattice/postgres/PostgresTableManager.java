@@ -21,32 +21,45 @@
 package com.openlattice.postgres;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 public class PostgresTableManager {
-    private static final Logger                               logger       = LoggerFactory
+    private static final Logger logger = LoggerFactory
             .getLogger( PostgresTableManager.class );
-    private final        HikariDataSource                     hds;
-    private final        Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
-    private final        boolean                              citus;
+
+    private static final String INVALID_TABLE_DEFINITION_SQL_STATE = "42P16";
+    private static final String ALREADY_DISTRIBUTED_ERROR_MSG = " is already distributed";
+
+    private final HikariDataSource                     hds;
+    private final Map<String, PostgresTableDefinition> activeTables = new HashMap<>();
+    private final boolean                              citus;
+    private final boolean                              initializeIndices;
+    private final boolean                              initializeTables;
 
     public PostgresTableManager( HikariDataSource hds ) {
-        this( hds, false );
+        this( hds, false, false, false );
     }
 
-    public PostgresTableManager( HikariDataSource hds, boolean citus ) {
+    public PostgresTableManager(
+            HikariDataSource hds,
+            boolean citus,
+            boolean initializeIndices,
+            boolean initializeTables ) {
         this.citus = citus;
         this.hds = hds;
+        this.initializeIndices = initializeIndices;
+        this.initializeTables = initializeTables;
     }
 
     public void registerTables( PostgresTableDefinition... tables ) throws SQLException {
@@ -54,43 +67,52 @@ public class PostgresTableManager {
     }
 
     public void registerTables( Iterable<PostgresTableDefinition> tables ) throws SQLException {
+
         logger.info( "Processing postgres table registrations." );
         for ( PostgresTableDefinition table : tables ) {
             if ( activeTables.containsKey( table.getName() ) ) {
                 logger.debug( "Table {} has already been registered and initialized... skipping", table );
             } else {
                 logger.debug( "Processed postgres table registration for table {}", table.getName() );
-                try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
-                    sctq.execute( table.createTableQuery() );
 
-                    if ( citus ) {
-                        //Creating the distributed table must be done before creating any indeices.
-                        if ( table instanceof CitusDistributedTableDefinition ) {
-                            logger.info( "Creating distributed table {}.", table.getName() );
-                            try ( Statement ddstmt = conn.createStatement() ) {
-                                ddstmt.execute( ( (CitusDistributedTableDefinition) table )
-                                        .createDistributedTableQuery() );
-                            } catch ( SQLException ddex ) {
-                                logger.error( "Unable to distribute table {}. Cause: {}",
-                                        table.getName(),
-                                        ddex.getMessage(),
-                                        ddex );
+                try ( Connection conn = hds.getConnection(); Statement sctq = conn.createStatement() ) {
+                    if ( initializeTables ) {
+                        sctq.execute( table.createTableQuery() );
+
+                        if ( citus ) {
+                            //Creating the distributed table must be done before creating any indices.
+                            if ( table instanceof CitusDistributedTableDefinition ) {
+                                logger.info( "Creating distributed table {}.", table.getName() );
+                                try ( Statement ddstmt = conn.createStatement() ) {
+                                    ddstmt.execute( ( (CitusDistributedTableDefinition) table )
+                                            .createDistributedTableQuery() );
+                                } catch ( SQLException ddex ) {
+                                    if ( ddex.getSQLState().equals( INVALID_TABLE_DEFINITION_SQL_STATE )
+                                            && ddex.getMessage().contains( ALREADY_DISTRIBUTED_ERROR_MSG ) ) {
+                                        logger.info( "Table {} is already distributed.", table.getName() );
+                                    } else {
+                                        logger.warn( "Unable to distribute table {}. Cause: {}",
+                                                table.getName(),
+                                                ddex.getMessage());
+                                    }
+                                }
                             }
                         }
                     }
 
-                    for ( PostgresIndexDefinition index : table.getIndexes() ) {
-                        String indexSql = index.sql();
-                        try ( Statement sci = conn.createStatement() ) {
-                            sci.execute( indexSql );
-                        } catch ( SQLException e ) {
-                            logger.info( "Failed to create index {} with query {} for table {}",
-                                    index,
-                                    indexSql,
-                                    table );
-                            throw e;
+                    if ( initializeIndices ) {
+                        for ( PostgresIndexDefinition index : table.getIndexes() ) {
+                            String indexSql = index.sql();
+                            try ( Statement sci = conn.createStatement() ) {
+                                sci.execute( indexSql );
+                            } catch ( SQLException e ) {
+                                logger.info( "Failed to create index {} with query {} for table {}",
+                                        index,
+                                        indexSql,
+                                        table );
+                                throw e;
+                            }
                         }
-
                     }
                 } catch ( SQLException e ) {
                     logger.info( "Failed to initialize postgres table {} with query {}",
@@ -99,6 +121,7 @@ public class PostgresTableManager {
                             e );
                     throw e;
                 }
+
             }
             activeTables.put( table.getName(), table );
         }

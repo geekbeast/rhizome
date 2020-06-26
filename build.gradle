@@ -1,5 +1,4 @@
 plugins {
-//    id 'net.ltgt.apt' version "0.21"
     id 'maven-publish'
     id 'signing'
     id 'application'
@@ -8,10 +7,10 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
-//    id 'com.github.spotbugs' version '1.6.3'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.10'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.10'
-    id 'org.jetbrains.dokka' version '0.9.17'
+    id 'com.github.spotbugs' version '4.0.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.72'
+    id 'org.jetbrains.dokka' version '0.9.18'
 }
 
 description = "Java Framework for building clustered RESTful web applications"
@@ -27,19 +26,20 @@ apply plugin: 'kotlin'
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"\
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
-/*
+
+ext.spotbugs_annotations_version = '4.0.0'
 spotbugs {
-    toolVersion = '3.1.5'
+    reportLevel = 'high'
+    toolVersion = "${spotbugs_annotations_version}"
 }
 
-tasks.withType(com.github.spotbugs.SpotBugsTask) {
+spotbugsMain {
     reports {
         xml.enabled = false
         html.enabled = true
     }
+    ignoreFailures = true
 }
-*/
-
 run {
     if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
@@ -48,6 +48,33 @@ run {
 
 ext.sourceCompatibility = JavaVersion.VERSION_11
 ext.targetCompatibility = JavaVersion.VERSION_11
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs+= [ "--add-modules", "java.se",
+                             "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
+                             "--add-opens","java.base/java.lang=ALL-UNNAMED",
+                             "--add-opens","java.base/java.nio=ALL-UNNAMED",
+                             "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
+                             "--add-opens","java.management/sun.management=ALL-UNNAMED",
+                             "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+}
+
+tasks.withType(Test) {
+    jvmArgs += [ "--add-modules", "java.se",
+                 "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
+                 "--add-opens","java.base/java.lang=ALL-UNNAMED",
+                 "--add-opens","java.base/java.nio=ALL-UNNAMED",
+                 "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
+                 "--add-opens","java.management/sun.management=ALL-UNNAMED",
+                 "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += '-Xjvm-default=compatibility'
+    }
+}
 
 tasks.withType(Javadoc) {
     enabled = false
@@ -65,16 +92,21 @@ jacoco {
 
 
 dependencies {
-    //spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.7.1'
-    //compileOnly 'net.jcip:jcip-annotations:1.0'
-    //compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.3'
-    //testCompileOnly 'net.jcip:jcip-annotations:1.0'
-    //testCompileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.3'
+    //Spotbugs
+    spotbugs 'com.github.spotbugs:spotbugs:4.0.0'
+    spotbugsPlugins "com.h3xstream.findsecbugs:findsecbugs-plugin:${findsecbugs_version}"
+
+    compileOnly "net.jcip:jcip-annotations:${jcip_version}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs_annotations_version}"
+
+    testCompileOnly "net.jcip:jcip-annotations:${jcip_version}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs_annotations_version}"
+
     /*
      * AWS
      */
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.11.319'
-    compile 'com.amazonaws:aws-java-sdk-s3:1.11.319'
+    compile "com.amazonaws:aws-java-sdk-ec2:${aws_java_sdk_version}"
+    compile "com.amazonaws:aws-java-sdk-s3:${aws_java_sdk_version}"
 
     /*
      * Immutables library for immutable objects
@@ -87,7 +119,7 @@ dependencies {
      */
     compile "javax.servlet.jsp:javax.servlet.jsp-api:${javax_servlet_version}"
     compile "javax.servlet:javax.servlet-api:${javax_servlet_api_version}"
-    compile group: 'javax.servlet', name: 'jstl', version: '1.2'
+    compile "javax.servlet:jstl:${jstl_version}"
 
     /*
      * SL4J + LOG4J2
@@ -110,7 +142,6 @@ dependencies {
     compile "org.springframework:spring-web:${project.spring_framework_version}"
     compile "org.springframework:spring-webmvc:${project.spring_framework_version}"
     compile "org.springframework:spring-test:${project.spring_framework_version}"
-    //compile "org.springframework:spring-jdbc:${project.spring_framework_version}"
     /*
      * SPRING SECURITY DEPENDENCIES
      * Solid and battle tested security AuthN/AuthZ framwork
@@ -122,9 +153,9 @@ dependencies {
     compile "org.springframework.security:spring-security-messaging:${project.spring_security_version}"
 
     //JDBI
-    compile 'org.jdbi:jdbi3-core:3.1.0'
-    compile 'org.jdbi:jdbi3-sqlobject:3.1.0'
-    compile 'org.jdbi:jdbi3-postgres:3.1.0'
+    compile "org.jdbi:jdbi3-core:${jdbi3_version}"
+    compile "org.jdbi:jdbi3-sqlobject:${jdbi3_version}"
+    compile "org.jdbi:jdbi3-postgres:${jdbi3_version}"
 
     compile("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
         exclude group: "org.springframework.boot"
@@ -155,16 +186,18 @@ dependencies {
     /*
      JODA TIME - A better datetime class.
      */
-    compile "joda-time:joda-time:2.9.1"
+    compile "joda-time:joda-time:${jodatime_version}"
 
     /*
      * APACHE COMMONS
      * Logging, StringUtils, RandomStringUtils, IOUtils, and more
      */
-    compile "org.apache.commons:commons-collections4:4.1"
-    compile "commons-io:commons-io:2.4"
-    compile "org.apache.commons:commons-lang3:3.4"
-    compile "commons-codec:commons-codec:1.9"
+    compile "org.apache.commons:commons-collections4:${commons_collections4_version}"
+    compile "commons-io:commons-io:${commonsio_version}"
+    compile "commons-validator:commons-validator:${commonsvalidator_version}"
+    compile "org.apache.commons:commons-lang3:${commonsLang_version}"
+    compile "commons-codec:commons-codec:${commons_codec_version}"
+    testCompile "org.apache.commons:commons-text:${commonsText_version}"
 
     /*
      * JACKSON SERIALIZATION
@@ -187,19 +220,19 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson_version}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jackson_version}"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:${jackson_version}"
-    compile 'org.yaml:snakeyaml:${snakeyaml_version}'
+    compile "org.yaml:snakeyaml:${snakeyaml_version}"
 
     /*
      * @Inject and @Nullable support
      */
-    compile "javax.inject:javax.inject:1"
+    compile "javax.inject:javax.inject:${javax_inject_version}"
 
     /*
      * Hibernate Validator
      */
     compile "org.hibernate:hibernate-validator:${hibernate_version}"
-    compile "javax.el:javax.el-api:3.0.0"
-    compile "org.glassfish:javax.el:3.0.0"
+    compile "javax.el:javax.el-api:${el_api_version}"
+    compile "org.glassfish:javax.el:${el_api_version}"
 
     /*
      * HAZELCAST - DISTRIBUTED DATA GRID
@@ -215,14 +248,15 @@ dependencies {
      * TODO: Add support for Tomcat
      * TODO: Integrate with application plugin for standalone deployment
      */
-    compile "org.ow2.asm:asm:6.2"
+    compile "org.ow2.asm:asm:${asm_version}"
     compile "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
     //TODO: Once GA version of jetty-jsp is released update version.
-    //compile "org.eclipse.jetty:jetty-jsp:9.3.0.M1"
     compile "org.eclipse.jetty:jetty-spring:${jetty_version}"
     compile "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
     compile "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
     compile "org.eclipse.jetty:jetty-continuation:${jetty_version}"
+    compile "org.eclipse.jetty:jetty-alpn-java-server:${jetty_version}"
+    compile "org.eclipse.jetty.http2:http2-server:${jetty_version}"
 
     compile "io.netty:netty-transport-native-epoll:${netty_epoll_version}:${netty_os_arch}"
 
@@ -230,26 +264,23 @@ dependencies {
      * JAVAMAIL
      * Java email client.
      */
-    compile "org.jodd:jodd-mail:5.0.7"
+    compile "org.jodd:jodd-mail:${jodd_mail_version}"
 
     /**
      * Cassandra
      */
-    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: "${cassandra_driver_version}"
-    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-extras', version: "${cassandra_driver_version}"
-    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-mapping', version: "${cassandra_driver_version}"
     compile "org.xerial.snappy:snappy-java:${snappy_version}"
     compile "net.jpountz.lz4:lz4:${lz4_version}"
     /*
      * Postgres
      */
 
-    compile 'com.zaxxer:HikariCP:2.7.1'
-    compile 'org.postgresql:postgresql:42.2.4'
+    compile "com.zaxxer:HikariCP:${hikariCP_version}"
+    compile "org.postgresql:postgresql:${postgresql_version}"
 
-    compile 'com.google.code.findbugs:jsr305:3.0.2'
-    compile 'javax.annotation:javax.annotation-api:1.3.2'
-    compile 'javax.validation:validation-api:2.0.1.Final'
+    compile "com.google.code.findbugs:jsr305:${findbugs_jsr305_version}"
+    compile "javax.annotation:javax.annotation-api:${javax_annotation_api_version}"
+    compile "javax.validation:validation-api:${javax_validation_api_version}"
 
     compile fileTree(dir: "lib/", include: "*.jar")
 
@@ -261,12 +292,12 @@ dependencies {
      */
     compile "org.springframework:spring-websocket:${project.spring_framework_version}"
     compile "org.springframework:spring-messaging:${project.spring_framework_version}"
-    compile "org.springframework.integration:spring-integration-websocket:4.3.1.RELEASE"
+    compile "org.springframework.integration:spring-integration-websocket:${project.spring_websocket_version}"
 
     /*
      * TESTING
      */
-    testCompile 'junit:junit:4.12'
+    testCompile "junit:junit:${junit_version}"
     testCompile "org.mockito:mockito-all:${mockito_version}"
 
     /*
@@ -283,12 +314,22 @@ dependencies {
         compile "com.openlattice:rhizome-client:${rhizome_client_version}"
         testCompile "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
     }
-    compile 'com.auth0:mvc-auth-commons:1.0.3'
-    compile 'com.auth0:java-jwt:3.7.0'
-    compile 'com.auth0:jwks-rsa:0.7.0'
+    compile "com.auth0:mvc-auth-commons:${auth0_mvc_auth_commons_version}"
+    compile "com.auth0:java-jwt:${auth0_java_jwt_version}"
+    compile "com.auth0:jwks-rsa:${auth0_jwks_rsa_version}"
     compile "com.auth0:auth0:${project.auth0_version}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+}
+
+tasks.withType(Test) {
+    jvmArgs += [ "--add-modules", "java.se",
+                 "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
+                 "--add-opens","java.base/java.lang=ALL-UNNAMED",
+                 "--add-opens","java.base/java.nio=ALL-UNNAMED",
+                 "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
+                 "--add-opens","java.management/sun.management=ALL-UNNAMED",
+                 "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
 }
 
 eclipse {
@@ -300,15 +341,4 @@ eclipse {
 
 install {
     configuration = configurations.published
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }

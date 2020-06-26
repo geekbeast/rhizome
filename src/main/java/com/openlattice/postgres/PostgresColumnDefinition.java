@@ -110,10 +110,10 @@ public class  PostgresColumnDefinition {
                 .append( postgresTableDefinition.getName() ) );
 
         //foreignKey(...) ensure that if foreign column reference is present that foreignTable is present
-        foreignColumnReference.ifPresent( postgresColumnDefinition -> pcdSql
-                .append( " (" + postgresColumnDefinition.getName() + ") " ) );
+        foreignColumnReference.ifPresent( postgresColumnDefinition -> pcdSql.append( " (" )
+                .append( postgresColumnDefinition.getName() ).append( ") " ) );
 
-        defaultValue.ifPresent( o -> pcdSql.append( " default " + String.valueOf( o ) ) );
+        defaultValue.ifPresent( o -> pcdSql.append( " default " ).append( String.valueOf( o ) ) );
 
         return pcdSql.toString().trim();
     }

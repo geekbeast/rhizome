@@ -2,7 +2,6 @@ package com.kryptnostic.rhizome.hazelcast.processors;
 
 import java.util.Collection;
 import java.util.Map.Entry;
-import java.util.function.BiConsumer;
 
 import com.openlattice.rhizome.hazelcast.SetProxy;
 

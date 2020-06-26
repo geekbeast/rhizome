@@ -25,10 +25,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.dataloom.streams.StreamUtil;
 import java.io.Closeable;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -66,7 +64,7 @@ public class PostgresIterable<T> implements Iterable<T> {
     public PostgresIterator<T> iterator() {
         try {
             return new PostgresIterator<>( rsh.get(), mapper );
-        } catch ( SQLException | IOException e ) {
+        } catch ( SQLException e ) {
             logger.error( "Error creating postgres stream iterator." );
             throw new IllegalStateException( "Unable to instantiate postgres iterator.", e );
         }
@@ -90,12 +88,12 @@ public class PostgresIterable<T> implements Iterable<T> {
         private              long                   expiration;
         private              boolean                notExhausted;
 
-        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper ) throws IOException, SQLException {
+        public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper ) throws SQLException {
             this( rsh, mapper, DEFAULT_TIMEOUT_MILLIS );
         }
 
         public PostgresIterator( StatementHolder rsh, Function<ResultSet, T> mapper, long timeoutMillis )
-                throws SQLException, IOException {
+                throws SQLException {
             this.rsh = rsh;
             this.mapper = mapper;
             this.rs = rsh.getResultSet();
@@ -110,11 +108,7 @@ public class PostgresIterable<T> implements Iterable<T> {
             executor.execute( () -> {
                 while ( rsh.isOpen() ) {
                     if ( System.currentTimeMillis() > expiration || !notExhausted ) {
-                        try {
-                            rsh.close();
-                        } catch ( IOException e ) {
-                            logger.error( "Unable to close statement holder.", e );
-                        }
+                        rsh.close();
                     } else {
                         try {
                             Thread.sleep( timeoutMillis );
@@ -153,11 +147,7 @@ public class PostgresIterable<T> implements Iterable<T> {
                 throw new NoSuchElementException( "Unable to retrieve next element from result set." );
             } finally {
                 if ( !notExhausted ) {
-                    try {
-                        rsh.close();
-                    } catch ( IOException e ) {
-                        logger.error( "Error while closing result set." );
-                    }
+                    rsh.close();
                 }
 
                 lock.unlock();
@@ -166,7 +156,7 @@ public class PostgresIterable<T> implements Iterable<T> {
             return nextElem;
         }
 
-        @Override public void close() throws IOException {
+        @Override public void close() {
             rsh.close();
         }
     }

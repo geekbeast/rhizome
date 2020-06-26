@@ -29,14 +29,14 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Used for specifying custom expression indexes. As the expression index is user provided we don't do any validation
- * unlike with column indexes.
+ * unlike with column indexes. Creates indexes concurrently by default.
  */
 public class PostgresExpressionIndexDefinition implements PostgresIndexDefinition {
     private final PostgresTableDefinition table;
     private final String                  expression;
 
-    private Optional<String>      name   = Optional.empty();
-    private Optional<IndexMethod> method = Optional.empty();
+    private Optional<String>    name   = Optional.empty();
+    private Optional<IndexType> method = Optional.empty();
 
     private boolean unique     = false;
     private boolean nullsFirst = false;
@@ -45,7 +45,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
     private boolean desc       = false;
 
     private boolean ifNotExists = false;
-    private boolean concurrent  = false;
+    private boolean concurrent  = true;
 
     public PostgresExpressionIndexDefinition( PostgresTableDefinition table, String expression ) {
         this.table = table;
@@ -80,7 +80,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
         return name;
     }
 
-    @Override public Optional<IndexMethod> getMethod() {
+    @Override public Optional<IndexType> getMethod() {
         return method;
     }
 
@@ -97,7 +97,7 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
         return this;
     }
 
-    @Override public PostgresIndexDefinition method( IndexMethod method ) {
+    @Override public PostgresIndexDefinition method( IndexType method ) {
         this.method = Optional.of( method );
         return this;
     }
@@ -133,6 +133,12 @@ public class PostgresExpressionIndexDefinition implements PostgresIndexDefinitio
 
     @Override public PostgresIndexDefinition concurrent() {
         concurrent = true;
+        return this;
+    }
+
+    @Override
+    public PostgresIndexDefinition notConcurrent() {
+        concurrent = false;
         return this;
     }
 
