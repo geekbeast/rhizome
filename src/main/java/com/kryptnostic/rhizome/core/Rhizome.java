@@ -216,8 +216,10 @@ public class Rhizome implements WebApplicationInitializer {
         boolean awsProfile = shoot( context, activeProfiles );
 
         /*
-         * This will trigger creation of Jetty, so we: 1) Lock on singleton context 2) switch in the correct singleton
-         * context 3) set back to null and release lock once Jetty has finished starting.
+         * This will trigger creation of Jetty, so we:
+         * 1) Lock on singleton context
+         * 2) switch in the correct singleton context
+         * 3) set back to null and release lock once Jetty has finished starting.
          */
         try {
             startupLock.lock();

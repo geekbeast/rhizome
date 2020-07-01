@@ -42,9 +42,10 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import( { ConfigurationPod.class, MetricsPod.class } )
 public class JdbcPod {
-    private static final Logger               logger = LoggerFactory.getLogger( JdbcPod.class );
+    private static final Logger logger = LoggerFactory.getLogger( JdbcPod.class );
+
     @Inject
-    private              RhizomeConfiguration rhizomeConfiguration;
+    private RhizomeConfiguration rhizomeConfiguration;
 
     @Inject
     private HealthCheckRegistry healthCheckRegistry;
