@@ -8,6 +8,10 @@ import com.hazelcast.core.HazelcastInstance
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
 import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.clientNetworkConfig
 
+interface IHazelcastClientProvider {
+    fun getClient(name: String): HazelcastInstance
+}
+
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -15,7 +19,7 @@ import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfiguration
 data class HazelcastClientProvider(
         private val clients: Map<String, HazelcastConfiguration>,
         private val serializationConfig: SerializationConfig
-) {
+) : IHazelcastClientProvider {
     init {
         clients.values.forEach { client ->
             check( !client.isServer) { "Specified server = true for client config: $client" }
@@ -32,7 +36,7 @@ data class HazelcastClientProvider(
         )
     }
 
-    fun getClient(name: String): HazelcastInstance {
+    override fun getClient(name: String): HazelcastInstance {
         return hazelcastClients.getValue(name)
     }
 
