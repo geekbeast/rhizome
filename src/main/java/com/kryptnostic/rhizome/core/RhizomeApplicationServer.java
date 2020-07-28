@@ -15,17 +15,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.kryptnostic.rhizome.core.Rhizome.shoot;
-import static com.kryptnostic.rhizome.core.Rhizome.showBannerIfStarted;
+import static com.kryptnostic.rhizome.core.Rhizome.showBannerIfStartedOrExit;
 
 public class RhizomeApplicationServer {
-    private final        AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();
-    private final        List<Class<?>>                     additionalPods = new ArrayList<>();
-    public static final  Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
+    public static final Class<?>[]                         DEFAULT_PODS   = new Class<?>[] {
             AsyncPod.class,
             ConfigurationPod.class,
             ConfigurationLoaderPod.class,
             HazelcastPod.class,
             RegistryBasedHazelcastInstanceConfigurationPod.class };
+    private final       AnnotationConfigApplicationContext context        = new AnnotationConfigApplicationContext();
+    private final       List<Class<?>>                     additionalPods = new ArrayList<>();
 
     public RhizomeApplicationServer( Class<?>... pods ) {
         this( DEFAULT_PODS, pods );
@@ -47,7 +47,8 @@ public class RhizomeApplicationServer {
         }
         context.refresh();
 
-        showBannerIfStarted( context );
+        showBannerIfStartedOrExit( context );
+
     }
 
     public void plowUnder() {
