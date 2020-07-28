@@ -1,7 +1,7 @@
 package com.geekbeast.rhizome.hazelcast
 
 import com.google.common.collect.Maps
-import com.hazelcast.core.IMap
+import com.hazelcast.map.IMap
 import com.hazelcast.internal.serialization.InternalSerializationService
 import com.hazelcast.internal.serialization.impl.DefaultSerializationServiceBuilder
 import com.hazelcast.internal.serialization.impl.SerializationServiceV1
@@ -33,7 +33,7 @@ fun <K, V> mockHazelcastMap(
         valueClass: Class<V>,
         streamSerializers: List<SelfRegisteringStreamSerializer<*>> = listOf(),
         ss: InternalSerializationService = _ss,
-        extractors: Extractors = Extractors.newBuilder(ss).setMapAttributeConfigs(listOf()).setClassLoader(keyClass.classLoader).build()
+        extractors: Extractors = Extractors.newBuilder(ss).setAttributeConfigs(listOf()).setClassLoader(keyClass.classLoader).build()
 ): IMap<K, V> {
     val mock = Mockito.mock<IMap<*, *>>(IMap::class.java) as IMap<K, V>
     val backingMap = Maps.newConcurrentMap<K, V>()
@@ -124,7 +124,7 @@ fun <K, V> mockHazelcastMap(
         backingMap[k]
     }
 
-    Mockito.`when`(mock.delete(any(keyClass))).thenAnswer {
+    Mockito.`when`(mock.delete(any(keyClass) as Any )).thenAnswer {
         val k = it.arguments[0] as K
         backingMap.remove(k)
         Unit
@@ -137,7 +137,7 @@ fun <K, V> mockHazelcastMap(
         backingMap.remove(k)
     }
 
-    Mockito.`when`(mock.entrySet(any(Predicate::class.java))).thenAnswer { invocation ->
+    Mockito.`when`(mock.entrySet(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { invocation ->
         val p = invocation.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
@@ -147,7 +147,7 @@ fun <K, V> mockHazelcastMap(
                 .toSet()
     }
 
-    Mockito.`when`(mock.keySet(any(Predicate::class.java))).thenAnswer { it ->
+    Mockito.`when`(mock.keySet(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { it ->
         val p = it.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
@@ -158,7 +158,7 @@ fun <K, V> mockHazelcastMap(
                 .toSet()
     }
 
-    Mockito.`when`(mock.values(any(Predicate::class.java))).thenAnswer { it ->
+    Mockito.`when`(mock.values(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { it ->
         val p = it.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
