@@ -36,11 +36,14 @@ abstract class DistributedJob<T>(val id: UUID,val state: DistributedJobState) : 
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
         this.hazelcastInstance= hazelcastInstance
     }
+
     override fun call(): T {
+
 
     }
 
-    fun commitProgress() {
-        hazelcastInstance.getMap<>()
+    fun saveProgress() {
+        val jobs = hazelcastInstance.getMap<UUID, DistributedJob<*>>()
+        jobs.set(id, this)
     }
 }
