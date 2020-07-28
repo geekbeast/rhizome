@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 const val JOBS_MAP = "_rhizome_jobs_"
+const val TASK_IDS_MAP = "_rhizome_task_ids_"
 const val JOB_STATUS = "jobStatus"
 const val JOB_EXECUTOR = "job_exec"
 
@@ -40,13 +41,17 @@ const val JOB_EXECUTOR = "job_exec"
 @Service
 class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     protected val jobs = hazelcastInstance.getMap<UUID, DistributedJobState>(JOBS_MAP)
+    protected val taskIds = hazelcastInstance.getMap<UUID, Long>(TASK_IDS_MAP)
     protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
+
+   //WE DON'T  
 
     @Timed
     fun <T> submitJob( job: AbstractDistributedJob<T> ) : UUID {
         require( job.state.jobStatus == JobStatus.PENDING ) { "Job status must be pending to submit." }
         val id = insertIntoUnusedKey(jobs, job.state, UUID::randomUUID)
-        durableExecutor.submitToKeyOwner(job, id)
+        val f = durableExecutor.submitToKeyOwner(job, id)
+        taskIds.set(id, f.taskId)
         return id
     }
 
@@ -59,7 +64,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 
     @Timed
-    private fun getJobs(
+    fun getJobs(
             ids: Collection<UUID>,
             jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
     ): Map<UUID, DistributedJobState> {
