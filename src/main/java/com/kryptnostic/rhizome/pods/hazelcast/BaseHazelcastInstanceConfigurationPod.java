@@ -59,7 +59,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .setProperty( "hazelcast.logging.type", "slf4j" )
                     .setProperty( "hazelcast.slow.operation.detector.stacktrace.logging.enabled", "true" )
                     .setProperty( "hazelcast.map.load.chunk.size","100000" )
-                    .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                    .setClusterName( hzConfiguration.getGroup() )
                     .setSerializationConfig( serializationConfig() )
                     .setMapConfigs( mapConfigs() )
                     .setQueueConfigs( queueConfigs( config.getQueueConfig( defaultQueueName ) ) )
@@ -83,7 +83,7 @@ public class BaseHazelcastInstanceConfigurationPod {
 
         return hzConfiguration.isServer() ? null : new ClientConfig()
                 .setNetworkConfig( clientNetworkConfig( hzConfiguration ) )
-                .setGroupConfig( new GroupConfig( hzConfiguration.getGroup(), hzConfiguration.getPassword() ) )
+                .setClusterName( hzConfiguration.getGroup() )
                 .setSerializationConfig( serializationConfig )
                 .setProperty( "hazelcast.logging.type", "slf4j" )
                 .setNearCacheConfigMap( nearCacheConfigs() );
