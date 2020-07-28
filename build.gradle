@@ -239,7 +239,6 @@ dependencies {
      * Transparent http clustering, distributed java.util collections
      */
     compile "com.hazelcast:hazelcast:${hazelcast_version}"
-    compile "com.hazelcast:hazelcast-client:${hazelcast_version}"
     compile "com.hazelcast:hazelcast-wm:${hazelcast_wm_version}"
     compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
 
