@@ -29,10 +29,11 @@ import org.apache.commons.lang3.RandomStringUtils
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class JobSerializationTests : AbstractJacksonSerializationTest<DistributedJobState>() {
-    override fun getSampleData(): DistributedJobState = EmptyJobState(RandomStringUtils.random(5))
+    override fun getSampleData(): DistributedJobState = DistributedJobState(0, JobStatus.RUNNING, EmptyJobState(RandomStringUtils.random(5)) )
     override fun logResult(result: SerializationResult<DistributedJobState>?) {
         logger.info("Json: ${result?.jsonString}")
     }
 
     override fun getClazz(): Class<DistributedJobState> = DistributedJobState::class.java
 }
+

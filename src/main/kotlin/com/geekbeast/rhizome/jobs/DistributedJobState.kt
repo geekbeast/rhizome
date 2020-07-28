@@ -21,13 +21,42 @@
 
 package com.geekbeast.rhizome.jobs
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import java.lang.IllegalStateException
+import java.util.*
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
+data class DistributedJobState(
+    val progress: Byte,
+    val jobStatus: JobStatus,
+    val state : JobState
+) {
+    private lateinit var id : UUID
+    private var taskId: Long? = null
+    set(value) = if( taskId == null ) taskId = value else throw IllegalStateException("Task is cannot be initialized twice.")
+
+    fun setId( id: UUID ) {
+        require(!this::id.isInitialized) {
+            "Id can only be initialized once."
+        }
+    }
+
+    fun getId(): UUID {
+        return id
+    }
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-interface DistributedJobState {
+interface JobState
+
+enum class JobStatus {
+    PENDING,
+    FINISHED,
+    RUNNING,
+    STOPPING,
+    CANCELED
 }

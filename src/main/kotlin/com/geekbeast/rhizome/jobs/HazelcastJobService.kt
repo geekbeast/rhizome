@@ -21,14 +21,61 @@
 
 package com.geekbeast.rhizome.jobs
 
+import com.codahale.metrics.annotation.Timed
+import com.geekbeast.rhizome.hazelcast.insertIntoUnusedKey
 import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.query.Predicate
+import com.hazelcast.query.Predicates
+import org.springframework.stereotype.Service
 import java.util.*
 
 const val JOBS_MAP = "_rhizome_jobs_"
+const val JOB_STATUS = "jobStatus"
+const val JOB_EXECUTOR = "job_exec"
+
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
+@Service
 class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
-    protected val jobs = hazelcastInstance.getMap<UUID, DistributedJob<*>>(JOBS_MAP)
+    protected val jobs = hazelcastInstance.getMap<UUID, DistributedJobState>(JOBS_MAP)
+    protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
+
+    @Timed
+    fun <T> submitJob( job: AbstractDistributedJob<T> ) : UUID {
+        require( job.state.jobStatus == JobStatus.PENDING ) { "Job status must be pending to submit." }
+        val id = insertIntoUnusedKey(jobs, job.state, UUID::randomUUID)
+        durableExecutor.submitToKeyOwner(job, id)
+        return id
+    }
+
+    @Timed
+    fun getJobs(jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)): Map<UUID, DistributedJobState> {
+        return jobs
+                .entrySet(Predicates.and(buildStatesPredicate(jobStates)))
+                .map { it.toPair() }
+                .toMap()
+    }
+
+    @Timed
+    private fun getJobs(
+            ids: Collection<UUID>,
+            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
+    ): Map<UUID, DistributedJobState> {
+        return jobs
+                .entrySet(Predicates.and(buildIdsPredicate(ids), buildStatesPredicate(jobStates)))
+                .map { it.toPair() }
+                .toMap()
+    }
 }
+
+internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<*, *> = Predicates.`in`(
+        JOB_STATUS,
+        *jobStates.toTypedArray()
+)
+
+internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<*, *> = Predicates.`in`(
+        JOB_STATUS,
+        *ids.toTypedArray()
+)
