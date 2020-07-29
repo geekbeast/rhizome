@@ -23,8 +23,7 @@ public class ListenableHazelcastFuture<T> implements ListenableFuture<T> {
         f = f.whenCompleteAsync( ( v, t ) -> {
             if ( t == null ) {
                 executor.execute( listener );
-            }
-            if ( t != null ) {
+            } else {
                 logger.error( "Unable to retrieve result.", t );
             }
         } );
