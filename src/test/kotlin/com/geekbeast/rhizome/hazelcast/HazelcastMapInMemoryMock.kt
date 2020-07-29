@@ -124,7 +124,7 @@ fun <K, V> mockHazelcastMap(
         backingMap[k]
     }
 
-    Mockito.`when`(mock.delete(any(keyClass) as Any )).thenAnswer {
+    Mockito.`when`(mock.delete(any())).thenAnswer {
         val k = it.arguments[0] as K
         backingMap.remove(k)
         Unit
@@ -137,7 +137,7 @@ fun <K, V> mockHazelcastMap(
         backingMap.remove(k)
     }
 
-    Mockito.`when`(mock.entrySet(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { invocation ->
+    Mockito.`when`(mock.entrySet(any())).thenAnswer { invocation ->
         val p = invocation.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
@@ -147,7 +147,7 @@ fun <K, V> mockHazelcastMap(
                 .toSet()
     }
 
-    Mockito.`when`(mock.keySet(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { it ->
+    Mockito.`when`(mock.keySet(any())).thenAnswer { it ->
         val p = it.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
@@ -158,7 +158,7 @@ fun <K, V> mockHazelcastMap(
                 .toSet()
     }
 
-    Mockito.`when`(mock.values(any(Predicate::class.java) as Predicate<K, V>)).thenAnswer { it ->
+    Mockito.`when`(mock.values(any())).thenAnswer { it ->
         val p = it.arguments[0] as Predicate<K, V>
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
