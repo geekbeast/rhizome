@@ -27,7 +27,7 @@ import com.google.common.collect.Multimaps
 import com.google.common.collect.SetMultimap
 import com.hazelcast.nio.ObjectDataInput
 import com.hazelcast.nio.ObjectDataOutput
-import com.kryptnostic.rhizome.hazelcast.serializers.AbstractUUIDStreamSerializer
+import com.kryptnostic.rhizome.hazelcast.serializers.UUIDStreamSerializerUtils
 import java.util.*
 
 /**
@@ -38,7 +38,7 @@ fun serializeSetMultimap(out: ObjectDataOutput, mm: SetMultimap<UUID, String>) {
     out.writeInt(mm.keySet().size)
     Multimaps.asMap(mm).forEach {
         val tags = it.value.toTypedArray()
-        AbstractUUIDStreamSerializer.serialize(out, it.key)
+        UUIDStreamSerializerUtils.serialize(out, it.key)
         out.writeUTFArray(tags)
     }
 }
@@ -50,7 +50,7 @@ fun deserializeSetMultimap(input: ObjectDataInput): SetMultimap<UUID, String>? {
     val size = input.readInt()
     val mm = HashMultimap.create<UUID, String>()
     for (i in 0 until size) {
-        val id = AbstractUUIDStreamSerializer.deserialize(input)
+        val id = UUIDStreamSerializerUtils.deserialize(input)
         mm.putAll(id, input.readUTFArray().asIterable())
     }
     return mm
@@ -63,7 +63,7 @@ fun deserializeLinkedHashMultimap(input: ObjectDataInput): LinkedHashMultimap<UU
     val size = input.readInt()
     val mm = LinkedHashMultimap.create<UUID, String>()
     for (i in 0 until size) {
-        val id = AbstractUUIDStreamSerializer.deserialize(input)
+        val id = UUIDStreamSerializerUtils.deserialize(input)
         mm.putAll(id, input.readUTFArray().asIterable())
     }
     return mm

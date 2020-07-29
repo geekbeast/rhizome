@@ -1,8 +1,7 @@
 package com.geekbeast.rhizome.hazelcast
 
 import com.google.common.collect.Queues
-import com.hazelcast.core.IQueue
-import com.hazelcast.query.Predicate
+import com.hazelcast.collection.IQueue
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit

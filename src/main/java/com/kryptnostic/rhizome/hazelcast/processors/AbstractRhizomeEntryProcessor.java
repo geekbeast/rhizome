@@ -4,6 +4,8 @@ import com.hazelcast.cache.BackupAwareEntryProcessor;
 import com.hazelcast.map.EntryProcessor;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.cache.processor.EntryProcessorException;
+import javax.cache.processor.MutableEntry;
 
 public abstract class AbstractRhizomeEntryProcessor<K, V, R>
         implements EntryProcessor<K, V, R>, BackupAwareEntryProcessor<K, V, R> {
@@ -32,4 +34,11 @@ public abstract class AbstractRhizomeEntryProcessor<K, V, R>
         return null;
     }
 
+    @Override public R process( MutableEntry<K, V> entry, Object... arguments ) throws EntryProcessorException {
+        return process( entry );
+    }
+
+    @Override public javax.cache.processor.EntryProcessor<K, V, R> createBackupEntryProcessor() {
+        return this;
+    }
 }
