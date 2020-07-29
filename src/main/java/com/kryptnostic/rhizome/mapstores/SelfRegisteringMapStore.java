@@ -2,7 +2,7 @@ package com.kryptnostic.rhizome.mapstores;
 
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.core.MapStore;
+import com.hazelcast.map.MapStore;
 
 /**
  * Used for implementing self-registration of map stores into HazelcastInstances.
