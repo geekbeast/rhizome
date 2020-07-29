@@ -23,7 +23,7 @@ ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
 apply plugin: 'kotlin'
-apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"\
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle" \
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
@@ -50,23 +50,25 @@ ext.sourceCompatibility = JavaVersion.VERSION_11
 ext.targetCompatibility = JavaVersion.VERSION_11
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs+= [ "--add-modules", "java.se",
-                             "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
-                             "--add-opens","java.base/java.lang=ALL-UNNAMED",
-                             "--add-opens","java.base/java.nio=ALL-UNNAMED",
-                             "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
-                             "--add-opens","java.management/sun.management=ALL-UNNAMED",
-                             "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+    options.compilerArgs += ["--add-modules", "java.se",
+                             "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
+                             "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                             "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+                             "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                             "--add-opens", "java.management/sun.management=ALL-UNNAMED",
+                             "--add-opens", "jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED",
+                             "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED"]
 }
 
 tasks.withType(Test) {
-    jvmArgs += [ "--add-modules", "java.se",
-                 "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
-                 "--add-opens","java.base/java.lang=ALL-UNNAMED",
-                 "--add-opens","java.base/java.nio=ALL-UNNAMED",
-                 "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
-                 "--add-opens","java.management/sun.management=ALL-UNNAMED",
-                 "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+    jvmArgs += ["--add-modules", "java.se",
+                "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+                "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                "--add-opens", "java.management/sun.management=ALL-UNNAMED",
+                "--add-opens", "jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED",
+                "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED"]
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -241,6 +243,7 @@ dependencies {
     compile "com.hazelcast:hazelcast:${hazelcast_version}"
     compile "com.hazelcast:hazelcast-wm:${hazelcast_wm_version}"
     compile "com.hazelcast:hazelcast-spring:${hazelcast_version}"
+    compile 'javax.cache:cache-api:1.1.1'
 
     /*
      * EMBEDDED JETTY FOR LOCAL TESTING
@@ -322,13 +325,14 @@ dependencies {
 }
 
 tasks.withType(Test) {
-    jvmArgs += [ "--add-modules", "java.se",
-                 "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
-                 "--add-opens","java.base/java.lang=ALL-UNNAMED",
-                 "--add-opens","java.base/java.nio=ALL-UNNAMED",
-                 "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
-                 "--add-opens","java.management/sun.management=ALL-UNNAMED",
-                 "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+    jvmArgs += ["--add-modules", "java.se",
+                "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+                "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                "--add-opens", "java.management/sun.management=ALL-UNNAMED",
+                "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED",
+                "--add-opens","jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED"]
 }
 
 eclipse {
