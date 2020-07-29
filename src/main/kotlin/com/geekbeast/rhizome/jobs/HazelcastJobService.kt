@@ -44,8 +44,6 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     protected val taskIds = hazelcastInstance.getMap<UUID, Long>(TASK_IDS_MAP)
     protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
 
-   //WE DON'T  
-
     @Timed
     fun <T> submitJob( job: AbstractDistributedJob<T> ) : UUID {
         require( job.state.jobStatus == JobStatus.PENDING ) { "Job status must be pending to submit." }
@@ -75,12 +73,12 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 }
 
-internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<*, *> = Predicates.`in`(
+internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<UUID, DistributedJobState> = Predicates.`in`(
         JOB_STATUS,
         *jobStates.toTypedArray()
 )
 
-internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<*, *> = Predicates.`in`(
+internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, DistributedJobState> = Predicates.`in`(
         JOB_STATUS,
         *ids.toTypedArray()
 )
