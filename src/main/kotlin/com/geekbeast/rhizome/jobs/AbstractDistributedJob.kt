@@ -21,7 +21,6 @@
 
 package com.geekbeast.rhizome.jobs
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.core.HazelcastInstanceAware
 import com.hazelcast.map.IMap
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import java.lang.Thread.interrupted
 import java.util.*
-import java.util.concurrent.Callable
 
 /**
  * This class allows the execution of long running background jobs on the Hazelcast cluster.
@@ -39,10 +37,25 @@ import java.util.concurrent.Callable
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+
 abstract class AbstractDistributedJob<R, S : JobState>(
         state: S
-) : Callable<R?>, HazelcastInstanceAware {
+) : DistributableJob<R>, HazelcastInstanceAware {
+    constructor(
+            id: UUID,
+            taskId: Long,
+            status: JobStatus,
+            progress: Byte,
+            hasWorkRemaining: Boolean,
+            state: S
+    ) : this(state) {
+        _id = id
+        _taskId = taskId
+        this.hasWorkRemaining = hasWorkRemaining
+        this.progress = progress
+        this.status = status
+    }
+
     var state: S = state
         protected set
 
@@ -84,7 +97,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      * Internal API for doing a one time assignment of the randomly generated uuid for the task.
      * @param id The key of the job in the jobs maps.
      */
-    internal fun initId(id:UUID ) {
+    internal fun initId(id: UUID) {
         this._id = if (this::_id.isInitialized) throw IllegalStateException("Task id can only be assigned once.") else id
     }
 
@@ -93,18 +106,22 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         this.jobs = hazelcastInstance.getMap(JOBS_MAP)
     }
 
-    abstract fun result(): R?
-    abstract fun next()
-
-
     open fun abort(ex: Exception) {
+        if (this.status != JobStatus.FINISHED) {
+            this.status = JobStatus.CANCELED
+        }
+        publishJobState()
         throw ex
     }
 
+    abstract fun result(): R?
+    abstract fun processNextBatch()
+
     final override fun call(): R? {
+        initializeTaskId()
         while (!interrupted() && hasWorkRemaining) {
             try {
-                next()
+                processNextBatch()
             } catch (ex: InterruptedException) {
                 logger.warn("Distributed job $taskId was interrupted.")
                 abort(ex)
@@ -127,7 +144,6 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     protected fun publishJobState() {
-        val job = this
-        jobs.set(id, job)
+        jobs.set(id, this)
     }
 }
