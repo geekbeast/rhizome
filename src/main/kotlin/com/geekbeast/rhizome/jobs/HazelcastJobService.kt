@@ -52,7 +52,11 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
         val taskId = f.taskId
         jobs.executeOnKey(id) {
-            it.value?.initTaskId(taskId)
+            val v = it.value
+            if (v != null) {
+                v.initTaskId(taskId)
+                it.setValue(v)
+            }
         }
 
         return id
@@ -91,12 +95,14 @@ enum class JobStatus {
     CANCELED
 }
 
-internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<UUID,  AbstractDistributedJob<*, *>> = Predicates.`in`(
+internal fun buildStatesPredicate(
+        jobStates: Set<JobStatus>
+): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
         JOB_STATUS,
         *jobStates.toTypedArray()
 )
 
-internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID,  AbstractDistributedJob<*, *>> = Predicates.`in`(
+internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
         JOB_STATUS,
         *ids.toTypedArray()
 )
