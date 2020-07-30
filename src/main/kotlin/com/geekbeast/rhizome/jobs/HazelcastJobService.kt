@@ -22,6 +22,7 @@
 package com.geekbeast.rhizome.jobs
 
 import com.codahale.metrics.annotation.Timed
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.geekbeast.rhizome.hazelcast.insertIntoUnusedKey
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.query.Predicate
@@ -40,21 +41,27 @@ const val JOB_EXECUTOR = "job_exec"
  */
 @Service
 class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
-    protected val jobs = hazelcastInstance.getMap<UUID, DistributedJobState>(JOBS_MAP)
-    protected val taskIds = hazelcastInstance.getMap<UUID, Long>(TASK_IDS_MAP)
+    protected val jobs = hazelcastInstance.getMap<UUID, AbstractDistributedJob<*, *>>(JOBS_MAP)
     protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
 
     @Timed
-    fun <T> submitJob( job: AbstractDistributedJob<T> ) : UUID {
-        require( job.state.jobStatus == JobStatus.PENDING ) { "Job status must be pending to submit." }
-        val id = insertIntoUnusedKey(jobs, job.state, UUID::randomUUID)
+    fun <T, S : JobState> submitJob(job: AbstractDistributedJob<T, S>): UUID {
+        require(job.status == JobStatus.PENDING) { "Job status must be pending to submit." }
+        val id = insertIntoUnusedKey(jobs, job, UUID::randomUUID)
         val f = durableExecutor.submitToKeyOwner(job, id)
-        taskIds.set(id, f.taskId)
+
+        val taskId = f.taskId
+        jobs.executeOnKey(id) {
+            it.value?.initTaskId(taskId)
+        }
+
         return id
     }
 
     @Timed
-    fun getJobs(jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)): Map<UUID, DistributedJobState> {
+    fun getJobs(
+            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
+    ): Map<UUID, AbstractDistributedJob<*, *>> {
         return jobs
                 .entrySet(Predicates.and(buildStatesPredicate(jobStates)))
                 .map { it.toPair() }
@@ -65,7 +72,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     fun getJobs(
             ids: Collection<UUID>,
             jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
-    ): Map<UUID, DistributedJobState> {
+    ): Map<UUID, AbstractDistributedJob<*, *>> {
         return jobs
                 .entrySet(Predicates.and(buildIdsPredicate(ids), buildStatesPredicate(jobStates)))
                 .map { it.toPair() }
@@ -73,12 +80,24 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 }
 
-internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<UUID, DistributedJobState> = Predicates.`in`(
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+interface JobState
+
+enum class JobStatus {
+    PENDING,
+    FINISHED,
+    RUNNING,
+    STOPPING,
+    CANCELED
+}
+
+internal fun buildStatesPredicate(jobStates: Set<JobStatus>): Predicate<UUID,  AbstractDistributedJob<*, *>> = Predicates.`in`(
         JOB_STATUS,
         *jobStates.toTypedArray()
 )
 
-internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, DistributedJobState> = Predicates.`in`(
+internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID,  AbstractDistributedJob<*, *>> = Predicates.`in`(
         JOB_STATUS,
         *ids.toTypedArray()
 )
+
