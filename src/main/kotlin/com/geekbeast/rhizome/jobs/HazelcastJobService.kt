@@ -56,7 +56,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     fun <R, S : JobState> submitJob(job: AbstractDistributedJob<R, S>): UUID {
         require(job.status == JobStatus.PENDING) { "Job status must be pending to submit." }
         validateJob(job)
-        
+
         val id = insertIntoUnusedKey(jobs, job, UUID::randomUUID)
         val f = durableExecutor.submitToKeyOwner(job, id)
 

@@ -21,13 +21,11 @@
 
 package com.geekbeast.rhizome.jobs
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.core.HazelcastInstanceAware
 import com.hazelcast.map.IMap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
 import java.lang.Thread.interrupted
 import java.util.*
 
@@ -150,5 +148,29 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
     protected fun publishJobState() {
         jobs.set(id, this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AbstractDistributedJob<*, *>) return false
+
+        if (state != other.state) return false
+        if (_id != other._id) return false
+        if (_taskId != other._taskId) return false
+        if (progress != other.progress) return false
+        if (status != other.status) return false
+        if (hasWorkRemaining != other.hasWorkRemaining) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = state.hashCode()
+        result = 31 * result + _id.hashCode()
+        result = 31 * result + (_taskId?.hashCode() ?: 0)
+        result = 31 * result + progress
+        result = 31 * result + status.hashCode()
+        result = 31 * result + hasWorkRemaining.hashCode()
+        return result
     }
 }

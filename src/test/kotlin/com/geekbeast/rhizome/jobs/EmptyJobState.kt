@@ -30,5 +30,4 @@ class EmptyJob(state: EmptyJobState) : AbstractDistributedJob<Long, EmptyJobStat
     override fun processNextBatch() {
 
     }
-
 }
