@@ -21,15 +21,51 @@
 
 package com.geekbeast.rhizome.jobs
 
+import com.geekbeast.rhizome.tests.bootstrap.RhizomeTests
+import com.hazelcast.core.HazelcastInstance
+import org.apache.commons.lang3.RandomStringUtils
+import org.junit.Assert
+import org.junit.BeforeClass
 import org.junit.Test
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-class HazelcastJobServiceTest {
-    @Test
-    fun testSerdes() {
+class HazelcastJobServiceTest : RhizomeTests() {
+    companion object {
+        private lateinit var hazelcastInstance: HazelcastInstance
+        private lateinit var jobService: HazelcastJobService
 
+        @JvmStatic
+        @BeforeClass
+        fun initHz() {
+            hazelcastInstance = rhizome.context.getBean(HazelcastInstance::class.java)
+            jobService = HazelcastJobService(hazelcastInstance)
+        }
+    }
+
+    @Test
+    fun testJobService() {
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
+        val jobs = jobService.getJobs()
+        Assert.assertEquals(4, jobs.size)
+
+        jobs.forEach { Assert.assertEquals(5L, jobService.getResultAndDisposeOfTask<Long>(it.key).second) }
+
+        val moreJobs = jobService.getJobs()
+        Assert.assertEquals(0, moreJobs.size)
+    }
+
+    @Test
+    fun testFailedJob() {
+        val id = jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)), fail = true))
+
+        val (job, result) = jobService.getResultAndDisposeOfTask<Long>(id)
+        Assert.assertNull( result )
+        Assert.assertEquals(JobStatus.CANCELED,job.status)
     }
 }

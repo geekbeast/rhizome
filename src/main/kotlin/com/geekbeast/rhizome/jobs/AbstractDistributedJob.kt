@@ -28,6 +28,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Thread.interrupted
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * This class allows the execution of long running background jobs on the Hazelcast cluster. The main thing to keep in
@@ -39,21 +40,23 @@ import java.util.*
  */
 
 abstract class AbstractDistributedJob<R, S : JobState>(
-        state: S
+        state: S,
+        val maxBatchDuration: Long = 1,
+        val maxBatchDurationTimeUnit: TimeUnit = TimeUnit.HOURS
 ) : DistributableJob<R>, HazelcastInstanceAware {
 
     /**
      * Protected helper function to assist with adding a secondary constructor for jackson serialization.
      */
     protected fun initialize(
-            id: UUID,
-            taskId: Long,
+            id: UUID?,
+            taskId: Long?,
             status: JobStatus,
             progress: Byte,
             hasWorkRemaining: Boolean
     ) {
-        initId(id)
-        initTaskId(taskId)
+        if (id != null) initId(id)
+        if (taskId != null) initTaskId(taskId)
         this.hasWorkRemaining = hasWorkRemaining
         this.progress = progress
         this.status = status
@@ -62,13 +65,11 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     var state: S = state
         protected set
 
-    private lateinit var _id: UUID
-    val id: UUID
-        get() = _id
+    var id: UUID? = null
+        private set
 
-    private var _taskId: Long? = null
-    val taskId: Long
-        get() = _taskId!!
+    var taskId: Long? = null
+        private set
 
     var progress: Byte = 0
         protected set
@@ -93,7 +94,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      * @param taskId The id that was assigned to this task.
      */
     internal fun initTaskId(taskId: Long) {
-        this._taskId = if (_taskId == null) taskId else throw IllegalStateException("Task id can only be assigned once.")
+        this.taskId = if (this.taskId == null) taskId else throw IllegalStateException("Task id can only be assigned once.")
     }
 
     /**
@@ -101,7 +102,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      * @param id The key of the job in the jobs maps.
      */
     internal fun initId(id: UUID) {
-        this._id = if (this::_id.isInitialized) throw IllegalStateException("Task id can only be assigned once.") else id
+        this.id = if (this.id == null) id else throw IllegalStateException("Task id can only be assigned once.")
     }
 
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
@@ -109,28 +110,30 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         this.jobs = hazelcastInstance.getMap(JOBS_MAP)
     }
 
-    open fun abort(ex: Exception) {
+    open fun abort() {
         if (this.status != JobStatus.FINISHED) {
             this.status = JobStatus.CANCELED
         }
         publishJobState()
-        throw ex
     }
 
     abstract fun result(): R?
     abstract fun processNextBatch()
 
     final override fun call(): R? {
-        initializeTaskId()
-        while (!interrupted() && hasWorkRemaining) {
-            try {
+        status = JobStatus.RUNNING
+
+        try {
+            while (!interrupted() && hasWorkRemaining && status == JobStatus.RUNNING) {
+                initializeTaskId()
                 processNextBatch()
-            } catch (ex: InterruptedException) {
-                logger.warn("Distributed job $taskId was interrupted.")
-                abort(ex)
-            } finally {
                 publishJobState()
             }
+        } catch (ex: InterruptedException) {
+            logger.warn("Distributed job $taskId was interrupted.", ex)
+            abort()
+        } finally {
+            publishJobState()
         }
 
         return if (hasWorkRemaining) {
@@ -142,11 +145,16 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     private fun initializeTaskId() {
-        require(_taskId == null) { "Task id can only be initialized once from map." }
-        initTaskId(jobs.executeOnKey(id) { it.value.taskId })
+        if (taskId != null) return
+
+        require(id != null) { "Cannot initialize task when id has not been initialized." }
+
+        val maybeTaskId = jobs.executeOnKey(id!!) { it.value.taskId } //TODO: Make offloadable
+        if (maybeTaskId == null) return else initTaskId(maybeTaskId)
     }
 
     protected fun publishJobState() {
+        //Do not replace with indexing operator
         jobs.set(id, this)
     }
 
@@ -155,8 +163,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         if (other !is AbstractDistributedJob<*, *>) return false
 
         if (state != other.state) return false
-        if (_id != other._id) return false
-        if (_taskId != other._taskId) return false
+        if (id != other.id) return false
+        if (taskId != other.taskId) return false
         if (progress != other.progress) return false
         if (status != other.status) return false
         if (hasWorkRemaining != other.hasWorkRemaining) return false
@@ -166,8 +174,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
     override fun hashCode(): Int {
         var result = state.hashCode()
-        result = 31 * result + _id.hashCode()
-        result = 31 * result + (_taskId?.hashCode() ?: 0)
+        result = 31 * result + id.hashCode()
+        result = 31 * result + (taskId?.hashCode() ?: 0)
         result = 31 * result + progress
         result = 31 * result + status.hashCode()
         result = 31 * result + hasWorkRemaining.hashCode()

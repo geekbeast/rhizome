@@ -24,19 +24,22 @@ package com.geekbeast.rhizome.jobs
 import com.codahale.metrics.annotation.Timed
 import com.dataloom.mappers.ObjectMappers
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.geekbeast.rhizome.hazelcast.insertIntoUnusedKey
 import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.core.HazelcastInstanceAware
+import com.hazelcast.map.IMap
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.Predicates
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
+import java.util.concurrent.Callable
 
 const val JOBS_MAP = "_rhizome_jobs_"
-const val TASK_IDS_MAP = "_rhizome_task_ids_"
-const val JOB_STATUS = "jobStatus"
-const val JOB_EXECUTOR = "job_exec"
+private const val JOB_STATUS = "status"
+private const val JOBS_EXECUTOR = "_rhizome_job_service_"
 
 /**
  *
@@ -49,27 +52,81 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 
     protected val jobs = hazelcastInstance.getMap<UUID, AbstractDistributedJob<*, *>>(JOBS_MAP)
-    protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
-    protected val mapper = ObjectMappers.getSmileMapper()
+    protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOBS_EXECUTOR)
+    protected val mapper : ObjectMapper = ObjectMappers.getSmileMapper()
+
 
     @Timed
     fun <R, S : JobState> submitJob(job: AbstractDistributedJob<R, S>): UUID {
         require(job.status == JobStatus.PENDING) { "Job status must be pending to submit." }
-        validateJob(job)
 
-        val id = insertIntoUnusedKey(jobs, job, UUID::randomUUID)
-        val f = durableExecutor.submitToKeyOwner(job, id)
+        val id = insertIntoUnusedKey(
+                jobs,
+                job,
+                generate = UUID::randomUUID,
+                maxIdle = job.maxBatchDuration,
+                maxIdleUnit = job.maxBatchDurationTimeUnit
+        )
 
+        //We need to let the job know it's own id.
+        jobs.executeOnKey(id) {
+            val v = it.value
+            if (v != null) {
+                v.initId(id)
+                it.setValue(v)
+            }
+            return@executeOnKey null
+        }
+        job.initId(id) //This is duplicate of the job in the map being submitted.
+
+        //Submit to durable executor, grab the task id, and update the job with its task id so that task can retrieve.
+        val f = durableExecutor.submitToKeyOwner(job, object : HazelcastInstanceAware,java.io.Serializable, Callable<R?> {
+            @Transient
+            private lateinit var jobs : IMap<UUID, AbstractDistributedJob<*, *>>
+            override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
+                jobs = hazelcastInstance.getMap(JOBS_MAP)
+            }
+
+            override fun call(): R? {
+                return jobs[id]?.call() as R?
+            }
+
+        })
         val taskId = f.taskId
+
         jobs.executeOnKey(id) {
             val v = it.value
             if (v != null) {
                 v.initTaskId(taskId)
                 it.setValue(v)
             }
+            return@executeOnKey null
         }
 
+        //Fail late, but at least give caller feedback. We have to do it in this order since these properties are set once
+        job.initTaskId(taskId)
+        validateJob(job)
+
         return id
+    }
+
+    fun <T> getResultAndDisposeOfTask(id: UUID): Pair<AbstractDistributedJob<*, *>, T?> {
+        ensureJobExists(id)
+        val result = durableExecutor.retrieveAndDisposeResult<T?>(getTaskId(id)).get()
+        val job = jobs.remove(id)!!
+
+        return job to result
+    }
+
+    fun <T> getResult(id: UUID): T? {
+        require(jobs.containsKey(id)) { "Unable to find job $id" }
+        val taskId = getTaskId(id)
+        return durableExecutor.retrieveResult<T?>(taskId).get()
+    }
+
+    fun getStatus(id: UUID): JobStatus {
+        ensureJobExists(id)
+        return jobs.executeOnKey(id) { it.value.status }
     }
 
     @Timed
@@ -93,6 +150,12 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
                 .toMap()
     }
 
+    private fun ensureJobExists(id: UUID) {
+        require(jobs.containsKey(id)) {
+            "Unable to find job $id"
+        }
+    }
+
     private fun <R, S : JobState> validateJob(job: AbstractDistributedJob<R, S>) {
         val bytes = try {
             mapper.writeValueAsBytes(job)
@@ -108,6 +171,16 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             throw IllegalArgumentException(JOB_NOT_SERIAZBLE_ERROR)
         }
     }
+
+    private fun getTaskId(id: UUID): Long {
+        val taskId = jobs.executeOnKey(id) { it.value?.taskId }
+
+        require(taskId != null) {
+            "Task id has not yet been assigned for job $id."
+        }
+
+        return taskId
+    }
 }
 
 private const val JOB_NOT_DESERIAZBLE_ERROR = "Submitted job could not be properly deserialized."
@@ -121,7 +194,7 @@ enum class JobStatus {
     FINISHED,
     RUNNING,
     STOPPING,
-    CANCELED
+    CANCELED //Due to thread interruption mechanics we don't yet have plumbing to differentiate between canceled and failed.
 }
 
 internal fun buildStatesPredicate(
