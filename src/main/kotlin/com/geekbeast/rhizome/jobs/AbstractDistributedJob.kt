@@ -30,6 +30,8 @@ import java.lang.Thread.interrupted
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+const val PAUSE_POLLING_MILLIS = 5000L
+
 /**
  * This class allows the execution of long running background jobs on the Hazelcast cluster. The main thing to keep in
  * mind when using this as the base class is that the j
@@ -44,22 +46,30 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         val maxBatchDuration: Long = 1,
         val maxBatchDurationTimeUnit: TimeUnit = TimeUnit.HOURS
 ) : DistributableJob<R>, HazelcastInstanceAware {
+    override val resumable = false
+    private var initialized: Boolean = false
 
     /**
      * Protected helper function to assist with adding a secondary constructor for jackson serialization.
      */
+    @Synchronized
     protected fun initialize(
             id: UUID?,
             taskId: Long?,
             status: JobStatus,
             progress: Byte,
-            hasWorkRemaining: Boolean
+            hasWorkRemaining: Boolean,
+            result: R?
     ) {
+        require(!initialized) { "You can only initialize a job once." }
+
         if (id != null) initId(id)
         if (taskId != null) initTaskId(taskId)
         this.hasWorkRemaining = hasWorkRemaining
         this.progress = progress
         this.status = status
+        this.initialized = true
+        this.result = result
     }
 
     var state: S = state
@@ -75,10 +85,12 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         protected set
 
     var status: JobStatus = JobStatus.PENDING
-        protected set
+        private set
 
     var hasWorkRemaining: Boolean = true
         protected set
+
+    var result: R? = null
 
     @Transient
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -110,25 +122,79 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         this.jobs = hazelcastInstance.getMap(JOBS_MAP)
     }
 
-    open fun abort() {
+    /**
+     *
+     */
+    fun abort(msg: () -> String = { "Job $id with $taskId was aborted." }) {
         if (this.status != JobStatus.FINISHED) {
             this.status = JobStatus.CANCELED
         }
         publishJobState()
+        logger.error(msg())
     }
 
-    abstract fun result(): R?
+    fun pause(msg: () -> String = { "Job $id with $taskId was aborted." }) {
+        if (this.status != JobStatus.FINISHED) {
+            this.status = JobStatus.PAUSED
+        }
+        publishJobState()
+        logger.info(msg())
+    }
+
     abstract fun processNextBatch()
 
-    final override fun call(): R? {
-        status = JobStatus.RUNNING
+    private fun initializeTask() {
+        /**
+         * There are two resumption cases we need to handle at initialization
+         *
+         * 1. Node failure and task is resumed on another node and task only has original state
+         * 2. Cluster restart and task is being resumed and task has last previously published state.
+         *
+         * In the first case we have to pull state from map to resume the job. In the second case we
+         * will already have the state from map and just need to resume the job.
+         */
 
-        try {
-            while (!interrupted() && hasWorkRemaining && status == JobStatus.RUNNING) {
-                initializeTaskId()
-                processNextBatch()
-                publishJobState()
+        status = jobs.executeOnKey(id!!) { it.value.status }
+
+        if (resumable && status == JobStatus.RUNNING) {
+            //Case 1
+            val v = jobs.executeOnKey(id!!) { it.value }!!
+            this.state = state
+            this.status = v.status
+            this.taskId = v.taskId
+            this.hasWorkRemaining = v.hasWorkRemaining
+            this.progress = progress
+        } else if (status == JobStatus.PENDING) {
+            //If status is pending then job is new and we just need to mark as running.
+            status = JobStatus.RUNNING
+        }
+    }
+
+    private fun processBatches() {
+        while (!interrupted() && hasWorkRemaining && status == JobStatus.RUNNING) {
+            initializeTaskId()
+            processNextBatch()
+            if (!hasWorkRemaining) {
+                status = JobStatus.FINISHED
             }
+            publishJobState()
+        }
+    }
+
+    final override fun call(): R? {
+        /**
+         * If the job status is paused we poll for a job status update every five seconds, otherwise we process
+         * that batches, which publishes it's state on every loop. If we get interrupted, we abort the processing
+         * and publish the aborted job state.
+         */
+        try {
+            do {
+                if (status == JobStatus.PAUSED) {
+                    Thread.sleep(PAUSE_POLLING_MILLIS)
+                }
+                initializeTask()
+                processBatches()
+            } while (resumable && status == JobStatus.PAUSED)
         } catch (ex: InterruptedException) {
             logger.warn("Distributed job $taskId was interrupted.", ex)
             abort()
@@ -136,11 +202,16 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             publishJobState()
         }
 
-        return if (hasWorkRemaining) {
-            logger.warn("Distributed job $taskId was interrupted or canceled.")
+        return if (hasWorkRemaining && status == JobStatus.CANCELED) {
+            logger.warn("Distributed job $id with task id $taskId was interrupted or canceled.")
             null
+        } else if (hasWorkRemaining && resumable && status == JobStatus.PAUSED) {
+            logger.info("Distributed job $id with task id $taskId was pasused")
+            null
+        } else if (!hasWorkRemaining && status == JobStatus.FINISHED) {
+            result
         } else {
-            result()
+            throw IllegalStateException("Distributed job $id is an illegal state.")
         }
     }
 

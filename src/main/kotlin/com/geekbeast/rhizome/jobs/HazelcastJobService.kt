@@ -53,8 +53,27 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     protected val jobs = hazelcastInstance.getMap<UUID, AbstractDistributedJob<*, *>>(JOBS_MAP)
     protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOBS_EXECUTOR)
-    protected val mapper : ObjectMapper = ObjectMappers.getSmileMapper()
+    protected val mapper: ObjectMapper = ObjectMappers.getSmileMapper()
 
+
+    @Timed
+    fun resumeJobs(ids: Set<UUID>) {
+        //Rather than pulling the job here, we simply create a wrapper job that
+        ids.forEach { id ->
+            durableExecutor.submitToKeyOwner(object : HazelcastInstanceAware, java.io.Serializable, Callable<Any?> {
+                @Transient
+                private lateinit var jobs: IMap<UUID, AbstractDistributedJob<*, *>>
+                override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
+                    jobs = hazelcastInstance.getMap(JOBS_MAP)
+                }
+
+                override fun call(): Any? {
+                    return jobs[id]?.call()
+                }
+
+            }, id)
+        }
+    }
 
     @Timed
     fun <R, S : JobState> submitJob(job: AbstractDistributedJob<R, S>): UUID {
@@ -74,24 +93,15 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initId(id)
                 it.setValue(v)
+                if( logger.isDebugEnabled ) logger.debug("Set task id $id")
             }
             return@executeOnKey null
         }
+
         job.initId(id) //This is duplicate of the job in the map being submitted.
 
         //Submit to durable executor, grab the task id, and update the job with its task id so that task can retrieve.
-        val f = durableExecutor.submitToKeyOwner(job, object : HazelcastInstanceAware,java.io.Serializable, Callable<R?> {
-            @Transient
-            private lateinit var jobs : IMap<UUID, AbstractDistributedJob<*, *>>
-            override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
-                jobs = hazelcastInstance.getMap(JOBS_MAP)
-            }
-
-            override fun call(): R? {
-                return jobs[id]?.call() as R?
-            }
-
-        })
+        val f = durableExecutor.submitToKeyOwner(job, id)
         val taskId = f.taskId
 
         jobs.executeOnKey(id) {
@@ -99,6 +109,8 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initTaskId(taskId)
                 it.setValue(v)
+                if( logger.isDebugEnabled ) logger.debug("Set task id $taskId for task $id")
+
             }
             return@executeOnKey null
         }
@@ -111,7 +123,6 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 
     fun <T> getResultAndDisposeOfTask(id: UUID): Pair<AbstractDistributedJob<*, *>, T?> {
-        ensureJobExists(id)
         val result = durableExecutor.retrieveAndDisposeResult<T?>(getTaskId(id)).get()
         val job = jobs.remove(id)!!
 
@@ -119,7 +130,6 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 
     fun <T> getResult(id: UUID): T? {
-        require(jobs.containsKey(id)) { "Unable to find job $id" }
         val taskId = getTaskId(id)
         return durableExecutor.retrieveResult<T?>(taskId).get()
     }
@@ -127,6 +137,14 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     fun getStatus(id: UUID): JobStatus {
         ensureJobExists(id)
         return jobs.executeOnKey(id) { it.value.status }
+    }
+
+    @Timed
+    fun getJobIds(
+            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
+    ): Set<UUID> {
+        return jobs
+                .keySet(Predicates.and(buildStatesPredicate(jobStates)))
     }
 
     @Timed
@@ -173,6 +191,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
     }
 
     private fun getTaskId(id: UUID): Long {
+        ensureJobExists(id)
         val taskId = jobs.executeOnKey(id) { it.value?.taskId }
 
         require(taskId != null) {
@@ -190,6 +209,7 @@ private const val JOB_NOT_SERIAZBLE_ERROR = "Submitted job could not be properly
 interface JobState
 
 enum class JobStatus {
+    PAUSED,
     PENDING,
     FINISHED,
     RUNNING,

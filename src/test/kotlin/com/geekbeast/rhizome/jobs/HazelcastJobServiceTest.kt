@@ -47,10 +47,11 @@ class HazelcastJobServiceTest : RhizomeTests() {
 
     @Test
     fun testJobService() {
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5))))
+        val ids = setOf(jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
+        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))))
+        Assert.assertTrue( ids.size == 4 )
         val jobs = jobService.getJobs()
         Assert.assertEquals(4, jobs.size)
 

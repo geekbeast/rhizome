@@ -14,8 +14,7 @@ data class EmptyJobState(val name: String) : JobState
 class EmptyJob(
         state: EmptyJobState,
         fail: Boolean = false,
-        private val rounds: Int = 10,
-        var result : Long? = null
+        private val rounds: Int = 10
 ) : AbstractDistributedJob<Long, EmptyJobState>(state) {
     private var round = 0
     var fail: Boolean = fail
@@ -32,13 +31,9 @@ class EmptyJob(
             result: Long?,
             fail: Boolean
     ) : this(state) {
-        initialize(id, taskId, status, progress, hasWorkRemaining)
+        initialize(id, taskId, status, progress, hasWorkRemaining,result)
         this.result = result
         this.fail = fail
-    }
-
-    override fun result(): Long? {
-        return result
     }
 
     override fun processNextBatch() {
