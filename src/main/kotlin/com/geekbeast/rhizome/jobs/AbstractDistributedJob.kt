@@ -31,6 +31,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 const val PAUSE_POLLING_MILLIS = 5000L
+const val INITIALIZE_TASK_ID_POLLING_MILLIS = 500L
 
 /**
  * This class allows the execution of long running background jobs on the Hazelcast cluster. The main thing to keep in
@@ -172,7 +173,6 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
     private fun processBatches() {
         while (!interrupted() && hasWorkRemaining && status == JobStatus.RUNNING) {
-            initializeTaskId()
             processNextBatch()
             if (!hasWorkRemaining) {
                 status = JobStatus.FINISHED
@@ -182,6 +182,9 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     final override fun call(): R? {
+        //Wait until task id has been assigned and can be retrieved.
+        initializeTaskId()
+
         /**
          * If the job status is paused we poll for a job status update every five seconds, otherwise we process
          * that batches, which publishes it's state on every loop. If we get interrupted, we abort the processing
@@ -220,8 +223,10 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
 
-        val maybeTaskId = jobs.executeOnKey(id!!) { it.value.taskId } //TODO: Make offloadable
-        if (maybeTaskId == null) return else initTaskId(maybeTaskId)
+        while( taskId == null ) {
+            val maybeTaskId = jobs.executeOnKey(id!!) { it.value.taskId } //TODO: Make offloadable
+            if (maybeTaskId == null) Thread.sleep(INITIALIZE_TASK_ID_POLLING_MILLIS) else initTaskId(maybeTaskId)
+        }
     }
 
     protected fun publishJobState() {
