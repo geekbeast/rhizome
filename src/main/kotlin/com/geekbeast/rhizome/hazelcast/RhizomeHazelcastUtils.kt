@@ -1,8 +1,7 @@
 package com.geekbeast.rhizome.hazelcast
 
-import com.hazelcast.core.IMap
-import java.util.function.Supplier
-import javax.annotation.processing.Generated
+
+import com.hazelcast.map.IMap
 
 /**
  *
