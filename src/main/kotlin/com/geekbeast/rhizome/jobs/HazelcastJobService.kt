@@ -22,11 +22,14 @@
 package com.geekbeast.rhizome.jobs
 
 import com.codahale.metrics.annotation.Timed
+import com.dataloom.mappers.ObjectMappers
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.geekbeast.rhizome.hazelcast.insertIntoUnusedKey
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.Predicates
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -41,12 +44,19 @@ const val JOB_EXECUTOR = "job_exec"
  */
 @Service
 class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(HazelcastJobService::class.java)
+    }
+
     protected val jobs = hazelcastInstance.getMap<UUID, AbstractDistributedJob<*, *>>(JOBS_MAP)
     protected val durableExecutor = hazelcastInstance.getDurableExecutorService(JOB_EXECUTOR)
+    protected val mapper = ObjectMappers.getSmileMapper()
 
     @Timed
-    fun <T, S : JobState> submitJob(job: AbstractDistributedJob<T, S>): UUID {
+    fun <R, S : JobState> submitJob(job: AbstractDistributedJob<R, S>): UUID {
         require(job.status == JobStatus.PENDING) { "Job status must be pending to submit." }
+        validateJob(job)
+        
         val id = insertIntoUnusedKey(jobs, job, UUID::randomUUID)
         val f = durableExecutor.submitToKeyOwner(job, id)
 
@@ -82,7 +92,26 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
                 .map { it.toPair() }
                 .toMap()
     }
+
+    private fun <R, S : JobState> validateJob(job: AbstractDistributedJob<R, S>) {
+        val bytes = try {
+            mapper.writeValueAsBytes(job)
+        } catch (ex: Exception) {
+            logger.error(JOB_NOT_DESERIAZBLE_ERROR, ex)
+            throw IllegalArgumentException(JOB_NOT_DESERIAZBLE_ERROR)
+        }
+
+        try {
+            mapper.readValue<AbstractDistributedJob<R, S>>(bytes)
+        } catch (ex: Exception) {
+            logger.error(JOB_NOT_DESERIAZBLE_ERROR, ex)
+            throw IllegalArgumentException(JOB_NOT_SERIAZBLE_ERROR)
+        }
+    }
 }
+
+private const val JOB_NOT_DESERIAZBLE_ERROR = "Submitted job could not be properly deserialized."
+private const val JOB_NOT_SERIAZBLE_ERROR = "Submitted job could not be properly serialized."
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 interface JobState

@@ -21,6 +21,7 @@
 
 package com.geekbeast.rhizome.jobs
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.core.HazelcastInstanceAware
 import com.hazelcast.map.IMap
@@ -31,7 +32,8 @@ import java.lang.Thread.interrupted
 import java.util.*
 
 /**
- * This class allows the execution of long running background jobs on the Hazelcast cluster.
+ * This class allows the execution of long running background jobs on the Hazelcast cluster. The main thing to keep in
+ * mind when using this as the base class is that the j
  *
  * @param state The state of the job that can be retrieved by any hazelcast client.
  *
@@ -41,16 +43,19 @@ import java.util.*
 abstract class AbstractDistributedJob<R, S : JobState>(
         state: S
 ) : DistributableJob<R>, HazelcastInstanceAware {
-    constructor(
+
+    /**
+     * Protected helper function to assist with adding a secondary constructor for jackson serialization.
+     */
+    protected fun initialize(
             id: UUID,
             taskId: Long,
             status: JobStatus,
             progress: Byte,
-            hasWorkRemaining: Boolean,
-            state: S
-    ) : this(state) {
-        _id = id
-        _taskId = taskId
+            hasWorkRemaining: Boolean
+    ) {
+        initId(id)
+        initTaskId(taskId)
         this.hasWorkRemaining = hasWorkRemaining
         this.progress = progress
         this.status = status

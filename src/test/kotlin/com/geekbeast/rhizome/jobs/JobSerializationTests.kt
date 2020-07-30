@@ -23,13 +23,21 @@ package com.geekbeast.rhizome.jobs
 
 import com.openlattice.serializer.AbstractJacksonSerializationTest
 import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang3.RandomUtils
+import java.util.*
 
 /**
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class JobSerializationTests : AbstractJacksonSerializationTest<EmptyJob>() {
-    override fun getSampleData(): EmptyJob = EmptyJob(EmptyJobState(RandomStringUtils.random(5)) )
+    override fun getSampleData(): EmptyJob {
+        val job = EmptyJob( EmptyJobState(RandomStringUtils.random(5)) )
+        job.initTaskId(RandomUtils.nextLong())
+        job.initId(UUID.randomUUID())
+        return job
+    }
+
     override fun logResult(result: SerializationResult<EmptyJob>?) {
         logger.info("Json: ${result?.jsonString}")
     }
