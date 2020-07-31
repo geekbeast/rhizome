@@ -47,10 +47,18 @@ class HazelcastJobServiceTest : RhizomeTests() {
 
     @Test
     fun testJobService() {
-        val ids = setOf(jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))),
-        jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)))))
+        val ids = setOf(jobService.submitJob(EmptyJob(
+                EmptyJobState(RandomStringUtils.random(5))
+        )),
+                        jobService.submitJob(EmptyJob(
+                                EmptyJobState(RandomStringUtils.random(5))
+                        )),
+                        jobService.submitJob(EmptyJob(
+                                EmptyJobState(RandomStringUtils.random(5))
+                        )),
+                        jobService.submitJob(EmptyJob(
+                                EmptyJobState(RandomStringUtils.random(5))
+                        )))
         Assert.assertTrue( ids.size == 4 )
         val jobs = jobService.getJobs()
         Assert.assertEquals(4, jobs.size)
@@ -63,7 +71,8 @@ class HazelcastJobServiceTest : RhizomeTests() {
 
     @Test
     fun testFailedJob() {
-        val id = jobService.submitJob(EmptyJob(EmptyJobState(RandomStringUtils.random(5)), fail = true))
+        val id = jobService.submitJob(EmptyJob(
+                EmptyJobState(RandomStringUtils.random(5)), fail = true))
 
         val (job, result) = jobService.getResultAndDisposeOfTask<Long>(id)
         Assert.assertNull( result )

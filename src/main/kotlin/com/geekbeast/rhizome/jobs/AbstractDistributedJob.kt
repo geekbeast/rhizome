@@ -142,9 +142,14 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         logger.info(msg())
     }
 
+    /**
+     * This function can be override to specify setup behavior that occurs before task starts running.
+     */
+    protected open fun initialize(){}
+
     abstract fun processNextBatch()
 
-    private fun initializeTask() {
+    private fun initializeOrResumeJob() {
         /**
          * There are two resumption cases we need to handle at initialization
          *
@@ -168,6 +173,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         } else if (status == JobStatus.PENDING) {
             //If status is pending then job is new and we just need to mark as running.
             status = JobStatus.RUNNING
+            initialize()
         }
     }
 
@@ -183,7 +189,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
     final override fun call(): R? {
         //Wait until task id has been assigned and can be retrieved.
-        initializeTaskId()
+        pollForTaskId()
 
         /**
          * If the job status is paused we poll for a job status update every five seconds, otherwise we process
@@ -194,9 +200,10 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             do {
                 if (status == JobStatus.PAUSED) {
                     Thread.sleep(PAUSE_POLLING_MILLIS)
+                } else {
+                    initializeOrResumeJob()
+                    processBatches()
                 }
-                initializeTask()
-                processBatches()
             } while (resumable && status == JobStatus.PAUSED)
         } catch (ex: InterruptedException) {
             logger.warn("Distributed job $taskId was interrupted.", ex)
@@ -218,7 +225,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         }
     }
 
-    private fun initializeTaskId() {
+    private fun pollForTaskId() {
         if (taskId != null) return
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
@@ -229,7 +236,13 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         }
     }
 
+    /**
+     * Overridable function that allows updating progress before job state is published.
+     */
+    protected open fun updateProgress() {}
+
     protected fun publishJobState() {
+        updateProgress()
         //Do not replace with indexing operator
         jobs.set(id, this)
     }
