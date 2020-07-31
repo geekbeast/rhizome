@@ -160,7 +160,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         if (resumable && status == JobStatus.RUNNING) {
             //Case 1
             val v = jobs.executeOnKey(id!!) { it.value }!!
-            this.state = state
+            this.state = v.state as S
             this.status = v.status
             this.taskId = v.taskId
             this.hasWorkRemaining = v.hasWorkRemaining

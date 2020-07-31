@@ -15,6 +15,7 @@ import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -92,8 +93,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                             .setPoolSize( durableExecutor.getPoolSize() )
                             .setCapacity( durableExecutor.getCapacity() )
                             .setDurability( durableExecutor.getDurability() );
-                    if ( durableExecutor.getSplitBrainProtectionName() != null &&
-                            !durableExecutor.getSplitBrainProtectionName().isBlank() ) {
+                    if ( StringUtils.isNotBlank( durableExecutor.getSplitBrainProtectionName() ) ) {
                         dec.setSplitBrainProtectionName( durableExecutor.getSplitBrainProtectionName() );
                     }
                     return dec;
@@ -108,8 +108,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                             .setPoolSize( scheduledExecutor.getPoolSize() )
                             .setCapacity( scheduledExecutor.getCapacity() )
                             .setDurability( scheduledExecutor.getDurability() );
-                    if ( scheduledExecutor.getSplitBrainProtectionName() != null &&
-                            !scheduledExecutor.getSplitBrainProtectionName().isBlank() ) {
+                    if ( StringUtils.isNotBlank( scheduledExecutor.getSplitBrainProtectionName() ) ) {
                         sec.setSplitBrainProtectionName( scheduledExecutor.getSplitBrainProtectionName() );
                     }
                     return sec;

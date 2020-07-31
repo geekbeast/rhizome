@@ -87,7 +87,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
                 maxIdleUnit = job.maxBatchDurationTimeUnit
         )
 
-        //We need to let the job know it's own id.
+        //We need to let the job know its own id.
         jobs.executeOnKey(id) {
             val v = it.value
             if (v != null) {
