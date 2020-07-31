@@ -132,7 +132,9 @@ public class HazelcastConfiguration {
                 Objects.equals( instanceName, that.instanceName ) &&
                 Objects.equals( group, that.group ) &&
                 Objects.equals( password, that.password ) &&
-                Objects.equals( scheduledExecutors, that.scheduledExecutors );
+                Objects.equals( scheduledExecutors, that.scheduledExecutors ) &&
+                Objects.equals( cpMemberCount, that.cpMemberCount ) &&
+                Objects.equals( durableExecutors, that.durableExecutors );
     }
 
     @Override public int hashCode() {
@@ -143,7 +145,9 @@ public class HazelcastConfiguration {
                 password,
                 port,
                 server,
-                scheduledExecutors );
+                scheduledExecutors,
+                cpMemberCount,
+                durableExecutors );
     }
 
     @Override public String toString() {
@@ -155,7 +159,9 @@ public class HazelcastConfiguration {
                 ", password='" + password + '\'' +
                 ", port=" + port +
                 ", server=" + server +
-                ", scheduledExecutor=" + scheduledExecutors +
+                ", scheduledExecutors=" + scheduledExecutors +
+                ", cpMemberCount=" + cpMemberCount +
+                ", durableExecutors=" + durableExecutors +
                 '}';
     }
 }
