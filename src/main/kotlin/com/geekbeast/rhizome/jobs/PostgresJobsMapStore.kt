@@ -41,7 +41,7 @@ import java.util.*
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 @Component
-class PostgresJobsMapStore(
+class PostgresJobsMapStore @JvmOverloads constructor(
         hds: HikariDataSource,
         private val mapper: ObjectMapper = ObjectMappers.getJsonMapper()
 ) : AbstractBasePostgresMapstore<UUID, DistributableJob<*>>(JOBS_MAP, JOBS, hds, BATCH_SIZE) {
