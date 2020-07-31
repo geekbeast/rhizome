@@ -187,7 +187,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
         /**
          * If the job status is paused we poll for a job status update every five seconds, otherwise we process
-         * that batches, which publishes it's state on every loop. If we get interrupted, we abort the processing
+         * that batches, which publishes its state on every loop. If we get interrupted, we abort the processing
          * and publish the aborted job state.
          */
         try {
