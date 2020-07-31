@@ -13,11 +13,8 @@ class ResumeJobsInitializationTask : HazelcastInitializationTask<ResumeJobDepend
     override fun getInitialDelay(): Long = 0
 
     override fun initialize(dependencies: ResumeJobDependencies) {
-        dependencies
-                .jobService.getJobs(EnumSet.of(JobStatus.RUNNING, JobStatus.PENDING))
-                .forEach { (id, job) ->
-                    dependencies.jobService.submitJob(job)
-                }
+        val jobs = dependencies.jobService.getJobs(EnumSet.of(JobStatus.RUNNING, JobStatus.PENDING))
+        dependencies.jobService.resumeJobs(jobs.keys)
     }
 
     override fun after(): Set<Class<out HazelcastInitializationTask<*>>> = setOf()
