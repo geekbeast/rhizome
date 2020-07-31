@@ -1,6 +1,7 @@
 package com.geekbeast.rhizome.tests.bootstrap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.geekbeast.rhizome.hazelcast.pods.TestSharedStreamSerializersPod;
 import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
 import com.geekbeast.rhizome.tests.controllers.SimpleControllerAPI;
@@ -39,7 +40,7 @@ public class RhizomeTests {
     public static final byte[] TEST_BYTES = RandomUtils.nextBytes( 1 << 12 );
     private final static Logger logger = LoggerFactory.getLogger( RhizomeTests.class );
     private static Retrofit adapter;
-    private static Rhizome           rhizome  = null;
+    protected static Rhizome           rhizome  = null;
     private static TestConfiguration expected = null;
 
     @Test
@@ -114,7 +115,8 @@ public class RhizomeTests {
                 Auth0Pod.class,
                 Auth0SecurityTestPod.class,
                 DispatcherServletsPod.class,
-                RegistryBasedHazelcastInstanceConfigurationPod.class );
+                RegistryBasedHazelcastInstanceConfigurationPod.class,
+                TestSharedStreamSerializersPod.class);
         rhizome.sprout();
         logger.info( "Successfully started Rhizome microservice." );
         /*
