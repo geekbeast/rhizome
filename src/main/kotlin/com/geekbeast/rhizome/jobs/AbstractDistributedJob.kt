@@ -143,7 +143,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     /**
-     * This function can be override to specify setup behavior that occurs after task starts running.
+     * This function can be override to specify setup behavior that occurs before task starts running.
      */
     protected open fun initialize(){}
 
