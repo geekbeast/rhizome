@@ -115,7 +115,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      * @param id The key of the job in the jobs maps.
      */
     internal fun initId(id: UUID) {
-        this.id = if (this.id == null) id else throw IllegalStateException("Task id can only be assigned once.")
+        this.id = if (this.id == null) id else throw IllegalStateException("Job  id can only be assigned once.")
     }
 
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
