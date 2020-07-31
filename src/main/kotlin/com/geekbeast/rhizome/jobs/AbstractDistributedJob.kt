@@ -236,7 +236,13 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         }
     }
 
+    /**
+     * Overridable function that allows updating progress before job state is published.
+     */
+    protected open fun updateProgress() {}
+
     protected fun publishJobState() {
+        updateProgress()
         //Do not replace with indexing operator
         jobs.set(id, this)
     }

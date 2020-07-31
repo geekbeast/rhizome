@@ -30,7 +30,7 @@ import java.util.*
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-class JobSerializationTests : AbstractJacksonSerializationTest<EmptyJob>() {
+internal class JobSerializationTests : AbstractJacksonSerializationTest<EmptyJob>() {
     override fun getSampleData(): EmptyJob {
         val job = EmptyJob(EmptyJobState(RandomStringUtils.random(5)))
         job.initTaskId(RandomUtils.nextLong())
