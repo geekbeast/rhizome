@@ -91,7 +91,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     var hasWorkRemaining: Boolean = true
         protected set
 
-    var result: R? = null
+    protected var result: R? = null
 
     @Transient
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
