@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.AsyncEventBus;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+
+import com.hazelcast.topic.Message;
+
+import com.hazelcast.map.IMap;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.MessageListener;
 import com.kryptnostic.rhizome.configuration.ConfigurationKey;
 import com.kryptnostic.rhizome.pods.ConfigurationLoader;
 import org.apache.commons.lang3.StringUtils;

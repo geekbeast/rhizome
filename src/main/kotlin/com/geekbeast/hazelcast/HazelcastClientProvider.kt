@@ -2,11 +2,14 @@ package com.geekbeast.hazelcast
 
 import com.hazelcast.client.HazelcastClient
 import com.hazelcast.client.config.ClientConfig
-import com.hazelcast.config.GroupConfig
 import com.hazelcast.config.SerializationConfig
 import com.hazelcast.core.HazelcastInstance
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
 import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.clientNetworkConfig
+
+interface IHazelcastClientProvider {
+    fun getClient(name: String): HazelcastInstance
+}
 
 /**
  *
@@ -15,24 +18,23 @@ import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfiguration
 data class HazelcastClientProvider(
         private val clients: Map<String, HazelcastConfiguration>,
         private val serializationConfig: SerializationConfig
-) {
+) : IHazelcastClientProvider {
     init {
         clients.values.forEach { client ->
-            check( !client.isServer) { "Specified server = true for client config: $client" }
+            check(!client.isServer) { "Specified server = true for client config: $client" }
         }
     }
 
     private val hazelcastClients = clients.mapValues { (name, clientConfig) ->
-        HazelcastClient.newHazelcastClient(
-                ClientConfig()
-                        .setNetworkConfig(clientNetworkConfig(clientConfig))
-                        .setGroupConfig(GroupConfig(clientConfig.group, clientConfig.password))
-                        .setSerializationConfig(serializationConfig)
-                        .setProperty("hazelcast.logging.type", "slf4j")
-        )
+        val cc = ClientConfig()
+                .setNetworkConfig(clientNetworkConfig(clientConfig))
+                .setSerializationConfig(serializationConfig)
+                .setProperty("hazelcast.logging.type", "slf4j")
+        cc.clusterName = clientConfig.group
+        HazelcastClient.newHazelcastClient(cc)
     }
 
-    fun getClient(name: String): HazelcastInstance {
+    override fun getClient(name: String): HazelcastInstance {
         return hazelcastClients.getValue(name)
     }
 

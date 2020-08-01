@@ -14,22 +14,8 @@ import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  *
  */
-public abstract class AbstractUUIDStreamSerializer implements SelfRegisteringStreamSerializer<UUID> {
-
-    @Override
-    public void destroy() {
-
-    }
-
-    @Override
-    public void write( ObjectDataOutput out, UUID object ) throws IOException {
-        serialize( out, object );
-    }
-
-    @Override
-    public UUID read( ObjectDataInput in ) throws IOException {
-        return deserialize( in );
-    }
+public final class UUIDStreamSerializerUtils {
+    private UUIDStreamSerializerUtils() {}
 
     public static void serialize( ObjectDataOutput out, UUID object ) throws IOException {
         out.writeLong( object.getLeastSignificantBits() );
@@ -40,10 +26,5 @@ public abstract class AbstractUUIDStreamSerializer implements SelfRegisteringStr
         long lsb = in.readLong();
         long msb = in.readLong();
         return new UUID( msb, lsb );
-    }
-
-    @Override
-    public Class<UUID> getClazz() {
-        return UUID.class;
     }
 }

@@ -81,7 +81,8 @@ open class StatementHolderSupplier(
             logger.error("Error while executing sql: {}. The following exception was thrown: ", sql, ex)
             if (!connection.autoCommit) {
                 connection.rollback()
-                logger.error("Rolled back the offending commit ")
+                connection.close() // Don't remove me, I keep us from leaking connections
+                logger.error("Rolled back the offending commit and closed the connection")
             }
             throw ex
         }

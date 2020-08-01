@@ -5,4 +5,15 @@
 # Set to false to disable persistence 
 enable-persistence:  false
 hazelcast:
-    instance-name: "test"
+  instance-name: "test"
+  durable-executors:
+    - name: "_rhizome_job_service_"
+      pool-size: 8
+      capacity: 128
+      durability: 1
+  scheduled-executors:
+    - name: "hazelcast_scheduled_tasks"
+      pool-size: 8
+      capacity: 128
+      durability: 1
+  cp-member-count: 0

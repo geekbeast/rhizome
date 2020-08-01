@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.hazelcast.util.Preconditions.checkNotNull;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
