@@ -58,7 +58,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     @Timed
     fun resumeJobs(ids: Set<UUID>) {
-        //Rather than pulling the job here, we simply create a wrapper job that
+        //Rather than pulling the job here, we simply create a wrapper job that pulls it at remote.
         ids.forEach { id ->
             durableExecutor.submitToKeyOwner(object : HazelcastInstanceAware, java.io.Serializable, Callable<Any?> {
                 @Transient
@@ -207,15 +207,6 @@ private const val JOB_NOT_SERIAZBLE_ERROR = "Submitted job could not be properly
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 interface JobState
-
-enum class JobStatus {
-    PAUSED,
-    PENDING,
-    FINISHED,
-    RUNNING,
-    STOPPING,
-    CANCELED //Due to thread interruption mechanics we don't yet have plumbing to differentiate between canceled and failed.
-}
 
 internal fun buildStatesPredicate(
         jobStates: Set<JobStatus>
