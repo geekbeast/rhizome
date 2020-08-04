@@ -24,7 +24,6 @@ package com.geekbeast.rhizome.jobs
 import com.dataloom.mappers.ObjectMappers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.hazelcast.config.MapStoreConfig
 import com.openlattice.postgres.PostgresColumnDefinition
 import com.openlattice.postgres.PostgresDatatype
 import com.openlattice.postgres.PostgresTableDefinition
