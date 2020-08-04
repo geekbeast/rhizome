@@ -47,7 +47,7 @@ class PostgresJobsMapStore @JvmOverloads constructor(
 ) : AbstractBasePostgresMapstore<UUID, DistributableJob<*>>(JOBS_MAP, JOBS, hds, BATCH_SIZE) {
     companion object{
         @JvmField
-        val JOBS = PostgresTableDefinition("jobs").addColumns(ID_COLUMN, JOB_COLUMN)
+        val JOBS: PostgresTableDefinition = PostgresTableDefinition("jobs").addColumns(ID_COLUMN, JOB_COLUMN)
     }
     override fun generateTestKey(): UUID = UUID.randomUUID()
     override fun generateTestValue(): DistributableJob<*> {
@@ -66,12 +66,11 @@ class PostgresJobsMapStore @JvmOverloads constructor(
         ps.setObject(1, key)
         ps.setString(2, json)
         ps.setString(3, json)
-
     }
 
     override fun bind(ps: PreparedStatement, key: UUID, offset: Int): Int {
-        ps.setObject(1, key)
-        return -1
+        ps.setObject(offset, key)
+        return offset+1
     }
 }
 
