@@ -149,7 +149,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     /**
      * This function can be override to specify setup behavior that occurs before task starts running.
      */
-    protected open fun initialize(){}
+    protected open fun initialize() {}
 
     abstract fun processNextBatch()
 
@@ -178,6 +178,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             //If status is pending then job is new and we just need to mark as running.
             status = JobStatus.RUNNING
             initialize()
+            logger.info("Task $id is initialized and running!")
         }
     }
 
@@ -234,7 +235,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
 
-        while( taskId == null ) {
+        while (taskId == null) {
+            logger.info("Attempting to retrieve task id for task $id")
             val maybeTaskId = jobs.executeOnKey(id!!) { it.value.taskId } //TODO: Make offloadable
             if (maybeTaskId == null) Thread.sleep(INITIALIZE_TASK_ID_POLLING_MILLIS) else initTaskId(maybeTaskId)
         }
