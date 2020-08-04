@@ -97,7 +97,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     @Transient
-    private lateinit var hazelcastInstance: HazelcastInstance
+    protected lateinit var hazelcastInstance: HazelcastInstance
+        private set
 
     @Transient
     private lateinit var jobs: IMap<UUID, AbstractDistributedJob<*, *>>
@@ -118,6 +119,9 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         this.id = if (this.id == null) id else throw IllegalStateException("Job  id can only be assigned once.")
     }
 
+    /**
+     * When overriding this function, make sure to invoke super otherwise your job won't work.
+     */
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance
         this.jobs = hazelcastInstance.getMap(JOBS_MAP)
