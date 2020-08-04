@@ -45,6 +45,10 @@ class PostgresJobsMapStore @JvmOverloads constructor(
         hds: HikariDataSource,
         private val mapper: ObjectMapper = ObjectMappers.getJsonMapper()
 ) : AbstractBasePostgresMapstore<UUID, DistributableJob<*>>(JOBS_MAP, JOBS, hds, BATCH_SIZE) {
+    companion object{
+        @JvmField
+        val JOBS = PostgresTableDefinition("jobs").addColumns(ID_COLUMN, JOB_COLUMN)
+    }
     override fun generateTestKey(): UUID = UUID.randomUUID()
     override fun generateTestValue(): DistributableJob<*> {
         val job = EmptyJob(EmptyJobState("testValue"))
@@ -75,4 +79,3 @@ const val ID_FIELD = "id"
 const val JOB_FIELD = "job"
 private val ID_COLUMN = PostgresColumnDefinition(ID_FIELD, PostgresDatatype.UUID).primaryKey().notNull()
 private val JOB_COLUMN = PostgresColumnDefinition(JOB_FIELD, PostgresDatatype.JSONB).notNull()
-private val JOBS = PostgresTableDefinition("jobs").addColumns(ID_COLUMN, JOB_COLUMN)
