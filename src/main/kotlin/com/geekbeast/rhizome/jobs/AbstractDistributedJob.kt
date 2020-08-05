@@ -164,7 +164,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
          * will already have the state from map and just need to resume the job.
          */
 
-        status = jobs.executeOnKey(id!!) { it.value.status }
+        updateJobStatus()
 
         if (resumable && status == JobStatus.RUNNING) {
             //Case 1
@@ -180,11 +180,17 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             status = JobStatus.RUNNING
             initialize()
             logger.info("Task $id is initialized and running!")
+        } else {
+            logger.debug("Task $id (resumable=$resumable) is currently $status.")
         }
     }
 
     open fun handleResumeFromSavedState() {
-        
+
+    }
+
+    protected fun updateJobStatus() {
+        status = jobs.executeOnKey(id!!) { it.value.status }
     }
 
     private fun processBatches() {
