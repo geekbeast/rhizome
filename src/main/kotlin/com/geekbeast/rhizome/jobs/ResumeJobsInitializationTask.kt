@@ -13,7 +13,7 @@ class ResumeJobsInitializationTask : HazelcastInitializationTask<ResumeJobDepend
     override fun getInitialDelay(): Long = 0
 
     override fun initialize(dependencies: ResumeJobDependencies) {
-        val jobs = dependencies.jobService.getJobs(EnumSet.of(JobStatus.RUNNING, JobStatus.PENDING))
+        val jobs = dependencies.jobService.getJobs(EnumSet.of(JobStatus.RUNNING, JobStatus.PENDING), setOf(true))
         dependencies.jobService.resumeJobs(jobs.keys)
     }
 

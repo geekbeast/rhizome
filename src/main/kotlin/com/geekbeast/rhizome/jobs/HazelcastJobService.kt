@@ -39,6 +39,7 @@ import java.util.concurrent.Callable
 
 const val JOBS_MAP = "_rhizome_jobs_"
 private const val JOB_STATUS = "status"
+private const val RESUMABLE = "resumable"
 private const val JOBS_EXECUTOR = "_rhizome_job_service_"
 
 /**
@@ -93,7 +94,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initId(id)
                 it.setValue(v)
-                if( logger.isDebugEnabled ) logger.debug("Set task id $id")
+                if (logger.isDebugEnabled) logger.debug("Set task id $id")
             }
             return@executeOnKey null
         }
@@ -109,7 +110,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initTaskId(taskId)
                 it.setValue(v)
-                if( logger.isDebugEnabled ) logger.debug("Set task id $taskId for task $id")
+                if (logger.isDebugEnabled) logger.debug("Set task id $taskId for task $id")
 
             }
             return@executeOnKey null
@@ -149,10 +150,11 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     @Timed
     fun getJobs(
-            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
+            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java),
+            resumable: Set<Boolean> = setOf(true, false)
     ): Map<UUID, AbstractDistributedJob<*, *>> {
         return jobs
-                .entrySet(Predicates.and(buildStatesPredicate(jobStates)))
+                .entrySet(Predicates.and(buildStatesPredicate(jobStates), buildResumablePredicate(resumable)))
                 .map { it.toPair() }
                 .toMap()
     }
@@ -214,6 +216,10 @@ internal fun buildStatesPredicate(
         JOB_STATUS,
         *jobStates.toTypedArray()
 )
+
+internal fun buildResumablePredicate(
+        resumable: Set<Boolean>
+): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(RESUMABLE, *resumable.toTypedArray())
 
 internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
         JOB_STATUS,
