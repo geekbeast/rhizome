@@ -174,12 +174,17 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             this.taskId = v.taskId
             this.hasWorkRemaining = v.hasWorkRemaining
             this.progress = progress
+            handleResumeFromSavedState()
         } else if (status == JobStatus.PENDING) {
             //If status is pending then job is new and we just need to mark as running.
             status = JobStatus.RUNNING
             initialize()
             logger.info("Task $id is initialized and running!")
         }
+    }
+
+    open fun handleResumeFromSavedState() {
+        
     }
 
     private fun processBatches() {
