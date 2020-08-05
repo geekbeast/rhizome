@@ -32,6 +32,8 @@ import com.hazelcast.core.HazelcastInstanceAware
 import com.hazelcast.map.IMap
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.Predicates
+import com.hazelcast.query.QueryConstants
+import com.hazelcast.query.impl.getters.Extractors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -212,7 +214,7 @@ internal fun buildResumablePredicate(
 ): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(RESUMABLE, *resumable.toTypedArray())
 
 internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
-        JOB_STATUS,
+        QueryConstants.KEY_ATTRIBUTE_NAME.value(),
         *ids.toTypedArray()
 )
 
