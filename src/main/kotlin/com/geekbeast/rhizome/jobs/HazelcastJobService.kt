@@ -59,20 +59,10 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     @Timed
     fun resumeJobs(ids: Set<UUID>) {
-        //Rather than pulling the job here, we simply create a wrapper job that pulls it at remote.
+        //Due to all the self-serializing operations and the fact this will only ever get called on hazelcast cluster
+        //we just load the job and resubmit
         ids.forEach { id ->
-            durableExecutor.submitToKeyOwner(object : HazelcastInstanceAware, java.io.Serializable, Callable<Any?> {
-                @Transient
-                private lateinit var jobs: IMap<UUID, AbstractDistributedJob<*, *>>
-                override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
-                    jobs = hazelcastInstance.getMap(JOBS_MAP)
-                }
-
-                override fun call(): Any? {
-                    return jobs[id]?.call()
-                }
-
-            }, id)
+            durableExecutor.submitToKeyOwner(jobs[id]!!, id)
         }
     }
 
