@@ -38,6 +38,7 @@ interface HazelcastFixedRateTask<T : HazelcastTaskDependencies> : Runnable, Name
     fun runTask()
     override fun run() {
         try {
+            logger.info("Running scheduled task $name with period ${getPeriod()}")
             runTask()
         } catch (ex:Exception) {
             logger.error("Error occured while running fixed rate task.", ex)
