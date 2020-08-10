@@ -145,7 +145,7 @@ class TaskService(
                         ).handler.toUrn()
                     }
                     logger.info(
-                            "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
+                            "Task {} is scheduled with initialDelay {} and period {} in time unit {} (urn = {})",
                             task.name,
                             task.getInitialDelay(),
                             task.getPeriod(),
