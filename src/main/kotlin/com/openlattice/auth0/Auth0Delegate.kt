@@ -51,4 +51,15 @@ private constructor(
                 .execute()
                 .idToken
     }
+
+    @VisibleForTesting
+    @Throws(Auth0Exception::class)
+    fun getAccessToken(realm: String, username: String, password: String): String {
+        return auth0Api
+                .login(username, password.toCharArray(), realm)
+                .setScope(auth0Scopes)
+                .setAudience("https://api.openlattice.com")
+                .execute()
+                .accessToken
+    }
 }
