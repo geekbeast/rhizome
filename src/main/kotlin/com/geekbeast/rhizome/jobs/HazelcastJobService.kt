@@ -115,6 +115,10 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
         return id
     }
 
+    fun reload(ids: Set<UUID>, replaceExistingValues: Boolean) {
+        jobs.loadAll(ids, replaceExistingValues)
+    }
+
     fun <T> getResultAndDisposeOfTask(id: UUID): Pair<AbstractDistributedJob<*, *>, T?> {
         val result = durableExecutor.retrieveAndDisposeResult<T?>(getTaskId(id)).get()
         val job = jobs.remove(id)!!
@@ -193,6 +197,16 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
         }
 
         return taskId
+    }
+
+    fun updateJob(ids: Set<UUID>, status: JobStatus) {
+        jobs.executeOnKeys(ids) {
+            val job = it.value
+            if( job!=null ) {
+                job.status = status
+                it.setValue(job)
+            }
+        }
     }
 }
 
