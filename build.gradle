@@ -23,7 +23,7 @@ ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
 apply plugin: 'kotlin'
-apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle" \
+apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
@@ -268,7 +268,7 @@ dependencies {
      */
     compile "org.jodd:jodd-mail:${jodd_mail_version}"
 
-    /**
+    /*
      * Cassandra
      */
     compile "org.xerial.snappy:snappy-java:${snappy_version}"
