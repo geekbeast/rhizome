@@ -32,6 +32,8 @@ import com.hazelcast.core.HazelcastInstanceAware
 import com.hazelcast.map.IMap
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.Predicates
+import com.hazelcast.query.QueryConstants
+import com.hazelcast.query.impl.getters.Extractors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -39,6 +41,7 @@ import java.util.concurrent.Callable
 
 const val JOBS_MAP = "_rhizome_jobs_"
 private const val JOB_STATUS = "status"
+private const val RESUMABLE = "resumable"
 private const val JOBS_EXECUTOR = "_rhizome_job_service_"
 
 /**
@@ -58,20 +61,10 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     @Timed
     fun resumeJobs(ids: Set<UUID>) {
-        //Rather than pulling the job here, we simply create a wrapper job that
+        //Due to all the self-serializing operations and the fact this will only ever get called on hazelcast cluster
+        //we just load the job and resubmit
         ids.forEach { id ->
-            durableExecutor.submitToKeyOwner(object : HazelcastInstanceAware, java.io.Serializable, Callable<Any?> {
-                @Transient
-                private lateinit var jobs: IMap<UUID, AbstractDistributedJob<*, *>>
-                override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
-                    jobs = hazelcastInstance.getMap(JOBS_MAP)
-                }
-
-                override fun call(): Any? {
-                    return jobs[id]?.call()
-                }
-
-            }, id)
+            durableExecutor.submitToKeyOwner(jobs[id]!!, id)
         }
     }
 
@@ -93,7 +86,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initId(id)
                 it.setValue(v)
-                if( logger.isDebugEnabled ) logger.debug("Set task id $id")
+                if (logger.isDebugEnabled) logger.debug("Set task id $id")
             }
             return@executeOnKey null
         }
@@ -109,7 +102,7 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
             if (v != null) {
                 v.initTaskId(taskId)
                 it.setValue(v)
-                if( logger.isDebugEnabled ) logger.debug("Set task id $taskId for task $id")
+                if (logger.isDebugEnabled) logger.debug("Set task id $taskId for task $id")
 
             }
             return@executeOnKey null
@@ -120,6 +113,10 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
         validateJob(job)
 
         return id
+    }
+
+    fun reload(ids: Set<UUID>, replaceExistingValues: Boolean) {
+        jobs.loadAll(ids, replaceExistingValues)
     }
 
     fun <T> getResultAndDisposeOfTask(id: UUID): Pair<AbstractDistributedJob<*, *>, T?> {
@@ -149,10 +146,11 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
     @Timed
     fun getJobs(
-            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java)
+            jobStates: Set<JobStatus> = EnumSet.allOf(JobStatus::class.java),
+            resumable: Set<Boolean> = setOf(true, false)
     ): Map<UUID, AbstractDistributedJob<*, *>> {
         return jobs
-                .entrySet(Predicates.and(buildStatesPredicate(jobStates)))
+                .entrySet(Predicates.and(buildStatesPredicate(jobStates), buildResumablePredicate(resumable)))
                 .map { it.toPair() }
                 .toMap()
     }
@@ -200,6 +198,16 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
 
         return taskId
     }
+
+    fun updateJob(ids: Set<UUID>, status: JobStatus) {
+        jobs.executeOnKeys(ids) {
+            val job = it.value
+            if( job!=null ) {
+                job.status = status
+                it.setValue(job)
+            }
+        }
+    }
 }
 
 private const val JOB_NOT_DESERIAZBLE_ERROR = "Submitted job could not be properly deserialized."
@@ -208,15 +216,6 @@ private const val JOB_NOT_SERIAZBLE_ERROR = "Submitted job could not be properly
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 interface JobState
 
-enum class JobStatus {
-    PAUSED,
-    PENDING,
-    FINISHED,
-    RUNNING,
-    STOPPING,
-    CANCELED //Due to thread interruption mechanics we don't yet have plumbing to differentiate between canceled and failed.
-}
-
 internal fun buildStatesPredicate(
         jobStates: Set<JobStatus>
 ): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
@@ -224,8 +223,12 @@ internal fun buildStatesPredicate(
         *jobStates.toTypedArray()
 )
 
+internal fun buildResumablePredicate(
+        resumable: Set<Boolean>
+): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(RESUMABLE, *resumable.toTypedArray())
+
 internal fun buildIdsPredicate(ids: Collection<UUID>): Predicate<UUID, AbstractDistributedJob<*, *>> = Predicates.`in`(
-        JOB_STATUS,
+        QueryConstants.KEY_ATTRIBUTE_NAME.value(),
         *ids.toTypedArray()
 )
 

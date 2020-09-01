@@ -86,7 +86,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         protected set
 
     var status: JobStatus = JobStatus.PENDING
-        private set
+        internal set
 
     var hasWorkRemaining: Boolean = true
         protected set
@@ -97,7 +97,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     @Transient
-    private lateinit var hazelcastInstance: HazelcastInstance
+    protected lateinit var hazelcastInstance: HazelcastInstance
+        private set
 
     @Transient
     private lateinit var jobs: IMap<UUID, AbstractDistributedJob<*, *>>
@@ -118,6 +119,9 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         this.id = if (this.id == null) id else throw IllegalStateException("Job  id can only be assigned once.")
     }
 
+    /**
+     * When overriding this function, make sure to invoke super otherwise your job won't work.
+     */
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance
         this.jobs = hazelcastInstance.getMap(JOBS_MAP)
@@ -145,7 +149,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     /**
      * This function can be override to specify setup behavior that occurs before task starts running.
      */
-    protected open fun initialize(){}
+    protected open fun initialize() {}
 
     abstract fun processNextBatch()
 
@@ -160,7 +164,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
          * will already have the state from map and just need to resume the job.
          */
 
-        status = jobs.executeOnKey(id!!) { it.value.status }
+        updateJobStatus()
 
         if (resumable && status == JobStatus.RUNNING) {
             //Case 1
@@ -170,11 +174,23 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             this.taskId = v.taskId
             this.hasWorkRemaining = v.hasWorkRemaining
             this.progress = progress
+            handleResumeFromSavedState()
         } else if (status == JobStatus.PENDING) {
             //If status is pending then job is new and we just need to mark as running.
             status = JobStatus.RUNNING
             initialize()
+            logger.info("Task $id is initialized and running!")
+        } else {
+            logger.debug("Task $id (resumable=$resumable) is currently $status.")
         }
+    }
+
+    open fun handleResumeFromSavedState() {
+
+    }
+
+    protected fun updateJobStatus() {
+        status = jobs.executeOnKey(id!!) { it.value.status }
     }
 
     private fun processBatches() {
@@ -230,7 +246,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
 
-        while( taskId == null ) {
+        while (taskId == null) {
+            logger.info("Attempting to retrieve task id for task $id")
             val maybeTaskId = jobs.executeOnKey(id!!) { it.value.taskId } //TODO: Make offloadable
             if (maybeTaskId == null) Thread.sleep(INITIALIZE_TASK_ID_POLLING_MILLIS) else initTaskId(maybeTaskId)
         }
