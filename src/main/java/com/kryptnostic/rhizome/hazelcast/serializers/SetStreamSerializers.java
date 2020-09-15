@@ -47,15 +47,32 @@ public class SetStreamSerializers {
     }
 
     public static void fastUUIDSetSerialize( ObjectDataOutput out, Iterable<UUID> object ) throws IOException {
-        long[] least = new long[ Iterables.size( object ) ];
-        long[] most = new long[ Iterables.size( object ) ];
+        int length = Iterables.size( object );
+        long[] least = new long[ length ];
+        long[] most = new long[ length ];
         int i = 0;
         for ( UUID uuid : object ) {
             least[ i ] = uuid.getLeastSignificantBits();
             most[ i ] = uuid.getMostSignificantBits();
             i++;
         }
-        out.writeInt( i );
+        out.writeInt( length );
+        out.writeLongArray( least );
+        out.writeLongArray( most );
+    }
+
+
+    public static void serializeUUIDArray( ObjectDataOutput out, UUID[] uuids ) throws IOException {
+        int length = uuids.length;
+        long[] least = new long[ length ];
+        long[] most = new long[ length ];
+        int i = 0;
+        for ( UUID uuid : uuids ) {
+            least[ i ] = uuid.getLeastSignificantBits();
+            most[ i ] = uuid.getMostSignificantBits();
+            i++;
+        }
+        out.writeInt( length );
         out.writeLongArray( least );
         out.writeLongArray( most );
     }
