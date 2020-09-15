@@ -86,7 +86,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
         protected set
 
     var status: JobStatus = JobStatus.PENDING
-        private set
+        internal set
 
     var hasWorkRemaining: Boolean = true
         protected set
