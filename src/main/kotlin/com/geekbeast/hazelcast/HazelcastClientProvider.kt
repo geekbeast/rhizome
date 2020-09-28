@@ -25,7 +25,7 @@ data class HazelcastClientProvider(
         }
     }
 
-    private val hazelcastClients = clients.mapValues { (name, clientConfig) ->
+    private val hazelcastClients = clients.mapValues { (_, clientConfig) ->
         val cc = ClientConfig()
                 .setNetworkConfig(clientNetworkConfig(clientConfig))
                 .setSerializationConfig(serializationConfig)

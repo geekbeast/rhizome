@@ -22,11 +22,10 @@ package com.openlattice.postgres.mapstores;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
@@ -36,8 +35,16 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -201,8 +208,8 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         try ( Connection connection = hds.getConnection() ) {
             return loadUsing( key, connection );
         } catch ( SQLException e ) {
-            final String errMsg =
-                    "Unable to connecto to database to load key " + key.toString() + " map +" + mapName + "!";
+            final String errMsg = "Unable to connect to database to load key " + key.toString() +
+                    " map +" + mapName + "!";
             logger.error( errMsg, key, e );
             throw new IllegalStateException( errMsg, e );
         }
@@ -211,7 +218,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     @Timed
     @Override
     public Map<K, V> loadAll( Collection<K> keys ) {
-        Map<K, V> result = new MapMaker().initialCapacity( keys.size() ).makeMap();
+        Map<K, V> result = Maps.newLinkedHashMapWithExpectedSize(keys.size());
 
         K key = null;
 
@@ -266,7 +273,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     @Override
     public MapStoreConfig getMapStoreConfig() {
         return new MapStoreConfig()
-                .setInitialLoadMode( InitialLoadMode.EAGER )
+                .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
                 .setImplementation( this )
                 .setEnabled( true )
                 .setWriteDelaySeconds( 0 );
