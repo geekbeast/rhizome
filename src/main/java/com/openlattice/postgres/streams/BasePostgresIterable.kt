@@ -23,7 +23,7 @@ class BasePostgresIterable<T>(
         private val mapper: (ResultSet) -> T
 ) : Iterable<T> {
 
-    private val logger = LoggerFactory.getLogger(PostgresIterable::class.java)
+    private val logger = LoggerFactory.getLogger(BasePostgresIterable::class.java)
 
     override fun iterator(): PostgresIterator<T> {
         try {
