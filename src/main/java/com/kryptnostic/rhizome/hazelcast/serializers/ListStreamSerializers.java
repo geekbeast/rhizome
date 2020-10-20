@@ -7,7 +7,6 @@ import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 import com.openlattice.rhizome.hazelcast.DelegatedUUIDList;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -102,7 +101,8 @@ public class ListStreamSerializers {
 
         @Override
         public DelegatedUUIDList read( ObjectDataInput in ) throws IOException {
-            return DelegatedUUIDList.wrap( fastUUIDListDeserialize( in ) );
+            int size = in.readInt();
+            return new DelegatedUUIDList( processEntriesToArray( size, in ) );
         }
 
         @Override

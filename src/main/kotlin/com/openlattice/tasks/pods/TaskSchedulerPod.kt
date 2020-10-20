@@ -51,8 +51,6 @@ class TaskSchedulerPod {
     @Inject
     private lateinit var hazelcastInstance: HazelcastInstance
 
-
-
     @Inject
     private lateinit var tasks: MutableSet<HazelcastFixedRateTask<*>>
 

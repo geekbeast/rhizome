@@ -309,7 +309,6 @@ public class PostgresTableDefinition implements TableDefinition {
             logger.error( errMsg );
             throw new IllegalArgumentException( errMsg );
         }
-
     }
 
     public String selectInQuery(
