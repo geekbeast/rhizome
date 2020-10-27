@@ -27,7 +27,6 @@ apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
-ext.spotbugs_annotations_version = '4.0.0'
 spotbugs {
     reportLevel = 'high'
     toolVersion = "${spotbugs_annotations_version}"
@@ -88,8 +87,6 @@ jacoco {
 
 
 dependencies {
-    //Spotbugs
-    spotbugs 'com.github.spotbugs:spotbugs:4.0.0'
     spotbugsPlugins "com.h3xstream.findsecbugs:findsecbugs-plugin:${findsecbugs_version}"
 
     compileOnly "net.jcip:jcip-annotations:${jcip_version}"
