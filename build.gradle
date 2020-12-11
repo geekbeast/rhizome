@@ -85,7 +85,6 @@ jacoco {
     toolVersion = "${project.jacoco_tool_version}"
 }
 
-
 dependencies {
     spotbugsPlugins "com.h3xstream.findsecbugs:findsecbugs-plugin:${findsecbugs_version}"
 
@@ -190,7 +189,7 @@ dependencies {
     compile "commons-validator:commons-validator:${commonsvalidator_version}"
     compile "org.apache.commons:commons-lang3:${commonsLang_version}"
     compile "commons-codec:commons-codec:${commons_codec_version}"
-    testCompile "org.apache.commons:commons-text:${commonsText_version}"
+    testImplementation "org.apache.commons:commons-text:${commonsText_version}"
 
     /*
      * JACKSON SERIALIZATION
@@ -290,23 +289,17 @@ dependencies {
     /*
      * TESTING
      */
-    testCompile "junit:junit:${junit_version}"
-    testCompile "org.mockito:mockito-all:${mockito_version}"
+    testImplementation "junit:junit:${junit_version}"
+    testImplementation "org.mockito:mockito-all:${mockito_version}"
 
-    /*
-     * TODO: The rest we depend on Loom API via Jar dependency is to avoid circular classpath problems in Eclipse.
-     * Some day we'll either create a separate project or make a rhizome-client library based off retrofit
-     * that loom-api and rhizome server tests can both depend on.
-     */
-    if (project.hasProperty('developmentMode') && project.developmentMode) {
-        logger.quiet(project.name + " using project dependencies.")
-        compile project(":rhizome-client")
-        testCompile(project(path: ":rhizome-client", configuration: "tests"))
+    compile "com.openlattice:rhizome-client:${rhizome_client_version}"
+
+    if( project.hasProperty('developmentMode') && project.developmentMode ) {
+        testImplementation(project(path: ":rhizome-client", configuration: "tests"))
     } else {
-        logger.quiet(project.name + " using jar dependencies.")
-        compile "com.openlattice:rhizome-client:${rhizome_client_version}"
-        testCompile "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
+        testImplementation "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
     }
+
     compile "com.auth0:mvc-auth-commons:${auth0_mvc_auth_commons_version}"
     compile "com.auth0:java-jwt:${auth0_java_jwt_version}"
     compile "com.auth0:jwks-rsa:${auth0_jwks_rsa_version}"
