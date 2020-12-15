@@ -21,9 +21,8 @@ ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
-apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/openlattice.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/openlattice/fix/build/gradles/openlattice.gradle"
 apply plugin: 'kotlin'
-apply from: "https://raw.githubusercontent.com/openlattice/gradles/master/repos.gradle"
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
