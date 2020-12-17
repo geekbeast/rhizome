@@ -6,6 +6,7 @@ plugins {
     id 'maven'
     id 'eclipse'
     id 'idea'
+    id 'checkstyle'
     id 'jacoco'
     id 'com.github.spotbugs' version '4.0.0'
     id 'org.jetbrains.kotlin.jvm' version '1.3.72'
@@ -26,6 +27,19 @@ apply plugin: 'kotlin'
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
+checkstyle {
+    toolVersion = '7.4'
+    showViolations = false
+    config project.resources.text.fromUri('https://raw.githubusercontent.com/openlattice/openlattice/develop/gradles/checkstyle.xml')
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
 spotbugs {
     reportLevel = 'high'
     toolVersion = "${spotbugs_annotations_version}"
@@ -38,6 +52,7 @@ spotbugsMain {
     }
     ignoreFailures = true
 }
+
 run {
     if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
