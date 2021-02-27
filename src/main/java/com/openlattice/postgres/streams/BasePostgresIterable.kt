@@ -188,7 +188,7 @@ class PostgresIterator<T> @Throws(SQLException::class)
         } catch (e: Exception) {
             logger.error("An error occurred while trying to retrieve next element from result set.", e)
             notExhausted = false
-            throw NoSuchElementException("Unable to retrieve next element from result set.")
+            throw e
         } finally {
             try {
                 if (!notExhausted) {
