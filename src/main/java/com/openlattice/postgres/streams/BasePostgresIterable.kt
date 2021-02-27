@@ -7,7 +7,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.IOException
-import java.sql.*
+import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Statement
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
@@ -179,6 +183,10 @@ class PostgresIterator<T> @Throws(SQLException::class)
             notExhausted = rs.next()
         } catch (e: SQLException) {
             logger.error("Unable to retrieve next element from result set.", e)
+            notExhausted = false
+            throw NoSuchElementException("Unable to retrieve next element from result set.")
+        } catch (e: Exception) {
+            logger.error("An error occurred while trying to retrieve next element from result set.", e)
             notExhausted = false
             throw NoSuchElementException("Unable to retrieve next element from result set.")
         } finally {
