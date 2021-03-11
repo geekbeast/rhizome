@@ -6,7 +6,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.openlattice.authentication.Auth0Configuration
 
 class Auth0Delegate
-@JvmOverloads
 private constructor(
         val auth0domain: String,
         val auth0clientId: String,
