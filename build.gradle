@@ -75,8 +75,7 @@ run {
 }
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs += ["--add-modules", "java.se",
-                             "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED"]
+    options.compilerArgs += ["--add-modules", "java.se"]
 }
 
 tasks.withType(Test) {

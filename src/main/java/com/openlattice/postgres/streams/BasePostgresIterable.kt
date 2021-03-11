@@ -107,8 +107,8 @@ class PreparedStatementHolderSupplier(
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
 
-    override fun execute(ps: Statement): ResultSet {
-        return (ps as PreparedStatement).executeQuery()
+    override fun execute(statement: Statement): ResultSet {
+        return (statement as PreparedStatement).executeQuery()
     }
 
     @SuppressFBWarnings(value = ["SECSQLIJDBC"], justification = "Provided by caller.")
