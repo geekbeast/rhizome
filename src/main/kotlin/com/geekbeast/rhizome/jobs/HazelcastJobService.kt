@@ -28,16 +28,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.geekbeast.rhizome.hazelcast.insertIntoUnusedKey
 import com.hazelcast.core.HazelcastInstance
-import com.hazelcast.core.HazelcastInstanceAware
-import com.hazelcast.map.IMap
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.Predicates
 import com.hazelcast.query.QueryConstants
-import com.hazelcast.query.impl.getters.Extractors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
-import java.util.concurrent.Callable
 
 const val JOBS_MAP = "_rhizome_jobs_"
 private const val JOB_STATUS = "status"
@@ -153,6 +149,11 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
                 .entrySet(Predicates.and(buildStatesPredicate(jobStates), buildResumablePredicate(resumable)))
                 .map { it.toPair() }
                 .toMap()
+    }
+
+    @Timed
+    fun getJob(id: UUID): AbstractDistributedJob<*, *> {
+        return jobs.getValue(id)
     }
 
     @Timed
