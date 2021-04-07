@@ -200,13 +200,15 @@ class HazelcastJobService(hazelcastInstance: HazelcastInstance) {
         return taskId
     }
 
-    fun updateJob(ids: Set<UUID>, status: JobStatus) {
-        jobs.executeOnKeys(ids) {
+
+    fun updateJob(id: UUID, status: JobStatus) {
+        jobs.executeOnKey(id) {
             val job = it.value
-            if( job!=null ) {
+            if (job != null) {
                 job.status = status
                 it.setValue(job)
             }
+            return@executeOnKey null
         }
     }
 }
