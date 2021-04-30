@@ -22,18 +22,18 @@ class KubernetesConfigurationPod: RootConfigurationSource {
 
     @Bean
     override fun rhizomeConfiguration(): RhizomeConfiguration {
-        logger.error("Loading rhizome configuration from /etc/openlattice")
+        logger.error("Loading rhizome configuration from /etc/secrets")
         return ResourceConfigurationLoader.loadConfigurationFromFile(
-                "/etc/openlattice",
+                "/etc/secrets",
                 RhizomeConfiguration::class.java
         )
     }
 
     @Bean
     override fun jettyConfiguration(): JettyConfiguration {
-        logger.error("Loading jetty configuration from /etc/openlattice")
+        logger.error("Loading jetty configuration from /etc/secrets")
         return ResourceConfigurationLoader.loadConfigurationFromFile(
-                "/etc/openlattice",
+                "/etc/secrets",
                 JettyConfiguration::class.java
         )
     }
