@@ -24,7 +24,7 @@ class KubernetesConfigurationPod: RootConfigurationSource {
     override fun rhizomeConfiguration(): RhizomeConfiguration {
         logger.error("Loading rhizome configuration from /etc/secrets")
         return ResourceConfigurationLoader.loadConfigurationFromFile(
-                "/etc/secrets",
+                KubernetesConfigurationLoader.rootPath,
                 RhizomeConfiguration::class.java
         )
     }
@@ -33,7 +33,7 @@ class KubernetesConfigurationPod: RootConfigurationSource {
     override fun jettyConfiguration(): JettyConfiguration {
         logger.error("Loading jetty configuration from /etc/secrets")
         return ResourceConfigurationLoader.loadConfigurationFromFile(
-                "/etc/secrets",
+                KubernetesConfigurationLoader.rootPath,
                 JettyConfiguration::class.java
         )
     }
