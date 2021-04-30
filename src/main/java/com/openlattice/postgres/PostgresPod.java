@@ -42,7 +42,8 @@ import org.springframework.context.annotation.Profile;
 public class PostgresPod {
     public static final String PROFILE = "postgres";
 
-    @Inject RhizomeConfiguration rhizomeConfiguration;
+    @Inject
+    private RhizomeConfiguration rhizomeConfiguration;
 
     @Inject
     private HikariDataSource hds;

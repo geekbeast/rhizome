@@ -4,6 +4,7 @@ import com.kryptnostic.rhizome.configuration.ConfigurationConstants
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration
 import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration
 import com.openlattice.ResourceConfigurationLoader
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,16 +17,24 @@ import org.springframework.context.annotation.Profile
  */
 @Configuration
 @Profile(ConfigurationConstants.Profiles.KUBERNETES_CONFIGURATION_PROFILE)
-class KubernetesConfigurationPod {
-    private val logger = LoggerFactory.getLogger(KubernetesConfigurationPod::class.java)
+class KubernetesConfigurationPod: RootConfigurationSource {
+    val logger: Logger = LoggerFactory.getLogger( KubernetesConfigurationPod::class.java )
 
     @Bean
-    fun rhizomeConfiguration(): RhizomeConfiguration {
-        return ResourceConfigurationLoader.loadConfigurationFromFile("/etc/openlattice", RhizomeConfiguration::class.java)
+    override fun rhizomeConfiguration(): RhizomeConfiguration {
+        logger.error("Loading rhizome configuration from /etc/openlattice")
+        return ResourceConfigurationLoader.loadConfigurationFromFile(
+                "/etc/openlattice",
+                RhizomeConfiguration::class.java
+        )
     }
 
     @Bean
-    fun jettyConfiguration(): JettyConfiguration {
-        return ResourceConfigurationLoader.loadConfigurationFromFile("/etc/openlattice", JettyConfiguration::class.java)
+    override fun jettyConfiguration(): JettyConfiguration {
+        logger.error("Loading jetty configuration from /etc/openlattice")
+        return ResourceConfigurationLoader.loadConfigurationFromFile(
+                "/etc/openlattice",
+                JettyConfiguration::class.java
+        )
     }
 }
