@@ -20,6 +20,7 @@ class DataSourceManager(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DataSourceManager::class.java)
+        const val DEFAULT_DATASOURCE = "default"
     }
 
     private val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
@@ -41,13 +42,15 @@ class DataSourceManager(
         )
     }
 
-    fun getDatasource(name: String) = dataSources.getValue(name)
+    fun getDefaultDataSource() = dataSources.getValue(DEFAULT_DATASOURCE)
+    fun getDataSource(name: String) = dataSources.getValue(name)
+
     fun registerTables(name: String, vararg tableDefinitions: PostgresTableDefinition) {
         val tm = tableManagers.getValue(name)
         tm.registerTables(*tableDefinitions)
     }
 
     fun registerTablesWithAllDatasources(vararg tableDefinitions: PostgresTableDefinition) {
-        tableManagers.values.forEach { it.registerTables(* tableDefinitions) }
+        tableManagers.values.forEach { it.registerTables(*tableDefinitions) }
     }
 }

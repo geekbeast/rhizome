@@ -1,10 +1,13 @@
 package com.kryptnostic.rhizome.configuration;
 
+import static com.openlattice.jdbc.DataSourceManager.DEFAULT_DATASOURCE;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.configuration.postgres.PostgresConfiguration;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
@@ -21,8 +24,6 @@ import java.util.Optional;
  */
 @ReloadableConfiguration( uri = "rhizome.yaml" )
 public class RhizomeConfiguration implements Configuration {
-    public static final String DEFAULT_DATASOURCE = "default";
-
     protected static final String PERSISTENCE_ENABLED_PROPERTY                    = "enable-persistence";
     protected static final String SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL            = "cors-access-control-allow-origin-url";
@@ -81,7 +82,8 @@ public class RhizomeConfiguration implements Configuration {
         this.sessionClusteringEnabled = sessionClusteringEnabled.orElse( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.orElse( "" );
         this.postgresConfiguration = postgresConfiguration;
-        this.datasourceConfigurations = datasourceConfigurations.orElse( ImmutableMap.of() );
+        this.datasourceConfigurations = Maps.newHashMap( datasourceConfigurations.orElse( ImmutableMap.of() ) );
+        postgresConfiguration.ifPresent( pc -> this.datasourceConfigurations.putIfAbsent( DEFAULT_DATASOURCE, pc ) );
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
