@@ -22,7 +22,7 @@ ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
-apply from: "https://raw.githubusercontent.com/openlattice/openlattice/develop/gradles/openlattice.gradle"
+apply from: "https://raw.githubusercontent.com/openlattice/openlattice/main/gradles/openlattice.gradle"
 apply plugin: 'kotlin'
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
@@ -36,7 +36,7 @@ java {
 checkstyle {
     toolVersion = '7.4'
     showViolations = false
-    config project.resources.text.fromUri('https://raw.githubusercontent.com/openlattice/openlattice/develop/gradles/checkstyle.xml')
+    config project.resources.text.fromUri('https://raw.githubusercontent.com/openlattice/openlattice/main/gradles/checkstyle.xml')
 }
 
 tasks.withType(Checkstyle) {
