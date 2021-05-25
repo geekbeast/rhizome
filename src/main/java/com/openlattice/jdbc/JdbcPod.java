@@ -64,10 +64,18 @@ public class JdbcPod {
 
             logger.info( "JDBC URL = {}", hc.getJdbcUrl() );
 
-            return new HikariDataSource(hc);
+            return new HikariDataSource( hc );
         } else {
             return null;
         }
+    }
+
+    @Bean
+    public DataSourceManager dataSourceManager() {
+        return new DataSourceManager(
+                rhizomeConfiguration.getDatasourceConfigurations(),
+                healthCheckRegistry,
+                metricRegistry );
     }
 
     @Bean
