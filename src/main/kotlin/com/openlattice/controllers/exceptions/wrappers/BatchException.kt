@@ -63,4 +63,6 @@ class BatchException(private val statusCode: HttpStatus): RuntimeException() {
         return statusCode
     }
 
+    override val message: String?
+        get() = errors.errors.joinToString(",")
 }

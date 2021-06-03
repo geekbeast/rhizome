@@ -53,19 +53,32 @@ public class JdbcPod {
     @Inject
     private MetricRegistry metricRegistry;
 
+    /**
+     * This bean is mainly for backwards compatibility. Eventually the data source manager should be used
+     * to retrieve datasources.
+     * @return Default data source used by the system.
+     */
     @Bean
     public HikariDataSource hikariDataSource() {
         if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
             final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
-            HikariConfig hc = new HikariConfig( pgConfig.getHikariConfiguration() );
+            final var hc = DataSourceManager
+                    .Companion
+                    .createHikariConfig( pgConfig.getHikariConfiguration(), metricRegistry, healthCheckRegistry );
+
             logger.info( "JDBC URL = {}", hc.getJdbcUrl() );
-            HikariDataSource hds = new HikariDataSource( hc );
-            hds.setHealthCheckRegistry( healthCheckRegistry );
-            hds.setMetricRegistry( metricRegistry );
-            return hds;
+            return new HikariDataSource( hc );
         } else {
             return null;
         }
+    }
+
+    @Bean
+    public DataSourceManager dataSourceManager() {
+        return new DataSourceManager(
+                rhizomeConfiguration.getDatasourceConfigurations(),
+                healthCheckRegistry,
+                metricRegistry );
     }
 
     @Bean

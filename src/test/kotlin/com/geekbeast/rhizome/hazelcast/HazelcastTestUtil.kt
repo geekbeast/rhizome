@@ -17,7 +17,7 @@ fun startHazelcastInstance(
         streamSerializers: Set<SelfRegisteringStreamSerializer<*>>
 ): HazelcastInstance {
     val config = Config(name)
-    config.groupConfig = GroupConfig(group, RandomStringUtils.random(20))
+    config.clusterName = group
     config.serializationConfig = SerializationConfig()
     streamSerializers.forEach {
         config.serializationConfig.addSerializerConfig(

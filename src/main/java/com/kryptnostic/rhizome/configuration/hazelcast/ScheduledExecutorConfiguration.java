@@ -23,6 +23,7 @@ package com.kryptnostic.rhizome.configuration.hazelcast;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Configuration class for Hazelcast's scheduled executor service.
@@ -38,19 +39,19 @@ public class ScheduledExecutorConfiguration {
     private final int    poolSize;
     private final int    capacity;
     private final int    durability;
-    private final String quorumName;
+    private final String splitBrainProtectionName;
 
     public ScheduledExecutorConfiguration(
             @JsonProperty( NAME ) String name,
             @JsonProperty( POOL_SIZE ) int poolSize,
             @JsonProperty( CAPACITY ) int capacity,
             @JsonProperty( DURABILITY ) int durability,
-            @JsonProperty( QUOROM_NAME ) String quorumName ) {
+            @JsonProperty( QUOROM_NAME ) Optional<String> splitBrainProtectionName ) {
         this.name = name;
         this.poolSize = poolSize;
         this.capacity = capacity;
         this.durability = durability;
-        this.quorumName = quorumName;
+        this.splitBrainProtectionName = splitBrainProtectionName.orElse( null );
     }
 
     @JsonProperty( NAME )
@@ -74,8 +75,8 @@ public class ScheduledExecutorConfiguration {
     }
 
     @JsonProperty( QUOROM_NAME )
-    public String getQuorumName() {
-        return quorumName;
+    public String getSplitBrainProtectionName() {
+        return splitBrainProtectionName;
     }
 
     @Override public boolean equals( Object o ) {
@@ -86,11 +87,11 @@ public class ScheduledExecutorConfiguration {
                 capacity == that.capacity &&
                 durability == that.durability &&
                 Objects.equals( name, that.name ) &&
-                Objects.equals( quorumName, that.quorumName );
+                Objects.equals( splitBrainProtectionName, that.splitBrainProtectionName );
     }
 
     @Override public int hashCode() {
-        return Objects.hash( name, poolSize, capacity, durability, quorumName );
+        return Objects.hash( name, poolSize, capacity, durability, splitBrainProtectionName );
     }
 
     @Override public String toString() {
@@ -99,7 +100,7 @@ public class ScheduledExecutorConfiguration {
                 ", poolSize=" + poolSize +
                 ", capacity=" + capacity +
                 ", durability=" + durability +
-                ", quorumName='" + quorumName + '\'' +
+                ", quorumName='" + splitBrainProtectionName + '\'' +
                 '}';
     }
 }

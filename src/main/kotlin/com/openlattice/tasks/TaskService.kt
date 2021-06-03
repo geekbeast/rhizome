@@ -76,7 +76,7 @@ class TaskService(
 
                     if (initializer.isRunOnceAcrossCluster()) {
                         val urn = try {
-                            val task = executor.schedule(
+                            val task = executor.schedule<Unit>(
                                     initializer,
                                     initializer.getInitialDelay(),
                                     initializer.getTimeUnit()
@@ -137,7 +137,7 @@ class TaskService(
             .map { task ->
                 try {
                     val urn = submitted.getOrPut(task.name) {
-                        executor.scheduleAtFixedRate(
+                        executor.scheduleAtFixedRate<Unit>(
                                 task,
                                 task.getInitialDelay(),
                                 task.getPeriod(),
@@ -145,7 +145,7 @@ class TaskService(
                         ).handler.toUrn()
                     }
                     logger.info(
-                            "Task {} is scheduled with initialDelay {} and period {} in time unit (urn = {})",
+                            "Task {} is scheduled with initialDelay {} and period {} in time unit {} (urn = {})",
                             task.name,
                             task.getInitialDelay(),
                             task.getPeriod(),

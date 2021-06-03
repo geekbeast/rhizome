@@ -1,9 +1,13 @@
 package com.kryptnostic.rhizome.configuration;
 
+import static com.openlattice.jdbc.DataSourceManager.DEFAULT_DATASOURCE;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.configuration.postgres.PostgresConfiguration;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.kryptnostic.rhizome.configuration.annotation.ReloadableConfiguration;
 import com.kryptnostic.rhizome.configuration.graphite.GraphiteConfiguration;
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
@@ -24,6 +28,7 @@ public class RhizomeConfiguration implements Configuration {
     protected static final String SESSION_CLUSTERING_ENABLED_PROPERTY             = "session-clustering-enabled";
     protected static final String CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL            = "cors-access-control-allow-origin-url";
     protected static final String POSTGRES_CONFIGURATION                          = "postgres";
+    protected static final String DATASOURCE_CONFIGURATIONS                       = "datasources";
     protected static final String SPARK_CONFIGURATION_PROPERTY                    = "spark";
     protected static final String GRAPHITE_CONFIGURATION_PROPERTY                 = "graphite";
     protected static final String HAZELCAST_SESSION_FILTER_CONFIGURATION_PROPERTY = "hazelcast-session-filter";
@@ -34,17 +39,18 @@ public class RhizomeConfiguration implements Configuration {
     protected static final boolean                                       PERSISTENCE_ENABLED_DEFAULT        = true;
     protected static final boolean                                       SESSION_CLUSTERING_ENABLED_DEFAULT = false;
     private static final   long                                          serialVersionUID                   = -8444209890618166001L;
-    protected static ConfigurationKey                                        key                                = new SimpleConfigurationKey(
+    protected static       ConfigurationKey                              key                                = new SimpleConfigurationKey(
             "rhizome.yaml" );
-    protected final  Logger                                                  logger                             = LoggerFactory
+    protected final        Logger                                        logger                             = LoggerFactory
             .getLogger(
                     getClass() );
-    protected final  boolean                                                 persistData;
-    protected final  boolean                                                 sessionClusteringEnabled;
-    protected final  String                                                  corsAccessControlAllowOriginUrl;
-    protected final  Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
-    protected final  Optional<GraphiteConfiguration>               graphiteConfiguration;
-    protected final  Optional<PostgresConfiguration>               postgresConfiguration;
+    protected final        boolean                                       persistData;
+    protected final        boolean                                       sessionClusteringEnabled;
+    protected final        String                                        corsAccessControlAllowOriginUrl;
+    protected final        Map<String, PostgresConfiguration>            datasourceConfigurations;
+    protected final        Optional<HazelcastSessionFilterConfiguration> hazelcastSessionFilterConfiguration;
+    protected final        Optional<GraphiteConfiguration>               graphiteConfiguration;
+    protected final        Optional<PostgresConfiguration>               postgresConfiguration;
 
     protected final Optional<HazelcastConfiguration>              hazelcastConfiguration;
     protected final Optional<Map<String, HazelcastConfiguration>> hazelcastClients;
@@ -60,6 +66,8 @@ public class RhizomeConfiguration implements Configuration {
             @JsonProperty( CORS_ACCESS_CONTROL_ALLOW_ORIGIN_URL )
                     Optional<String> corsAccessControlAllowOriginUrl,
             @JsonProperty( POSTGRES_CONFIGURATION ) Optional<PostgresConfiguration> postgresConfiguration,
+            @JsonProperty( DATASOURCE_CONFIGURATIONS )
+                    Optional<Map<String, PostgresConfiguration>> datasourceConfigurations,
             @JsonProperty( GRAPHITE_CONFIGURATION_PROPERTY )
                     Optional<GraphiteConfiguration> graphiteConfiguration,
             @JsonProperty( HAZELCAST_CONFIGURATION_PROPERTY )
@@ -74,6 +82,8 @@ public class RhizomeConfiguration implements Configuration {
         this.sessionClusteringEnabled = sessionClusteringEnabled.orElse( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.orElse( "" );
         this.postgresConfiguration = postgresConfiguration;
+        this.datasourceConfigurations = Maps.newHashMap( datasourceConfigurations.orElse( ImmutableMap.of() ) );
+        postgresConfiguration.ifPresent( pc -> this.datasourceConfigurations.putIfAbsent( DEFAULT_DATASOURCE, pc ) );
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;
         this.hazelcastSessionFilterConfiguration = hazelcastSessionFilterConfiguration;
@@ -117,12 +127,17 @@ public class RhizomeConfiguration implements Configuration {
         return sparkConfiguration;
     }
 
+    @JsonProperty( DATASOURCE_CONFIGURATIONS )
+    public Map<String, PostgresConfiguration> getDatasourceConfigurations() {
+        return datasourceConfigurations;
+    }
+
     @JsonProperty( POSTGRES_CONFIGURATION )
     public Optional<PostgresConfiguration> getPostgresConfiguration() {
         return postgresConfiguration;
     }
 
-    @JsonProperty(HAZELCAST_CLIENTS_PROPERTY)
+    @JsonProperty( HAZELCAST_CLIENTS_PROPERTY )
     public Optional<Map<String, HazelcastConfiguration>> getHazelcastClients() {
         return hazelcastClients;
     }

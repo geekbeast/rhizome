@@ -7,7 +7,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.IOException
-import java.sql.*
+import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Statement
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
@@ -23,7 +27,7 @@ class BasePostgresIterable<T>(
         private val mapper: (ResultSet) -> T
 ) : Iterable<T> {
 
-    private val logger = LoggerFactory.getLogger(PostgresIterable::class.java)
+    private val logger = LoggerFactory.getLogger(BasePostgresIterable::class.java)
 
     override fun iterator(): PostgresIterator<T> {
         try {
@@ -103,8 +107,8 @@ class PreparedStatementHolderSupplier(
         val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
 
-    override fun execute(ps: Statement): ResultSet {
-        return (ps as PreparedStatement).executeQuery()
+    override fun execute(statement: Statement): ResultSet {
+        return (statement as PreparedStatement).executeQuery()
     }
 
     @SuppressFBWarnings(value = ["SECSQLIJDBC"], justification = "Provided by caller.")
@@ -181,6 +185,10 @@ class PostgresIterator<T> @Throws(SQLException::class)
             logger.error("Unable to retrieve next element from result set.", e)
             notExhausted = false
             throw NoSuchElementException("Unable to retrieve next element from result set.")
+        } catch (e: Exception) {
+            logger.error("An error occurred while trying to retrieve next element from result set.", e)
+            notExhausted = false
+            throw e
         } finally {
             try {
                 if (!notExhausted) {

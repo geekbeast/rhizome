@@ -2,7 +2,6 @@ package com.geekbeast.hazelcast
 
 import com.hazelcast.client.HazelcastClient
 import com.hazelcast.client.config.ClientConfig
-import com.hazelcast.config.GroupConfig
 import com.hazelcast.config.SerializationConfig
 import com.hazelcast.core.HazelcastInstance
 import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
@@ -22,18 +21,17 @@ data class HazelcastClientProvider(
 ) : IHazelcastClientProvider {
     init {
         clients.values.forEach { client ->
-            check( !client.isServer) { "Specified server = true for client config: $client" }
+            check(!client.isServer) { "Specified server = true for client config: $client" }
         }
     }
 
-    private val hazelcastClients = clients.mapValues { (name, clientConfig) ->
-        HazelcastClient.newHazelcastClient(
-                ClientConfig()
-                        .setNetworkConfig(clientNetworkConfig(clientConfig))
-                        .setGroupConfig(GroupConfig(clientConfig.group, clientConfig.password))
-                        .setSerializationConfig(serializationConfig)
-                        .setProperty("hazelcast.logging.type", "slf4j")
-        )
+    private val hazelcastClients = clients.mapValues { (_, clientConfig) ->
+        val cc = ClientConfig()
+                .setNetworkConfig(clientNetworkConfig(clientConfig))
+                .setSerializationConfig(serializationConfig)
+                .setProperty("hazelcast.logging.type", "slf4j")
+        cc.clusterName = clientConfig.group
+        HazelcastClient.newHazelcastClient(cc)
     }
 
     override fun getClient(name: String): HazelcastInstance {
