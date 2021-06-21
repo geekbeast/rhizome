@@ -123,7 +123,6 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      */
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance
-        this.jobs = hazelcastInstance.getMap(JOBS_MAP)
     }
 
     /**
@@ -149,6 +148,10 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      * Used to enable initialization of hazelcast objects just in time.
      */
     protected open fun initializeHazelcastRelatedObjects() {}
+
+    private fun ensureJobsMapInitialized() {
+        if( !this::jobs.isInitialized ) this.jobs = hazelcastInstance.getMap(JOBS_MAP)
+    }
 
     /**
      * This function can be override to specify setup behavior that occurs before task starts running.
@@ -248,6 +251,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     private fun pollForTaskId() {
+        ensureJobsMapInitialized()
         if (taskId != null) return
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
