@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  *
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
-@Component //Open for mocking 
+@Component //Open for mocking
 class DataSourceManager(
         dataSourceConfigurations: Map<String, PostgresConfiguration>,
         healthCheckRegistry: HealthCheckRegistry,
