@@ -51,7 +51,7 @@ fun deserializeSetMultimap(input: ObjectDataInput): SetMultimap<UUID, String>? {
     val mm = HashMultimap.create<UUID, String>()
     for (i in 0 until size) {
         val id = UUIDStreamSerializerUtils.deserialize(input)
-        mm.putAll(id, input.readUTFArray().asIterable())
+        mm.putAll(id, input.readStringArray()!!.asIterable())
     }
     return mm
 }
@@ -64,7 +64,7 @@ fun deserializeLinkedHashMultimap(input: ObjectDataInput): LinkedHashMultimap<UU
     val mm = LinkedHashMultimap.create<UUID, String>()
     for (i in 0 until size) {
         val id = UUIDStreamSerializerUtils.deserialize(input)
-        mm.putAll(id, input.readUTFArray().asIterable())
+        mm.putAll(id, input.readUTFArray()!!.asIterable())
     }
     return mm
 }
