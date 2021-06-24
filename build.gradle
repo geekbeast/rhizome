@@ -172,9 +172,9 @@ dependencies {
     api "org.springframework.security:spring-security-messaging:${project.spring_security_version}"
 
     //JDBI
-    implementation "org.jdbi:jdbi3-core:${jdbi3_version}"
-    implementation "org.jdbi:jdbi3-sqlobject:${jdbi3_version}"
-    implementation "org.jdbi:jdbi3-postgres:${jdbi3_version}"
+    api "org.jdbi:jdbi3-core:${jdbi3_version}"
+    api "org.jdbi:jdbi3-sqlobject:${jdbi3_version}"
+    api "org.jdbi:jdbi3-postgres:${jdbi3_version}"
 
     api("com.auth0:auth0-spring-security-api:${project.auth0_spring_version}") {
         exclude group: "org.springframework.boot"
