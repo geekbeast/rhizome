@@ -302,9 +302,9 @@ dependencies {
     api "com.zaxxer:HikariCP:${hikariCP_version}"
     api "org.postgresql:postgresql:${postgresql_version}"
 
-    implementation "com.google.code.findbugs:jsr305:${findbugs_jsr305_version}"
-    implementation "javax.annotation:javax.annotation-api:${javax_annotation_api_version}"
-    implementation "javax.validation:validation-api:${javax_validation_api_version}"
+    api "com.google.code.findbugs:jsr305:${findbugs_jsr305_version}"
+    api "javax.annotation:javax.annotation-api:${javax_annotation_api_version}"
+    api "javax.validation:validation-api:${javax_validation_api_version}"
 
     implementation fileTree(dir: "lib/", include: "*.jar")
 
