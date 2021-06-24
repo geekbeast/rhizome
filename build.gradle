@@ -8,8 +8,8 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'com.github.spotbugs' version '4.0.0'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.kotlin.plugin.spring'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.5.10'
     id 'org.jetbrains.dokka' version '0.9.18'
 }
 
@@ -22,7 +22,6 @@ ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
 apply from: "https://raw.githubusercontent.com/openlattice/openlattice/main/gradles/openlattice.gradle"
-apply plugin: 'kotlin'
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
@@ -300,7 +299,7 @@ dependencies {
      * Postgres
      */
 
-    implementation "com.zaxxer:HikariCP:${hikariCP_version}"
+    api "com.zaxxer:HikariCP:${hikariCP_version}"
     implementation "org.postgresql:postgresql:${postgresql_version}"
 
     implementation "com.google.code.findbugs:jsr305:${findbugs_jsr305_version}"
@@ -337,8 +336,8 @@ dependencies {
     api "com.auth0:java-jwt:${auth0_java_jwt_version}"
     api "com.auth0:jwks-rsa:${auth0_jwks_rsa_version}"
     api "com.auth0:auth0:${project.auth0_version}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 tasks.withType(Test) {
