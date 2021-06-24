@@ -300,7 +300,7 @@ dependencies {
      */
 
     api "com.zaxxer:HikariCP:${hikariCP_version}"
-    implementation "org.postgresql:postgresql:${postgresql_version}"
+    api "org.postgresql:postgresql:${postgresql_version}"
 
     implementation "com.google.code.findbugs:jsr305:${findbugs_jsr305_version}"
     implementation "javax.annotation:javax.annotation-api:${javax_annotation_api_version}"
