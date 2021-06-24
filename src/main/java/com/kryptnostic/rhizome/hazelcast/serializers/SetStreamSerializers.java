@@ -154,7 +154,7 @@ public class SetStreamSerializers {
 
     public static LinkedHashSet<String> fastOrderedStringSetDeserializeFromArray( ObjectDataInput in )
             throws IOException {
-        final var arr = in.readUTFArray();
+        final var arr = in.readStringArray();
         return new LinkedHashSet<>( Arrays.asList( arr ) );
     }
 

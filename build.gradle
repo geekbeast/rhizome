@@ -192,9 +192,9 @@ dependencies {
     /*
      * Prometheus - https://prometheus.io/docs
      */
-    implementation "io.prometheus:simpleclient:${prometheus_jvm_client_version}"
-    implementation "io.prometheus:simpleclient_dropwizard:${prometheus_jvm_client_version}"
-    implementation "io.prometheus:simpleclient_servlet:${prometheus_jvm_client_version}"
+    api "io.prometheus:simpleclient:${prometheus_jvm_client_version}"
+    api "io.prometheus:simpleclient_dropwizard:${prometheus_jvm_client_version}"
+    api "io.prometheus:simpleclient_servlet:${prometheus_jvm_client_version}"
 
     /*
      * GUAVA
@@ -216,7 +216,7 @@ dependencies {
     api "commons-validator:commons-validator:${commonsvalidator_version}"
     api "org.apache.commons:commons-lang3:${commonsLang_version}"
     api "commons-codec:commons-codec:${commons_codec_version}"
-    testImplementation "org.apache.commons:commons-text:${commonsText_version}"
+    testApi "org.apache.commons:commons-text:${commonsText_version}"
 
     api "com.esotericsoftware:kryo-shaded:${kryo_shaded_version}"
     api "com.esotericsoftware:minlog:${minlog_version}"
@@ -273,7 +273,7 @@ dependencies {
      * TODO: Integrate with application plugin for standalone deployment
      */
     implementation "org.ow2.asm:asm:${asm_version}"
-    implementation "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
+    api "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
     //TODO: Once GA version of jetty-jsp is released update version.
     implementation "org.eclipse.jetty:jetty-spring:${jetty_version}"
     implementation "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
