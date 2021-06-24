@@ -7,7 +7,7 @@ plugins {
     id 'idea'
     id 'checkstyle'
     id 'jacoco'
-    id 'com.github.spotbugs' version '4.0.0'
+    id 'com.github.spotbugs' version '4.6.0'
     id 'org.jetbrains.kotlin.jvm' version '1.5.10'
     id 'org.jetbrains.kotlin.plugin.spring' version '1.5.10'
     id 'org.jetbrains.dokka' version '0.9.18'
