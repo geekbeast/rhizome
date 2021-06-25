@@ -63,7 +63,6 @@ abstract class AbstractDistributedJob<R, S : JobState>(
             result: R?
     ) {
         require(!initialized) { "You can only initialize a job once." }
-
         if (id != null) initId(id)
         if (taskId != null) initTaskId(taskId)
         this.hasWorkRemaining = hasWorkRemaining
@@ -124,7 +123,6 @@ abstract class AbstractDistributedJob<R, S : JobState>(
      */
     override fun setHazelcastInstance(hazelcastInstance: HazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance
-        this.jobs = hazelcastInstance.getMap(JOBS_MAP)
     }
 
     /**
@@ -147,6 +145,15 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     /**
+     * Used to enable initialization of hazelcast objects just in time.
+     */
+    protected open fun initializeHazelcastRelatedObjects() {}
+
+    private fun ensureJobsMapInitialized() {
+        if( !this::jobs.isInitialized ) this.jobs = hazelcastInstance.getMap(JOBS_MAP)
+    }
+
+    /**
      * This function can be override to specify setup behavior that occurs before task starts running.
      */
     protected open fun initialize() {}
@@ -154,6 +161,8 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     abstract fun processNextBatch()
 
     private fun initializeOrResumeJob() {
+        initializeHazelcastRelatedObjects()
+
         /**
          * There are two resumption cases we need to handle at initialization
          *
@@ -242,6 +251,7 @@ abstract class AbstractDistributedJob<R, S : JobState>(
     }
 
     private fun pollForTaskId() {
+        ensureJobsMapInitialized()
         if (taskId != null) return
 
         require(id != null) { "Cannot initialize task when id has not been initialized." }
