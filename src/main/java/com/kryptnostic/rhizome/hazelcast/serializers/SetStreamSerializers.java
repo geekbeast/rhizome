@@ -61,7 +61,6 @@ public class SetStreamSerializers {
         out.writeLongArray( most );
     }
 
-
     public static void serializeUUIDArray( ObjectDataOutput out, UUID[] uuids ) throws IOException {
         int length = uuids.length;
         long[] least = new long[ length ];
@@ -148,13 +147,14 @@ public class SetStreamSerializers {
         int size = in.readInt();
         Set<String> items = Sets.newHashSetWithExpectedSize( size );
         for ( int i = 0; i < size; i++ ) {
-            items.add( in.readUTF() );
+            items.add( in.readString() );
         }
         return items;
     }
 
-    public static LinkedHashSet<String> fastOrderedStringSetDeserializeFromArray( ObjectDataInput in ) throws IOException {
-        final var arr = in.readUTFArray();
+    public static LinkedHashSet<String> fastOrderedStringSetDeserializeFromArray( ObjectDataInput in )
+            throws IOException {
+        final var arr = in.readStringArray();
         return new LinkedHashSet<>( Arrays.asList( arr ) );
     }
 
@@ -162,7 +162,7 @@ public class SetStreamSerializers {
         int size = in.readInt();
         LinkedHashSet<String> items = new LinkedHashSet<>( size );
         for ( int i = 0; i < size; i++ ) {
-            items.add( in.readUTF() );
+            items.add( in.readString() );
         }
         return items;
     }

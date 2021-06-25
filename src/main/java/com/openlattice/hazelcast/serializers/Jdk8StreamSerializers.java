@@ -36,6 +36,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -177,7 +179,7 @@ public class Jdk8StreamSerializers {
             serialize( out, object );
         }
 
-        @Override public ZoneOffset read( ObjectDataInput in ) throws IOException {
+        @NotNull @Override public ZoneOffset read( ObjectDataInput in ) throws IOException {
             return deserialize( in );
         }
 
@@ -186,7 +188,7 @@ public class Jdk8StreamSerializers {
         }
 
         public static ZoneOffset deserialize( ObjectDataInput in ) throws IOException {
-            return ZoneOffset.of( in.readUTF() );
+            return ZoneOffset.of( Objects.requireNonNull( in.readString() ) );
         }
 
         public static void serialize( ObjectDataOutput out, ZoneOffset offset ) throws IOException {

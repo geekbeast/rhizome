@@ -32,7 +32,7 @@ class StreamSerializers {
 
         @JvmStatic
         fun deserializeIntList(`in`: ObjectDataInput, collection: MutableCollection<Int> = mutableListOf() ): MutableCollection<Int> {
-            val data = `in`.readIntArray()
+            val data = `in`.readIntArray()!!
             for (i in data) {
                 collection.add(i)
             }
@@ -62,11 +62,11 @@ class StreamSerializers {
 
         @JvmStatic
         fun deserializeUUIDUUIDMap( `in`: ObjectDataInput, map: MutableMap<UUID, UUID> = Maps.newLinkedHashMap() ): Map<UUID, UUID> {
-            val keysMost    = `in`.readLongArray()
-            val keysLeast   = `in`.readLongArray()
+            val keysMost    = `in`.readLongArray()!!
+            val keysLeast   = `in`.readLongArray()!!
 
-            val valsMost    = `in`.readLongArray()
-            val valsLeast   = `in`.readLongArray()
+            val valsMost    = `in`.readLongArray()!!
+            val valsLeast   = `in`.readLongArray()!!
 
             for ( i in keysMost.indices){
                 map[ UUID( keysMost[ i ], keysLeast[ i ])] = UUID( valsMost[ i ], valsLeast[ i ])
@@ -93,7 +93,7 @@ class StreamSerializers {
             val size = `in`.readInt()
             val map = Maps.newLinkedHashMapWithExpectedSize<String, String>( size )
 
-            val pairs = `in`.readUTFArray()
+            val pairs = `in`.readStringArray()!!
 
             for (index in 0 until size) {
                 map.put( pairs[index], pairs[index + size] )

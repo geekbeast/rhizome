@@ -23,6 +23,6 @@ class EmptyJobStreamSerializer : SelfRegisteringStreamSerializer<DistributableJo
         out.writeByteArray(mapper.writeValueAsBytes(`object`))
     }
 
-    override fun read(`in`: ObjectDataInput): DistributableJob<*> = mapper.readValue(`in`.readByteArray())
+    override fun read(`in`: ObjectDataInput): DistributableJob<*> = mapper.readValue(`in`.readByteArray()!!)
     override fun getClazz(): Class<out DistributableJob<*>> = DistributableJob::class.java
 }

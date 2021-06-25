@@ -18,6 +18,6 @@ abstract class AbstractDelegatedIntListStreamSerializer : TestableSelfRegisterin
     }
 
     override fun read(input: ObjectDataInput): DelegatedIntList {
-        return DelegatedIntList(input.readIntArray().toList())
+        return DelegatedIntList(input.readIntArray()!!.toList())
     }
 }

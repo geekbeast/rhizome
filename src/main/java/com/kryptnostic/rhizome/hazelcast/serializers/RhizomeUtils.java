@@ -135,7 +135,7 @@ public class RhizomeUtils {
             String[] strings = new String[ size ];
 
             for ( int i = 0; i < size; i++ ) {
-                strings[ i ] = in.readUTF();
+                strings[ i ] = in.readString();
             }
             return strings;
         }

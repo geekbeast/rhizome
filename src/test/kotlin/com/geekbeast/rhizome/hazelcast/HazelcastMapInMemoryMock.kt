@@ -169,11 +169,12 @@ fun <K, V> mockHazelcastMap(
                 .toList()
     }
 
+    val mockCast = mock as Map<K,V>
     Mockito.`when`(mock.entries).thenAnswer { backingMap.entries }
     Mockito.`when`(mock.keys).thenAnswer { backingMap.keys }
     Mockito.`when`(mock.values).thenAnswer { backingMap.values }
     Mockito.`when`(mock.size).thenAnswer { backingMap.size }
-    Mockito.`when`(mock.count()).thenAnswer { backingMap.count() }
+    Mockito.`when`(mockCast.count()).thenAnswer { backingMap.count() }
     Mockito.`when`(mock.clear()).thenAnswer { backingMap.clear() }
 
     return mock

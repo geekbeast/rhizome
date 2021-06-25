@@ -27,7 +27,7 @@ public class SimpleConfigurationKey implements ConfigurationKey, DataSerializabl
 
     @Override
     public void readData( ObjectDataInput in ) throws IOException {
-        this.uri = in.readUTF();
+        this.uri = in.readString();
     }
 
     @Override

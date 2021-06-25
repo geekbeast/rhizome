@@ -65,8 +65,8 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         EmailAddress[] bccs = deserializeMailAddresses( in );
         EmailAddress[] replyTo = deserializeMailAddresses( in );
 
-        String subject = in.readUTF();
-        String subjectEncoding = in.readUTF();
+        String subject = in.readString();
+        String subjectEncoding = in.readString();
         int priority = in.readInt();
         boolean hasSentDate = in.readBoolean();
 
@@ -109,10 +109,10 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         int length = in.readInt();
         EmailAddress[] addresses = new EmailAddress[ length ];
         for ( int i = 0; i < length; ++i ) {
-            String email = in.readUTF();
+            String email = in.readString();
             boolean hasPersonalName = in.readBoolean();
             if ( hasPersonalName ) {
-                String personalName = in.readUTF();
+                String personalName = in.readString();
                 addresses[ i ] = new EmailAddress( personalName, email );
             } else {
                 addresses[ i ] = EmailAddress.of( email );
@@ -134,9 +134,9 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         int size = in.readInt();
         List<EmailMessage> messages = new ArrayList<>( size );
         for ( int i = 0; i < size; ++i ) {
-            String content = in.readUTF();
-            String encoding = in.readUTF();
-            String mimeType = in.readUTF();
+            String content = in.readString();
+            String encoding = in.readString();
+            String mimeType = in.readString();
             messages.add( new EmailMessage( content, mimeType, encoding ) );
         }
         return messages;
