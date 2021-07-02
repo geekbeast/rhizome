@@ -80,7 +80,10 @@ public class BaseHazelcastInstanceConfigurationPod {
                     .ifPresent( durableExecutors ->
                             config.setDurableExecutorConfigs( durableExecutorConfigs( durableExecutors ) ) );
 
-            config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCPMemberCount() );
+            config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCpMemberCount() );
+            if(hzConfiguration.getCpMemberCount()>0) {
+                config.getCPSubsystemConfig().setGroupSize( hzConfiguration.getCpGroupSize() );
+            }
             return config;
         }
         return null;
