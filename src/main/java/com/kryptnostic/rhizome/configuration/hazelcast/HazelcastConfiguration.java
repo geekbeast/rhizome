@@ -75,7 +75,7 @@ public class HazelcastConfiguration {
         this.cpMemberCount = cpMemberCount.orElse( CP_MEMBER_COUNT_DEFAULT );
         this.cpGroupSize = cpGroupSize.orElse(this.cpMemberCount);
         this.durableExecutors = durableExecutors;
-        checkState(this.cpGroupSize <= this.cpMemberCount, "CP Group size must be at list member count");
+        checkState(this.cpGroupSize <= this.cpMemberCount, "CP Group size must be at least member count");
     }
 
     @JsonProperty( SEED_NODES_PROPERTY )
