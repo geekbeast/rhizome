@@ -19,7 +19,7 @@ public class HazelcastConfiguration {
     public static final    String DEFAULT_INSTANCE_NAME    = "rhizome-default";
     public static final    String DEFAULT_PASSWORD         = "reticulating splines";
     protected static final String CP_MEMBER_COUNT_PROPERTY = "cp-member-count";
-    protected static final String CP_GROUP_SIZE_PROPERTY = "cp-member-count";
+    protected static final String CP_GROUP_SIZE_PROPERTY   = "cp-group-size";
     private static final   String REPLICATION_FACTOR       = "replication-factor";
     private static final   String SEED_NODES_PROPERTY      = "seed-nodes";
     private static final   String NAME_PROPERTY            = "instance-name";
