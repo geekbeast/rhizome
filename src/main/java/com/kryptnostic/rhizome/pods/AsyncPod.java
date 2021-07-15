@@ -22,7 +22,8 @@ import java.util.Arrays;
 @EnableScheduling
 @EnableAsync
 public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
-    private static Logger logger = LoggerFactory.getLogger( AsyncPod.class );
+    private static final Logger logger         = LoggerFactory.getLogger( AsyncPod.class );
+    private static final int    CORE_POOL_SIZE = 8;
 
     // TODO: Make thread names prefixes configurable.
     @Override
@@ -44,11 +45,9 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     @Bean(
             destroyMethod = "shutdown" )
     public ThreadPoolTaskExecutor getAsyncExecutor() {
-        int minPoolSize = 4;
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize( minPoolSize );
-        executor.setMaxPoolSize( Math.max( minPoolSize, Runtime.getRuntime().availableProcessors()));
-        logger.info("Setting MaxPoolSize to " + executor.getMaxPoolSize());
+        executor.setCorePoolSize( Math.max( CORE_POOL_SIZE, Runtime.getRuntime().availableProcessors() ) );
+        logger.info( "Setting MaxPoolSize to " + executor.getMaxPoolSize() );
         executor.setThreadNamePrefix( "rhizome-offshoot-" );
         executor.initialize();
         return executor;
