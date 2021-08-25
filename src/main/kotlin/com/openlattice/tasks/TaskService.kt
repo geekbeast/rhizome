@@ -21,6 +21,9 @@
 
 package com.openlattice.tasks
 
+import com.geekbeast.util.ExponentialBackoff
+import com.geekbeast.util.RetryStrategy
+import com.geekbeast.util.attempt
 import com.google.common.base.Stopwatch
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.scheduledexecutor.DuplicateTaskException
@@ -73,7 +76,6 @@ class TaskService(
                 .forEach { initializer ->
                     val sw = Stopwatch.createStarted()
 
-
                     if (initializer.isRunOnceAcrossCluster()) {
                         val urn = try {
                             val task = executor.schedule<Unit>(
@@ -86,7 +88,9 @@ class TaskService(
                             maybeUrn
                         } catch (ex: DuplicateTaskException) {
                             logger.info("Duplicate task registration detected.")
-                            submitted.getValue(initializer.name)
+                            attempt(ExponentialBackoff(10),5) {
+                                submitted.getValue(initializer.name)
+                            }
                         }
                         //By always retrieving the task we can ensure that we wait for initialization tasks kicked
                         //off by different nodes at startup
