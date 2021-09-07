@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.http2.HTTP2Cipher;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Handler;
@@ -163,11 +164,16 @@ public class JettyLoam implements Loam {
 
             final ServerConnector ssl;
             final SslConnectionFactory connectionFactory;
+            final var http1 = new HttpConnectionFactory(http_config);
 
             if( configuration.isHttp2Enabled() ) {
+                contextFactory.setCipherComparator( HTTP2Cipher.COMPARATOR);
+                contextFactory.setUseCipherSuitesOrder(true);
+
                 final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( http_config );
                 final var alpnServerConnectionFactory = new ALPNServerConnectionFactory();
-                alpnServerConnectionFactory.setDefaultProtocol( "h2" );
+
+                alpnServerConnectionFactory.setDefaultProtocol(http1.getProtocol());
 
                 connectionFactory = new SslConnectionFactory(
                         contextFactory,
@@ -178,16 +184,16 @@ public class JettyLoam implements Loam {
                         connectionFactory,
                         alpnServerConnectionFactory,
                         http2ServerConnectionFactory,
-                        new HttpConnectionFactory( https_config ) );
+                        http1 );
             } else {
                 connectionFactory = new SslConnectionFactory(
                         contextFactory,
-                        "http/1.1" );
+                        http1.getProtocol() );
 
                 ssl = new ServerConnector(
                         server,
                         connectionFactory,
-                        new HttpConnectionFactory( https_config ) );
+                        http1 );
             }
 
             // Jetty needs this twice, straight for the Jetty samples
