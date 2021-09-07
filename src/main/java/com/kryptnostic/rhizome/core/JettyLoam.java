@@ -130,11 +130,12 @@ public class JettyLoam implements Loam {
 
     protected void configureEndpoint( ConnectorConfiguration configuration ) throws IOException {
         HttpConfiguration http_config = new HttpConfiguration();
+        final var httpConnectionFactory = new HttpConnectionFactory(http_config);
 
         if ( !configuration.requireSSL() ) {
             final var http2CServerConnectionFactory = new HTTP2CServerConnectionFactory( http_config );
             ServerConnector http = new ServerConnector( server,
-                    new HttpConnectionFactory( http_config ),
+                    httpConnectionFactory,
                     http2CServerConnectionFactory
             );
 
@@ -149,7 +150,6 @@ public class JettyLoam implements Loam {
             http_config.setSecurePort( configuration.getHttpsPort() );
 
             SslContextFactory contextFactory = new SslContextFactory.Server();
-
             configureSslStores( contextFactory );
             String certAlias = configuration.getCertificateAlias().orElse( "" );
             if ( StringUtils.isNotBlank( certAlias ) ) {
@@ -164,16 +164,15 @@ public class JettyLoam implements Loam {
 
             final ServerConnector ssl;
             final SslConnectionFactory connectionFactory;
-            final var http1 = new HttpConnectionFactory(http_config);
 
             if( configuration.isHttp2Enabled() ) {
                 contextFactory.setCipherComparator( HTTP2Cipher.COMPARATOR);
                 contextFactory.setUseCipherSuitesOrder(true);
 
-                final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( http_config );
+                final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( https_config );
                 final var alpnServerConnectionFactory = new ALPNServerConnectionFactory();
 
-                alpnServerConnectionFactory.setDefaultProtocol(http1.getProtocol());
+                alpnServerConnectionFactory.setDefaultProtocol(httpConnectionFactory.getProtocol());
 
                 connectionFactory = new SslConnectionFactory(
                         contextFactory,
@@ -184,16 +183,16 @@ public class JettyLoam implements Loam {
                         connectionFactory,
                         alpnServerConnectionFactory,
                         http2ServerConnectionFactory,
-                        http1 );
+                        httpConnectionFactory );
             } else {
                 connectionFactory = new SslConnectionFactory(
                         contextFactory,
-                        http1.getProtocol() );
+                        httpConnectionFactory.getProtocol() );
 
                 ssl = new ServerConnector(
                         server,
                         connectionFactory,
-                        http1 );
+                        httpConnectionFactory );
             }
 
             // Jetty needs this twice, straight for the Jetty samples
