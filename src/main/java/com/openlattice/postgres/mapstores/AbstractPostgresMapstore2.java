@@ -230,34 +230,16 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         Map<K, V> result = Maps.newLinkedHashMapWithExpectedSize(keys.size());
 
         K key = null;
-
         try ( Connection connection = hds.getConnection();
-                PreparedStatement selectIn = prepareSelectIn( connection ) ) {
-
-            Iterator<K> kIterator = keys.iterator();
-            while ( kIterator.hasNext() ) {
-
-                for ( int parameterIndex = 1;
-                        parameterIndex <= batchCapacity;
-                        parameterIndex = bind( selectIn, key, parameterIndex ) ) {
-                    //For now if we run out of keys, key binding the same key over and over again to pad it out
-                    //In the future we should null out the parameter using postgres data type info in table.
-                    if ( kIterator.hasNext() ) {
-                        key = kIterator.next();
+                                PreparedStatement selectWhere = prepareSelectByKey( connection ) ) {
+                for(var k : keys ) {
+                    key = k;
+                    bind(selectWhere, k,1);
+                    var rs = selectWhere.executeQuery();
+                    if(rs.next()) {
+                        result.put( k, mapToValue(rs) );
                     }
                 }
-                try ( ResultSet results = selectIn.executeQuery() ) {
-                    while ( results.next() ) {
-                        K k = mapToKey( results );
-                        V v = readNext( results );
-                        result.put( k, v );
-                    }
-                }
-            }
-            //            keys.parallelStream().forEach( key -> {
-            //                V value = load( key );
-            //                if ( value != null ) { result.put( key, value ); }
-            //            } );
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during select for key {} in map {}.", key, mapName, e );
         }
