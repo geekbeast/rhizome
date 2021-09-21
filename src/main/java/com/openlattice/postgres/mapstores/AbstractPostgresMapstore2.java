@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.aop.framework.AopContext;
+import org.springframework.aop.framework.AopProxy;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -274,7 +276,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     public MapStoreConfig getMapStoreConfig() {
         return new MapStoreConfig()
                 .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
-                .setImplementation( this )
+                .setImplementation( AopContext.currentProxy() )
                 .setEnabled( true )
                 .setWriteDelaySeconds( 0 );
     }
