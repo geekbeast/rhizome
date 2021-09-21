@@ -166,7 +166,7 @@ public class JettyLoam implements Loam {
             final SslConnectionFactory connectionFactory;
 
             if( configuration.isHttp2Enabled() ) {
-                contextFactory.setCipherComparator( HTTP2Cipher.COMPARATOR);
+                contextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
                 contextFactory.setUseCipherSuitesOrder(true);
 
                 final var http2ServerConnectionFactory = new HTTP2ServerConnectionFactory( https_config );

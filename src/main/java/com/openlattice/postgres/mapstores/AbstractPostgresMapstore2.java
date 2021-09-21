@@ -20,6 +20,8 @@
 
 package com.openlattice.postgres.mapstores;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -32,22 +34,18 @@ import com.openlattice.postgres.PostgresTableDefinition;
 import com.openlattice.postgres.streams.BasePostgresIterable;
 import com.openlattice.postgres.streams.StatementHolderSupplier;
 import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -72,6 +70,12 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     private final List<PostgresColumnDefinition> keyColumns;
     private final List<PostgresColumnDefinition> valueColumns;
+
+    private final MapStoreConfig mapStoreConfig = new MapStoreConfig()
+            .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
+            .setImplementation( this )
+            .setEnabled( true )
+            .setWriteDelaySeconds( 0 );
 
     public AbstractPostgresMapstore2(
             String mapName,
@@ -221,34 +225,16 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         Map<K, V> result = Maps.newLinkedHashMapWithExpectedSize(keys.size());
 
         K key = null;
-
         try ( Connection connection = hds.getConnection();
-                PreparedStatement selectIn = prepareSelectIn( connection ) ) {
-
-            Iterator<K> kIterator = keys.iterator();
-            while ( kIterator.hasNext() ) {
-
-                for ( int parameterIndex = 1;
-                        parameterIndex <= batchCapacity;
-                        parameterIndex = bind( selectIn, key, parameterIndex ) ) {
-                    //For now if we run out of keys, key binding the same key over and over again to pad it out
-                    //In the future we should null out the parameter using postgres data type info in table.
-                    if ( kIterator.hasNext() ) {
-                        key = kIterator.next();
+                                PreparedStatement selectWhere = prepareSelectByKey( connection ) ) {
+                for(var k : keys ) {
+                    key = k;
+                    bind(selectWhere, k,1);
+                    var rs = selectWhere.executeQuery();
+                    if(rs.next()) {
+                        result.put( k, mapToValue(rs) );
                     }
                 }
-                try ( ResultSet results = selectIn.executeQuery() ) {
-                    while ( results.next() ) {
-                        K k = mapToKey( results );
-                        V v = readNext( results );
-                        result.put( k, v );
-                    }
-                }
-            }
-            //            keys.parallelStream().forEach( key -> {
-            //                V value = load( key );
-            //                if ( value != null ) { result.put( key, value ); }
-            //            } );
         } catch ( SQLException e ) {
             logger.error( "Error executing SQL during select for key {} in map {}.", key, mapName, e );
         }
@@ -272,11 +258,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     @Override
     public MapStoreConfig getMapStoreConfig() {
-        return new MapStoreConfig()
-                .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
-                .setImplementation( this )
-                .setEnabled( true )
-                .setWriteDelaySeconds( 0 );
+        return mapStoreConfig;
     }
 
     @Override
