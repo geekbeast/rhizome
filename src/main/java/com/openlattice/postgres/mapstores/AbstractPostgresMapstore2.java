@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
+import com.kryptnostic.rhizome.mapstores.SelfRegisteringMapStore;
 import com.kryptnostic.rhizome.mapstores.TestableSelfRegisteringMapStore;
 import com.openlattice.postgres.PostgresColumnDefinition;
 import com.openlattice.postgres.PostgresTableDefinition;
@@ -74,6 +75,12 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     private final List<PostgresColumnDefinition> keyColumns;
     private final List<PostgresColumnDefinition> valueColumns;
+
+    private final MapStoreConfig mapStoreConfig = new MapStoreConfig()
+            .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
+            .setImplementation( this )
+            .setEnabled( true )
+            .setWriteDelaySeconds( 0 );
 
     public AbstractPostgresMapstore2(
             String mapName,
@@ -274,11 +281,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     @Override
     public MapStoreConfig getMapStoreConfig() {
-        return new MapStoreConfig()
-                .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
-                .setImplementation( AopContext.currentProxy() )
-                .setEnabled( true )
-                .setWriteDelaySeconds( 0 );
+        return mapStoreConfig;
     }
 
     @Override
