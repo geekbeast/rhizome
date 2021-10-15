@@ -14,6 +14,7 @@ import java.sql.SQLException
 import java.sql.Statement
 import java.util.*
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -23,8 +24,8 @@ import java.util.stream.Stream
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class BasePostgresIterable<T>(
-        private val rsh: Supplier<StatementHolder>,
-        private val mapper: (ResultSet) -> T
+    private val rsh: Supplier<StatementHolder>,
+    private val mapper: (ResultSet) -> T
 ) : Iterable<T> {
 
     private val logger = LoggerFactory.getLogger(BasePostgresIterable::class.java)
@@ -47,11 +48,12 @@ class BasePostgresIterable<T>(
 }
 
 open class StatementHolderSupplier(
-        val hds: HikariDataSource,
-        val sql: String,
-        val fetchSize: Int = 0,
-        val autoCommit: Boolean = (fetchSize == 0),
-        private val longRunningQueryLimit: Long = 0
+    val hds: HikariDataSource,
+    val sql: String,
+    val fetchSize: Int = 0,
+    val autoCommit: Boolean = (fetchSize == 0),
+    private val longRunningQueryLimit: Long = 0,
+    private val statementTimeoutMillis: Long = 0
 ) : Supplier<StatementHolder> {
     init {
         check(fetchSize >= 0) { "Fetch-size must be nonnegative." }
@@ -71,11 +73,18 @@ open class StatementHolderSupplier(
         return connection.createStatement()
     }
 
+    open fun setStatementTimeout(statement: Statement): Statement {
+        if(statementTimeoutMillis > 0 ) {
+            statement.execute("SET statement_timeout = '${statementTimeoutMillis}';")
+        }
+        return statement
+    }
+
     override fun get(): StatementHolder {
         val connection = hds.connection //okay to fail + propagate
         connection.autoCommit = autoCommit
 
-        val statement = buildStatement(connection) //okay to fail + propagate
+        val statement = setStatementTimeout(buildStatement(connection)) //okay to fail + propagate
 
         statement.fetchSize = fetchSize
 
@@ -100,12 +109,19 @@ open class StatementHolderSupplier(
 }
 
 class PreparedStatementHolderSupplier(
-        hds: HikariDataSource,
-        sql: String,
-        fetchSize: Int = 0,
-        autoCommit: Boolean = (fetchSize == 0),
-        val bind: (PreparedStatement) -> Unit
-) : StatementHolderSupplier(hds, sql, fetchSize, autoCommit) {
+    hds: HikariDataSource,
+    sql: String,
+    fetchSize: Int = 0,
+    autoCommit: Boolean = (fetchSize == 0),
+    val bind: (PreparedStatement) -> Unit,
+    statementTimeoutMillis: Long = 0
+) : StatementHolderSupplier(
+    hds = hds,
+    sql = sql,
+    fetchSize = fetchSize,
+    autoCommit = autoCommit,
+    statementTimeoutMillis = statementTimeoutMillis
+) {
 
     override fun execute(statement: Statement): ResultSet {
         return (statement as PreparedStatement).executeQuery()
@@ -121,9 +137,9 @@ class PreparedStatementHolderSupplier(
 
 class PostgresIterator<T> @Throws(SQLException::class)
 @JvmOverloads constructor(
-        private val rsh: StatementHolder,
-        private val mapper: (ResultSet) -> T,
-        private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS
+    private val rsh: StatementHolder,
+    private val mapper: (ResultSet) -> T,
+    private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS
 ) : Iterator<T>, AutoCloseable, Closeable {
     companion object {
         private const val DEFAULT_TIMEOUT_MILLIS: Long = 600000
