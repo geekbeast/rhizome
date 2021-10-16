@@ -14,7 +14,6 @@ import java.sql.SQLException
 import java.sql.Statement
 import java.util.*
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -75,7 +74,7 @@ open class StatementHolderSupplier(
 
     open fun setStatementTimeout(statement: Statement): Statement {
         if(statementTimeoutMillis > 0 ) {
-            statement.execute("SET statement_timeout = '${statementTimeoutMillis}';")
+            statement.execute("SET statement_timeout = '${statementTimeoutMillis}ms';")
         }
         return statement
     }
