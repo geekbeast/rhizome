@@ -46,7 +46,7 @@ class BasePostgresIterable<T>(
     }
 }
 
-open class StatementHolderSupplier(
+open class StatementHolderSupplier @JvmOverloads constructor(
     val hds: HikariDataSource,
     val sql: String,
     val fetchSize: Int = 0,
