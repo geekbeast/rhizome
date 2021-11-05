@@ -25,7 +25,7 @@ class DataSourceManager(
         const val DEFAULT_DATASOURCE = "default"
     }
 
-    private val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
+    val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
 
         val hc = HikariConfig(postgresConfiguration.hikariConfiguration)
 
@@ -39,7 +39,9 @@ class DataSourceManager(
     private val tableManagers = dataSources.mapValues { (dataSourceName, dataSource) ->
         val dataSourceConfiguration = dataSourceConfigurations.getValue(dataSourceName)
         PostgresTableManager(
-                dataSource, dataSourceConfiguration.usingCitus, dataSourceConfiguration.initializeIndices,
+                dataSource,
+                dataSourceConfiguration.usingCitus,
+                dataSourceConfiguration.initializeIndices,
                 dataSourceConfiguration.initializeTables
         )
     }
