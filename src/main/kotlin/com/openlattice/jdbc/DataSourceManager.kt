@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
  */
 @Component //Open for mocking
 class DataSourceManager(
-        dataSourceConfigurations: Map<String, PostgresConfiguration>,
+        private val dataSourceConfigurations: Map<String, PostgresConfiguration>,
         healthCheckRegistry: HealthCheckRegistry,
         metricRegistry: MetricRegistry
 ) {
@@ -48,6 +48,7 @@ class DataSourceManager(
 
     fun getDefaultDataSource() = dataSources.getValue(DEFAULT_DATASOURCE)
     fun getDataSource(name: String) = dataSources.getValue(name)
+    fun getFlavor(name: String) = dataSourceConfigurations.getValue(name).flavor
 
     fun registerTables(name: String, vararg tableDefinitions: PostgresTableDefinition) {
         val tm = tableManagers.getValue(name)
