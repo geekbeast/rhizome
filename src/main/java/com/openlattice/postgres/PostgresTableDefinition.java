@@ -56,9 +56,19 @@ public class PostgresTableDefinition implements TableDefinition {
     private boolean unlogged;
     private boolean ifNotExists         = true;
     private boolean overwriteOnConflict = false;
+    private boolean temporary = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
+    }
+
+    public PostgresTableDefinition temporary() {
+        this.temporary = true;
+        return this;
+    }
+
+    public boolean isTemporary() {
+        return temporary;
     }
 
     public PostgresTableDefinition addColumns( PostgresColumnDefinition... columnsToAdd ) {
@@ -145,6 +155,10 @@ public class PostgresTableDefinition implements TableDefinition {
     public String createTableQuery() {
         validate();
         StringBuilder ctb = new StringBuilder( "CREATE " );
+
+        if( temporary ) {
+            ctb.append( "TEMPORARY " );
+        }
 
         if ( unlogged ) {
             ctb.append( "UNLOGGED " );
