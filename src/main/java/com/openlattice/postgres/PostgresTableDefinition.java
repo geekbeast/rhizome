@@ -53,10 +53,10 @@ public class PostgresTableDefinition implements TableDefinition {
 
     private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
 
-    private boolean unlogged;
-    private boolean ifNotExists         = true;
-    private boolean overwriteOnConflict = false;
-    private boolean temporary = false;
+    protected boolean unlogged;
+    protected boolean ifNotExists         = true;
+    protected boolean overwriteOnConflict = false;
+    protected boolean temporary = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
@@ -376,7 +376,7 @@ public class PostgresTableDefinition implements TableDefinition {
         return indexes.stream().map( PostgresIndexDefinition::sql );
     }
 
-    private void validate() {
+    protected void validate() {
         columns.stream()
                 .collect( Collectors.groupingBy( PostgresColumnDefinition::getName ) )
                 .forEach( ( lhs, rhs ) -> checkState( rhs.size() == 1,
