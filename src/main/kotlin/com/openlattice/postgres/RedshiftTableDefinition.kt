@@ -9,8 +9,8 @@ import java.util.*
 class RedshiftTableDefinition(name: String) : PostgresTableDefinition(name) {
     private val sortKey: MutableList<PostgresColumnDefinition> = mutableListOf()
 
-    fun sortKey(sortKey: List<PostgresColumnDefinition>): RedshiftTableDefinition {
-        this.sortKey.addAll(sortKey)
+    fun sortKey(vararg sortKey : PostgresColumnDefinition): RedshiftTableDefinition {
+        this.sortKey.addAll(sortKey.asList())
         return this
     }
 
