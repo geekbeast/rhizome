@@ -59,7 +59,7 @@ class DataSourceManager(
                 tableManagers.getValue(DEFAULT_DATASOURCE).registerTables(tableDef)
             }
 
-            dataSourceNames.forEach { dataSourceName -> tableManagers.getValue(dataSourceName) }
+            dataSourceNames.forEach { dsn -> tableManagers.getValue(dsn).registerTables(tableDef) }
         }
     }
 
