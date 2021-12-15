@@ -25,7 +25,7 @@ class DataSourceManager(
         const val DEFAULT_DATASOURCE = "default"
     }
 
-    val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
+    final val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
 
         val hc = HikariConfig(postgresConfiguration.hikariConfiguration)
 
@@ -73,6 +73,9 @@ class DataSourceManager(
     }
 
     fun getDefaultTableManager(): PostgresTableManager {
+        check(tableManagers.containsKey(DEFAULT_DATASOURCE)) {
+            "No default data source has been configured."
+        }
         return tableManagers.getValue(DEFAULT_DATASOURCE)
     }
 }

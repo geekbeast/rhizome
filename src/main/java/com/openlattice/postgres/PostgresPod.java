@@ -56,18 +56,21 @@ public class PostgresPod {
 
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
-        if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
-            /*
-             * Getting the default table manager will cause an NPE if postgres configuration
-             * didn't result in valid hikari datasource and prevent startup.
-             */
-            PostgresTableManager ptm = dataSourceManager.getDefaultTableManager();
-            if ( spt != null ) {
-                ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
-            }
-            return ptm;
-        } else {
-            throw new IllegalStateException( "Postgres configuration enabled, but no configuration found." );
-        }
+
+        /*
+         * We first register all tables with the datasource manager and then return the default table manager.
+         *
+         * Getting the default table manager will cause an IllegalStateException, if postgres configuration
+         * was not configured, maintaining compatibility with previous behavior.
+         */
+
+        dataSourceManager.registerTables(
+                spt
+                        .stream()
+                        .flatMap( PostgresTables::tables )
+                        .toArray( PostgresTableDefinition[]::new )
+        );
+
+        return dataSourceManager.getDefaultTableManager();
     }
 }

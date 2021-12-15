@@ -26,6 +26,11 @@ class RedshiftTableDefinition(name: String) : PostgresTableDefinition(name) {
         return this
     }
 
+    override fun addDataSourceNames(vararg datasources: String?): RedshiftTableDefinition {
+        super.addDataSourceNames(*datasources)
+        return this
+    }
+
     override fun addColumns(vararg columnsToAdd: PostgresColumnDefinition?): RedshiftTableDefinition {
         super.addColumns(*columnsToAdd)
         return this
