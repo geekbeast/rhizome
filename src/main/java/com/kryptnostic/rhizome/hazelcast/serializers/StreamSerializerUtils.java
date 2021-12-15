@@ -21,7 +21,7 @@ public final class StreamSerializerUtils {
         int size = in.readInt();
         String[] elems = new String[ size ];
         for ( int i = 0; i < size; ++i ) {
-            elems[ i ] = in.readUTF();
+            elems[ i ] = in.readString();
         }
         return Arrays.asList( elems );
     }

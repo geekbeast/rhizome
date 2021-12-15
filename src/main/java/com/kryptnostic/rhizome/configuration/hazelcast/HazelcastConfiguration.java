@@ -1,5 +1,7 @@
 package com.kryptnostic.rhizome.configuration.hazelcast;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.geekbeast.configuration.hazelcast.DurableExecutorConfiguration;
@@ -17,6 +19,7 @@ public class HazelcastConfiguration {
     public static final    String DEFAULT_INSTANCE_NAME    = "rhizome-default";
     public static final    String DEFAULT_PASSWORD         = "reticulating splines";
     protected static final String CP_MEMBER_COUNT_PROPERTY = "cp-member-count";
+    protected static final String CP_GROUP_SIZE_PROPERTY   = "cp-group-size";
     private static final   String REPLICATION_FACTOR       = "replication-factor";
     private static final   String SEED_NODES_PROPERTY      = "seed-nodes";
     private static final   String NAME_PROPERTY            = "instance-name";
@@ -43,8 +46,9 @@ public class HazelcastConfiguration {
     private final int                                            port;
     private final boolean                                        server;
     private final Optional<List<ScheduledExecutorConfiguration>> scheduledExecutors;
-    private final Integer                                      cpMemberCount;
-    private final Optional<List<DurableExecutorConfiguration>> durableExecutors;
+    private final Integer                                        cpMemberCount;
+    private final Integer                                        cpGroupSize;
+    private final Optional<List<DurableExecutorConfiguration>>   durableExecutors;
 
     @JsonCreator
     public HazelcastConfiguration(
@@ -57,7 +61,8 @@ public class HazelcastConfiguration {
             @JsonProperty( REPLICATION_FACTOR ) Optional<Integer> replicationFactor,
             @JsonProperty( SCHEDULED_EXECUTORS ) Optional<List<ScheduledExecutorConfiguration>> scheduledExecutors,
             @JsonProperty( DURABLE_EXECUTORS ) Optional<List<DurableExecutorConfiguration>> durableExecutors,
-            @JsonProperty( CP_MEMBER_COUNT_PROPERTY ) Optional<Integer> cpMemberCount ) {
+            @JsonProperty( CP_MEMBER_COUNT_PROPERTY ) Optional<Integer> cpMemberCount,
+            @JsonProperty( CP_GROUP_SIZE_PROPERTY ) Optional<Integer> cpGroupSize) {
 
         this.group = group.orElse( DEFAULT_GROUP_NAME );
         this.password = password.orElse( DEFAULT_PASSWORD );
@@ -68,7 +73,9 @@ public class HazelcastConfiguration {
         this.instanceName = instanceName.orElse( DEFAULT_INSTANCE_NAME );
         this.scheduledExecutors = scheduledExecutors;
         this.cpMemberCount = cpMemberCount.orElse( CP_MEMBER_COUNT_DEFAULT );
+        this.cpGroupSize = cpGroupSize.orElse(this.cpMemberCount);
         this.durableExecutors = durableExecutors;
+        checkState(this.cpGroupSize <= this.cpMemberCount, "CP Group size must be at least member count");
     }
 
     @JsonProperty( SEED_NODES_PROPERTY )
@@ -107,8 +114,13 @@ public class HazelcastConfiguration {
     }
 
     @JsonProperty( CP_MEMBER_COUNT_PROPERTY )
-    public Integer getCPMemberCount() {
+    public Integer getCpMemberCount() {
         return cpMemberCount;
+    }
+
+    @JsonProperty( CP_GROUP_SIZE_PROPERTY )
+    public Integer getCpGroupSize() {
+        return cpGroupSize;
     }
 
     @JsonProperty( SCHEDULED_EXECUTORS )

@@ -15,6 +15,7 @@ import com.hazelcast.map.MapStore;
 public interface SelfRegisteringMapStore<K, V> extends MapStore<K, V> {
     MapConfig getMapConfig();
     MapStoreConfig getMapStoreConfig();
+
     default boolean isMetricsEnabled() {
         return true;
     }

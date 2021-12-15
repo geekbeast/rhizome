@@ -21,6 +21,7 @@
 
 package com.geekbeast.rhizome.jobs
 
+import com.codahale.metrics.annotation.Timed
 import com.dataloom.mappers.ObjectMappers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -59,6 +60,7 @@ class PostgresJobsMapStore @JvmOverloads constructor(
 
     override fun mapToKey(rs: ResultSet): UUID = rs.getObject(ID_FIELD, UUID::class.java)
 
+    @Timed
     override fun mapToValue(rs: ResultSet): DistributableJob<*> = mapper.readValue(rs.getString(JOB_FIELD))
 
     override fun bind(ps: PreparedStatement, key: UUID, value: DistributableJob<*>?) {
