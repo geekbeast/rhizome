@@ -22,6 +22,8 @@ package com.openlattice.postgres;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,8 @@ public class PostgresTableDefinition implements TableDefinition {
     private final LinkedHashSet<PostgresColumnDefinition> unique     = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresIndexDefinition>  indexes    = new LinkedHashSet<>();
 
-    private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
+    private final Map<String, PostgresColumnDefinition> columnMap       = Maps.newHashMap();
+    protected Set<String>                               dataSourceNames = Sets.newHashSet();
 
     protected boolean unlogged;
     protected boolean ifNotExists         = true;
@@ -80,6 +83,11 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
+        return this;
+    }
+
+    public PostgresTableDefinition addDataSourceNames( String... datasources ) {
+        this.dataSourceNames.addAll( Arrays.asList(datasources) );
         return this;
     }
 
@@ -149,6 +157,10 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public boolean isIfNotExists() {
         return ifNotExists;
+    }
+
+    public Set<String> getDataSourcesNames() {
+        return dataSourceNames;
     }
 
     @Override

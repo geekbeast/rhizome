@@ -82,7 +82,7 @@ public class RhizomeConfiguration implements Configuration {
         this.sessionClusteringEnabled = sessionClusteringEnabled.orElse( SESSION_CLUSTERING_ENABLED_DEFAULT );
         this.corsAccessControlAllowOriginUrl = corsAccessControlAllowOriginUrl.orElse( "" );
         this.postgresConfiguration = postgresConfiguration;
-        this.datasourceConfigurations = Maps.newHashMap( datasourceConfigurations.orElse( ImmutableMap.of() ) );
+        this.datasourceConfigurations = Maps.newHashMap( datasourceConfigurations.orElse( Maps.newHashMap() ) );
         postgresConfiguration.ifPresent( pc -> this.datasourceConfigurations.putIfAbsent( DEFAULT_DATASOURCE, pc ) );
         this.graphiteConfiguration = graphiteConfiguration;
         this.hazelcastConfiguration = hazelcastConfiguration;

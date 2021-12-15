@@ -21,6 +21,7 @@
 package com.openlattice.postgres;
 
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.openlattice.jdbc.DataSourceManager;
 import com.openlattice.jdbc.JdbcPod;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
@@ -50,15 +51,17 @@ public class PostgresPod {
     @Autowired( required = false )
     private Set<PostgresTables> spt;
 
+    @Inject
+    private DataSourceManager dataSourceManager;
+
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
-
         if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
-            final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
-            PostgresTableManager ptm = new PostgresTableManager( hds,
-                    pgConfig.getUsingCitus(),
-                    pgConfig.getInitializeIndices(),
-                    pgConfig.getInitializeTables() );
+            /*
+             * Getting the default table manager will cause an NPE if postgres configuration
+             * didn't result in valid hikari datasource and prevent startup.
+             */
+            PostgresTableManager ptm = dataSourceManager.getDefaultTableManager();
             if ( spt != null ) {
                 ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
             }

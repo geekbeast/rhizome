@@ -1,6 +1,6 @@
 package com.openlattice.postgres
 
-import java.util.*
+import org.apache.commons.lang3.RandomStringUtils
 
 /**
  *
@@ -11,6 +11,23 @@ class RedshiftTableDefinition(name: String) : PostgresTableDefinition(name) {
 
     fun sortKey(vararg sortKey : PostgresColumnDefinition): RedshiftTableDefinition {
         this.sortKey.addAll(sortKey.asList())
+        return this
+    }
+
+    fun createTempTable(suffix: String = RandomStringUtils.randomAlphanumeric(10) ) : RedshiftTableDefinition {
+        return RedshiftTableDefinition("${this.name}_$suffix")
+                .temporary()
+                .sortKey(*sortKey.toTypedArray())
+                .addColumns(*this.columns.toTypedArray())
+    }
+
+    override fun temporary(): RedshiftTableDefinition {
+        super.temporary()
+        return this
+    }
+
+    override fun addColumns(vararg columnsToAdd: PostgresColumnDefinition?): RedshiftTableDefinition {
+        super.addColumns(*columnsToAdd)
         return this
     }
 

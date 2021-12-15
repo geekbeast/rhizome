@@ -72,6 +72,13 @@ public class JdbcPod {
 
     @Bean
     public DataSourceManager dataSourceManager() {
+        var defaultDatasource = rhizomeConfiguration.getPostgresConfiguration();
+        var dataSourceConfigurations = rhizomeConfiguration.getDatasourceConfigurations();
+
+        defaultDatasource.ifPresent( postgresConfiguration ->
+            dataSourceConfigurations.put( DataSourceManager.DEFAULT_DATASOURCE, postgresConfiguration )
+        );
+
         return new DataSourceManager(
                 rhizomeConfiguration.getDatasourceConfigurations(),
                 healthCheckRegistry,
