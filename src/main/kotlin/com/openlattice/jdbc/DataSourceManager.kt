@@ -16,10 +16,11 @@ import org.springframework.stereotype.Component
  */
 @Component //Open for mocking
 class DataSourceManager(
-        dataSourceConfigurations: Map<String, PostgresConfiguration>,
-        healthCheckRegistry: HealthCheckRegistry,
-        metricRegistry: MetricRegistry
+    dataSourceConfigurations: Map<String, PostgresConfiguration>,
+    healthCheckRegistry: HealthCheckRegistry,
+    metricRegistry: MetricRegistry
 ) {
+
     companion object {
         private val logger = LoggerFactory.getLogger(DataSourceManager::class.java)
         const val DEFAULT_DATASOURCE = "default"
@@ -39,10 +40,10 @@ class DataSourceManager(
     private val tableManagers = dataSources.mapValues { (dataSourceName, dataSource) ->
         val dataSourceConfiguration = dataSourceConfigurations.getValue(dataSourceName)
         PostgresTableManager(
-                dataSource,
-                dataSourceConfiguration.usingCitus,
-                dataSourceConfiguration.initializeIndices,
-                dataSourceConfiguration.initializeTables
+            dataSource,
+            dataSourceConfiguration.usingCitus,
+            dataSourceConfiguration.initializeIndices,
+            dataSourceConfiguration.initializeTables
         )
     }
 
