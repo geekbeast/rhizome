@@ -22,6 +22,8 @@ package com.openlattice.postgres;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,14 +53,25 @@ public class PostgresTableDefinition implements TableDefinition {
     private final LinkedHashSet<PostgresColumnDefinition> unique     = new LinkedHashSet<>();
     private final LinkedHashSet<PostgresIndexDefinition>  indexes    = new LinkedHashSet<>();
 
-    private final Map<String, PostgresColumnDefinition> columnMap = Maps.newHashMap();
+    private final Map<String, PostgresColumnDefinition> columnMap       = Maps.newHashMap();
+    protected Set<String>                               dataSourceNames = Sets.newHashSet();
 
-    private boolean unlogged;
-    private boolean ifNotExists         = true;
-    private boolean overwriteOnConflict = false;
+    protected boolean unlogged;
+    protected boolean ifNotExists         = true;
+    protected boolean overwriteOnConflict = false;
+    protected boolean temporary = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
+    }
+
+    public PostgresTableDefinition temporary() {
+        this.temporary = true;
+        return this;
+    }
+
+    public boolean isTemporary() {
+        return temporary;
     }
 
     public PostgresTableDefinition addColumns( PostgresColumnDefinition... columnsToAdd ) {
@@ -70,6 +83,11 @@ public class PostgresTableDefinition implements TableDefinition {
 
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
+        return this;
+    }
+
+    public PostgresTableDefinition addDataSourceNames( String... datasources ) {
+        this.dataSourceNames.addAll( Arrays.asList(datasources) );
         return this;
     }
 
@@ -141,10 +159,18 @@ public class PostgresTableDefinition implements TableDefinition {
         return ifNotExists;
     }
 
+    public Set<String> getDataSourcesNames() {
+        return dataSourceNames;
+    }
+
     @Override
     public String createTableQuery() {
         validate();
         StringBuilder ctb = new StringBuilder( "CREATE " );
+
+        if( temporary ) {
+            ctb.append( "TEMPORARY " );
+        }
 
         if ( unlogged ) {
             ctb.append( "UNLOGGED " );
@@ -362,7 +388,7 @@ public class PostgresTableDefinition implements TableDefinition {
         return indexes.stream().map( PostgresIndexDefinition::sql );
     }
 
-    private void validate() {
+    protected void validate() {
         columns.stream()
                 .collect( Collectors.groupingBy( PostgresColumnDefinition::getName ) )
                 .forEach( ( lhs, rhs ) -> checkState( rhs.size() == 1,
