@@ -13,7 +13,7 @@ Make it easy to build distributed web services in Java with dependency injection
 
 1. Clone the repo
 
-		> git clone https://github.com/geekbeast/rhizome.git
+		> git clone git@github.com:geekbeast/rhizome.git
 
 2. Setup the dev environment
 
