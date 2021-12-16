@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component
  */
 @Component //Open for mocking
 class DataSourceManager(
-    dataSourceConfigurations: Map<String, PostgresConfiguration>,
-    healthCheckRegistry: HealthCheckRegistry,
-    metricRegistry: MetricRegistry
+        private val dataSourceConfigurations: Map<String, PostgresConfiguration>,
+        healthCheckRegistry: HealthCheckRegistry,
+        metricRegistry: MetricRegistry
 ) {
 
     companion object {
@@ -26,7 +26,7 @@ class DataSourceManager(
         const val DEFAULT_DATASOURCE = "default"
     }
 
-    val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
+    final val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
 
         val hc = HikariConfig(postgresConfiguration.hikariConfiguration)
 
@@ -49,13 +49,34 @@ class DataSourceManager(
 
     fun getDefaultDataSource() = dataSources.getValue(DEFAULT_DATASOURCE)
     fun getDataSource(name: String) = dataSources.getValue(name)
+    fun getFlavor(name: String) = dataSourceConfigurations.getValue(name).flavor
 
-    fun registerTables(name: String, vararg tableDefinitions: PostgresTableDefinition) {
-        val tm = tableManagers.getValue(name)
+    fun registerTables(vararg tableDefinitions: PostgresTableDefinition) {
+        tableDefinitions.forEach { tableDef ->
+            val dataSourceNames = tableDef.dataSourcesNames
+
+            //If not data source is specified use the default data source for registration.
+            if (dataSourceNames.isEmpty()) {
+                tableManagers.getValue(DEFAULT_DATASOURCE).registerTables(tableDef)
+            }
+
+            dataSourceNames.forEach { dsn -> tableManagers.getValue(dsn).registerTables(tableDef) }
+        }
+    }
+
+    fun registerTables(datasourceName: String, vararg tableDefinitions: PostgresTableDefinition) {
+        val tm = tableManagers.getValue(datasourceName)
         tm.registerTables(*tableDefinitions)
     }
 
     fun registerTablesWithAllDatasources(vararg tableDefinitions: PostgresTableDefinition) {
         tableManagers.values.forEach { it.registerTables(*tableDefinitions) }
+    }
+
+    fun getDefaultTableManager(): PostgresTableManager {
+        check(tableManagers.containsKey(DEFAULT_DATASOURCE)) {
+            "No default data source has been configured."
+        }
+        return tableManagers.getValue(DEFAULT_DATASOURCE)
     }
 }

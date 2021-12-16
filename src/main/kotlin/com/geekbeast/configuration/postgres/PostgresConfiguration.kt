@@ -28,6 +28,7 @@ private const val HIKARI_CONFIGURATION_PROPERTY = "hikari"
 private const val USING_CITUS_PROPERTY = "citus"
 private const val INITIALIZE_INDICES_PROPERTY = "initialize-indices"
 private const val INITIALIZE_TABLES = "initialize-tables"
+private const val FLAVOR_PROPERTY = "flavor"
 
 /**
  *
@@ -36,6 +37,15 @@ private const val INITIALIZE_TABLES = "initialize-tables"
 data class PostgresConfiguration(
         @JsonProperty(HIKARI_CONFIGURATION_PROPERTY) val hikariConfiguration: Properties,
         @JsonProperty(USING_CITUS_PROPERTY) val usingCitus: Boolean = false,
+        @JsonProperty(
+                FLAVOR_PROPERTY
+        ) val flavor: PostgresFlavor = if (usingCitus) PostgresFlavor.CITUS else PostgresFlavor.VANILLA,
         @JsonProperty(INITIALIZE_INDICES_PROPERTY) val initializeIndices: Boolean = true,
         @JsonProperty(INITIALIZE_TABLES) val initializeTables: Boolean = true
 )
+
+enum class PostgresFlavor {
+    REDSHIFT,
+    CITUS,
+    VANILLA
+}

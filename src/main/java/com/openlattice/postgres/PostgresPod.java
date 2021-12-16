@@ -21,6 +21,7 @@
 package com.openlattice.postgres;
 
 import com.kryptnostic.rhizome.configuration.RhizomeConfiguration;
+import com.openlattice.jdbc.DataSourceManager;
 import com.openlattice.jdbc.JdbcPod;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.SQLException;
@@ -50,21 +51,26 @@ public class PostgresPod {
     @Autowired( required = false )
     private Set<PostgresTables> spt;
 
+    @Inject
+    private DataSourceManager dataSourceManager;
+
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
 
-        if ( rhizomeConfiguration.getPostgresConfiguration().isPresent() ) {
-            final var pgConfig = rhizomeConfiguration.getPostgresConfiguration().get();
-            PostgresTableManager ptm = new PostgresTableManager( hds,
-                    pgConfig.getUsingCitus(),
-                    pgConfig.getInitializeIndices(),
-                    pgConfig.getInitializeTables() );
-            if ( spt != null ) {
-                ptm.registerTables( spt.stream().flatMap( PostgresTables::tables )::iterator );
-            }
-            return ptm;
-        } else {
-            throw new IllegalStateException( "Postgres configuration enabled, but no configuration found." );
-        }
+        /*
+         * We first register all tables with the datasource manager and then return the default table manager.
+         *
+         * Getting the default table manager will cause an IllegalStateException, if postgres configuration
+         * was not configured, maintaining compatibility with previous behavior.
+         */
+
+        dataSourceManager.registerTables(
+                spt
+                        .stream()
+                        .flatMap( PostgresTables::tables )
+                        .toArray( PostgresTableDefinition[]::new )
+        );
+
+        return dataSourceManager.getDefaultTableManager();
     }
 }
