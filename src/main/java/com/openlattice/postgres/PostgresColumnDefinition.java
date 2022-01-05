@@ -22,6 +22,7 @@ package com.openlattice.postgres;
 
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
@@ -49,7 +50,7 @@ public class  PostgresColumnDefinition {
         return datatype;
     }
 
-    public PostgresColumnDefinition unique() {
+    public @Nonnull PostgresColumnDefinition unique() {
         unique = true;
         return this;
     }
@@ -77,7 +78,7 @@ public class  PostgresColumnDefinition {
         return this;
     }
 
-    public PostgresColumnDefinition notNull() {
+    public @Nonnull PostgresColumnDefinition notNull() {
         this.notNull = true;
         return this;
     }

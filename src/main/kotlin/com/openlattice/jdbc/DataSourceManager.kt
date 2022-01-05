@@ -26,7 +26,7 @@ class DataSourceManager(
         const val DEFAULT_DATASOURCE = "default"
     }
 
-    final val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
+    final val dataSources = dataSourceConfigurations.mapValues { (_, postgresConfiguration) ->
 
         val hc = HikariConfig(postgresConfiguration.hikariConfiguration)
 
