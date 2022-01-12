@@ -35,6 +35,7 @@ import java.io.IOException;
  */
 @Configuration
 public class Auth0Pod {
+
     @Inject
     private ConfigurationLoader configurationLoader;
 
@@ -46,9 +47,10 @@ public class Auth0Pod {
     @Bean
     public AuthAPI auth0() throws IOException {
         Auth0Configuration auth0Configuration = auth0Configuration();
-        return new AuthAPI( auth0Configuration.getDomain(),
-                auth0Configuration.getClientId(),
-                auth0Configuration.getClientSecret() );
+        return new AuthAPI(
+            auth0Configuration.getDomain(),
+            auth0Configuration.getClientId(),
+            auth0Configuration.getClientSecret()
+        );
     }
-
 }
