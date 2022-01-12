@@ -307,12 +307,13 @@ dependencies {
     testImplementation "junit:junit:${junit_version}"
     testImplementation "org.mockito:mockito-all:${mockito_version}"
 
-    api "com.openlattice:rhizome-client:${rhizome_client_version}"
-
     if( project.hasProperty('developmentMode') && project.developmentMode ) {
         testImplementation(project(path: ":rhizome-client", configuration: "tests"))
+        api(project(path: ":rhizome-client"))
+
     } else {
         testImplementation "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
+        api "com.openlattice:rhizome-client:${rhizome_client_version}"
     }
 
     api "com.auth0:mvc-auth-commons:${auth0_mvc_auth_commons_version}"
