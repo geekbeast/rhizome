@@ -8,8 +8,8 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'com.github.spotbugs' version '4.6.0'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.5.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.6.10'
     id 'org.jetbrains.dokka' version '0.9.18'
 }
 
@@ -25,11 +25,16 @@ apply from: "https://raw.githubusercontent.com/openlattice/openlattice/main/grad
 
 mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-}
+/**
+ * The reason we use source and target compatability instead of toolchain is that toolchain forces use of the --release
+ * flag. This flag prevents exports of some commonly used internal java apis in order to enforce compliance with public
+ * api surface of that particular release.  The source and target compatibility settings without the --release flag
+ * instruct the compiler to generate compatible byte code with that version at the risk of allowing the use of
+ * potentially unsupported APIs on earlier versions. (i.e compiler 17, target/source 11, will create bytecode that
+ * references an 17 API that isn't available on jdk 11).
+ */
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 checkstyle {
     toolVersion = '7.4'
@@ -69,28 +74,6 @@ spotbugsTest {
 run {
     if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
-    }
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ["--add-modules", "java.se"]
-}
-
-tasks.withType(Test) {
-    jvmArgs += ["--add-modules", "java.se",
-                "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
-                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-                "--add-opens", "java.base/java.nio=ALL-UNNAMED",
-                "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
-                "--add-opens", "java.management/sun.management=ALL-UNNAMED",
-                "--add-opens", "jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED",
-                "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED"]
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += '-Xjvm-default=compatibility'
     }
 }
 
@@ -324,12 +307,13 @@ dependencies {
     testImplementation "junit:junit:${junit_version}"
     testImplementation "org.mockito:mockito-all:${mockito_version}"
 
-    api "com.openlattice:rhizome-client:${rhizome_client_version}"
-
     if( project.hasProperty('developmentMode') && project.developmentMode ) {
         testImplementation(project(path: ":rhizome-client", configuration: "tests"))
+        api(project(path: ":rhizome-client"))
+
     } else {
         testImplementation "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
+        api "com.openlattice:rhizome-client:${rhizome_client_version}"
     }
 
     api "com.auth0:mvc-auth-commons:${auth0_mvc_auth_commons_version}"
@@ -340,15 +324,29 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs+= ["--add-modules", "java.base",
+                            "--add-modules", "java.se",
+                            "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED"]
+}
+
 tasks.withType(Test) {
-    jvmArgs += ["--add-modules", "java.se",
-                "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
-                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-                "--add-opens", "java.base/java.nio=ALL-UNNAMED",
-                "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
-                "--add-opens", "java.management/sun.management=ALL-UNNAMED",
-                "--add-opens", "jdk.management/com.sun.management.internal=ALL-UNNAMED",
-                "--add-opens","jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED"]
+    jvmArgs += ["--add-modules", "java.base",
+                "--add-modules", "java.se",
+                "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED",
+                "--add-opens","java.base/java.lang=ALL-UNNAMED",
+                "--add-opens","java.base/java.nio=ALL-UNNAMED",
+                "--add-opens","java.base/sun.nio.ch=ALL-UNNAMED",
+                "--add-opens","java.management/sun.management=ALL-UNNAMED",
+                "--add-opens", "jdk.management/com.ibm.lang.management.internal=ALL-UNNAMED",
+                "--add-opens","jdk.management/com.sun.management.internal=ALL-UNNAMED"]
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs += '-Xjvm-default=compatibility'
+    }
 }
 
 eclipse {
