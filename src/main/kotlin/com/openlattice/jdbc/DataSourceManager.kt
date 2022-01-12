@@ -5,10 +5,13 @@ import com.codahale.metrics.health.HealthCheckRegistry
 import com.geekbeast.configuration.postgres.PostgresConfiguration
 import com.openlattice.postgres.PostgresTableDefinition
 import com.openlattice.postgres.PostgresTableManager
+import com.openlattice.postgres.PostgresTables
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import javax.inject.Inject
+import kotlin.streams.asSequence
 
 /**
  *
@@ -16,9 +19,9 @@ import org.springframework.stereotype.Component
  */
 @Component //Open for mocking
 class DataSourceManager(
-        private val dataSourceConfigurations: Map<String, PostgresConfiguration>,
-        healthCheckRegistry: HealthCheckRegistry,
-        metricRegistry: MetricRegistry
+    private val dataSourceConfigurations: Map<String, PostgresConfiguration>,
+    healthCheckRegistry: HealthCheckRegistry,
+    metricRegistry: MetricRegistry
 ) {
 
     companion object {
@@ -26,7 +29,7 @@ class DataSourceManager(
         const val DEFAULT_DATASOURCE = "default"
     }
 
-    final val dataSources = dataSourceConfigurations.mapValues { (dataSourceName, postgresConfiguration) ->
+    final val dataSources = dataSourceConfigurations.mapValues { (_, postgresConfiguration) ->
 
         val hc = HikariConfig(postgresConfiguration.hikariConfiguration)
 
@@ -62,6 +65,11 @@ class DataSourceManager(
 
             dataSourceNames.forEach { dsn -> tableManagers.getValue(dsn).registerTables(tableDef) }
         }
+    }
+
+    @Inject
+    fun registerTables(tableDefinitions: Collection<PostgresTables>) {
+        registerTables(*tableDefinitions.asSequence().flatMap { it.tables().asSequence() }.toList().toTypedArray())
     }
 
     fun registerTables(datasourceName: String, vararg tableDefinitions: PostgresTableDefinition) {

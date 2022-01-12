@@ -112,8 +112,8 @@ class PreparedStatementHolderSupplier(
     sql: String,
     fetchSize: Int = 0,
     autoCommit: Boolean = (fetchSize == 0),
-    val bind: (PreparedStatement) -> Unit,
-    statementTimeoutMillis: Long = 0
+    statementTimeoutMillis: Long = 0,
+    val bind: (PreparedStatement) -> Unit
 ) : StatementHolderSupplier(
     hds = hds,
     sql = sql,

@@ -56,8 +56,9 @@ public class PostgresPod {
 
     @Bean
     public PostgresTableManager tableManager() throws SQLException {
-
         /*
+         * This is here for backwards compatibility and may cause some ignorable warning messages to be printed.
+         *
          * We first register all tables with the datasource manager and then return the default table manager.
          *
          * Getting the default table manager will cause an IllegalStateException, if postgres configuration

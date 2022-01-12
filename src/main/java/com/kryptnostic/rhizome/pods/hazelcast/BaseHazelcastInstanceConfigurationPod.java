@@ -13,6 +13,7 @@ import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfigurationCon
 import com.kryptnostic.rhizome.configuration.hazelcast.ScheduledExecutorConfiguration;
 import com.kryptnostic.rhizome.pods.ConfigurationPod;
 import com.kryptnostic.rhizome.pods.HazelcastPod;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +82,7 @@ public class BaseHazelcastInstanceConfigurationPod {
                             config.setDurableExecutorConfigs( durableExecutorConfigs( durableExecutors ) ) );
 
             config.getCPSubsystemConfig().setCPMemberCount( hzConfiguration.getCpMemberCount() );
-            if(hzConfiguration.getCpMemberCount()>0) {
+            if ( hzConfiguration.getCpMemberCount() > 0 ) {
                 config.getCPSubsystemConfig().setGroupSize( hzConfiguration.getCpGroupSize() );
             }
             return config;
@@ -174,7 +175,13 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     public static ClientNetworkConfig clientNetworkConfig( HazelcastConfiguration hzConfiguration ) {
-        return new ClientNetworkConfig().setAddresses( hzConfiguration.getHazelcastSeedNodes() );
+        final var cnc = new ClientNetworkConfig()
+                .setAddresses( hzConfiguration.getHazelcastSeedNodes() );
+//        if ( hzConfiguration.getPort() != 5701 ) {
+//            cnc.setOutboundPorts( Arrays.asList( hzConfiguration.getPort() ) );
+//        }
+        return cnc;
+
     }
 
     protected static NetworkConfig networkConfig( HazelcastConfiguration hzConfiguration ) {
