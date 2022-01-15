@@ -185,8 +185,9 @@ public class BaseHazelcastInstanceConfigurationPod {
     }
 
     protected static NetworkConfig networkConfig( HazelcastConfiguration hzConfiguration ) {
-        return new NetworkConfig().setPort( hzConfiguration.getPort() ).setJoin(
-                getJoinConfig( hzConfiguration.getHazelcastSeedNodes() ) );
+        return new NetworkConfig()
+                .setPort( hzConfiguration.getPort() )
+                .setJoin( getJoinConfig( hzConfiguration.getHazelcastSeedNodes() ) );
     }
 
     protected static JoinConfig getJoinConfig( List<String> nodes ) {

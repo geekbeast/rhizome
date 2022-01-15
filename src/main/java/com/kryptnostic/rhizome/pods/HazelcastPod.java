@@ -69,7 +69,16 @@ public class HazelcastPod {
     }
 
     @Bean
-    public HazelcastClientProvider hazelcastClientProvider() {
+    public HazelcastClientProvider hazelcastClientProvider() throws InterruptedException {
+        /*
+         * This is needed to avoid an infinite loop while trying to get a local client (hz client infinite retries)
+         * before the server is up and ready to accept connections.
+         */
+        if(hazelcastContainerConfiguration.getServerConfig().isPresent()) {
+            while(!hazelcastInstance().getCluster().getClusterState().isJoinAllowed() ) {
+                Thread.sleep( 250 );
+            }
+        }
         return new HazelcastClientProvider( rhizomeConfiguration.getHazelcastClients().orElseGet( ImmutableMap::of ), serializationConfig );
     }
 
