@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.openlattice.hazelcast.pods.QueueConfigurer;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,12 +85,12 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
      * spec :-/
      */
 
-    @Autowired(
-            required = false )
+    @Autowired( required = false )
     public void registerMapStores( Set<SelfRegisteringMapStore<?, ?>> mapStores ) {
         if ( mapStores.isEmpty() ) {
             logger.warn( "No map stores were configured." );
         }
+
         for ( SelfRegisteringMapStore<?, ?> s : mapStores ) {
             //This ensures that Hazelcast will use the byte-code re-written beans instead of the mapstores directly
             //The metrics enabled flag can be overriden for debugging particular mapstores if stacktraces are too dirty
@@ -100,8 +101,7 @@ public class RegistryBasedHazelcastInstanceConfigurationPod extends BaseHazelcas
         }
     }
 
-    @Autowired(
-            required = false )
+    @Autowired( required = false )
     public void register( Set<SelfRegisteringStreamSerializer<?>> serializers ) {
         if ( serializers.isEmpty() ) {
             logger.warn( "No serializers were configured." );

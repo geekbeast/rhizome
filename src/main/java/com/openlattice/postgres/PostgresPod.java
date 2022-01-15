@@ -65,12 +65,14 @@ public class PostgresPod {
          * was not configured, maintaining compatibility with previous behavior.
          */
 
-        dataSourceManager.registerTables(
-                spt
-                        .stream()
-                        .flatMap( PostgresTables::tables )
-                        .toArray( PostgresTableDefinition[]::new )
-        );
+        if( spt != null ) {
+            dataSourceManager.registerTables(
+                    spt
+                            .stream()
+                            .flatMap( PostgresTables::tables )
+                            .toArray( PostgresTableDefinition[]::new )
+            );
+        }
 
         return dataSourceManager.getDefaultTableManager();
     }

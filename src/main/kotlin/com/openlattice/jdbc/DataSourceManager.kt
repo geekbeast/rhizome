@@ -9,6 +9,7 @@ import com.openlattice.postgres.PostgresTables
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.inject.Inject
 import kotlin.streams.asSequence
@@ -67,7 +68,7 @@ class DataSourceManager(
         }
     }
 
-    @Inject
+    @Autowired(required = false)
     fun registerTables(tableDefinitions: Collection<PostgresTables>) {
         registerTables(*tableDefinitions.asSequence().flatMap { it.tables().asSequence() }.toList().toTypedArray())
     }
