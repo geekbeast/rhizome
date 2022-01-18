@@ -22,8 +22,8 @@
 package com.geekbeast.rhizome.tests.serialization.hazelcast;
 
 import com.google.common.io.Resources;
-import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration;
-import com.openlattice.serializer.AbstractJacksonYamlSerializationTest;
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration;
+import com.geekbeast.serializer.serializer.AbstractJacksonYamlSerializationTest;
 import java.io.IOException;
 
 /**
