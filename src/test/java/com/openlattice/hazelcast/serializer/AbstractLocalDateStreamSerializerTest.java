@@ -22,7 +22,7 @@
 package com.openlattice.hazelcast.serializer;
 
 import com.kryptnostic.rhizome.hazelcast.serializers.AbstractStreamSerializerTest;
-import com.openlattice.hazelcast.serializers.Jdk8StreamSerializers.AbstractLocalDateStreamSerializer;
+import com.geekbeast.serializers.Jdk8StreamSerializers.AbstractLocalDateStreamSerializer;
 import java.time.LocalDate;
 
 /**

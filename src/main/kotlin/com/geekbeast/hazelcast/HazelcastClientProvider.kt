@@ -4,8 +4,8 @@ import com.hazelcast.client.HazelcastClient
 import com.hazelcast.client.config.ClientConfig
 import com.hazelcast.config.SerializationConfig
 import com.hazelcast.core.HazelcastInstance
-import com.kryptnostic.rhizome.configuration.hazelcast.HazelcastConfiguration
-import com.kryptnostic.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.clientNetworkConfig
+import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfiguration
+import com.geekbeast.rhizome.pods.hazelcast.BaseHazelcastInstanceConfigurationPod.clientNetworkConfig
 
 interface IHazelcastClientProvider {
     fun getClient(name: String): HazelcastInstance
@@ -16,8 +16,8 @@ interface IHazelcastClientProvider {
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 data class HazelcastClientProvider(
-        private val clients: Map<String, HazelcastConfiguration>,
-        private val serializationConfig: SerializationConfig
+    private val clients: Map<String, HazelcastConfiguration>,
+    private val serializationConfig: SerializationConfig
 ) : IHazelcastClientProvider {
     init {
         clients.values.forEach { client ->

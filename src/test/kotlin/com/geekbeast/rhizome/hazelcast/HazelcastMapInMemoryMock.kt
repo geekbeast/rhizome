@@ -8,7 +8,7 @@ import com.hazelcast.internal.serialization.impl.SerializationServiceV1
 import com.hazelcast.query.Predicate
 import com.hazelcast.query.impl.CachedQueryEntry
 import com.hazelcast.query.impl.getters.Extractors
-import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
+import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
 import org.mockito.Matchers.*
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
@@ -29,11 +29,11 @@ private val registrationLock = ReentrantLock()
  * @return A mocked IMap backed by a concurrent map.
  */
 fun <K, V> mockHazelcastMap(
-        keyClass: Class<K>,
-        valueClass: Class<V>,
-        streamSerializers: List<SelfRegisteringStreamSerializer<*>> = listOf(),
-        ss: InternalSerializationService = _ss,
-        extractors: Extractors = Extractors.newBuilder(ss).setAttributeConfigs(listOf()).setClassLoader(keyClass.classLoader).build()
+    keyClass: Class<K>,
+    valueClass: Class<V>,
+    streamSerializers: List<SelfRegisteringStreamSerializer<*>> = listOf(),
+    ss: InternalSerializationService = _ss,
+    extractors: Extractors = Extractors.newBuilder(ss).setAttributeConfigs(listOf()).setClassLoader(keyClass.classLoader).build()
 ): IMap<K, V> {
     val mock = Mockito.mock<IMap<*, *>>(IMap::class.java) as IMap<K, V>
     val backingMap = Maps.newConcurrentMap<K, V>()
@@ -186,8 +186,8 @@ fun <K, V> mockHazelcastMap(
  * @param clazz The class for which a serializer is desired.
  */
 private fun getSerializers(
-        streamSerializers: Map<Class<*>, SelfRegisteringStreamSerializer<*>>,
-        clazz: Class<*>
+    streamSerializers: Map<Class<*>, SelfRegisteringStreamSerializer<*>>,
+    clazz: Class<*>
 ) = streamSerializers[clazz]
         ?: streamSerializers.getValue(streamSerializers.keys.first { it.isAssignableFrom(clazz) })
 

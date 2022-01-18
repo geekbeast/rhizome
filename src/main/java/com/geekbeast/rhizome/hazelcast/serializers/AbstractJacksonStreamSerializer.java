@@ -5,8 +5,8 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
-import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
-import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer;
 
 public abstract class AbstractJacksonStreamSerializer<T> implements SelfRegisteringStreamSerializer<T> {
     private final ObjectMapper mapper;

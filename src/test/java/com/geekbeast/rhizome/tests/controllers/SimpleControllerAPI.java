@@ -2,8 +2,8 @@
 package com.geekbeast.rhizome.tests.controllers;
 
 import com.geekbeast.rhizome.tests.configurations.TestConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.ContextConfiguration;
-import com.kryptnostic.rhizome.configuration.jetty.JettyConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.ContextConfiguration;
+import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 
 import retrofit2.http.Body;
 import retrofit2.http.GET;

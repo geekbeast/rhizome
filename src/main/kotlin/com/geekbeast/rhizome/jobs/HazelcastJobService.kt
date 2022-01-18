@@ -22,7 +22,7 @@
 package com.geekbeast.rhizome.jobs
 
 import com.codahale.metrics.annotation.Timed
-import com.dataloom.mappers.ObjectMappers
+import com.geekbeast.mappers.mappers.ObjectMappers
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
