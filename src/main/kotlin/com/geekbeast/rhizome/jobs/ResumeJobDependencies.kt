@@ -1,6 +1,6 @@
 package com.geekbeast.rhizome.jobs
 
-import com.openlattice.tasks.HazelcastTaskDependencies
+import com.geekbeast.tasks.HazelcastTaskDependencies
 
 /**
  *

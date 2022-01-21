@@ -1,6 +1,6 @@
 package com.geekbeast.rhizome.tests.authentication;
 
-import com.openlattice.auth0.Auth0SecurityPod;
+import com.geekbeast.auth0.Auth0SecurityPod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;

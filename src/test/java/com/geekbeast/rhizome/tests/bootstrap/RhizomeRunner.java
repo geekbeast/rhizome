@@ -2,10 +2,10 @@ package com.geekbeast.rhizome.tests.bootstrap;
 
 import com.geekbeast.rhizome.tests.authentication.Auth0SecurityTestPod;
 import com.geekbeast.rhizome.tests.pods.DispatcherServletsPod;
-import com.kryptnostic.rhizome.core.Rhizome;
-import com.kryptnostic.rhizome.pods.ConfigurationLoaderPod;
-import com.kryptnostic.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
-import com.openlattice.auth0.Auth0Pod;
+import com.geekbeast.rhizome.core.Rhizome;
+import com.geekbeast.rhizome.pods.ConfigurationLoaderPod;
+import com.geekbeast.rhizome.pods.hazelcast.RegistryBasedHazelcastInstanceConfigurationPod;
+import com.geekbeast.auth0.Auth0Pod;
 import com.openlattice.authentication.AuthenticationTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

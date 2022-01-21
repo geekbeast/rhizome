@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
-import com.kryptnostic.rhizome.configuration.Configuration;
-import com.kryptnostic.rhizome.configuration.ConfigurationKey;
-import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
+import com.geekbeast.rhizome.configuration.Configuration;
+import com.geekbeast.rhizome.configuration.ConfigurationKey;
+import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
 
 /**
  * @author Matthew Tamayo-Rios
@@ -14,7 +14,7 @@ import com.kryptnostic.rhizome.configuration.SimpleConfigurationKey;
 public class TestConfiguration implements Configuration {
     private static final long         serialVersionUID       = 129440984814569272L;
 
-    protected static ConfigurationKey key                    = new SimpleConfigurationKey( "test.yaml" );
+    protected static final ConfigurationKey key                    = new SimpleConfigurationKey( "test.yaml" );
 
     protected static final String     REQUIRED_TEST_PROPERTY = "required";
     protected static final String     OPTIONAL_TEST_PROPERTY = "optional";

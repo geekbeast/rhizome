@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.common.collect.Lists;
-import com.kryptnostic.rhizome.configuration.servlets.DispatcherServletConfiguration;
+import com.geekbeast.rhizome.configuration.servlets.DispatcherServletConfiguration;
 
 @Configuration
 public class DispatcherServletsPod {

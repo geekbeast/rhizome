@@ -3,8 +3,7 @@ package com.geekbeast.rhizome.hazelcast
 import com.hazelcast.config.*
 import com.hazelcast.core.Hazelcast
 import com.hazelcast.core.HazelcastInstance
-import com.kryptnostic.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
-import org.apache.commons.lang3.RandomStringUtils
+import com.geekbeast.rhizome.pods.hazelcast.SelfRegisteringStreamSerializer
 
 /**
  *

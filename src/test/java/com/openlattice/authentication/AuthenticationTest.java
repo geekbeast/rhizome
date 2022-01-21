@@ -10,12 +10,15 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.net.AuthRequest;
 import com.auth0.spring.security.api.JwtAuthenticationProvider;
 import com.auth0.spring.security.api.authentication.PreAuthenticatedAuthenticationJsonWebToken;
+import com.geekbeast.authentication.Auth0AuthenticationConfiguration;
+import com.geekbeast.authentication.Auth0Configuration;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
@@ -40,11 +43,11 @@ public class AuthenticationTest {
     private static final String                           clientId            = "KTzgyxs6KBcJHB872eSMe2cpTHzhxS99";
     private static final String                           clientSecret        = "MK4CrccqOqI6WVkOiSJX6n2h3MLgGri0";
     private static final String                           signingAlgorithm    = "HS256";
-    private static final boolean                          base64EncodedSecret = true;
-    public static final  Auth0AuthenticationConfiguration authConfiguration   = new Auth0AuthenticationConfiguration(
+    private static final boolean                                                        base64EncodedSecret = true;
+    public static final  Auth0AuthenticationConfiguration                               authConfiguration   = new Auth0AuthenticationConfiguration(
             issuer, audience, clientSecret, Optional.of( base64EncodedSecret ), signingAlgorithm
     );
-    public static final  Auth0Configuration               configuration       = new Auth0Configuration(
+    public static final  Auth0Configuration                                             configuration       = new Auth0Configuration(
             domain,
             clientId,
             clientSecret,
@@ -66,7 +69,7 @@ public class AuthenticationTest {
         } catch ( UnsupportedEncodingException e ) {
             throw new IllegalStateException( e );
         }
-        JwtAuthenticationProvider provider = new JwtAuthenticationProvider( clientSecret.getBytes(), issuer, audience );
+        JwtAuthenticationProvider provider = new JwtAuthenticationProvider( clientSecret.getBytes( StandardCharsets.UTF_8 ), issuer, audience );
         accessTokens = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, TokenHolder>() {
                     @Override public TokenHolder load( AuthenticationTestRequestOptions options ) throws Exception {

@@ -1,6 +1,6 @@
 package com.geekbeast.rhizome.jobs
 
-import com.openlattice.tasks.HazelcastInitializationTask
+import com.geekbeast.tasks.HazelcastInitializationTask
 import java.util.*
 
 const val RESUME_JOBS_TASK = "_rhizome_resume_jobs_task_"
