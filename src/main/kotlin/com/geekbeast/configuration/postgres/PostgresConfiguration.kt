@@ -47,5 +47,6 @@ data class PostgresConfiguration(
 enum class PostgresFlavor {
     REDSHIFT,
     CITUS,
-    VANILLA
+    VANILLA,
+    ANY
 }
