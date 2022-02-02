@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/geekbeast/rhizome.svg?branch=develop)](https://travis-ci.org/geekbeast/rhizome)
-
 rhizome
 =======
 
