@@ -3,6 +3,7 @@ package com.geekbeast.rhizome.pods;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -31,8 +32,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
         registrar.setScheduler( rhizomeScheduler() );
     }
 
-    @Bean(
-            destroyMethod = "shutdown" )
+    @Bean( destroyMethod = "shutdown" )
     public ThreadPoolTaskScheduler rhizomeScheduler() {
         ThreadPoolTaskScheduler executor = new ThreadPoolTaskScheduler();
         executor.setPoolSize( 8 );
@@ -42,9 +42,8 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     }
 
     @Override
-    @Bean(
-            destroyMethod = "shutdown" )
-    public ThreadPoolTaskExecutor getAsyncExecutor() {
+    @Bean( destroyMethod = "shutdown" )
+    public @Nonnull ThreadPoolTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize( Math.max( CORE_POOL_SIZE, Runtime.getRuntime().availableProcessors() ) );
         logger.info( "Setting MaxPoolSize to " + executor.getMaxPoolSize() );
@@ -59,7 +58,7 @@ public class AsyncPod implements AsyncConfigurer, SchedulingConfigurer {
     }
 
     @Bean
-    public AsyncEventBus eventBus() {
+    public @Nonnull AsyncEventBus eventBus() {
         return new AsyncEventBus( getAsyncExecutor() );
     }
 
