@@ -72,7 +72,7 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
                     TimeUnit.SECONDS );
             return tokenHolder;
         } catch ( Auth0Exception e ) {
-            token = memoizeWithExpiration( this::getUpdatedToken, RETRY_MILLIS, TimeUnit.SECONDS );
+            token = memoizeWithExpiration( this::getUpdatedToken, RETRY_MILLIS, TimeUnit.MILLISECONDS );
             return null;
         } finally {
             tokenLock.unlock();
