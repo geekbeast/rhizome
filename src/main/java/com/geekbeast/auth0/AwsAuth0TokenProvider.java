@@ -29,6 +29,8 @@ import com.geekbeast.authentication.Auth0Configuration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
@@ -39,6 +41,7 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
     private final AuthAPI          auth0Api;
     private final String           managementApiUrl;
     private final Lock             tokenLock = new ReentrantLock();
+    private final Logger           logger    = LoggerFactory.getLogger(AwsAuth0TokenProvider.class);
     private       Supplier<String> token;
 
     AwsAuth0TokenProvider( AuthAPI auth0Api, Auth0Configuration auth0Configuration ) {
@@ -72,6 +75,7 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
                     TimeUnit.SECONDS );
             return tokenHolder;
         } catch ( Auth0Exception e ) {
+            logger.error("Unable to update token holder.", e );
             token = memoizeWithExpiration( this::getUpdatedToken, RETRY_MILLIS, TimeUnit.SECONDS );
             return null;
         } finally {
