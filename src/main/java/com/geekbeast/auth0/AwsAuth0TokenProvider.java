@@ -76,7 +76,7 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
             return tokenHolder;
         } catch ( Auth0Exception e ) {
             logger.error("Unable to update token holder.", e );
-            token = memoizeWithExpiration( this::getUpdatedToken, RETRY_MILLIS, TimeUnit.SECONDS );
+            token = memoizeWithExpiration( this::getUpdatedToken, RETRY_MILLIS, TimeUnit.MILLISECONDS );
             return null;
         } finally {
             tokenLock.unlock();
