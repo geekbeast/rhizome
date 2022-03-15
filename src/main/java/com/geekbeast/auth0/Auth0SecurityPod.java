@@ -98,14 +98,14 @@ public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
     }
 
     private void configure( final HttpSecurity http, Auth0AuthenticationConfiguration configuration ) throws Exception {
-        final byte[] secret;
-        if ( configuration.isBase64EncodedSecret() ) {
-            secret = Base64.getUrlDecoder().decode( configuration.getSecret() );
-        } else {
-            secret = configuration.getSecret().getBytes( StandardCharsets.UTF_8 );
-        }
         switch ( configuration.getSigningAlgorithm() ) {
             case "HS256":
+                final byte[] secret;
+                if ( configuration.isBase64EncodedSecret() ) {
+                    secret = Base64.getUrlDecoder().decode( configuration.getSecret() );
+                } else {
+                    secret = configuration.getSecret().getBytes( StandardCharsets.UTF_8 );
+                }
                 JwtWebSecurityConfigurer
                         .forHS256( configuration.getAudience(), configuration.getIssuer(), secret )
                         .configure( http );
