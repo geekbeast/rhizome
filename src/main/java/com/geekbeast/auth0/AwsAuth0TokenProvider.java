@@ -72,7 +72,7 @@ public class AwsAuth0TokenProvider implements Auth0TokenProvider {
             final var tokenHolder = auth0Api.requestToken( managementApiUrl ).execute();
             token = memoizeWithExpiration( this::getUpdatedToken,
                     getExpirationInMillis( tokenHolder.getExpiresIn() ),
-                    TimeUnit.SECONDS );
+                    TimeUnit.MILLISECONDS );
             return tokenHolder;
         } catch ( Auth0Exception e ) {
             logger.error("Unable to update token holder.", e );
