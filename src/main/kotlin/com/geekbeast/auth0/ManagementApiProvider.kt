@@ -8,9 +8,8 @@ import com.geekbeast.authentication.Auth0Configuration
  * @author Matthew Tamayo-Rios &lt;matthew@openlattice.com&gt;
  */
 class ManagementApiProvider(
-    private val tokenProvider: Auth0TokenProvider,
-    private val auth0Configuration: Auth0Configuration
+        private val tokenProvider: Auth0TokenProvider,
+        private val auth0Configuration: Auth0Configuration
 ) {
-    val managementApi: ManagementAPI
-        get() = ManagementAPI(auth0Configuration.domain, tokenProvider.token)
+    fun getInstance(): ManagementAPI = ManagementAPI(auth0Configuration.domain, tokenProvider.token)
 }

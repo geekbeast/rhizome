@@ -32,8 +32,8 @@ class AwsAuth0TokenProviderTest {
         Mockito.`when`(auth0Api.requestToken(managementApiUrl)).thenReturn(authRequest)
         val exec = Executors.newCachedThreadPool()
         // construct the token provider on another thread in case there's a bug.
-        val tokenProvider = exec.submit(Callable<AwsAuth0TokenProvider> {
-            AwsAuth0TokenProvider(
+        val tokenProvider = exec.submit(Callable<RefreshingAuth0TokenProvider> {
+            RefreshingAuth0TokenProvider(
                 auth0Api, Auth0Configuration(
                     audience,
                     RandomStringUtils.random(10),
