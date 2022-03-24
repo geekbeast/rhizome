@@ -21,9 +21,14 @@ ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
-apply from: "https://raw.githubusercontent.com/openlattice/openlattice/main/gradles/openlattice.gradle"
+if( project.hasProperty('developmentMode') && project.developmentMode ) {
+    apply from: "../gradles/methodic.gradle"
+} else {
+    apply from: "https://raw.githubusercontent.com/methodic-labs/methodic/main/gradles/methodic.gradle"
+}
 
-mainClassName = "com.kryptnostic.rhizome.core.RhizomeAws"
+
+mainClassName = "com.geekbeast.rhizome.core.RhizomeAws"
 
 /**
  * The reason we use source and target compatability instead of toolchain is that toolchain forces use of the --release
@@ -39,7 +44,11 @@ targetCompatibility = JavaVersion.VERSION_11
 checkstyle {
     toolVersion = '7.4'
     showViolations = false
-    config project.resources.text.fromUri('https://raw.githubusercontent.com/openlattice/openlattice/main/gradles/checkstyle.xml')
+    if( project.hasProperty('developmentMode') && project.developmentMode ) {
+        config project.resources.text.fromFile("../gradles/checkstyle.xml")
+    } else {
+        config project.resources.text.fromUri('https://raw.githubusercontent.com/methodic-labs/methodic/main/gradles/checkstyle.xml')
+    }
 }
 
 tasks.withType(Checkstyle) {
