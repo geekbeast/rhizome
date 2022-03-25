@@ -21,6 +21,12 @@ ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.connectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 ext.developerConnectionUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
 
+if(!project.hasProperty('developmentMode')) {
+    ext.developmentMode = false
+}
+
+println projectName + " with developmentMode = " + project.developmentMode
+
 if( project.hasProperty('developmentMode') && project.developmentMode ) {
     apply from: "../gradles/methodic.gradle"
 } else {
