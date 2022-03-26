@@ -23,7 +23,7 @@ import com.geekbeast.rhizome.configuration.configuration.annotation.ReloadableCo
 import com.google.common.collect.Sets
 import jdk.jfr.Enabled
 
-@ReloadableConfiguration(uri = "mail-service-config.yaml")
+@ReloadableConfiguration(uri = "mail.yaml")
 data class MailServiceConfig(
         val smtpHost: String,
         val smtpPort: Int,
@@ -42,7 +42,7 @@ data class MailServiceConfig(
     companion object {
         private const val serialVersionUID = -6047689414585379842L
         @JvmField
-        val key: ConfigurationKey = SimpleConfigurationKey("mail-service-config.yaml")
+        val key: ConfigurationKey = SimpleConfigurationKey("mail.yaml")
 
         @JvmStatic
         fun key(): ConfigurationKey {
