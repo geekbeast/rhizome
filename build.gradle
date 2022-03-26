@@ -287,6 +287,20 @@ dependencies {
      * Java email client.
      */
     api "org.jodd:jodd-mail:${jodd_mail_version}"
+    implementation "javax.mail:javax.mail-api:${javax_mail_api}"
+    implementation "com.sun.mail:javax.mail:${sun_javax_mail_version}"
+    implementation "com.sun.mail:all:${sun_mail_all_version}"
+    api "com.samskivert:jmustache:1.15"
+
+    /*
+     * GreenMail
+     * http://www.icegreen.com/greenmail/
+     * https://github.com/greenmail-mail-test/greenmail
+     *
+     * A library that provides a simple POP3/IMAP/SMTP mail server, and makes writing unit/integration tests easy for
+     * testing sending/receiving emails against a running mail server.
+     */
+    testImplementation "com.icegreen:greenmail:${greenmail_version}"
 
     /*
      * Cassandra
