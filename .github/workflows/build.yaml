@@ -27,10 +27,7 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
         with:
-          arguments: build -x test -x signArchives
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
+          arguments: build -x signArchives
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - uses: actions/upload-artifact@v3
         with:
