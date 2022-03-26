@@ -52,7 +52,8 @@ open class GreenMailTest {
                     PORT,
                     USERNAME,
                     PASSWORD,
-                    "tests@geekbeast.com"
+                    "tests@geekbeast.com",
+                    enabled = true
             )
             greenMailServer.start()
         }
