@@ -13,8 +13,8 @@ plugins {
     id 'org.jetbrains.dokka' version '0.9.18'
 }
 
-description = "Java Framework for building clustered RESTful web applications"
-group = "com.openlattice"
+description = "Java Framework for building scalable RESTful web applications"
+group = "com.geekbeast"
 
 ext.projectName = "rhizome"
 ext.scmUrl = 'scm:git:https://github.com/geekbeast/rhizome.git'
