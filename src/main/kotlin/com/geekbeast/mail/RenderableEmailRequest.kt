@@ -22,50 +22,46 @@ import org.apache.commons.lang3.StringUtils
 import java.util.*
 
 class RenderableEmailRequest(
-        from: Optional<String>,
-        to: List<String>,
-        cc: Optional<List<String>>,
-        bcc: Optional<List<String>>,
-        val templatePath: String,
-        val subject: Optional<String>,
-        val templateObjs: Optional<Any>,
-        @JsonProperty(ATTACHMENTS_FIELD) val byteArrayAttachment: Optional<Array<EmailAttachment<*>>>,
-        @JsonProperty(ATTACHMENT_PATHS_FIELD) val attachmentPaths: Optional<Array<String>>
-) : EmailRequest(from, to, cc, bcc) {
+    from: Optional<String> = Optional.empty(),
+    to: List<String>,
+    cc: List<String> = emptyList(),
+    bcc:List<String> = emptyList(),
+    subject: String = "",
+    val templatePath: String,
+    val templateObjs: Any?,
+    @JsonProperty(ATTACHMENTS_FIELD) val byteArrayAttachment: Optional<Array<EmailAttachment<*>>> = Optional.empty(),
+    @JsonProperty(ATTACHMENT_PATHS_FIELD) val attachmentPaths: Optional<Array<String>> = Optional.empty(),
+) : EmailRequest(from, to, cc, bcc, subject) {
     init {
         Preconditions.checkArgument(StringUtils.isNotBlank(templatePath))
     }
 
 
-
     companion object {
         private const val ATTACHMENTS_FIELD = "attachments"
         private const val ATTACHMENT_PATHS_FIELD = "attachmentPaths"
+
         @JvmStatic
         fun fromEmailRequest(
-                subject: String,
-                templatePath: String,
-                templateObjs: Optional<Any>,
-                attachmentPaths: Optional<Array<String>>,
-                byteArrayAttachment: Optional<Array<EmailAttachment<*>>>,
-                request: EmailRequest
+            subject: String,
+            templatePath: String,
+            templateObjs: Optional<Any>,
+            attachmentPaths: Optional<Array<String>>,
+            byteArrayAttachment: Optional<Array<EmailAttachment<*>>>,
+            request: EmailRequest,
         ): RenderableEmailRequest {
             return RenderableEmailRequest(
-                    request.from,
-                    request.to,
-                    request.cc,
-                    request.bcc,
-                    templatePath,
-                    Optional.of(subject),
-                    templateObjs,
-                    byteArrayAttachment,
-                    attachmentPaths
+                request.from,
+                request.to,
+                request.cc,
+                request.bcc,
+                subject,
+                templatePath,
+                templateObjs,
+                byteArrayAttachment,
+                attachmentPaths
             )
         }
-    }
-
-    override fun toString(): String {
-        return "RenderableEmailRequest(templatePath='$templatePath', subject=$subject, templateObjs=$templateObjs, byteArrayAttachment=$byteArrayAttachment, attachmentPaths=$attachmentPaths)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -74,7 +70,6 @@ class RenderableEmailRequest(
         if (!super.equals(other)) return false
 
         if (templatePath != other.templatePath) return false
-        if (subject != other.subject) return false
         if (templateObjs != other.templateObjs) return false
         if (byteArrayAttachment != other.byteArrayAttachment) return false
         if (attachmentPaths != other.attachmentPaths) return false
@@ -85,10 +80,14 @@ class RenderableEmailRequest(
     override fun hashCode(): Int {
         var result = super.hashCode()
         result = 31 * result + templatePath.hashCode()
-        result = 31 * result + subject.hashCode()
         result = 31 * result + templateObjs.hashCode()
         result = 31 * result + byteArrayAttachment.hashCode()
         result = 31 * result + attachmentPaths.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "RenderableEmailRequest(templatePath='$templatePath', templateObjs=$templateObjs, byteArrayAttachment=$byteArrayAttachment, attachmentPaths=$attachmentPaths)"
+    }
+
 }

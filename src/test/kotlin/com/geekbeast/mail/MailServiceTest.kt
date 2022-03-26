@@ -42,20 +42,19 @@ class MailServiceTest : GreenMailTest() {
     @Test
     @Throws(MessagingException::class, InterruptedException::class)
     fun sendEmailTest() {
-        val toAddresses = listOf("GoJIRA <jira@geekbeast.com>", "Master Chief <mc@geekbeast.com>", "foo@geekbeastgs.com")
+        val toAddresses =
+            listOf("GoJIRA <jira@geekbeast.com>", "Master Chief <mc@geekbeast.com>", "foo@geekbeastgs.com")
         val emailRequest = RenderableEmailRequest(
-                Optional.empty(),
-                toAddresses,
-                Optional.empty(),
-                Optional.empty(),
-                TEMPLATE_PATH,
-                Optional.of(EMAIL_SUBJECT),
-                Optional.of(
-                        ImmutableMap
-                                .of("name", "Master Chief", "avatar-path", "the path", "registration-url", "test")
-                ),
-                Optional.empty(),
-                Optional.empty()
+            Optional.empty(),
+            toAddresses,
+            templatePath = TEMPLATE_PATH,
+            subject = EMAIL_SUBJECT,
+            templateObjs = ImmutableMap.of("name",
+                                           "Master Chief",
+                                           "avatar-path",
+                                           "the path",
+                                           "registration-url",
+                                           "test")
         )
 
         mailService.sendEmailAfterRendering(emailRequest)
@@ -84,16 +83,12 @@ class MailServiceTest : GreenMailTest() {
     @Throws(IOException::class)
     fun testBadRequest_NullEmailRequest() {
         mailService.sendEmailAfterRendering(
-                RenderableEmailRequest(
-                        Optional.empty(),
-                        listOf(), Optional.empty(),
-                        Optional.empty(),
-                        "",
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty()
-                )
+            RenderableEmailRequest(
+                Optional.empty(),
+                listOf(),
+                templateObjs = Any(),
+                templatePath = ""
+            )
         )
     }
 

@@ -16,12 +16,10 @@
 package com.geekbeast.mail
 
 import com.google.common.base.Preconditions
-import com.google.common.collect.Sets
 import jodd.mail.*
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.Scheduled
 import java.io.IOException
+import kotlin.system.measureTimeMillis
 
 class MailService(val config: MailServiceConfig) {
     private val logger = LoggerFactory.getLogger(MailService::class.java)
@@ -30,12 +28,12 @@ class MailService(val config: MailServiceConfig) {
     init {
         Preconditions.checkNotNull<Any>(config, "Mail Service configuration cannot be null.")
         smtpServer = SmtpSslServer
-                .create()
-                .host(config.smtpHost)
-                .port(config.smtpPort)
-                .auth(config.username, config.password)
-                .ssl(true)
-                .buildSmtpMailServer()
+            .create()
+            .host(config.smtpHost)
+            .port(config.smtpPort)
+            .auth(config.username, config.password)
+            .ssl(true)
+            .buildSmtpMailServer()
         // TODO: "javax.net.ssl.SSLException: Unrecognized SSL message, plaintext connection?"
         // TODO: figure out why we get above exception when plaintextOverTLS is false and port is 587 (works for 465)
         // .plaintextOverTLS(false)
@@ -43,44 +41,73 @@ class MailService(val config: MailServiceConfig) {
         logger.info("Mail Service successfully configured and initialized!")
     }
 
-    fun sendEmailsAfterRendering(emailRequests: List<RenderableEmailRequest>) {
-        val session = smtpServer.createSession()
-        session.open()
-        session.use { s ->
-            emailRequests.forEach { emailRequest ->
-                s.sendMail(renderEmail(emailRequest))
+    fun sendEmails(emailRequests: List<EmailRequest>) {
+        if (config.enabled) {
+            val session = smtpServer.createSession()
+            session.open()
+            session.use { s ->
+                emailRequests.forEach { emailRequest ->
+                    s.sendMail(renderEmail(emailRequest))
+                }
             }
+        } else {
+            logger.info("Mail service disabled, ignoring $emailRequests")
         }
     }
 
     fun sendEmailAfterRendering(emailRequest: RenderableEmailRequest) {
-        sendEmailsAfterRendering(listOf(emailRequest))
+        sendEmails(listOf(emailRequest))
     }
 
-    fun renderEmail(emailRequest: RenderableEmailRequest): Email {
+    private fun renderPlaintextEmail(emailRequest: EmailRequest): Email {
+        check(emailRequest !is RenderableEmailRequest) { "Only plaintext e-mail is supported by this API." }
+        val toAddresses = getToAddresses(emailRequest)
+        val email = Email.create()
+            .from(emailRequest.from.orElse(config.defaultFromEmail))
+            .subject(emailRequest.subject)
+            .to(*toAddresses.toTypedArray())
+        return if (emailRequest.html) {
+            email.textMessage(emailRequest.body)
+        } else {
+            email.textMessage(emailRequest.body)
+        }
+    }
+
+    private fun renderEmail(emailRequest: EmailRequest): Email {
+        return when (emailRequest) {
+            is RenderableEmailRequest -> renderEmailTemplate(emailRequest)
+            else -> renderPlaintextEmail(emailRequest)
+        }
+    }
+
+    private fun getToAddresses(emailRequest: EmailRequest): List<String> {
         val toAddresses = emailRequest.to.filter { isNotBlacklisted(it) }
         logger.info("filtered e-mail addresses that are blacklisted.")
         check(toAddresses.isNotEmpty()) { "Must include at least one valid e-mail address." }
+        return toAddresses
+    }
 
+    private fun renderEmailTemplate(emailRequest: RenderableEmailRequest): Email {
+        val toAddresses = getToAddresses(emailRequest)
 
         val template: String = try {
             TemplateUtils.loadTemplate(emailRequest.templatePath)
         } catch (e: IOException) {
             throw InvalidTemplateException(
-                    "Invalid Email Template: " + emailRequest.templatePath,
-                    e
+                "Invalid Email Template: " + emailRequest.templatePath,
+                e
             )
         }
 
         val templateHtml: String = TemplateUtils.DEFAULT_TEMPLATE_COMPILER
-                .compile(template)
-                .execute(emailRequest.templateObjs.orElse(Any()))
+            .compile(template)
+            .execute(emailRequest.templateObjs ?: Any())
 
         val email: Email = Email.create()
-                .from(emailRequest.from.orElse(config.defaultFromEmail))
-                .subject(emailRequest.subject.orElse(""))
-                .htmlMessage(templateHtml)
-                .to(*toAddresses.toTypedArray())
+            .from(emailRequest.from.orElse(config.defaultFromEmail))
+            .subject(emailRequest.subject)
+            .htmlMessage(templateHtml)
+            .to(*toAddresses.toTypedArray())
 
         if (emailRequest.byteArrayAttachment.isPresent) {
             val attachments: Array<EmailAttachment<*>> = emailRequest.byteArrayAttachment.get()

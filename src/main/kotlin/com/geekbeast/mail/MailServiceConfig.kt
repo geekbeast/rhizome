@@ -21,6 +21,7 @@ import com.geekbeast.rhizome.configuration.ConfigurationKey
 import com.geekbeast.rhizome.configuration.SimpleConfigurationKey
 import com.geekbeast.rhizome.configuration.configuration.annotation.ReloadableConfiguration
 import com.google.common.collect.Sets
+import jdk.jfr.Enabled
 
 @ReloadableConfiguration(uri = "mail-service-config.yaml")
 data class MailServiceConfig(
@@ -29,7 +30,8 @@ data class MailServiceConfig(
         val username: String,
         val password: String,
         val defaultFromEmail: String,
-        val domainBlacklist: Set<String> = Sets.newHashSet("someblacklisteddomain.com")
+        val domainBlacklist: Set<String> = Sets.newHashSet("someblacklisteddomain.com"),
+        val enabled: Boolean = false
 ) : Configuration {
 
     @JsonIgnore
