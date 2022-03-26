@@ -7,6 +7,7 @@ import com.geekbeast.rhizome.configuration.Configuration;
 import com.geekbeast.rhizome.configuration.SimpleConfigurationKey;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
 
+@Deprecated
 public final class MailServiceConfiguration implements Configuration {
     private static final long         serialVersionUID     = 2393163076245402143L;
     protected static ConfigurationKey key                  = new SimpleConfigurationKey( "mail.yaml" );
