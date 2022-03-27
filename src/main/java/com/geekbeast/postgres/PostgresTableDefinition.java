@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,17 +56,25 @@ public class PostgresTableDefinition implements TableDefinition {
     private final LinkedHashSet<PostgresIndexDefinition>  indexes    = new LinkedHashSet<>();
 
     private final Map<String, PostgresColumnDefinition> columnMap       = Maps.newHashMap();
-    protected Set<String>                               dataSourceNames = Sets.newHashSet();
+    protected     Set<String>                           dataSourceNames = Sets.newHashSet();
 
     protected boolean unlogged;
     protected boolean ifNotExists         = true;
     protected boolean overwriteOnConflict = false;
-    protected boolean temporary = false;
+    protected boolean temporary           = false;
 
     public PostgresTableDefinition( String name ) {
         this.name = name;
     }
 
+    @Nonnull
+    public PostgresTableDefinition createTempTableWithSuffix( String suffix ) {
+        return new PostgresTableDefinition( name + "_" + suffix )
+                .temporary()
+                .addColumns( this.columns.toArray( new PostgresColumnDefinition[ 0 ] ) );
+    }
+
+    @Nonnull
     public PostgresTableDefinition temporary() {
         this.temporary = true;
         return this;
@@ -74,6 +84,7 @@ public class PostgresTableDefinition implements TableDefinition {
         return temporary;
     }
 
+    @Nonnull
     public PostgresTableDefinition addColumns( PostgresColumnDefinition... columnsToAdd ) {
         List<PostgresColumnDefinition> colList = Arrays.asList( columnsToAdd );
         colList.stream().forEach( col -> columnMap.put( col.getName(), col ) );
@@ -81,21 +92,25 @@ public class PostgresTableDefinition implements TableDefinition {
         return this;
     }
 
+    @Nonnull
     public PostgresTableDefinition addIndexes( PostgresIndexDefinition... indexes ) {
         this.indexes.addAll( Arrays.asList( indexes ) );
         return this;
     }
 
+    @Nonnull
     public PostgresTableDefinition addDataSourceNames( String... datasources ) {
-        this.dataSourceNames.addAll( Arrays.asList(datasources) );
+        this.dataSourceNames.addAll( Arrays.asList( datasources ) );
         return this;
     }
 
+    @Nonnull
     public PostgresTableDefinition overwriteOnConflict() {
         this.overwriteOnConflict = true;
         return this;
     }
 
+    @Nonnull
     public PostgresTableDefinition unlogged() {
         this.unlogged = true;
         return this;
@@ -115,6 +130,7 @@ public class PostgresTableDefinition implements TableDefinition {
         return primaryKey;
     }
 
+    @Nonnull
     public PostgresTableDefinition primaryKey( PostgresColumnDefinition... primaryKeyColumns ) {
         checkNotNull( primaryKeyColumns, "Cannot set null primary key" );
         /*
@@ -136,6 +152,7 @@ public class PostgresTableDefinition implements TableDefinition {
         return unique;
     }
 
+    @Nonnull
     public PostgresTableDefinition setUnique( PostgresColumnDefinition... uniqueColumns ) {
         checkNotNull( uniqueColumns, "Cannot set null unique columns" );
         /*
@@ -168,7 +185,7 @@ public class PostgresTableDefinition implements TableDefinition {
         validate();
         StringBuilder ctb = new StringBuilder( "CREATE " );
 
-        if( temporary ) {
+        if ( temporary ) {
             ctb.append( "TEMPORARY " );
         }
 
@@ -416,16 +433,16 @@ public class PostgresTableDefinition implements TableDefinition {
     }
 
     @Override public boolean equals( Object o ) {
-        if ( this == o ) { return true; }
-        if ( !( o instanceof PostgresTableDefinition ) ) { return false; }
+        if ( this == o ) {return true;}
+        if ( !( o instanceof PostgresTableDefinition ) ) {return false;}
 
         PostgresTableDefinition that = (PostgresTableDefinition) o;
 
-        if ( ifNotExists != that.ifNotExists ) { return false; }
-        if ( name != null ? !name.equals( that.name ) : that.name != null ) { return false; }
-        if ( primaryKey != null ? !primaryKey.equals( that.primaryKey ) : that.primaryKey != null ) { return false; }
-        if ( columns != null ? !columns.equals( that.columns ) : that.columns != null ) { return false; }
-        if ( unique != null ? !unique.equals( that.unique ) : that.unique != null ) { return false; }
+        if ( ifNotExists != that.ifNotExists ) {return false;}
+        if ( name != null ? !name.equals( that.name ) : that.name != null ) {return false;}
+        if ( primaryKey != null ? !primaryKey.equals( that.primaryKey ) : that.primaryKey != null ) {return false;}
+        if ( columns != null ? !columns.equals( that.columns ) : that.columns != null ) {return false;}
+        if ( unique != null ? !unique.equals( that.unique ) : that.unique != null ) {return false;}
         return indexes != null ? indexes.equals( that.indexes ) : that.indexes == null;
     }
 

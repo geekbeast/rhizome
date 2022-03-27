@@ -64,7 +64,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
     private final   String                  deleteQuery;
     private final   String                  selectAllKeysQuery;
     private final   String                  selectByKeyQuery;
-    private final   String                  selectInQuery;
 
     private final Optional<String> oc;
 
@@ -99,7 +98,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         this.deleteQuery = buildDeleteQuery();
         this.selectAllKeysQuery = buildSelectAllKeysQuery();
         this.selectByKeyQuery = buildSelectByKeyQuery();
-        this.selectInQuery = buildSelectInQuery();
     }
 
     protected void initMapstore() {}
@@ -143,10 +141,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     protected String buildSelectByKeyQuery() {
         return table.selectQuery( ImmutableList.of(), keyColumns() );
-    }
-
-    protected String buildSelectInQuery() {
-        return table.selectInQuery( ImmutableList.of(), keyColumns(), batchSize );
     }
 
     protected int getSelectInParameterCount() {
@@ -311,10 +305,6 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     protected PreparedStatement prepareSelectAllKeys( Connection connection ) throws SQLException {
         return connection.prepareStatement( selectAllKeysQuery );
-    }
-
-    protected PreparedStatement prepareSelectIn( Connection connection ) throws SQLException {
-        return connection.prepareStatement( selectInQuery );
     }
 
     protected String selectByKeyQuery() {

@@ -26,7 +26,6 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.Configuration.ClassList;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,13 +61,6 @@ public class JettyLoam implements Loam {
             context.setParentLoaderPriority( contextConfig.isParentLoaderPriority() );
         }
 
-        if ( config.isSecurityEnabled() ) {
-            JettyAnnotationConfigurationWorkaround.registerInitializer( RhizomeSecurity.class.getName() );
-        }
-
-        // TODO: Make loaded servlet classes configurable
-        // context.addServlet( JspServlet.class, "*.jsp" );
-
         QueuedThreadPool threadPool = new QueuedThreadPool(
                 config.getMaxThreads(),
                 Math.min( config.getMaxThreads(), 100 ),
@@ -77,26 +69,8 @@ public class JettyLoam implements Loam {
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
         server = new Server( threadPool );
 
-        final var classlist = ClassList.setServerDefault( server );
-
-        /*
-         * Work around for https://bugs.eclipse.org/bugs/show_bug.cgi?id=404176 Probably need to report new bug as
-         * as ContainerIncludeJarPattern seems to be working with limitations below. Continuing to use workaround
-         * due to finding less hacky way of doing implementing it.
-         */
-
-        classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
-                "com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround");
-
-        //This would enable standard AnnotationConfiguration processing by Jetty
-        //classlist.addBefore(classlist.get(0),//"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
-        //        "org.eclipse.jetty.annotations.AnnotationConfiguration");
-
-        //This container jar pattern picks up the Rhizome servlet initializers, but not the RhizomeSecurity initializer
-        //context.setAttribute( "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*/classes/.*" );
-
         //This container jar pattern picks up both Rhizome and RhizomeSecurity initializers, but does not allow filtering RhizomeSecurity initializer out
-        //context.setAttribute( "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*" );
+        context.setAttribute( "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*" );
 
         if ( config.getWebConnectorConfiguration().isPresent() ) {
             configureEndpoint( config.getWebConnectorConfiguration().get() );
@@ -148,7 +122,7 @@ public class JettyLoam implements Loam {
             http_config.setSecureScheme( "https" );
             http_config.setSecurePort( configuration.getHttpsPort() );
 
-            SslContextFactory contextFactory = new SslContextFactory.Server();
+            final var contextFactory = new SslContextFactory.Server();
             configureSslStores( contextFactory );
             String certAlias = configuration.getCertificateAlias().orElse( "" );
             if ( StringUtils.isNotBlank( certAlias ) ) {

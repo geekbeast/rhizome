@@ -27,6 +27,7 @@ import java.util.Properties;
 /**
  * @author Matthew Tamayo-Rios &lt;matthew@kryptnostic.com&gt;
  */
+@Deprecated
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger( EmailService.class );
 
