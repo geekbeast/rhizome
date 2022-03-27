@@ -134,7 +134,7 @@ dependencies {
      * Servlet API 3.1
      * 100% Java Servlet Container and Servlet Configuration
      */
-    implementation "javax.servlet.jsp:javax.servlet.jsp-api:${javax_servlet_version}"
+    implementation "javax.servlet.jsp:javax.servlet.jsp-api:${javax_jsp_api_version}"
     api "javax.servlet:javax.servlet-api:${javax_servlet_api_version}"
     implementation "javax.servlet:jstl:${jstl_version}"
 
@@ -143,7 +143,7 @@ dependencies {
      */
     api group: "org.slf4j", name: "slf4j-api", version: "${slf4j_version}"
 
-    api group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4j_version}"
+    api group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: "${log4j_version}"
     api group: 'org.apache.logging.log4j', name: 'log4j-api', version: "${log4j_version}"
     api group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4j_version}"
     api group: 'org.apache.logging.log4j', name: 'log4j-web', version: "${log4j_version}"
@@ -271,12 +271,14 @@ dependencies {
      * TODO: Integrate with application plugin for standalone deployment
      */
     implementation "org.ow2.asm:asm:${asm_version}"
-    api "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
+    api "org.eclipse.jetty:jetty-server:${jetty_version}"
+//    api "org.eclipse.jetty.aggregate:jetty-all:${jetty_version}"
     //TODO: Once GA version of jetty-jsp is released update version.
-    implementation "org.eclipse.jetty:jetty-spring:${jetty_version}"
-    implementation "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
-    implementation "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
-    implementation "org.eclipse.jetty:jetty-continuation:${jetty_version}"
+    implementation "org.eclipse.jetty:jetty-spring:10.0.0.beta3"
+//    implementation "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
+//    implementation "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
+    implementation "org.eclipse.jetty.websocket:websocket-jetty-server:${jetty_version}"
+//    implementation "org.eclipse.jetty:jetty-continuation:${jetty_version}"
     implementation "org.eclipse.jetty:jetty-alpn-java-server:${jetty_version}"
     implementation "org.eclipse.jetty.http2:http2-server:${jetty_version}"
 

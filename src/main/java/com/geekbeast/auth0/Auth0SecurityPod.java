@@ -22,7 +22,6 @@ package com.geekbeast.auth0;
 
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.spring.security.api.JwtWebSecurityConfigurer;
-import com.geekbeast.rhizome.core.JettyAnnotationConfigurationWorkaround;
 import com.geekbeast.rhizome.core.RhizomeSecurity;
 import com.geekbeast.authentication.Auth0AuthenticationConfiguration;
 import com.geekbeast.authentication.Auth0Configuration;
@@ -49,11 +48,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableWebSecurity(
         debug = false )
 public class Auth0SecurityPod extends WebSecurityConfigurerAdapter {
-
-    static {
-        JettyAnnotationConfigurationWorkaround.registerInitializer( RhizomeSecurity.class.getCanonicalName() );
-    }
-
     @Inject
     private Auth0Configuration configuration;
 

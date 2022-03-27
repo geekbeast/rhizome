@@ -3,6 +3,8 @@ package com.geekbeast.rhizome.configuration.websockets;
 import com.geekbeast.helper.services.v1.v1.HandshakeInterceptor;
 import org.eclipse.jetty.websocket.api.WebSocketBehavior;
 import org.eclipse.jetty.websocket.api.WebSocketPolicy;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -13,6 +15,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -20,7 +23,7 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 @Configuration
 @EnableWebSocketMessageBroker
 @Import( { HandshakeInterceptor.class } )
-public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker( MessageBrokerRegistry registry ) {
@@ -42,12 +45,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Bean
     public DefaultHandshakeHandler handshakeHandler() {
-
-        WebSocketPolicy policy = new WebSocketPolicy( WebSocketBehavior.SERVER );
-        policy.setInputBufferSize( 8192 );
-        policy.setIdleTimeout( 600000 );
-
-        return new DefaultHandshakeHandler( new JettyRequestUpgradeStrategy( policy ) );
+        return new DefaultHandshakeHandler( new JettyRequestUpgradeStrategy(  ) );
     }
 
     @Bean

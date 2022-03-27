@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions
 import jodd.mail.*
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import kotlin.system.measureTimeMillis
 
 class MailService(val config: MailServiceConfig) {
     private val logger = LoggerFactory.getLogger(MailService::class.java)

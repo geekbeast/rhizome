@@ -235,7 +235,11 @@ public class Rhizome implements WebApplicationInitializer {
             System.exit( 1 );
         } finally {
             rhizomeContext = null;
-            showBannerIfStartedOrExit( jetty, context );
+            if(jetty!=null) {
+                showBannerIfStartedOrExit( jetty, context );
+            } else {
+                logger.error("Something went wrong before jetty was initialized. In the past this has happened due to circular dependencies in spring beans that overwhelm the stack.");
+            }
             startupLock.unlock();
             eventBus.post( ServiceState.RUNNING );
         }
