@@ -1,6 +1,7 @@
 package com.geekbeast.rhizome.pods;
 
 import com.geekbeast.hazelcast.HazelcastClientProvider;
+import com.geekbeast.hazelcast.PreHazelcastUpgradeService;
 import com.geekbeast.rhizome.async.Synapse;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants;
 import com.geekbeast.rhizome.configuration.ConfigurationKey;
@@ -20,6 +21,7 @@ import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationConta
 import com.geekbeast.rhizome.configuration.hazelcast.HazelcastSessionFilterConfiguration;
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import com.geekbeast.rhizome.configuration.service.RhizomeConfigurationService;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -55,10 +57,17 @@ public class HazelcastPod {
     @Inject
     private ConfigurationLoader configurationLoader;
 
+    @Inject
+    protected Set<PreHazelcastUpgradeService> preHazelcastUpgradeServices;
+
     @Bean
     public HazelcastInstance hazelcastInstance() {
         Optional<Config> serverConfig = hazelcastContainerConfiguration.getServerConfig();
         Optional<ClientConfig> clientConfig = hazelcastContainerConfiguration.getClientConfig();
+
+        //Run any required upgrades before starting up hazelcast.
+        preHazelcastUpgradeServices.forEach( PreHazelcastUpgradeService::runUpgrade );
+
         if ( serverConfig.isPresent() ) {
             return Hazelcast.getOrCreateHazelcastInstance( serverConfig.get() );
         } else if ( clientConfig.isPresent() ) {

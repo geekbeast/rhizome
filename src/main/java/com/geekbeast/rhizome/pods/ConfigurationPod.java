@@ -1,12 +1,13 @@
 package com.geekbeast.rhizome.pods;
 
+import com.geekbeast.hazelcast.NoOpPreHazelcastUpgradeService;
+import com.geekbeast.hazelcast.PreHazelcastUpgradeService;
 import com.geekbeast.rhizome.core.Cutting;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-
-import javax.inject.Inject;
 
 /**
  * The configuration pod is responsible for bootstrapping the initial environment. It sets up component scanning
@@ -28,5 +29,10 @@ public class ConfigurationPod {
     @Bean
     public Cutting getCutting() {
         return new Cutting( environment.getActiveProfiles() );
+    }
+
+    @Bean
+    public PreHazelcastUpgradeService upgradeService() {
+        return new NoOpPreHazelcastUpgradeService();
     }
 }
