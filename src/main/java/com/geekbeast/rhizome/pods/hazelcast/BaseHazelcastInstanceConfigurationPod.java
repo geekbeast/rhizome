@@ -1,6 +1,7 @@
 package com.geekbeast.rhizome.pods.hazelcast;
 
 import com.geekbeast.configuration.hazelcast.DurableExecutorConfiguration;
+import com.geekbeast.hazelcast.PreHazelcastUpgradeService;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -13,6 +14,7 @@ import com.geekbeast.rhizome.configuration.hazelcast.HazelcastConfigurationConta
 import com.geekbeast.rhizome.configuration.hazelcast.ScheduledExecutorConfiguration;
 import com.geekbeast.rhizome.pods.ConfigurationPod;
 import com.geekbeast.rhizome.pods.HazelcastPod;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +43,11 @@ public class BaseHazelcastInstanceConfigurationPod {
     public static final  String               defaultQueueName = "default";
     private static final Logger               logger           = LoggerFactory
             .getLogger( BaseHazelcastInstanceConfigurationPod.class );
+
     @Inject
     protected            RhizomeConfiguration rhizomeConfiguration;
+
+
 
     @Bean
     public HazelcastConfigurationContainer getHazelcastConfiguration() {
