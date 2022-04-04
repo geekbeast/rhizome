@@ -28,7 +28,11 @@ if(!project.hasProperty('developmentMode')) {
 println projectName + " with developmentMode = " + project.developmentMode
 
 if( project.hasProperty('developmentMode') && project.developmentMode ) {
-    apply from: "../gradles/methodic.gradle"
+    if( project.hasProperty('legacy') && project.legacy ) {
+        apply from: "../gradles/openlattice.gradle"
+    } {
+        apply from: "../gradles/methodic.gradle"
+    }
 } else {
     apply from: "https://raw.githubusercontent.com/methodic-labs/methodic/main/gradles/methodic.gradle"
 }
@@ -341,7 +345,6 @@ dependencies {
     if( project.hasProperty('developmentMode') && project.developmentMode ) {
         testImplementation(project(path: ":rhizome-client", configuration: "tests"))
         api(project(path: ":rhizome-client"))
-
     } else {
         testImplementation "com.openlattice:rhizome-client:${rhizome_client_version}:tests"
         api "com.openlattice:rhizome-client:${rhizome_client_version}"
