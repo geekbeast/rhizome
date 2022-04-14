@@ -133,7 +133,9 @@ public class JettyLoam implements Loam {
             // contextFactory.setNeedClientAuth( configuration.needClientAuth() );
 
             final HttpConfiguration https_config = new HttpConfiguration( http_config );
-            https_config.addCustomizer( new SecureRequestCustomizer() );
+            final var src = new SecureRequestCustomizer();
+            src.setSniHostCheck( false );
+            https_config.addCustomizer( src);
 
             final ServerConnector ssl;
             final SslConnectionFactory connectionFactory;
