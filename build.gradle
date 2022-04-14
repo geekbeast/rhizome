@@ -32,7 +32,6 @@ if( project.hasProperty('developmentMode') && project.developmentMode ) {
         println "Using legacy gradles"
         apply from: "../gradles/openlattice.gradle"
     } else {
-        println "Using methodic gradles"
         apply from: "../gradles/methodic.gradle"
     }
 } else {
