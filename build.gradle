@@ -29,8 +29,10 @@ println projectName + " with developmentMode = " + project.developmentMode
 
 if( project.hasProperty('developmentMode') && project.developmentMode ) {
     if( project.hasProperty('legacy') && project.legacy ) {
+        println "Using legacy gradles"
         apply from: "../gradles/openlattice.gradle"
     } else {
+        println "Using methodic gradles"
         apply from: "../gradles/methodic.gradle"
     }
 } else {
