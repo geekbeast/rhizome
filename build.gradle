@@ -136,7 +136,7 @@ dependencies {
     annotationProcessor "org.immutables:value:${immutables_version}"
 
     /*
-     * Servlet API 3.1
+     * Servlet API 4.0.1
      * 100% Java Servlet Container and Servlet Configuration
      */
     implementation "javax.servlet.jsp:javax.servlet.jsp-api:${javax_jsp_api_version}"
