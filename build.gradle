@@ -8,9 +8,9 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'com.github.spotbugs' version '5.0.14'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.6.10'
-    id 'org.jetbrains.dokka' version '0.9.18'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.20'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.7.20'
+    id 'org.jetbrains.dokka' version '1.8.10'
 }
 
 description = "Java Framework for building scalable RESTful web applications"
@@ -101,9 +101,9 @@ tasks.withType(Javadoc) {
     enabled = false
 }
 
-dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/javadoc"
+dokkaHtml {
+    outputDirectory = new File(buildDir,"javadoc")
+            //"$buildDir/javadoc")
 }
 
 
