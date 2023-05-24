@@ -49,8 +49,8 @@ mainClassName = "com.geekbeast.rhizome.core.RhizomeAws"
  * potentially unsupported APIs on earlier versions. (i.e compiler 17, target/source 11, will create bytecode that
  * references an 17 API that isn't available on jdk 11).
  */
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 checkstyle {
     toolVersion = '7.4'
@@ -379,7 +379,7 @@ tasks.withType(Test) {
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         freeCompilerArgs += '-Xjvm-default=compatibility'
     }
 }
@@ -387,7 +387,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    ext.sourceCompatibility = JavaVersion.VERSION_11
-    ext.targetCompatibility = JavaVersion.VERSION_11
+    ext.sourceCompatibility = JavaVersion.VERSION_17
+    ext.targetCompatibility = JavaVersion.VERSION_17
 }
 
