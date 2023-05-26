@@ -229,7 +229,7 @@ dependencies {
     /*
      * JACKSON SERIALIZATION
      * YAML via SnakeYaml
-     * Afterburner for faster serialization
+     * Blackbird for faster serialization
      * Guava integration
      * Smile for binary serialization
      * Jersey integration
@@ -239,7 +239,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${jackson_version}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jackson_version}"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:${jackson_version}"
-    implementation "com.fasterxml.jackson.module:jackson-module-afterburner:${jackson_version}"
+    implementation "com.fasterxml.jackson.module:jackson-module-blackbird:${jackson_version}"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-smile:${jackson_version}"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jackson_version}"
     implementation "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jackson_version}"
