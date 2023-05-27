@@ -59,14 +59,14 @@ class MailService(val config: MailServiceConfig) {
     }
 
     private fun renderPlaintextEmail(emailRequest: EmailRequest): Email {
-        check(emailRequest !is RenderableEmailRequest) { "Only plaintext e-mail is supported by this API." }
+        check(emailRequest !is RenderableEmailRequest) { "Only raw e-mail is supported by this API." }
         val toAddresses = getToAddresses(emailRequest)
         val email = Email.create()
             .from(emailRequest.from.orElse(config.defaultFromEmail))
             .subject(emailRequest.subject)
             .to(*toAddresses.toTypedArray())
         return if (emailRequest.html) {
-            email.textMessage(emailRequest.body)
+            email.htmlMessage(emailRequest.body)
         } else {
             email.textMessage(emailRequest.body)
         }
