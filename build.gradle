@@ -127,8 +127,11 @@ dependencies {
     /*
      * AWS
      */
-    api "com.amazonaws:aws-java-sdk-ec2:${aws_java_sdk_version}"
-    api "com.amazonaws:aws-java-sdk-s3:${aws_java_sdk_version}"
+    api platform('software.amazon.awssdk:bom:2.20.56')
+    api 'software.amazon.awssdk:s3'
+    api 'software.amazon.awssdk:ec2'
+//    api "com.amazonaws:aws-java-sdk-ec2:${aws_java_sdk_version}"
+//    api "com.amazonaws:aws-java-sdk-s3:${aws_java_sdk_version}"
 
     /*
      * Immutables library for immutable objects
