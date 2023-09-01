@@ -24,7 +24,9 @@ import java.sql.SQLException
 import java.util.UUID
 import com.geekbeast.postgres.PostgresDatatype
 import java.sql.Connection
+import java.sql.Date
 import java.sql.ResultSet
+import java.time.LocalDate
 import java.util.stream.Stream
 
 /**
@@ -122,6 +124,24 @@ object PostgresArrays {
 
     @JvmStatic
     @Throws(SQLException::class)
+    fun createDateArray(connection: Connection, values: Stream<LocalDate>): java.sql.Array {
+        return connection.createArrayOf(PostgresDatatype.DATE.sql(), values.toArray())
+    }
+
+    @JvmStatic
+    @Throws(SQLException::class)
+    fun createDateArray(connection: Connection, vararg value: LocalDate): java.sql.Array {
+        return connection.createArrayOf(PostgresDatatype.DATE.sql(), value)
+    }
+
+    @JvmStatic
+    @Throws(SQLException::class)
+    fun createDateArray(connection: Connection, values: Collection<LocalDate>): java.sql.Array {
+        return connection.createArrayOf(PostgresDatatype.DATE.sql(), values.toTypedArray())
+    }
+
+    @JvmStatic
+    @Throws(SQLException::class)
     fun getTextArray(rs: ResultSet, column: String): Array<String> {
         return rs.getArray(column).array as Array<String>
     }
@@ -142,6 +162,12 @@ object PostgresArrays {
     @Throws(SQLException::class)
     fun getUuidArrayOfArrays(rs: ResultSet, column: String): Array<Array<UUID>> {
         return rs.getArray(column).array as Array<Array<UUID>>
+    }
+
+    @JvmStatic
+    @Throws(SQLException::class)
+    fun getDateArray(rs: ResultSet, column: String): List<LocalDate> {
+        return (rs.getArray(column).array as Array<Date>).map { it.toLocalDate() }
     }
 
     @JvmStatic
