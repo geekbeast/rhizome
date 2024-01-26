@@ -345,7 +345,7 @@ dependencies {
      */
     testImplementation "junit:junit:${junit_version}"
     testImplementation "org.mockito:mockito-all:${mockito_version}"
-    if( (project.hasProperty('subModule') && project.subModule) || (project.hasProperty('developmentMode') && project.developmentMode) ) {^M
+    if( (project.hasProperty('subModule') && project.subModule) || (project.hasProperty('developmentMode') && project.developmentMode) ) {
         testImplementation(project(path: ":rhizome-client", configuration: "tests"))
         api(project(path: ":rhizome-client"))
     } else {
