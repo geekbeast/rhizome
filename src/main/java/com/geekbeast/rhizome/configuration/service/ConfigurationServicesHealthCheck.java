@@ -15,7 +15,7 @@ public class ConfigurationServicesHealthCheck extends HealthCheck {
         if ( service != null && service.getConfiguration( JettyConfiguration.class ) != null ) {
             return Result.healthy( "Persistence service is function normally." );
         }
-        return Result.unhealthy( "Peristence service is failing." );
+        return Result.unhealthy( "Persistence service is failing." );
     }
 
 }
