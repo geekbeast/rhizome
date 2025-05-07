@@ -49,8 +49,8 @@ mainClassName = "com.geekbeast.rhizome.core.RhizomeAws"
  * potentially unsupported APIs on earlier versions. (i.e compiler 17, target/source 11, will create bytecode that
  * references an 17 API that isn't available on jdk 11).
  */
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 checkstyle {
     toolVersion = '7.4'
