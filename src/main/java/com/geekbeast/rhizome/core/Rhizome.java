@@ -169,6 +169,7 @@ public class Rhizome implements WebApplicationInitializer {
             defaultServlet.addMapping( new String[] { "/*" } );
             defaultServlet.setLoadOnStartup( 1 );
             defaultServlet.setAsyncSupported( true );
+            defaultServlet.setInitParameter("dirAllowed", "false");
         }
 
         registerDispatcherServlets( servletContext );
