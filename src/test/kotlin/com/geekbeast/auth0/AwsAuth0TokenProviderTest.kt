@@ -2,7 +2,6 @@ package com.geekbeast.auth0
 
 import com.auth0.client.auth.AuthAPI
 import com.auth0.json.auth.TokenHolder
-import com.auth0.net.AuthRequest
 import com.auth0.net.TokenRequest
 import com.geekbeast.authentication.Auth0Configuration
 import org.apache.commons.lang3.RandomStringUtils
