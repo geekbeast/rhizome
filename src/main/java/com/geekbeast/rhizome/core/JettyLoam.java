@@ -73,7 +73,7 @@ public class JettyLoam implements Loam {
 
         if (config.getContextConfiguration().isPresent()) {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
-
+            logger.info("Using context configuration resource base: {}", contextConfig.getResourceBase());
             context.setContextPath(contextConfig.getPath());
             var cl = server.getClass().getClassLoader();
             URL rootURL     = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
