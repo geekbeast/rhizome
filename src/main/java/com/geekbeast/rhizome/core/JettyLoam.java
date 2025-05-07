@@ -104,9 +104,12 @@ public class JettyLoam implements Loam {
         if (gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled()) {
             GzipHandler gzipHandler = new GzipHandler();
 
+
             Sequence s = new Sequence();
             s.addHandler(context);
-            s.addHandler(new DefaultHandler());
+            if(config.isDefaultServletEnabled()) {
+                s.addHandler(new DefaultHandler());
+            }
 
             gzipHandler.addIncludedMimeTypes(gzipConfig.get().getGzipContentTypes().toArray(new String[0]));
             gzipHandler.addIncludedMethods(gzipConfig.get().getGzipMethods().toArray(new String[0]));
