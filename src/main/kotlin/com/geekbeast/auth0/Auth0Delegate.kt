@@ -11,7 +11,8 @@ private constructor(
     val auth0clientId: String,
     val auth0Connection: String = DEFAULT_AUTH0_CONNECTION,
     val auth0Scopes: String = DEFAULT_AUTH0_SCOPES,
-    val auth0Api: AuthAPI = AuthAPI(auth0domain, auth0clientId, "")
+    val auth0Api: AuthAPI = AuthAPI.newBuilder(auth0domain, auth0clientId).build(),
+//    val auth0Api: AuthAPI = AuthAPI(auth0domain, auth0clientId, "")
 ) {
     private constructor(
             config: Auth0Configuration
@@ -48,6 +49,7 @@ private constructor(
                 .setScope(auth0Scopes)
                 .setAudience("https://api.openlattice.com")
                 .execute()
+                .body
                 .idToken
     }
 
@@ -59,6 +61,7 @@ private constructor(
                 .setScope(auth0Scopes)
                 .setAudience("https://api.openlattice.com")
                 .execute()
+                .body
                 .accessToken
     }
 }

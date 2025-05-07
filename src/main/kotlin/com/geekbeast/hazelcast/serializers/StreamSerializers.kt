@@ -192,12 +192,14 @@ class StreamSerializers {
         }
 
         @JvmStatic
-        inline fun <T> deserializeOptional(`in`: ObjectDataInput, read: (ObjectDataInput) -> T ): Optional<T> {
+        inline fun <T> deserializeOptional(`in`: ObjectDataInput, noinline read: (ObjectDataInput) -> T ): Optional<T> {
             val maybePresent = `in`.readBoolean()
             if ( !maybePresent ){
-                return Optional.empty()
+                return Optional.empty<T>() as Optional<T>
             }
-            return Optional.of( read( `in` ) )
+            val obj : T & Any = (read(`in`) as T)!!
+
+            return Optional.of<T>( obj ) as Optional<T>
         }
 
     }

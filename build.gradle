@@ -7,10 +7,10 @@ plugins {
     id 'idea'
     id 'checkstyle'
     id 'jacoco'
-    id 'com.github.spotbugs' version '5.0.14'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.8.20'
-    id 'org.jetbrains.dokka' version '1.8.10'
+    id 'com.github.spotbugs' version '6.1.10'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.1.0'
+    id 'org.jetbrains.dokka' version '2.0.0'
 }
 
 description = "Java Framework for building scalable RESTful web applications"
@@ -297,7 +297,7 @@ dependencies {
      * Java email client.
      */
     api "org.jodd:jodd-mail:${jodd_mail_version}"
-    implementation "javax.mail:javax.mail-api:${javax_mail_api}"
+    api "jakarta.mail:jakarta.mail-api:${jakarta_mail_api}"
     implementation "com.sun.mail:javax.mail:${sun_javax_mail_version}"
     implementation "com.sun.mail:all:${sun_mail_all_version}"
     api "com.samskivert:jmustache:1.15"
@@ -382,7 +382,7 @@ tasks.withType(Test) {
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += '-Xjvm-default=compatibility'
+        freeCompilerArgs += '-Xjvm-default=all'
     }
 }
 
