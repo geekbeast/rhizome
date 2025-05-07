@@ -10,6 +10,9 @@ import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
+
+import com.google.common.io.Resources;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Handler.Sequence;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
@@ -75,10 +78,15 @@ public class JettyLoam implements Loam {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
             logger.info("Using context configuration resource base: {}", contextConfig.getResourceBase());
             context.setContextPath(contextConfig.getPath());
-            var cl = server.getClass().getClassLoader();
-            URL rootURL     = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
-            Resource root   = ResourceFactory.of(context).newResource(rootURL);
-            context.setBaseResource(root);
+            var cl = JettyLoam.class.getClassLoader();
+
+            URL rootURL = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
+            if (rootURL!=null) {
+                Resource root = ResourceFactory.of(context).newResource(rootURL);
+                context.setBaseResource(root);
+            } else {
+                logger.warn("Could not find resource base: {}", contextConfig.getResourceBase());
+            }
             context.setParentLoaderPriority(contextConfig.isParentLoaderPriority());
         }
 
