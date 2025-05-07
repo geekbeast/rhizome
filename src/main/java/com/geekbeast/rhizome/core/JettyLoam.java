@@ -8,6 +8,7 @@ import com.geekbeast.rhizome.configuration.configuration.amazon.AmazonLaunchConf
 import com.geekbeast.rhizome.configuration.service.ConfigurationService;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 import org.eclipse.jetty.server.Handler.Sequence;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,8 @@ import org.eclipse.jetty.ee8.webapp.WebAppContext;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.BlockingArrayQueue;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
@@ -63,7 +66,10 @@ public class JettyLoam implements Loam {
             ContextConfiguration contextConfig = config.getContextConfiguration().get();
 
             context.setContextPath(contextConfig.getPath());
-            context.setResourceBase(contextConfig.getResourceBase());
+            var cl = JettyLoam.class.getClassLoader();
+            URL rootURL     = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
+            Resource root   = ResourceFactory.of(context).newResource(rootURL);
+            context.setBaseResource(root);
             context.setParentLoaderPriority(contextConfig.isParentLoaderPriority());
         }
 
