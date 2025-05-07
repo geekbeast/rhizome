@@ -165,11 +165,11 @@ public class Rhizome implements WebApplicationInitializer {
          * Default Servlet
          */
         if ( jettyConfiguration.isDefaultServletEnabled() ) {
+            servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
             ServletRegistration.Dynamic defaultServlet = servletContext.addServlet( "default", new DefaultServlet() );
             defaultServlet.addMapping( new String[] { "/*" } );
             defaultServlet.setLoadOnStartup( 1 );
             defaultServlet.setAsyncSupported( true );
-            defaultServlet.setInitParameter("dirAllowed", "false");
         }
 
         registerDispatcherServlets( servletContext );
