@@ -29,7 +29,7 @@ import com.hazelcast.web.WebFilter;
 import com.geekbeast.rhizome.configuration.configuration.amazon.AmazonLaunchConfiguration;
 import io.prometheus.client.CollectorRegistry;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.ee8.servlet.DefaultServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;

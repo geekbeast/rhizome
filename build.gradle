@@ -285,10 +285,13 @@ dependencies {
     implementation "org.eclipse.jetty:jetty-spring:11.0.0.beta3"
 //    implementation "org.eclipse.jetty.websocket:websocket-server:${jetty_version}"
 //    implementation "org.eclipse.jetty.websocket:javax-websocket-server-impl:${jetty_version}"
-    implementation "org.eclipse.jetty.websocket:websocket-jetty-server:11.0.25"
-//    implementation "org.eclipse.jetty:jetty-continuation:${jetty_version}"
+//    implementation "org.eclipse.jetty.websocket:websocket-jetty-server:11.0.25"
+//    implementation "org.eclipse.jetty:jetty-continuation:${jetty_ßversion}"
     implementation "org.eclipse.jetty:jetty-alpn-java-server:${jetty_version}"
     implementation "org.eclipse.jetty.http2:jetty-http2-server:${jetty_version}"
+    implementation "org.eclipse.jetty.ee8:jetty-ee8-webapp:${jetty_version}"
+    implementation "org.eclipse.jetty.ee8:jetty-ee8-servlet:${jetty_version}"
+    implementation "org.eclipse.jetty.ee8:jetty-ee8-annotations:${jetty_version}"
 
     implementation "io.netty:netty-transport-native-epoll:${netty_epoll_version}:${netty_os_arch}"
 
