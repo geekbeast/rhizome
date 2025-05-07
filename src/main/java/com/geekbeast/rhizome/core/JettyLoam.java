@@ -62,16 +62,6 @@ public class JettyLoam implements Loam {
         this.maybeAmazonLaunchConfiguration = maybeAmazonLaunchConfiguration;
 
         WebAppContext context = new WebAppContext();
-        if (config.getContextConfiguration().isPresent()) {
-            ContextConfiguration contextConfig = config.getContextConfiguration().get();
-
-            context.setContextPath(contextConfig.getPath());
-            var cl = JettyLoam.class.getClassLoader();
-            URL rootURL     = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
-            Resource root   = ResourceFactory.of(context).newResource(rootURL);
-            context.setBaseResource(root);
-            context.setParentLoaderPriority(contextConfig.isParentLoaderPriority());
-        }
 
         QueuedThreadPool threadPool = new QueuedThreadPool(
                 config.getMaxThreads(),
@@ -80,6 +70,17 @@ public class JettyLoam implements Loam {
                 new BlockingArrayQueue<>(6000));
         // TODO: Make max threads configurable ( queued vs concurrent thread pool needs to be configured )
         server = new Server(threadPool);
+
+        if (config.getContextConfiguration().isPresent()) {
+            ContextConfiguration contextConfig = config.getContextConfiguration().get();
+
+            context.setContextPath(contextConfig.getPath());
+            var cl = server.getClass().getClassLoader();
+            URL rootURL     = cl.getResource(contextConfig.getResourceBase());                // e.g. src/main/resources/webroot
+            Resource root   = ResourceFactory.of(context).newResource(rootURL);
+            context.setBaseResource(root);
+            context.setParentLoaderPriority(contextConfig.isParentLoaderPriority());
+        }
 
         //This container jar pattern picks up both Rhizome and RhizomeSecurity initializers, but does not allow filtering RhizomeSecurity initializer out
         context.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*");
@@ -91,7 +92,6 @@ public class JettyLoam implements Loam {
             configureEndpoint(config.getServiceConnectorConfiguration().get());
         }
 
-        Handler handler = context;
         Optional<GzipConfiguration> gzipConfig = config.getGzipConfiguration();
         if (gzipConfig.isPresent() && gzipConfig.get().isGzipEnabled()) {
             GzipHandler gzipHandler = new GzipHandler();
@@ -103,7 +103,6 @@ public class JettyLoam implements Loam {
             gzipHandler.addIncludedMimeTypes(gzipConfig.get().getGzipContentTypes().toArray(new String[0]));
             gzipHandler.addIncludedMethods(gzipConfig.get().getGzipMethods().toArray(new String[0]));
             gzipHandler.setMinGzipSize(0);
-            gzipHandler.setHandler(context);
             gzipHandler.setHandler(s);
 
             server.setHandler(gzipHandler);
