@@ -129,7 +129,7 @@ public class JettyLoam implements Loam {
             );
 
             http.setPort(configuration.getHttpPort());
-
+//            http.setIdleTimeout(20*60*1000);
             server.addConnector(http);
         }
 
@@ -188,6 +188,7 @@ public class JettyLoam implements Loam {
 
             // Jetty needs this twice, straight for the Jetty samples
             ssl.setPort(configuration.getHttpsPort());
+//            ssl.setIdleTimeout( 20*60*1000 );
             server.addConnector(ssl);
         } else if ((configuration.requireSSL() || configuration.useSSL())
                 && (!config.getTruststoreConfiguration().isPresent()
