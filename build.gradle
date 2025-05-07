@@ -389,7 +389,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 eclipse {
     ext.downloadSources = true
     ext.downloadJavadoc = true
-    ext.sourceCompatibility = JavaVersion.VERSION_17
-    ext.targetCompatibility = JavaVersion.VERSION_17
+    ext.sourceCompatibility = JavaVersion.VERSION_21
+    ext.targetCompatibility = JavaVersion.VERSION_21
 }
 
