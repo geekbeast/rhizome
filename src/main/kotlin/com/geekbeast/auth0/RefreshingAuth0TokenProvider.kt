@@ -51,7 +51,7 @@ class RefreshingAuth0TokenProvider internal constructor(
 
     private fun requestTokenHolder(): TokenHolder {
         return attempt(ExponentialBackoff(MAX_WAIT, 1.25, 2.0), 12) {
-            auth0Api.requestToken(managementApiUrl).execute()
+            auth0Api.requestToken(managementApiUrl).execute().body
         }
     }
 

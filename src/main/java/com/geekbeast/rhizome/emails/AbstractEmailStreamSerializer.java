@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+
 import jodd.mail.Email;
 import jodd.mail.EmailAddress;
 import jodd.mail.EmailMessage;
@@ -43,8 +45,8 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         serializeMailAddresses( out, object.cc() );
         serializeMailAddresses( out, object.bcc() );
         serializeMailAddresses( out, object.replyTo() );
-        out.writeUTF( object.subject() );
-        out.writeUTF( object.subjectEncoding() );
+        out.writeString( object.subject() );
+        out.writeString( object.subjectEncoding() );
         out.writeInt( object.priority() );
         Date sentDate = object.sentDate();
         boolean hasSentDate = ( sentDate != null );
@@ -94,13 +96,13 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
     public static void serializeMailAddresses( ObjectDataOutput out, EmailAddress... addresses ) throws IOException {
         out.writeInt( addresses.length );
         for ( EmailAddress address : addresses ) {
-            out.writeUTF( address.getEmail() );
+            out.writeString( address.getEmail() );
 
             String personalName = address.getPersonalName();
             boolean hasPersonalName = StringUtils.isNotBlank( personalName );
             out.writeBoolean( hasPersonalName );
             if ( hasPersonalName ) {
-                out.writeUTF( address.getPersonalName() );
+                out.writeString( address.getPersonalName() );
             }
         }
     }
@@ -109,7 +111,7 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
         int length = in.readInt();
         EmailAddress[] addresses = new EmailAddress[ length ];
         for ( int i = 0; i < length; ++i ) {
-            String email = in.readString();
+            String email = Objects.requireNonNull(in.readString());
             boolean hasPersonalName = in.readBoolean();
             if ( hasPersonalName ) {
                 String personalName = in.readString();
@@ -124,9 +126,9 @@ public abstract class AbstractEmailStreamSerializer implements SelfRegisteringSt
     public static void serializeEmailMessages( ObjectDataOutput out, List<EmailMessage> messages ) throws IOException {
         out.writeInt( messages.size() );
         for ( EmailMessage message : messages ) {
-            out.writeUTF( message.getContent() );
-            out.writeUTF( message.getEncoding() );
-            out.writeUTF( message.getMimeType() );
+            out.writeString( message.getContent() );
+            out.writeString( message.getEncoding() );
+            out.writeString( message.getMimeType() );
         }
     }
 

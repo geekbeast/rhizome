@@ -17,7 +17,7 @@ fun <K, V> insertIntoUnusedKey(
         generate: () -> K
 ): K {
     var key = generate()
-    while (m.putIfAbsent(key, value, ttl, ttlUnit, maxIdle, maxIdleUnit) != null) {
+    while (m.putIfAbsent(key as (K & Any), value as (V & Any), ttl, ttlUnit, maxIdle, maxIdleUnit) != null) {
         key = generate()
     }
     return key

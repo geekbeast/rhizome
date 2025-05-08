@@ -28,12 +28,13 @@ private val registrationLock = ReentrantLock()
  * @param valueClass A reference to the class of the value used for the map
  * @return A mocked IMap backed by a concurrent map.
  */
-fun <K, V> mockHazelcastMap(
+fun <K : Any, V : Any> mockHazelcastMap(
     keyClass: Class<K>,
     valueClass: Class<V>,
     streamSerializers: List<SelfRegisteringStreamSerializer<*>> = listOf(),
     ss: InternalSerializationService = _ss,
-    extractors: Extractors = Extractors.newBuilder(ss).setAttributeConfigs(listOf()).setClassLoader(keyClass.classLoader).build()
+    extractors: Extractors = Extractors.newBuilder(ss).setAttributeConfigs(listOf())
+        .setClassLoader(keyClass.classLoader).build()
 ): IMap<K, V> {
     val mock = Mockito.mock<IMap<*, *>>(IMap::class.java) as IMap<K, V>
     val backingMap = Maps.newConcurrentMap<K, V>()
@@ -73,14 +74,14 @@ fun <K, V> mockHazelcastMap(
     }
 
     Mockito.`when`(
-            mock.putIfAbsent(
-                    any(keyClass),
-                    any(valueClass),
-                    anyLong(),
-                    any(TimeUnit::class.java),
-                    anyLong(),
-                    any(TimeUnit::class.java)
-            )
+        mock.putIfAbsent(
+            any(keyClass),
+            any(valueClass),
+            anyLong(),
+            any(TimeUnit::class.java),
+            anyLong(),
+            any(TimeUnit::class.java)
+        )
     ).thenAnswer {
         val k = it.arguments[0] as K
         val v = it.arguments[1] as V
@@ -142,9 +143,9 @@ fun <K, V> mockHazelcastMap(
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
         backingMap.asSequence()
-                .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
-                .filter(p::apply)
-                .toSet()
+            .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
+            .filter(p::apply)
+            .toSet()
     }
 
     Mockito.`when`(mock.keySet(any())).thenAnswer { it ->
@@ -152,10 +153,10 @@ fun <K, V> mockHazelcastMap(
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
         backingMap.asSequence()
-                .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
-                .filter(p::apply)
-                .map { entry -> entry.component1() }
-                .toSet()
+            .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
+            .filter(p::apply)
+            .map { entry -> entry.component1() }
+            .toSet()
     }
 
     Mockito.`when`(mock.values(any())).thenAnswer { it ->
@@ -163,13 +164,13 @@ fun <K, V> mockHazelcastMap(
         handleExpiration(backingMap, ttlMap)
         handleIdleness(backingMap, ttlMap, idleMap)
         backingMap.asSequence()
-                .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
-                .filter(p::apply)
-                .map { entry -> entry.component1() }
-                .toList()
+            .map { CachedQueryEntry<K, V>(ss, ss.toData(it.component1()), it.component2(), extractors) }
+            .filter(p::apply)
+            .map { entry -> entry.component1() }
+            .toList()
     }
 
-    val mockCast = mock as Map<K,V>
+    val mockCast = mock as Map<K, V>
     Mockito.`when`(mock.entries).thenAnswer { backingMap.entries }
     Mockito.`when`(mock.keys).thenAnswer { backingMap.keys }
     Mockito.`when`(mock.values).thenAnswer { backingMap.values }
@@ -189,17 +190,17 @@ private fun getSerializers(
     streamSerializers: Map<Class<*>, SelfRegisteringStreamSerializer<*>>,
     clazz: Class<*>
 ) = streamSerializers[clazz]
-        ?: streamSerializers.getValue(streamSerializers.keys.first { it.isAssignableFrom(clazz) })
+    ?: streamSerializers.getValue(streamSerializers.keys.first { it.isAssignableFrom(clazz) })
 
 private fun <K, V> handleExpiration(backingMap: MutableMap<K, V>, expirationMap: MutableMap<K, Long>) {
     backingMap.keys -= expirationMap.filterValues { it <= System.nanoTime() }.keys
 }
 
 private fun <K, V> handleIdleness(
-        k: K,
-        backingMap: MutableMap<K, V>,
-        ttlMap: MutableMap<K, Long>,
-        idleMap: MutableMap<K, IdleInfo>
+    k: K,
+    backingMap: MutableMap<K, V>,
+    ttlMap: MutableMap<K, Long>,
+    idleMap: MutableMap<K, IdleInfo>
 ) {
     val idleInfo = idleMap[k]
     if (idleInfo != null) {
@@ -216,9 +217,9 @@ private fun <K, V> handleIdleness(
 }
 
 private fun <K, V> handleIdleness(
-        backingMap: MutableMap<K, V>,
-        ttlMap: MutableMap<K, Long>,
-        idleMap: MutableMap<K, IdleInfo>
+    backingMap: MutableMap<K, V>,
+    ttlMap: MutableMap<K, Long>,
+    idleMap: MutableMap<K, IdleInfo>
 ) {
     idleMap.forEach { (k, idleInfo) ->
         val idleInfo = idleMap[k]

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  * @param valueClass A reference to the class of the value used for the map
  * @return A mocked IMap backed by a concurrent map.
  */
-fun <V> mockHazelcastQueue(valueClass: Class<V>): IQueue<V> {
+fun <V:Any> mockHazelcastQueue(valueClass: Class<V>): IQueue<V> {
     val mock = Mockito.mock<IQueue<*>>(IQueue::class.java) as IQueue<V>
     val backingQueue = Queues.newArrayBlockingQueue<V>(10000)
 

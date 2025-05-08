@@ -7,7 +7,7 @@ import com.auth0.json.auth.UserInfo;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.net.AuthRequest;
+import com.auth0.net.client.Auth0HttpRequest;
 import com.auth0.spring.security.api.JwtAuthenticationProvider;
 import com.auth0.spring.security.api.authentication.PreAuthenticatedAuthenticationJsonWebToken;
 import com.geekbeast.authentication.Auth0AuthenticationConfiguration;
@@ -74,11 +74,12 @@ public class AuthenticationTest {
                 .build( new CacheLoader<AuthenticationTestRequestOptions, TokenHolder>() {
                     @Override public TokenHolder load( AuthenticationTestRequestOptions options ) throws Exception {
                         authRateLimiter.acquire();
-                        AuthRequest authRequest = client
+
+                        var authRequest = client
                                 .login( options.getUsernameOrEmail(), options.getPassword(), options.getConnection() )
                                 .setScope( options.getScope() )
                                 .setAudience( "https://openlattice.auth0.com/userinfo" );
-                        TokenHolder th = authRequest.execute();
+                        TokenHolder th = authRequest.execute().getBody();
                         String accessToken = th.getAccessToken();
                         String idToken = th.getIdToken();
 
@@ -91,12 +92,12 @@ public class AuthenticationTest {
         authentications = CacheBuilder.newBuilder()
                 .build( new CacheLoader<AuthenticationTestRequestOptions, Authentication>() {
                     @Override public Authentication load( AuthenticationTestRequestOptions options ) throws Exception {
-                        AuthRequest authRequest = client
+                        var authRequest = client
                                 .login( options.getUsernameOrEmail(), options.getPassword(), options.getConnection() )
                                 .setScope( options.getScope() )
                                 .setAudience( audience );
                         authRateLimiter.acquire();
-                        TokenHolder th = authRequest.execute();
+                        TokenHolder th = authRequest.execute().getBody();
 
                         String accessToken = th.getAccessToken();
                         logger.info( "Caching full access token: {}", accessToken );
@@ -115,7 +116,7 @@ public class AuthenticationTest {
         String accessToken = accessTokens();
         UserInfo userInfoRequest = client
                 .userInfo( accessToken )
-                .execute();
+                .execute().getBody();
         Map<String, Object> d2 = userInfoRequest.getValues();
         Assert.assertTrue( d2.containsKey( "email" ) );
         Assert.assertTrue( d2.containsKey( "email_verified" ) );

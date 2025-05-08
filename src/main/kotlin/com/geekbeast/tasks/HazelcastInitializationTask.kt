@@ -33,12 +33,10 @@ import java.util.concurrent.TimeUnit
 interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable, NamedTask, HazelcastDependencyAwareTask<T>, Serializable {
     fun getInitialDelay(): Long
 
-    @JvmDefault
     fun getTimeUnit(): TimeUnit {
         return TimeUnit.MILLISECONDS
     }
 
-    @JvmDefault
     override fun run() {
         initialize(getDependency())
     }
@@ -50,7 +48,6 @@ interface HazelcastInitializationTask<T : HazelcastTaskDependencies> : Runnable,
      */
     fun after(): Set<Class<out HazelcastInitializationTask<*>>>
 
-    @JvmDefault
     fun isRunOnceAcrossCluster(): Boolean {
         return true
     }

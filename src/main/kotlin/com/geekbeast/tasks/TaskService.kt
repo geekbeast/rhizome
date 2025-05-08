@@ -169,7 +169,6 @@ class TaskService(
     interface HazelcastDependencyAwareTask<T : HazelcastTaskDependencies> {
         fun getDependenciesClass(): Class<out T>
 
-        @JvmDefault
         fun getDependency(): T {
             startupLatch.await()
             return (dependencies[getDependenciesClass()] ?: throw IllegalStateException(
