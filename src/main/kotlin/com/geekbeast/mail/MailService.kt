@@ -46,7 +46,11 @@ class MailService(val config: MailServiceConfig) {
             session.open()
             session.use { s ->
                 emailRequests.forEach { emailRequest ->
-                    s.sendMail(renderEmail(emailRequest))
+                    try {
+                        s.sendMail(renderEmail(emailRequest))
+                    } catch (e: Exception) {
+                        logger.error("Error sending email", e)
+                    }
                 }
             }
         } else {
