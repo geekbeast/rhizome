@@ -21,6 +21,7 @@
 
 package com.geekbeast.controllers.util
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.geekbeast.controllers.exceptions.ForbiddenException
 import com.geekbeast.controllers.exceptions.ResourceNotFoundException
 import com.geekbeast.controllers.exceptions.TypeExistsException
@@ -32,6 +33,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import javax.servlet.http.HttpServletRequest
 
 @RestControllerAdvice
 class BaseExceptionHandler {
@@ -64,7 +66,7 @@ class BaseExceptionHandler {
 
     @ExceptionHandler(BatchException::class)
     fun handleBatchExceptions(e: BatchException): ResponseEntity<ErrorsDTO> {
-        logger.error("", e)
+        logger.error("Encountered batch exception:", e)
         return ResponseEntity(e.getErrors(), e.getStatusCode())
     }
 
@@ -78,13 +80,23 @@ class BaseExceptionHandler {
             e, HttpStatus.INTERNAL_SERVER_ERROR, ApiExceptions.OTHER_EXCEPTION, e.javaClass.simpleName + ": ")
     }
 
+    @ExceptionHandler(JsonMappingException::class)
+    fun handleJsonExceptions(req: HttpServletRequest, e: JsonMappingException) {
+        logger.error("Body that caused error if available: " + e.originalMessage)
+        logException(req, e)
+    }
+
+    private fun logException(req: HttpServletRequest, e: Exception) {
+        logger.error("Encountered exception handling request of type ${req.method} to URL ${req.requestURL}", e)
+    }
+
     private fun handleException(
         e: Exception,
         responseStatus: HttpStatus,
         responseException: ApiExceptions,
         prefixMessage: String = "",
         postFixMessage: String = ""): ResponseEntity<ErrorsDTO> {
-        logger.error("", e)
+        logger.error("Encountered exception:", e)
         val errorMessage = e.message ?: ""
         return ResponseEntity(
             ErrorsDTO(responseException, prefixMessage + errorMessage + postFixMessage),
