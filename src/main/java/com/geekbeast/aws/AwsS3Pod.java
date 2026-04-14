@@ -21,10 +21,6 @@
 
 package com.geekbeast.aws;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.geekbeast.rhizome.configuration.configuration.amazon.AmazonLaunchConfiguration;
 import com.geekbeast.rhizome.pods.AwsConfigurationPod;
@@ -32,6 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import javax.inject.Inject;
 
@@ -47,13 +45,13 @@ public class AwsS3Pod {
     AmazonLaunchConfiguration awsConfig;
 
     @Bean
-    public AmazonS3 awsS3() {
+    public S3Client awsS3() {
         return newS3Client( awsConfig );
     }
 
-    public static AmazonS3 newS3Client( AmazonLaunchConfiguration awsConfig ) {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-        builder.setRegion( Region.getRegion( awsConfig.getRegion().orElse( Regions.DEFAULT_REGION ) ).getName() );
-        return builder.build();
+    public static S3Client newS3Client( AmazonLaunchConfiguration awsConfig ) {
+        return S3Client.builder()
+                .region( awsConfig.getRegion().orElse( Region.US_EAST_1 ) )
+                .build();
     }
 }

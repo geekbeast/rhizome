@@ -1,7 +1,5 @@
 package com.geekbeast.rhizome.core;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.S3Object;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.keystores.Keystores;
 import com.google.common.base.Preconditions;
@@ -10,6 +8,8 @@ import com.geekbeast.aws.AwsS3Pod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ public class AwsJettyLoam extends JettyLoam {
     @Override
     protected void configureSslStores( SslContextFactory contextFactory ) throws IOException {
         AmazonLaunchConfiguration awsConfig = maybeAmazonLaunchConfiguration.get();
-        AmazonS3 s3 = AwsS3Pod.newS3Client( awsConfig );
+        S3Client s3 = AwsS3Pod.newS3Client( awsConfig );
 
         String truststoreKey = Preconditions.checkNotNull( awsConfig.getFolder(), "awsConfig folder cannot be null" )
                 + Preconditions
@@ -43,10 +43,8 @@ public class AwsJettyLoam extends JettyLoam {
         logger.info( "Keystore key: {}", keystoreKey );
         String truststorePassword = config.getTruststoreConfiguration().get().getStorePassword();
         String keystorePassword = config.getKeystoreConfiguration().get().getStorePassword();
-        S3Object truststoreObj = s3.getObject( awsConfig.getBucket(), truststoreKey );
-        S3Object keystoreObj = s3.getObject( awsConfig.getBucket(), keystoreKey );
-        InputStream ksStream = keystoreObj.getObjectContent();
-        InputStream tsStream = truststoreObj.getObjectContent();
+        InputStream ksStream = s3.getObject( GetObjectRequest.builder().bucket( awsConfig.getBucket() ).key( keystoreKey ).build() );
+        InputStream tsStream = s3.getObject( GetObjectRequest.builder().bucket( awsConfig.getBucket() ).key( truststoreKey ).build() );
 
         try {
             contextFactory.setKeyStore( Keystores.loadKeystoreFromStream( ksStream, keystorePassword.toCharArray() ) );

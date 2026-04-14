@@ -21,13 +21,13 @@
 
 package com.geekbeast.rhizome.pods;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.geekbeast.rhizome.configuration.ConfigurationConstants.Profiles;
 import com.geekbeast.rhizome.configuration.RhizomeConfiguration;
 import com.geekbeast.rhizome.configuration.jetty.JettyConfiguration;
 import com.geekbeast.rhizome.configuration.configuration.amazon.AmazonLaunchConfiguration;
 import com.geekbeast.ResourceConfigurationLoader;
 import com.geekbeast.aws.AwsS3Pod;
+import software.amazon.awssdk.services.s3.S3Client;
 import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +45,7 @@ public class AwsRhizomeConfigurationPod {
     private AmazonLaunchConfiguration awsConfig;
 
     @Inject
-    private AmazonS3 s3;
+    private S3Client s3;
 
     @Bean
     public RhizomeConfiguration rhizomeConfiguration() {
