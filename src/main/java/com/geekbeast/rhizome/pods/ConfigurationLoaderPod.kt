@@ -1,6 +1,6 @@
 package com.geekbeast.rhizome.pods
 
-import com.amazonaws.services.s3.AmazonS3
+import software.amazon.awssdk.services.s3.S3Client
 import com.geekbeast.rhizome.configuration.ConfigurationConstants
 import com.geekbeast.rhizome.configuration.configuration.amazon.AmazonLaunchConfiguration
 import com.geekbeast.ResourceConfigurationLoader
@@ -25,7 +25,7 @@ interface ConfigurationLoader {
     fun type(): String
 }
 
-class AwsConfigurationLoader(private val awsS3: AmazonS3, private val awsLaunchConfig: AmazonLaunchConfiguration) :
+class AwsConfigurationLoader(private val awsS3: S3Client, private val awsLaunchConfig: AmazonLaunchConfiguration) :
     ConfigurationLoader {
     override fun <T> load(clazz: Class<T>): T {
         return ResourceConfigurationLoader.loadConfigurationFromS3(awsS3,
@@ -65,7 +65,7 @@ class KubernetesConfigurationLoader : ConfigurationLoader {
 @Configuration
 class ConfigurationLoaderPod {
     @Autowired(required = false)
-    private lateinit var awsS3: AmazonS3
+    private lateinit var awsS3: S3Client
 
     @Autowired(required = false)
     private lateinit var awsLaunchConfig: AmazonLaunchConfiguration

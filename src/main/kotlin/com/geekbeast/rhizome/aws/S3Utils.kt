@@ -1,14 +1,11 @@
 package com.geekbeast.rhizome.aws
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.retry.PredefinedBackoffStrategies
-import com.amazonaws.retry.PredefinedRetryPolicies
-import com.amazonaws.retry.RetryPolicy
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.retry.RetryPolicy
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
 
 
 /**
@@ -17,36 +14,29 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
  */
 
 private const val MAX_ERROR_RETRIES = 5
-private val DEFAULT_RETRY_POLICY = RetryPolicy(
-        PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
-        PredefinedBackoffStrategies.SDKDefaultBackoffStrategy(), //TODO try jitter
-        MAX_ERROR_RETRIES,
-        false
-)
 
 fun newS3Client(
         accessKeyId: String,
         secretAccessKey: String,
         regionName: String,
-        retryPolicy: RetryPolicy = DEFAULT_RETRY_POLICY
-): AmazonS3 {
-    val s3Credentials = BasicAWSCredentials(accessKeyId, secretAccessKey)
-    val builder = AmazonS3ClientBuilder.standard()
-    builder.region = regionName
-    builder.credentials = AWSStaticCredentialsProvider(s3Credentials)
-
-    builder.clientConfiguration = ClientConfiguration().withRetryPolicy(retryPolicy)
-    return builder.build()
+        retryPolicy: RetryPolicy = RetryPolicy.builder().numRetries(MAX_ERROR_RETRIES).build()
+): S3Client {
+    val credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+    return S3Client.builder()
+            .region(Region.of(regionName))
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .overrideConfiguration { it.retryPolicy(retryPolicy) }
+            .build()
 }
 
 fun newS3Client(
         profileName: String,
         regionName: String,
-        retryPolicy: RetryPolicy = DEFAULT_RETRY_POLICY
-): AmazonS3 {
-    val builder = AmazonS3ClientBuilder.standard()
-    builder.region = regionName
-    builder.credentials = ProfileCredentialsProvider(profileName)
-    builder.clientConfiguration = ClientConfiguration().withRetryPolicy(retryPolicy)
-    return builder.build()
+        retryPolicy: RetryPolicy = RetryPolicy.builder().numRetries(MAX_ERROR_RETRIES).build()
+): S3Client {
+    return S3Client.builder()
+            .region(Region.of(regionName))
+            .credentialsProvider(ProfileCredentialsProvider.create(profileName))
+            .overrideConfiguration { it.retryPolicy(retryPolicy) }
+            .build()
 }

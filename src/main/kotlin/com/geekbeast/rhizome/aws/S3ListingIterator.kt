@@ -1,8 +1,8 @@
 package com.geekbeast.rhizome.aws
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.ListObjectsV2Request
-import com.amazonaws.services.s3.model.ListObjectsV2Result
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock
  * the listing iterator and paging mechanism.
  */
 abstract class S3ListingIterator<T> @JvmOverloads constructor(
-        private val s3: AmazonS3,
+        private val s3: S3Client,
         private val bucket: String,
         protected val folderPrefix: String,
         private val maxKeys: Int = 1000,
@@ -25,16 +25,16 @@ abstract class S3ListingIterator<T> @JvmOverloads constructor(
     protected var index = 0
 
     init {
-        continuationToken = result.nextContinuationToken
+        continuationToken = result.nextContinuationToken()
     }
 
     override fun next(): T {
         val nextElem = try {
             lock.lock()
             require(hasNext()) { "No element available." }
-            if (index == result.commonPrefixes.size) {
+            if (index == result.commonPrefixes().size) {
                 result = getNextListing()
-                continuationToken = result.nextContinuationToken
+                continuationToken = result.nextContinuationToken()
                 index = 0
             }
             getElement(index++)
@@ -58,17 +58,17 @@ abstract class S3ListingIterator<T> @JvmOverloads constructor(
         }
     }
 
-    private fun getNextListing(): ListObjectsV2Result {
-        val request = ListObjectsV2Request()
-                .withBucketName(bucket)
-                .withPrefix(folderPrefix)
-                .withDelimiter(delimiter)
-                .withMaxKeys(maxKeys)
+    private fun getNextListing(): ListObjectsV2Response {
+        val builder = ListObjectsV2Request.builder()
+                .bucket(bucket)
+                .prefix(folderPrefix)
+                .delimiter(delimiter)
+                .maxKeys(maxKeys)
 
         if (continuationToken != null) {
-            request.continuationToken = continuationToken
+            builder.continuationToken(continuationToken)
         }
 
-        return s3.listObjectsV2(request)
+        return s3.listObjectsV2(builder.build())
     }
 }
