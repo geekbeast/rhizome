@@ -27,6 +27,7 @@ import com.geekbeast.controllers.exceptions.ResourceNotFoundException
 import com.geekbeast.controllers.exceptions.TypeExistsException
 import com.geekbeast.controllers.exceptions.wrappers.BatchException
 import com.geekbeast.controllers.exceptions.wrappers.ErrorsDTO
+import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -46,6 +47,14 @@ class BaseExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException::class, HttpMessageNotReadableException::class)
     fun handleIllegalArgumentException(e: Exception): ResponseEntity<ErrorsDTO> {
+        when (e) {
+            is HttpMessageNotReadableException -> logger.error(
+                "Body that caused error if available: " + IOUtils.toString(
+                    e.httpInputMessage.body
+                )
+            )
+            else -> logger.error("Body is not available.")
+        }
         return handleException(e, HttpStatus.BAD_REQUEST, ApiExceptions.ILLEGAL_ARGUMENT_EXCEPTION)
     }
 
