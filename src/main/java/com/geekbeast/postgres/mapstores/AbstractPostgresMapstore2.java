@@ -69,6 +69,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
 
     private final List<PostgresColumnDefinition> keyColumns;
     private final List<PostgresColumnDefinition> valueColumns;
+    private final List<PostgresColumnDefinition> unionColumns;
 
     private final MapStoreConfig mapStoreConfig = new MapStoreConfig()
             .setInitialLoadMode( MapStoreConfig.InitialLoadMode.EAGER )
@@ -88,6 +89,7 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         initMapstore();
         this.keyColumns = initKeyColumns();
         this.valueColumns = initValueColumns();
+        this.unionColumns = initUnionColumns();
         this.batchCapacity = batchSize * getSelectInParameterCount();
         checkState( batchCapacity < ( 1 << 16 ),
                 "The selected batch size results in too large of batch capacity for Postgres (limit 65536 arguments for in statement" );
@@ -118,13 +120,26 @@ public abstract class AbstractPostgresMapstore2<K, V> implements TestableSelfReg
         return ImmutableList.copyOf( Sets.difference( table.getColumns(), table.getPrimaryKey() ) );
     }
 
+    /**
+     * Subclasses override to declare value columns that should be merged via array set-union on
+     * conflict instead of overwritten. The mapstore's {@code bind()} must skip these columns in
+     * the UPDATE half of the upsert (no {@code ?} is emitted for them in the SET clause).
+     */
+    protected final List<PostgresColumnDefinition> unionColumns() {
+        return unionColumns;
+    }
+
+    protected List<PostgresColumnDefinition> initUnionColumns() {
+        return ImmutableList.of();
+    }
+
     protected Optional<String> buildOnConflictQuery() {
         return Optional.of( ( " ON CONFLICT ("
                 + keyColumns().stream()
                 .map( PostgresColumnDefinition::getName )
                 .collect( Collectors.joining( ", " ) )
                 + ") DO "
-                + table.updateQuery( keyColumns(), valueColumns(), false ) ) );
+                + table.updateQuery( keyColumns(), valueColumns(), unionColumns(), false ) ) );
     }
 
     protected String buildInsertQuery() {

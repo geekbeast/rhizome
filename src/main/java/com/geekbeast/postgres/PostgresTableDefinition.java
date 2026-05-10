@@ -271,6 +271,26 @@ public class PostgresTableDefinition implements TableDefinition {
             List<PostgresColumnDefinition> whereToUpdate,
             List<PostgresColumnDefinition> columnsToUpdate,
             boolean notOnConflict ) {
+        return updateQuery( whereToUpdate, columnsToUpdate, ImmutableList.of(), notOnConflict );
+    }
+
+    /**
+     * ON CONFLICT-only overload: any column listed in {@code unionColumns} is updated with the array
+     * union of the existing row value and the EXCLUDED value (no parameter binding for that column
+     * in the SET clause), so concurrent writers can't clobber each other's array contributions.
+     */
+    public String updateQuery(
+            List<PostgresColumnDefinition> whereToUpdate,
+            List<PostgresColumnDefinition> columnsToUpdate,
+            List<PostgresColumnDefinition> unionColumns ) {
+        return updateQuery( whereToUpdate, columnsToUpdate, unionColumns, false );
+    }
+
+    public String updateQuery(
+            List<PostgresColumnDefinition> whereToUpdate,
+            List<PostgresColumnDefinition> columnsToUpdate,
+            List<PostgresColumnDefinition> unionColumns,
+            boolean notOnConflict ) {
         checkArgument( !columnsToUpdate.isEmpty(), "Columns to update must be specified." );
         checkArgument( !whereToUpdate.isEmpty(), "Columns for where clause must be specified." );
 
@@ -281,7 +301,7 @@ public class PostgresTableDefinition implements TableDefinition {
                 updateSql.append( name );
             }
 
-            updateSql.append( " SET " ).append( getBindParamsForCols( columnsToUpdate, false ) );
+            updateSql.append( " SET " ).append( getBindParamsForCols( columnsToUpdate, unionColumns, false ) );
 
             if ( notOnConflict ) {
                 updateSql.append( " WHERE " ).append( getBindParamsForCols( whereToUpdate, true ) );
@@ -458,8 +478,27 @@ public class PostgresTableDefinition implements TableDefinition {
     private String getBindParamsForCols(
             Collection<PostgresColumnDefinition> columns,
             boolean isBindingWhere ) {
+        return getBindParamsForCols( columns, ImmutableList.of(), isBindingWhere );
+    }
+
+    private String getBindParamsForCols(
+            Collection<PostgresColumnDefinition> columns,
+            Collection<PostgresColumnDefinition> unionColumns,
+            boolean isBindingWhere ) {
         String joinString = isBindingWhere ? " and " : ", ";
         return columns.stream().map( column -> {
+            if ( !isBindingWhere && unionColumns.contains( column ) ) {
+                // Array set-union: existing row value || incoming EXCLUDED value, deduped.
+                // No parameter is bound for this column in the SET clause — the mapstore's
+                // bind() must skip it when it's preparing the UPDATE half of the upsert.
+                // COALESCEs guard against NULL on either side (NULL || arr is NULL in pg).
+                String col = column.getName();
+                String emptyArr = "ARRAY[]::" + column.getDatatype().sql();
+                return col + " = COALESCE((SELECT array_agg(DISTINCT d) FROM unnest("
+                        + "COALESCE(" + name + "." + col + ", " + emptyArr + ")"
+                        + " || COALESCE(EXCLUDED." + col + ", " + emptyArr + ")"
+                        + ") d), " + emptyArr + ")";
+            }
             if ( overwriteOnConflict && !isBindingWhere ) {
                 return column.getName() + " = EXCLUDED." + column.getName();
             }
